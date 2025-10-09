@@ -489,7 +489,7 @@ class DownloadManager {
         
         const totalSales = reports.reduce((sum, r) => sum + (r.salesAmount || 0), 0);
         const totalCollection = reports.reduce((sum, r) => sum + (r.collectionAmount || 0), 0);
-        const collectionRate = totalSales > 0 ? (totalCollection / totalSales * 100).toFixed(1) : 0;
+        const collectionRate = totalSales > 0 ? (totalCollection / totalSales * 100).toFixed(2) : 0;  /* ✅ % 소수점 2자리 */
         
         return {
             salesperson: userName,
@@ -541,7 +541,7 @@ class DownloadManager {
         return Object.values(salesByPerson).map(person => {
             const totalSales = person.reports.reduce((sum, r) => sum + (r.salesAmount || 0), 0);
             const totalCollection = person.reports.reduce((sum, r) => sum + (r.collectionAmount || 0), 0);
-            const collectionRate = totalSales > 0 ? (totalCollection / totalSales * 100).toFixed(1) : 0;
+            const collectionRate = totalSales > 0 ? (totalCollection / totalSales * 100).toFixed(2) : 0;  /* ✅ % 소수점 2자리 */
             
             return {
                 salesperson: person.salesperson,
@@ -859,7 +859,7 @@ class DownloadManager {
                 '방문횟수': companyReports.length,
                 '총 매출액': formatCurrency(totalSales),
                 '총 수금액': formatCurrency(totalCollection),
-                '수금률': totalSales > 0 ? ((totalCollection / totalSales * 100).toFixed(1) + '%') : '0%',
+                '수금률': totalSales > 0 ? ((totalCollection / totalSales * 100).toFixed(2) + '%') : '0%',  /* ✅ % 소수점 2자리 */
                 '최근 방문일': companyReports.length > 0 ? formatDate(new Date(companyReports[0].visitDate)) : '-'
             };
         });
@@ -1025,7 +1025,7 @@ class DownloadManager {
             '보고서 수': formatNumber(stat.count),
             '총 매출액': formatCurrency(stat.totalSales),
             '총 수금액': formatCurrency(stat.totalCollection),
-            '수금률': stat.totalSales > 0 ? ((stat.totalCollection / stat.totalSales * 100).toFixed(1) + '%') : '0%'
+            '수금률': stat.totalSales > 0 ? ((stat.totalCollection / stat.totalSales * 100).toFixed(2) + '%') : '0%'  /* ✅ % 소수점 2자리 */
         }));
         
         const worksheet = XLSX.utils.json_to_sheet(rows);

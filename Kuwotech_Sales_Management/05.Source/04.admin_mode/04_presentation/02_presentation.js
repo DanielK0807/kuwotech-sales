@@ -429,8 +429,8 @@ function groupByEmployee(reports) {
  * 달성률 계산
  */
 function calculateRate(actual, target) {
-    if (!target || target === 0) return 0;
-    return Math.round((actual / target) * 100);
+    if (!target || target === 0) return '0.00';
+    return ((actual / target) * 100).toFixed(2);  /* ✅ % 소수점 2자리 */
 }
 
 // ============================================
