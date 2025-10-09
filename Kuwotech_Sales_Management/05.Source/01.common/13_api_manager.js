@@ -55,7 +55,7 @@ class ApiManager {
 
         // API 설정 (GlobalConfig 기반)
         this.config = {
-            baseURL: baseURL,
+            baseURL: `${baseURL}/api`,  // /api prefix 추가
             timeout: 30000,
             headers: {
                 'Content-Type': 'application/json'
@@ -124,8 +124,8 @@ class ApiManager {
             
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            const response = await fetch(`${this.config.baseURL}/api/health`, {
+
+            const response = await fetch(`${this.config.baseURL}/health`, {
                 method: 'GET',
                 signal: controller.signal
             });
