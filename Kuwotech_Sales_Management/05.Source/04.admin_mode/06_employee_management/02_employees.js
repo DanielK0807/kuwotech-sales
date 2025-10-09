@@ -345,7 +345,7 @@ function createEmployeeRow(employee) {
         <td>${employee.department || '-'}</td>
         <td>${employee.hireDate ? formatDate(employee.hireDate) : '-'}</td>
         <td>${employee.phone ? formatPhone(employee.phone) : '-'}</td>
-        <td style="font-size: 0.9rem;">${employee.email || '-'}</td>
+        <td class="text-sm">${employee.email || '-'}</td>
         <td>
             <span class="company-count-badge" title="${employee.companyCount}개 거래처 담당">
                 📦 ${employee.companyCount}개
@@ -481,31 +481,31 @@ window.viewEmployee = function(id) {
         size: 'lg',
         title: '직원 상세 정보',
         content: `
-            <div class="employee-detail" style="padding: 20px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="employee-detail p-20">
+                <div class="grid-2col gap-20">
                     <div>
-                        <h3 style="margin-bottom: 15px;">기본 정보</h3>
+                        <h3 class="mb-15">기본 정보</h3>
                         <p><strong>ID:</strong> ${employee.id}</p>
                         <p><strong>이름:</strong> ${employee.name}</p>
                         <p><strong>이메일:</strong> ${employee.email}</p>
                         <p><strong>전화번호:</strong> ${formatPhone(employee.phone)}</p>
                     </div>
                     <div>
-                        <h3 style="margin-bottom: 15px;">직무 정보</h3>
+                        <h3 class="mb-15">직무 정보</h3>
                         <p><strong>역할:</strong> ${employee.role}</p>
                         <p><strong>부서:</strong> ${employee.department}</p>
                         <p><strong>입사일:</strong> ${formatDateKorean(employee.hireDate)}</p>
-                        <p><strong>상태:</strong> 
+                        <p><strong>상태:</strong>
                             <span class="glass-badge ${employee.status === 'active' ? 'success' : 'warning'}">
                                 ${employee.status === 'active' ? '활성' : '비활성'}
                             </span>
                         </p>
                     </div>
                 </div>
-                
-                <div style="margin-top: 30px;">
-                    <h3 style="margin-bottom: 15px;">활동 내역</h3>
-                    <div class="glass-panel" style="padding: 15px;">
+
+                <div class="mt-30">
+                    <h3 class="mb-15">활동 내역</h3>
+                    <div class="glass-panel p-15">
                         <p>• 최근 로그인: 2025-01-27 09:30:00</p>
                         <p>• 이번 달 실적: 15건 처리</p>
                         <p>• 관리 거래처: 8개사</p>
@@ -617,11 +617,11 @@ window.deleteEmployee = function(id) {
         size: 'md',
         title: '직원 삭제 확인',
         content: `
-            <div style="padding: 20px; text-align: center;">
-                <p style="margin-bottom: 20px;">
+            <div class="p-20 text-center">
+                <p class="mb-20">
                     <strong>${employee.name}</strong> 직원을 삭제하시겠습니까?
                 </p>
-                <p style="color: #ef4444; font-size: 0.9rem;">
+                <p class="text-danger text-sm">
                     ⚠️ 이 작업은 되돌릴 수 없습니다.
                 </p>
             </div>
@@ -768,11 +768,11 @@ window.bulkDelete = function() {
         size: 'md',
         title: '일괄 삭제 확인',
         content: `
-            <div style="padding: 20px; text-align: center;">
-                <p style="margin-bottom: 20px;">
+            <div class="p-20 text-center">
+                <p class="mb-20">
                     선택한 <strong>${count}명</strong>의 직원을 삭제하시겠습니까?
                 </p>
-                <p style="color: #ef4444; font-size: 0.9rem;">
+                <p class="text-danger text-sm">
                     ⚠️ 이 작업은 되돌릴 수 없습니다.
                 </p>
             </div>
@@ -810,17 +810,17 @@ window.importEmployees = function() {
         size: 'lg',
         title: '직원 일괄 등록',
         content: `
-            <div style="padding: 20px;">
-                <h3 style="margin-bottom: 15px; color: #FFFFFF; font-weight: 600; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);">CSV 파일 업로드</h3>
-                <p style="margin-bottom: 20px; color: #FFFFFF; font-size: 14px; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">
+            <div class="p-20">
+                <h3 class="mb-15 text-white font-weight-600 text-shadow">CSV 파일 업로드</h3>
+                <p class="mb-20 text-white text-sm text-shadow">
                     CSV 파일 형식: 이름, 이메일, 역할, 부서, 전화번호
                 </p>
 
-                <input type="file" id="csvFile" accept=".csv" class="glass-input" style="margin-bottom: 20px;">
+                <input type="file" id="csvFile" accept=".csv" class="glass-input mb-20">
 
-                <div class="glass-panel" style="padding: 15px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;">
-                    <h4 style="margin-bottom: 12px; color: #FFFFFF; font-weight: 600; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);">예제 형식:</h4>
-                    <pre style="font-size: 0.875rem; color: #FFFFFF; background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; line-height: 1.6; margin: 0;">이름,이메일,역할,부서,전화번호
+                <div class="glass-panel p-15 bg-glass-08 border-glass">
+                    <h4 class="mb-12 text-white font-weight-600 text-shadow">예제 형식:</h4>
+                    <pre class="text-xs text-white bg-code line-height-1-6 m-0">이름,이메일,역할,부서,전화번호
 홍길동,hong@kuwotech.com,관리자,경영지원팀,01012345678
 김영희,kim@kuwotech.com,영업담당,영업1팀,01023456789</pre>
                 </div>
@@ -924,42 +924,42 @@ window.showTransferCompanies = async function(employeeId) {
         size: 'xl',
         title: `🔄 거래처 이관 - ${employee.name}`,
         content: `
-            <div style="padding: 20px;">
-                <div class="glass-panel" style="padding: 15px; margin-bottom: 20px; background: rgba(74, 158, 255, 0.1);">
-                    <p style="margin: 0; font-size: 0.95rem;">
+            <div class="p-20">
+                <div class="glass-panel p-15 mb-20 bg-info">
+                    <p class="m-0 text-md">
                         <strong>${employee.name}</strong>님이 담당하는 <strong>${companies.length}개</strong> 거래처를 이관합니다.
                     </p>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 10px;">이관 방식 선택</h4>
-                    <div style="display: flex; gap: 15px;">
-                        <label class="transfer-option" style="flex: 1; padding: 15px; border: 2px solid rgba(74, 158, 255, 0.3); border-radius: 8px; cursor: pointer;">
+                <div class="mb-20">
+                    <h4 class="mb-10">이관 방식 선택</h4>
+                    <div class="d-flex gap-15">
+                        <label class="transfer-option flex-1 p-15 border-info cursor-pointer">
                             <input type="radio" name="transferMode" value="all" checked onchange="updateTransferMode()">
                             <div>
                                 <strong>전체 일괄 이관</strong>
-                                <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">${companies.length}개 거래처 모두 이관</p>
+                                <p class="m-5-0 text-xs text-secondary">${companies.length}개 거래처 모두 이관</p>
                             </div>
                         </label>
-                        <label class="transfer-option" style="flex: 1; padding: 15px; border: 2px solid rgba(74, 158, 255, 0.3); border-radius: 8px; cursor: pointer;">
+                        <label class="transfer-option flex-1 p-15 border-info cursor-pointer">
                             <input type="radio" name="transferMode" value="selective" onchange="updateTransferMode()">
                             <div>
                                 <strong>선택적 이관</strong>
-                                <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">거래처를 선택하여 이관</p>
+                                <p class="m-5-0 text-xs text-secondary">거래처를 선택하여 이관</p>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <div id="selectiveSection" style="display: none; margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 10px;">이관할 거래처 선택 (<span id="selectedCompanyCount">0</span>/${companies.length}개)</h4>
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px;">
+                <div id="selectiveSection" class="d-none mb-20">
+                    <h4 class="mb-10">이관할 거래처 선택 (<span id="selectedCompanyCount">0</span>/${companies.length}개)</h4>
+                    <div class="max-h-300 overflow-auto">
                         ${companies.map(c => `
-                            <label class="company-checkbox-item" style="display: flex; align-items: center; padding: 10px; margin-bottom: 5px; background: var(--glass-bg); border-radius: 6px; cursor: pointer;">
+                            <label class="company-checkbox-item d-flex align-center p-10 mb-5 bg-glass-08 border-radius-6 cursor-pointer">
                                 <input type="checkbox" class="company-checkbox" data-key="${c.keyValue}" onchange="updateSelectedCompanyCount()">
-                                <div style="margin-left: 10px; flex: 1;">
+                                <div class="ml-10 flex-1">
                                     <strong>${c.finalCompanyName}</strong>
-                                    <span style="margin-left: 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    <span class="ml-10 text-xs text-secondary">
                                         ${c.businessStatus} | 매출: ${formatCurrency(c.accumulatedSales || 0, true)}
                                     </span>
                                 </div>
@@ -968,9 +968,9 @@ window.showTransferCompanies = async function(employeeId) {
                     </div>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 10px;">이관 대상 직원</h4>
-                    <select id="targetEmployee" class="glass-input" style="width: 100%;">
+                <div class="mb-20">
+                    <h4 class="mb-10">이관 대상 직원</h4>
+                    <select id="targetEmployee" class="glass-input w-full">
                         <option value="">직원을 선택하세요</option>
                         ${employees.filter(e => e.id !== employeeId && e.status === 'active').map(e => `
                             <option value="${e.name}">${e.name} (${e.department}) - 현재 ${e.companyCount}개 담당</option>
@@ -978,8 +978,8 @@ window.showTransferCompanies = async function(employeeId) {
                     </select>
                 </div>
 
-                <div id="transferSummary" class="glass-panel" style="padding: 15px; background: rgba(16, 185, 129, 0.1); display: none;">
-                    <p style="margin: 0; font-size: 0.9rem; color: #10b981;">
+                <div id="transferSummary" class="glass-panel p-15 bg-success d-none">
+                    <p class="m-0 text-sm text-success">
                         ℹ️ <span id="summaryText"></span>
                     </p>
                 </div>
@@ -1171,15 +1171,15 @@ window.handleRetirement = async function(employeeId) {
             size: 'md',
             title: '👋 퇴사 처리',
             content: `
-                <div style="padding: 20px; text-align: center;">
-                    <div class="glass-panel" style="padding: 20px; margin-bottom: 20px; background: rgba(245, 158, 11, 0.1);">
-                        <h3 style="margin: 0 0 10px; color: #f59e0b;">⚠️ 거래처 이관 필요</h3>
-                        <p style="margin: 0; font-size: 0.95rem;">
+                <div class="p-20 text-center">
+                    <div class="glass-panel p-20 mb-20 bg-warning">
+                        <h3 class="m-0 mb-10 text-warning">⚠️ 거래처 이관 필요</h3>
+                        <p class="m-0 text-md">
                             <strong>${employee.name}</strong>님이 담당하는 <strong>${employee.companyCount}개</strong> 거래처를<br/>
                             먼저 다른 직원에게 이관해야 합니다.
                         </p>
                     </div>
-                    <p style="margin: 20px 0; color: var(--text-secondary);">
+                    <p class="mt-20 mb-20 text-secondary">
                         거래처 이관 화면으로 이동하시겠습니까?
                     </p>
                 </div>
@@ -1215,16 +1215,16 @@ function confirmRetirement(employee) {
         size: 'md',
         title: '👋 퇴사 처리 확인',
         content: `
-            <div style="padding: 20px; text-align: center;">
-                <p style="margin-bottom: 20px; font-size: 1.1rem;">
+            <div class="p-20 text-center">
+                <p class="mb-20 text-lg">
                     <strong>${employee.name}</strong>님을 퇴사 처리하시겠습니까?
                 </p>
-                <div class="glass-panel" style="padding: 15px; text-align: left; background: var(--glass-bg);">
-                    <p style="margin: 5px 0;"><strong>부서:</strong> ${employee.department}</p>
-                    <p style="margin: 5px 0;"><strong>입사일:</strong> ${formatDateKorean(employee.hireDate)}</p>
-                    <p style="margin: 5px 0;"><strong>담당 거래처:</strong> ${employee.companyCount}개</p>
+                <div class="glass-panel p-15 text-left bg-glass">
+                    <p class="m-5-0"><strong>부서:</strong> ${employee.department}</p>
+                    <p class="m-5-0"><strong>입사일:</strong> ${formatDateKorean(employee.hireDate)}</p>
+                    <p class="m-5-0"><strong>담당 거래처:</strong> ${employee.companyCount}개</p>
                 </div>
-                <p style="margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">
+                <p class="mt-20 text-sm text-secondary">
                     퇴사 처리 후에도 데이터는 보관되며, 상태만 '퇴사'로 변경됩니다.
                 </p>
             </div>
