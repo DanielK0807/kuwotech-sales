@@ -689,7 +689,7 @@ function mapReportToExcel(report) {
   return {
     '보고서ID': report.reportId,
     '거래처ID': report.companyId,
-    '작성자': report.submittedByName,
+    '작성자': report.submittedBy,
     '작성일': formatDate(report.submittedDate),
     '방문일': formatDate(report.visitDate),
     '방문목적': report.visitPurpose,

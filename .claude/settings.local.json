@@ -23,7 +23,10 @@
       "Bash(git reset:*)",
       "Bash(railway:*)",
       "Bash(gh:*)",
-      "Bash(timeout 30 bash -c 'while true; do cd \"\"F:\\7.VScode\\Running VS Code\\KUWOTECH\\Kuwotech_Sales_Management\\backend\"\" && railway logs --latest 2>&1 | grep -E \"\"(Building|Deploying|SUCCESS|ERROR)\"\" | tail -n 5 && break; sleep 5; done')"
+      "Bash(timeout 30 bash -c 'while true; do cd \"\"F:\\7.VScode\\Running VS Code\\KUWOTECH\\Kuwotech_Sales_Management\\backend\"\" && railway logs --latest 2>&1 | grep -E \"\"(Building|Deploying|SUCCESS|ERROR)\"\" | tail -n 5 && break; sleep 5; done')",
+      "Bash(timeout:*)",
+      "Bash(powershell:*)",
+      "mcp__playwright__playwright_navigate"
     ],
     "deny": [],
     "ask": []
