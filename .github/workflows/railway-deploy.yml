@@ -1,0 +1,34 @@
+# Railway 자동 배포 워크플로우
+# GitHub Push 시 Railway로 자동 배포
+
+name: Railway Deploy
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service kuwotech-sales
+
+      - name: Deployment Success
+        run: echo "✅ Deployed to Railway successfully!"
