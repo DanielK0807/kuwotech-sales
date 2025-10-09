@@ -153,6 +153,114 @@
     border: none;
 }
 
+/* 역할별 버튼 (Week 1 Day 3-4) */
+.btn-save {
+    background: var(--success-color);
+    color: var(--success-text);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-save:hover {
+    background: #45a049; /* success-color darker */
+    transform: translateY(-2px);
+}
+
+.btn-refresh {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-refresh:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: var(--danger-color);
+    color: var(--danger-text);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-delete:hover {
+    background: #d32f2f; /* danger-color darker */
+    transform: translateY(-2px);
+}
+
+.btn-cancel {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--text-secondary);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    padding: 12px 24px;
+}
+
+.btn-cancel:hover {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-2px);
+}
+
+.btn-confirm {
+    background: var(--primary-color);
+    color: var(--text-on-primary);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-confirm:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-logout {
+    background: var(--warning-color);
+    color: var(--warning-text);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-logout:hover {
+    background: #f57c00; /* warning-color darker */
+    transform: translateY(-2px);
+}
+
+.btn-export {
+    background: var(--info-color);
+    color: var(--info-text);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-export:hover {
+    background: #00897b; /* info-color darker */
+    transform: translateY(-2px);
+}
+
+.btn-import {
+    background: var(--info-color);
+    color: var(--info-text);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+}
+
+.btn-import:hover {
+    background: #00897b; /* info-color darker */
+    transform: translateY(-2px);
+}
+
 /* ============================================
    [SECTION: 카드 컴포넌트] - Enhanced 3D (가이드 4.5.3)
    ============================================ */
