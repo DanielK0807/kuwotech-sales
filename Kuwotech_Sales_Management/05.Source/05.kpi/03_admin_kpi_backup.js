@@ -351,7 +351,7 @@ export async function getRecentReports(limit = 5) {
             id: report.reportId,
             title: report.title || `${report.reportType} 보고서`,
             date: report.createdDate,
-            author: report.employeeName || report.employeeId,
+            author: report.employeeName || '-',
             company: report.companyName || '-'
         }));
     } catch (error) {

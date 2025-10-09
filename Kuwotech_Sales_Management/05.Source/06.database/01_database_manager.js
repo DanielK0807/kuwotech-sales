@@ -466,13 +466,17 @@ export class DatabaseManager {
     }
 
     /**
-     * [기능: 데이터 업데이트 - 하위 호환성]
+     * [기능: 데이터 업데이트]
+     * 모든 엔티티는 id 필드 사용 (employeeId, clientId, reportId 통일됨)
      */
     async update(storeName, data) {
         const endpoint = this.getEndpoint(storeName);
-        const id = data.id || data.employeeId || data.clientId || data.reportId;
 
-        const response = await this.request(`${endpoint}/${id}`, {
+        if (!data.id) {
+            throw new Error('업데이트할 데이터의 ID가 필요합니다');
+        }
+
+        const response = await this.request(`${endpoint}/${data.id}`, {
             method: 'PUT',
             body: JSON.stringify(data)
         });
