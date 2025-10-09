@@ -278,7 +278,7 @@ function displayKPICardsWithGlass() {
             value: dashboardData.누적매출금액 || 0,
             unit: '원',
             icon: '💰',
-            formula: '∑(전체 영업사원 누적매출)',
+            formula: '∑(전체 영업담당 누적매출)',
             style: { color: 'primary', size: 'lg', animated: true, highlighted: true }
         },
         {
@@ -286,7 +286,7 @@ function displayKPICardsWithGlass() {
             value: dashboardData.누적수금금액 || 0,
             unit: '원',
             icon: '💳',
-            formula: '∑(전체 영업사원 누적수금)',
+            formula: '∑(전체 영업담당 누적수금)',
             style: { color: 'success', size: 'md', animated: true }
         },
         {
@@ -302,7 +302,7 @@ function displayKPICardsWithGlass() {
             value: dashboardData.주요제품매출액 || 0,
             unit: '원',
             icon: '💎',
-            formula: '∑(전체 영업사원 주요제품매출)',
+            formula: '∑(전체 영업담당 주요제품매출)',
             style: { color: 'info', size: 'md', animated: true }
         },
         {
@@ -330,7 +330,7 @@ function displayKPICardsWithGlass() {
             value: '상세보기',
             unit: '',
             icon: '🌟',
-            description: '영업사원별 순위 보기',
+            description: '영업담당자별 순위 보기',
             style: { color: 'primary', size: 'md', animated: true, clickable: true },
             onClick: () => showRankingModal('total')
         },
@@ -339,7 +339,7 @@ function displayKPICardsWithGlass() {
             value: '상세보기',
             unit: '',
             icon: '⭐',
-            description: '영업사원별 순위 보기',
+            description: '영업담당자별 순위 보기',
             style: { color: 'success', size: 'md', animated: true, clickable: true },
             onClick: () => showRankingModal('main')
         }
@@ -387,7 +387,7 @@ function renderKPISection(sectionId, kpiConfig) {
 // ============================================
 
 /**
- * 영업사원별 순위 모달 표시
+ * 영업담당자별 순위 모달 표시
  * @param {string} type - 'total' (전체매출) | 'main' (주요제품매출)
  */
 async function showRankingModal(type) {

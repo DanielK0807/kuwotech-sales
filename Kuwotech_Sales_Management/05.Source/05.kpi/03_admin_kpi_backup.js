@@ -67,13 +67,13 @@ export async function calculateAdminKPI() {
         // 전사 달성율 관련 KPI (2개)
         // ============================================
         
-        // 5. 회사배정기준대비 달성율 (기준: 80개 × 영업사원 수)
+        // 5. 회사배정기준대비 달성율 (기준: 80개 × 영업담당자 수)
         const salesCount = await getSalesPersonCount();
         const targetBase = 80 * salesCount;
         const achievementRate = calculateAchievementRate(totalCompanies, targetBase);
         console.log(`[KPI 5] 회사배정기준대비 달성율: ${achievementRate.toFixed(2)}% (기준: ${targetBase}개)`);
-        
-        // 6. 주요고객처목표달성율 (목표: 40개 × 영업사원 수)
+
+        // 6. 주요고객처목표달성율 (목표: 40개 × 영업담당자 수)
         const mainTarget = 40 * salesCount;
         const mainAchievementRate = (mainProductCompanies / mainTarget) * 100;
         console.log(`[KPI 6] 주요고객처목표달성율: ${mainAchievementRate.toFixed(2)}% (목표: ${mainTarget}개)`);
@@ -339,7 +339,7 @@ export function formatAdminKPI(kpi) {
             누적수금금액: `${kpi.totalCollection.toLocaleString()}원`
         },
         기타정보: {
-            영업사원수: `${kpi.salesPersonCount}명`,
+            영업담당자수: `${kpi.salesPersonCount}명`,
             기준월: `${kpi.currentMonth}개월`
         }
     };

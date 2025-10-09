@@ -77,8 +77,8 @@ async function loadData() {
         const API_BASE_URL = GlobalConfig.API_BASE_URL;
 
         // 거래처 데이터 로드 (전체 데이터 - limit=9999)
-        console.log('📡 [거래처] API 호출 시작:', `${API_BASE_URL}/companies?limit=9999`);
-        const companiesResponse = await fetch(`${API_BASE_URL}/companies?limit=9999`, {
+        console.log('📡 [거래처] API 호출 시작:', `${API_BASE_URL}/api/companies?limit=9999`);
+        const companiesResponse = await fetch(`${API_BASE_URL}/api/companies?limit=9999`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -116,8 +116,8 @@ async function loadData() {
         }
 
         // 직원 데이터 로드
-        console.log('📡 [직원] API 호출 시작:', `${API_BASE_URL}/employees`);
-        const employeesResponse = await fetch(`${API_BASE_URL}/employees`, {
+        console.log('📡 [직원] API 호출 시작:', `${API_BASE_URL}/api/employees`);
+        const employeesResponse = await fetch(`${API_BASE_URL}/api/employees`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

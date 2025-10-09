@@ -43,7 +43,7 @@ export const BUSINESS_TERMS = {
     "차장": "차장",
     "과장": "과장",
     "대리": "대리",
-    "사원": "사원",
+    "사원": "직원",
     
     // 부서 관련
     "영업부": "영업팀",
@@ -138,56 +138,54 @@ export const SYSTEM_MESSAGES = {
 // ============================================
 
 export const FIELD_LABELS = {
-    // 거래처 필드
-    companyNameERP: "거래처명(ERP)",
-    companyNameFull: "거래처 전체명",
-    keyValue: "Key Value",
-    erpCode: "ERP 코드",
-    businessNumber: "사업자번호",
-    representativeName: "대표자명",
-    businessStatus: "영업상태",
-    businessType: "업종",
-    businessCategory: "업태",
-    address: "주소",
-    phoneNumber: "전화번호",
-    faxNumber: "팩스번호",
+    // === Employee 필드 (employees 테이블) ===
+    id: "직원ID",
+    name: "이름",
     email: "이메일",
-    website: "홈페이지",
-    
-    // 담당자 필드
-    internalManager: "담당자",
-    externalManager: "거래처 담당자",
-    managerPhone: "담당자 연락처",
-    managerEmail: "담당자 이메일",
-    managerPosition: "담당자 직급",
-    
-    // 매출 필드
-    monthlySales: "월 매출",
-    quarterlySales: "분기 매출",
-    yearlySales: "연간 매출",
-    accumulatedSales: "누적 매출",
-    targetSales: "목표 매출",
-    achievementRate: "달성률",
-    
-    // 제품 필드
-    mainProduct: "주요 제품",
-    productCategory: "제품 카테고리",
-    productPrice: "제품 가격",
-    productQuantity: "수량",
-    
-    // 날짜 필드
+    role1: "역할",
+    role2: "역할2",
+    department: "부서",
+    hireDate: "입사일",
+    phone: "전화번호",
+    status: "재직상태",
+    canUploadExcel: "엑셀업로드권한",
+
+    // === Company 필드 (companies 테이블) ===
+    keyValue: "거래처ID",
+    erpCompanyName: "거래처명(ERP)",
+    finalCompanyName: "최종거래처명",
+    isClosed: "폐업여부",
+    ceoOrDentist: "대표자/의사",
+    customerRegion: "고객사지역",
+    internalManager: "내부담당자",
+    accumulatedCollection: "누적수금금액",
+    accumulatedSales: "누적매출금액",
+    accountsReceivable: "매출채권잔액",
+    activityNotes: "영업활동내역",
+    businessStatus: "거래상태",
+    salesProduct: "판매제품",
+    lastPaymentDate: "마지막결제일",
+    lastPaymentAmount: "마지막결제금액",
+
+    // === Report 필드 (reports 테이블) ===
+    reportId: "보고서ID",
+    submittedBy: "작성자",
+    submittedDate: "제출일",
+    companyId: "거래처ID",
+    targetCollectionAmount: "목표수금금액",
+    targetSalesAmount: "목표매출액",
+    actualSalesAmount: "실제매출금액",
+    actualCollectionAmount: "실제수금금액",
+    processedBy: "처리자",
+    adminComment: "관리자코멘트",
+
+    // === 기타 공통 필드 ===
     registrationDate: "등록일",
     modifiedDate: "수정일",
-    lastContactDate: "최근 연락일",
-    contractStartDate: "계약 시작일",
-    contractEndDate: "계약 종료일",
-    
-    // 기타 필드
+    createdAt: "생성일시",
+    updatedAt: "수정일시",
     notes: "비고",
-    attachments: "첨부파일",
-    tags: "태그",
-    priority: "우선순위",
-    status: "상태"
+    priority: "우선순위"
 };
 
 // ============================================

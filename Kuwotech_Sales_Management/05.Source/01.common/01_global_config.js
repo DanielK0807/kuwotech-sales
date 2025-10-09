@@ -563,7 +563,7 @@ export const BUSINESS_TERMS = {
         DEPUTY: '차장',
         SECTION_CHIEF: '과장',
         ASSISTANT: '대리',
-        STAFF: '사원'
+        STAFF: '직원'
     }
 };
 

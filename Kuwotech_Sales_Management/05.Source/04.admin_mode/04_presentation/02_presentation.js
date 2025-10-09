@@ -63,8 +63,8 @@ async function loadMasterData() {
         const API_BASE_URL = GlobalConfig.API_BASE_URL;
 
         // 1. 담당부서 목록 로드
-        console.log('📡 [담당부서] API 호출 시작:', `${API_BASE_URL}/master/departments`);
-        const departmentsResponse = await fetch(`${API_BASE_URL}/master/departments`, {
+        console.log('📡 [담당부서] API 호출 시작:', `${API_BASE_URL}/api/master/departments`);
+        const departmentsResponse = await fetch(`${API_BASE_URL}/api/master/departments`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -91,8 +91,8 @@ async function loadMasterData() {
         }
 
         // 2. 직원 목록 로드
-        console.log('📡 [직원] API 호출 시작:', `${API_BASE_URL}/employees`);
-        const employeesResponse = await fetch(`${API_BASE_URL}/employees`, {
+        console.log('📡 [직원] API 호출 시작:', `${API_BASE_URL}/api/employees`);
+        const employeesResponse = await fetch(`${API_BASE_URL}/api/employees`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

@@ -55,7 +55,7 @@ const COLUMN_MAPPING = {
         '이메일': 'email',
         '연락처': 'contact',
         '역할': 'role',
-        '영업사원목록': 'isSales',
+        '영업담당목록': 'isSales',
         '관리자목록': 'isAdmin'
     }
 };
@@ -339,7 +339,7 @@ export class ExcelDataLoader {
             
             // 역할 결정
             let role = '';
-            if (row['영업사원목록'] || row['영업담당']) {
+            if (row['영업담당목록'] || row['영업담당']) {
                 role = '영업담당';
             }
             if (row['관리자목록'] || row['관리자']) {

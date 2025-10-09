@@ -1100,7 +1100,7 @@ function updateTransferSummary() {
 async function loadEmployeeCompanies(employeeName) {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`${GlobalConfig.API_BASE_URL}/companies?limit=9999`, {
+        const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/companies?limit=9999`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1132,7 +1132,7 @@ async function transferCompaniesAPI(companyKeys, targetName) {
 
         // 각 거래처를 순차적으로 업데이트
         for (const keyValue of companyKeys) {
-            const response = await fetch(`${GlobalConfig.API_BASE_URL}/companies/${keyValue}`, {
+            const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/companies/${keyValue}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

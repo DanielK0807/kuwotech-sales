@@ -242,7 +242,7 @@ export function calculateSalesConcentrationDetailed(totalSales, totalCompanies, 
     
     if (currentMonth === 0) {
         console.log('[결과] 월수 0개월 → 매출집중도 0');
-        return { concentration: 0, interpretation: '신입사원' };
+        return { concentration: 0, interpretation: '신입직원' };
     }
     
     // 매출집중도 = 누적매출금액 / 담당거래처 / 현재월수
@@ -329,12 +329,12 @@ export async function getEmployees() {
 }
 
 /**
- * 영업사원 수 조회
+ * 영업담당자 수 조회
  */
 export async function getSalesPersonCount() {
     const employees = await getEmployees();
     const salesCount = employees.filter(emp => emp.role === 'sales').length;
-    console.log(`[영업사원 수] ${salesCount}명`);
+    console.log(`[영업담당자 수] ${salesCount}명`);
     return salesCount;
 }
 

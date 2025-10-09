@@ -19,7 +19,7 @@ import { calculateSalesKPI } from './02_sales_kpi.js';
 import { formatNumber } from '../01.common/03_format.js';
 
 // ============================================
-// [섹션: 영업사원별 기여도 순위]
+// [섹션: 영업담당자별 기여도 순위]
 // ============================================
 
 /**
@@ -31,15 +31,15 @@ export async function calculateContributionRanking(type = 'total') {
     console.log(`=== 기여도 순위 계산 시작 (${type}) ===`);
     
     try {
-        // 영업사원 목록 조회
+        // 영업담당자 목록 조회
         const employees = await getEmployees();
         const salesEmployees = employees.filter(emp => emp.role === 'sales');
-        
-        console.log(`[영업사원] ${salesEmployees.length}명`);
-        
+
+        console.log(`[영업담당자] ${salesEmployees.length}명`);
+
         const rankings = [];
-        
-        // 각 영업사원별 KPI 계산
+
+        // 각 영업담당자별 KPI 계산
         for (const emp of salesEmployees) {
             const kpi = await calculateSalesKPI(emp.id);
             
