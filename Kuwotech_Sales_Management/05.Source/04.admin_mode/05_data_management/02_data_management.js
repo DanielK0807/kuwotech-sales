@@ -104,7 +104,7 @@ async function loadData() {
                     누적매출금액: c.accumulatedSales,
                     누적수금금액: c.accumulatedCollection,
                     매출채권잔액: c.accountsReceivable,
-                    거래처명: c.finalCompanyName || c.companyNameERP
+                    거래처명: c.finalCompanyName || c.erpCompanyName
                 }));
                 console.log('✅ [거래처] 로드 성공:', allCompanies.length, '개 (전체:', companiesData.total, '개)');
             } else {
@@ -375,7 +375,7 @@ window.downloadSalesPersonKPI = async function() {
         // 담당거래처 시트 추가
         const companiesData = managerCompanies.map(c => ({
             'KEY VALUE': c.keyValue || '',
-            '거래처명(ERP)': c.companyNameERP || '',
+            '거래처명(ERP)': c.erpCompanyName || '',
             '최종거래처명': c.finalCompanyName || '',
             '거래상태': c.businessStatus || '',
             '지역': c.customerRegion || '',

@@ -11,6 +11,7 @@
  */
 
 import ApiManager from '../../01.common/13_api_manager.js';
+import { formatDate, formatCurrency } from '../../01.common/03_format.js';
 
 // ============================================
 // 전역 변수
@@ -394,39 +395,6 @@ function parseJSON(jsonString, defaultValue = null) {
     } catch (e) {
         console.warn('JSON 파싱 실패:', e);
         return defaultValue;
-    }
-}
-
-/**
- * 날짜 포맷팅
- */
-function formatDate(dateString) {
-    if (!dateString) return '-';
-
-    try {
-        const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-
-        return `${year}-${month}-${day}`;
-    } catch (e) {
-        console.warn('날짜 파싱 실패:', e);
-        return dateString;
-    }
-}
-
-/**
- * 금액 포맷팅
- */
-function formatCurrency(amount) {
-    if (!amount || amount === 0) return '-';
-
-    try {
-        return Number(amount).toLocaleString('ko-KR') + '원';
-    } catch (e) {
-        console.warn('금액 파싱 실패:', e);
-        return amount + '원';
     }
 }
 

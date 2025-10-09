@@ -794,7 +794,7 @@ function generateChangeDetails(changes) {
             const company = item.employee || item.company;
             html += `
                 <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm); border-radius: var(--border-radius-sm);">
-                    • ${company.finalCompanyName || company.companyNameERP || company.name} 
+                    • ${company.finalCompanyName || company.erpCompanyName || company.name} 
                     ${company.internalManager ? `(담당: ${company.internalManager})` : ''}
                 </div>
             `;
@@ -820,7 +820,7 @@ function generateChangeDetails(changes) {
             const company = item.employee || item.company;
             html += `
                 <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm); border-radius: var(--border-radius-sm);">
-                    • ${company.finalCompanyName || company.companyNameERP || company.name}
+                    • ${company.finalCompanyName || company.erpCompanyName || company.name}
                     ${item.changes ? `<div style="margin-left: var(--spacing-md); font-size: var(--font-sm); color: rgba(255, 255, 255, 0.7);">
                         ${item.changes.map(c => `- ${c.field}: ${c.old} → ${c.new}`).join('<br>')}
                     </div>` : ''}
@@ -848,7 +848,7 @@ function generateChangeDetails(changes) {
             const company = item.employee || item.company;
             html += `
                 <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm); border-radius: var(--border-radius-sm); text-decoration: line-through;">
-                    • ${company.finalCompanyName || company.companyNameERP || company.name}
+                    • ${company.finalCompanyName || company.erpCompanyName || company.name}
                 </div>
             `;
         });

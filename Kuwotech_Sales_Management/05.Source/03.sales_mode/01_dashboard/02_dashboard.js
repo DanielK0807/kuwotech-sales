@@ -170,14 +170,14 @@ function createEmptyKPIData() {
 
 async function loadDashboardData() {
     try {
-        // 사용자 정보 확인
-        if (!user || (!user.id && !user.employeeId && !user.name)) {
+        // 사용자 정보 확인 (데이터베이스 스키마 기준 id 필드 사용)
+        if (!user || !user.id) {
             console.error('[대시보드] 사용자 정보:', user);
             throw new Error('사용자 정보를 찾을 수 없습니다.');
         }
 
-        // 영업담당 KPI 조회 (id, employeeId, name 중 사용 가능한 것 사용)
-        const empId = user.id || user.employeeId || user.name;
+        // 영업담당 KPI 조회 (데이터베이스 id 필드 사용)
+        const empId = user.id;
         console.log('[대시보드] 사용자 식별자:', empId, '(타입:', typeof empId, ')');
         const response = await dbManager.request(`/kpi/sales/${encodeURIComponent(empId)}`);
 

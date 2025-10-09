@@ -14,6 +14,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { USER_ROLES, STATUS_MAP, REPORT_TYPE_MAP } from '../../01.common/05_constants.js';
+import { formatCurrency, formatDate } from '../../01.common/03_format.js';
 
 // ============================================
 // 전역 변수 및 상수
@@ -79,23 +80,6 @@ function calculateReportStatus(report) {
     if (completedCount === 0) return 'incomplete';
     if (completedCount === 3) return 'complete';
     return 'partial';
-}
-
-/**
- * 숫자를 통화 형식으로 포맷
- */
-function formatCurrency(value) {
-    if (!value || value === 0) return '0원';
-    return new Intl.NumberFormat('ko-KR').format(value) + '원';
-}
-
-/**
- * 날짜 포맷 (YYYY-MM-DD)
- */
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
 }
 
 /**
@@ -203,7 +187,7 @@ async function loadReports() {
             // 각 보고서의 상태 계산 상세 로그
             console.log('📋 보고서별 상태:');
             allReports.forEach(report => {
-                console.log(`  - ${report.reportId || report.id}: ${report.calculatedStatus} (수금:${report.targetCollectionAmount}, 매출:${report.targetSalesAmount}, 상품:${report.targetProducts ? '있음' : '없음'})`);
+                console.log(`  - ${report.reportId}: ${report.calculatedStatus} (수금:${report.targetCollectionAmount}, 매출:${report.targetSalesAmount}, 상품:${report.targetProducts ? '있음' : '없음'})`);
             });
         }
         return true;

@@ -34,6 +34,7 @@ import { formatCurrency, formatNumber, formatDate, formatDateKorean, formatPhone
 import { showToast } from '../01.common/14_toast.js';
 import GlobalConfig from '../01.common/01_global_config.js';
 import { DownloadProgress } from './13_download_progress.js';
+import { getCompanyDisplayName } from '../01.common/02_utils.js';
 
 // ============================================
 // [섹션 2: 상수 정의]
@@ -69,7 +70,7 @@ export const SHEET_STRUCTURES = {
     COMPANY_BASIC: {
         name: '기본정보',
         columns: [
-            { header: '거래처명(ERP)', key: 'companyNameERP', width: 20 },
+            { header: '거래처명(ERP)', key: 'erpCompanyName', width: 20 },
             { header: '거래처 전체명', key: 'companyNameFull', width: 25 },
             { header: '최종거래처명', key: 'finalCustomer', width: 25 },
             { header: '시도', key: 'sido', width: 10 },
@@ -152,7 +153,7 @@ export const SHEET_STRUCTURES = {
         name: '직원정보',
         columns: [
             { header: '이름', key: 'name', width: 12 },
-            { header: '사번', key: 'employeeId', width: 12 },
+            { header: '사번', key: 'id', width: 12 },  // 데이터베이스 스키마에 맞춰 id 사용
             { header: '입사일자', key: 'hireDate', width: 12 },
             { header: '부서', key: 'department', width: 15 },
             { header: '직급', key: 'position', width: 12 },
@@ -845,12 +846,16 @@ class DownloadManager {
      */
     addCompanyDetailSheet(workbook, companies, reports) {
         const rows = companies.map(company => {
-            const companyReports = reports.filter(r => r.companyName === company.companyNameERP);
+            // 데이터베이스 스키마에 맞춰 finalCompanyName/erpCompanyName 사용
+            const companyName = getCompanyDisplayName(company);
+            const companyReports = reports.filter(r =>
+                (r.finalCompanyName || r.erpCompanyName) === (company.finalCompanyName || company.erpCompanyName)
+            );
             const totalSales = companyReports.reduce((sum, r) => sum + (r.salesAmount || 0), 0);
             const totalCollection = companyReports.reduce((sum, r) => sum + (r.collectionAmount || 0), 0);
-            
+
             return {
-                '거래처명': company.companyNameERP || '',
+                '거래처명': company.erpCompanyName || '',
                 '방문횟수': companyReports.length,
                 '총 매출액': formatCurrency(totalSales),
                 '총 수금액': formatCurrency(totalCollection),

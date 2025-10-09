@@ -5,6 +5,8 @@
 // 설명: 시스템 전반에서 사용하는 공통 유틸리티 함수들
 // ============================================
 
+import { formatNumber } from './03_format.js';
+
 /**
  * 고유 ID 생성
  * @param {string} prefix - ID 접두사 (선택)
@@ -274,11 +276,9 @@ export function formatDateTime(format = 'YYYY-MM-DD HH:mm:ss', date = new Date()
  * 숫자를 천단위 구분자로 포맷
  * @param {number} num - 숫자
  * @returns {string} 포맷된 문자열
+ * @deprecated 03_format.js의 formatNumber를 사용하세요
  */
-export function formatNumber(num) {
-    if (num === null || num === undefined || isNaN(num)) return '0';
-    return Number(num).toLocaleString('ko-KR');
-}
+export { formatNumber };
 
 /**
  * 지연 실행
@@ -390,6 +390,18 @@ export async function copyToClipboard(text) {
 }
 
 /**
+ * 거래처 표시명 가져오기
+ * @param {Object} company - 거래처 객체
+ * @returns {string} 표시할 거래처명
+ */
+export function getCompanyDisplayName(company) {
+    if (!company) return '';
+
+    // 최종거래처명 우선, 없으면 ERP거래처명 사용
+    return company.finalCompanyName || company.erpCompanyName || '';
+}
+
+/**
  * 전역 유틸리티 객체로 노출
  */
 if (typeof window !== 'undefined') {
@@ -420,7 +432,8 @@ if (typeof window !== 'undefined') {
         once,
         getFileExtension,
         formatBytes,
-        copyToClipboard
+        copyToClipboard,
+        getCompanyDisplayName
     };
 }
 
@@ -452,5 +465,6 @@ export default {
     once,
     getFileExtension,
     formatBytes,
-    copyToClipboard
+    copyToClipboard,
+    getCompanyDisplayName
 };

@@ -618,7 +618,7 @@ function createCompanyDetailContent(data) {
                 { label: '거래처명', value: data.companyNameFull },
                 { label: 'ERP 코드', value: data.erpCode },
                 { label: '사업자번호', value: data.businessNumber },
-                { label: '대표자', value: data.representativeName }
+                { label: '대표자', value: data.ceoOrDentist }
             ]
         },
         {

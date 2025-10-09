@@ -21,6 +21,7 @@ import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_m
 import { showToast } from '../../01.common/14_toast.js';
 import Modal from '../../01.common/06_modal.js';
 import downloadHelper from '../../01.common/helpers/download_helper.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 
 // Helper: showModal 래퍼 함수
 function showModal(options) {
@@ -209,7 +210,7 @@ async function executeDownload(options) {
                 { key: 'internalManager', label: '내부담당자' },
                 { key: 'department', label: '담당부서' },
                 { key: 'companyName', label: '거래처명' },
-                { key: 'representativeName', label: '대표이사' },
+                { key: 'ceoOrDentist', label: '대표이사' },
                 { key: 'customerRegion', label: '고객사 지역' },
                 { key: 'businessStatus', label: '거래상태' },
                 { key: 'salesProduct', label: '판매제품' },
@@ -221,9 +222,10 @@ async function executeDownload(options) {
             ]
         };
         
-        // 매출채권잔액 계산
+        // 매출채권잔액 및 거래처명 계산
         companies = companies.map(c => ({
             ...c,
+            companyName: getCompanyDisplayName(c), // 데이터베이스 스키마에 맞춰 finalCompanyName/erpCompanyName 사용
             accountsReceivable: (c.accumulatedSales || 0) - (c.accumulatedCollection || 0)
         }));
         

@@ -173,7 +173,7 @@ function formatFileSize(bytes) {
         // SheetJS 사용하여 엑셀 생성
         const ws = XLSX.utils.json_to_sheet(myCompanies.map(c => ({
             'KEY VALUE': c.keyValue,
-            '거래처명(ERP)': c.companyNameERP,
+            '거래처명(ERP)': c.erpCompanyName,
             '최종거래처명': c.finalCompanyName,
             '폐업여부': c.isClosed,
             '대표자': c.ceoOrDentist,

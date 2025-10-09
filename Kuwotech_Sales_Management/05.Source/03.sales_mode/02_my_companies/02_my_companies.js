@@ -10,7 +10,7 @@
 // [SECTION: 공통 모듈 임포트]
 // ============================================
 
-import { 
+import {
     GlobalConfig,
     formatNumber,
     formatCurrency,
@@ -26,6 +26,7 @@ import {
 } from '../../01.common/10_index.js';
 
 import { initDownloadButton, exportExcel, importExcel } from './03_companies_download.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -249,8 +250,8 @@ async function loadCompanies() {
         
         if (currentFilter.name) {
             const keyword = currentFilter.name.toLowerCase();
-            companyList = companyList.filter(c => 
-                (c.finalCompanyName || c.companyName || '').toLowerCase().includes(keyword)
+            companyList = companyList.filter(c =>
+                getCompanyDisplayName(c).toLowerCase().includes(keyword)
             );
         }
         
@@ -323,11 +324,11 @@ function renderCompanyTable() {
             <tr class="table-row glass-hover" data-key="${company.keyValue}">
                 <td>
                     <div class="company-name">
-                        ${company.companyName || company.finalCompanyName || '-'}
+                        ${getCompanyDisplayName(company) || '-'}
                         ${company.isMainProduct ? '<span class="badge badge-primary">주요</span>' : ''}
                     </div>
                 </td>
-                <td>${company.representativeName || company.ceoOrDentist || '-'}</td>
+                <td>${company.ceoOrDentist || '-'}</td>
                 <td>${company.customerRegion || '-'}</td>
                 <td>
                     <span class="status-badge ${statusClass}">
@@ -384,7 +385,7 @@ function sortCompanies() {
     companyList.sort((a, b) => {
         switch (currentSort) {
             case 'name':
-                return (a.companyName || '').localeCompare(b.companyName || '');
+                return getCompanyDisplayName(a).localeCompare(getCompanyDisplayName(b));
             case 'sales':
                 return (b.accumulatedSales || 0) - (a.accumulatedSales || 0);
             case 'status':
@@ -403,14 +404,14 @@ function updateStatistics() {
     // 현재 필터된 companyList를 기반으로 통계 계산
     const totalCount = companyList.length;
     
-    // 필드명 fallback 처리 (백엔드 호환성)
+    // 백엔드 API 필드명 사용 (camelCase)
     const totalSales = companyList.reduce((sum, c) => {
-        const sales = Number(c.accumulatedSales || c.accumulated_sales || 0);
+        const sales = Number(c.accumulatedSales || 0);
         return sum + sales;
     }, 0);
-    
+
     const totalCollection = companyList.reduce((sum, c) => {
-        const collection = Number(c.accumulatedCollection || c.accumulated_collection || 0);
+        const collection = Number(c.accumulatedCollection || 0);
         return sum + collection;
     }, 0);
     
@@ -422,7 +423,7 @@ function updateStatistics() {
         totalCollection,
         totalReceivable,
         sampleData: companyList.slice(0, 2).map(c => ({
-            name: c.companyName || c.finalCompanyName,
+            name: getCompanyDisplayName(c),
             sales: c.accumulatedSales,
             collection: c.accumulatedCollection
         }))
@@ -524,11 +525,11 @@ function showCompanyDetailModal(company) {
                 <h4>기본 정보</h4>
                 <div class="detail-item">
                     <label>거래처명:</label>
-                    <span>${company.companyName}</span>
+                    <span>${getCompanyDisplayName(company)}</span>
                 </div>
                 <div class="detail-item">
                     <label>대표자:</label>
-                    <span>${company.representativeName || '-'}</span>
+                    <span>${company.ceoOrDentist || '-'}</span>
                 </div>
                 <div class="detail-item">
                     <label>연락처:</label>
@@ -604,7 +605,7 @@ async function showCompanyEditModal(company) {
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="required">거래처명</label>
-                        <input type="text" id="modal-company-name" class="form-control" value="${company.companyName || ''}" required>
+                        <input type="text" id="modal-company-name" class="form-control" value="${getCompanyDisplayName(company)}" required>
                     </div>
                     <div class="form-group">
                         <label>거래처코드</label>
@@ -612,7 +613,7 @@ async function showCompanyEditModal(company) {
                     </div>
                     <div class="form-group">
                         <label class="required">대표자명</label>
-                        <input type="text" id="modal-representative" class="form-control" value="${company.representativeName || ''}" required>
+                        <input type="text" id="modal-representative" class="form-control" value="${company.ceoOrDentist || ''}" required>
                     </div>
                     <div class="form-group">
                         <label>연락처</label>
@@ -691,7 +692,7 @@ async function showCompanyEditModal(company) {
                     const updatedData = {
                         ...company,
                         companyName: companyName,
-                        representativeName: representative,
+                        ceoOrDentist: representative,
                         contact: document.getElementById('modal-contact')?.value || '',
                         address: document.getElementById('modal-address')?.value || '',
                         businessStatus: document.getElementById('modal-business-status')?.value || '활성',
@@ -1460,52 +1461,19 @@ function searchCompanies(keyword) {
         loadCompanies();
         return;
     }
-    
+
     const filtered = companyList.filter(company => {
         const searchText = keyword.toLowerCase();
         return (
-            company.companyName?.toLowerCase().includes(searchText) ||
-            company.representativeName?.toLowerCase().includes(searchText) ||
+            getCompanyDisplayName(company).toLowerCase().includes(searchText) ||
+            company.ceoOrDentist?.toLowerCase().includes(searchText) ||
             company.contact?.includes(searchText) ||
             company.address?.toLowerCase().includes(searchText)
         );
     });
-    
+
     companyList = filtered;
     renderCompanyTable();
-}
-
-// ============================================
-// [SECTION: 샘플 데이터]
-// ============================================
-
-function getSampleCompanies() {
-    return [
-        {
-            keyValue: 'COMP001',
-            companyName: 'ABC 치과',
-            representativeName: '김원장',
-            contact: '02-1234-5678',
-            address: '서울시 강남구',
-            businessStatus: '활성',
-            accumulatedSales: 25000000,
-            salesProduct: '임플란트',
-            isMainProduct: true,
-            createdAt: '2025-01-01'
-        },
-        {
-            keyValue: 'COMP002',
-            companyName: 'XYZ 병원',
-            representativeName: '이원장',
-            contact: '02-9876-5432',
-            address: '서울시 서초구',
-            businessStatus: '활성',
-            accumulatedSales: 18000000,
-            salesProduct: '지르코니아',
-            isMainProduct: true,
-            createdAt: '2025-01-15'
-        }
-    ];
 }
 
 // ============================================
@@ -1572,8 +1540,8 @@ async function exportExcelLegacy() {
         // 엑셀용 데이터 변환
         const excelData = myCompanies.map(company => ({
             '거래처코드': company.companyCode || '',
-            '거래처명': company.companyName || '',
-            '대표자명': company.representativeName || '',
+            '거래처명': getCompanyDisplayName(company),
+            '대표자명': company.ceoOrDentist || '',
             '연락처': company.contact || '',
             '주소': company.address || '',
             '사업현황': company.businessStatus || '',
@@ -1687,8 +1655,8 @@ async function importExcelLegacy() {
                             try {
                                 const companyData = {
                                     companyCode: row['거래처코드'] || '',
-                                    companyName: row['거래처명'] || row['회사명'] || '',
-                                    representativeName: row['대표자명'] || row['대표자'] || '',
+                                    finalCompanyName: row['거래처명'] || row['회사명'] || '',
+                                    ceoOrDentist: row['대표자명'] || row['대표자'] || '',
                                     contact: row['연락처'] || row['전화번호'] || '',
                                     address: row['주소'] || '',
                                     businessStatus: row['사업현황'] || row['상태'] || '활성',
@@ -1698,9 +1666,9 @@ async function importExcelLegacy() {
                                     remarks: row['비고'] || '',
                                     internalManager: user.name // 현재 사용자를 담당자로
                                 };
-                                
+
                                 // 필수 필드 검증
-                                if (!companyData.companyName) {
+                                if (!companyData.finalCompanyName) {
                                     failCount++;
                                     continue;
                                 }

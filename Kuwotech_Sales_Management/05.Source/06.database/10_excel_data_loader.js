@@ -28,7 +28,7 @@ const COLUMN_MAPPING = {
         '최종거래처명': 'finalCompanyName',
         '거래처코드': 'companyCode',
         '폐업여부': 'isClosedBusiness',
-        '대표이사 또는 치과의사': 'representativeName',
+        '대표이사 또는 치과의사': 'ceoOrDentist',
         '고객사 지역': 'customerRegion',
         '거래상태': 'transactionStatus',
         '담당부서': 'department',
@@ -48,7 +48,7 @@ const COLUMN_MAPPING = {
     // 직원 정보 컬럼
     EMPLOYEES: {
         '이름': 'name',
-        '사번': 'employeeId',
+        '사번': 'id',  // 데이터베이스 스키마에 맞춰 id 사용
         '부서': 'department',
         '직급': 'position',
         '입사일': 'joinDate',
@@ -299,7 +299,7 @@ export class ExcelDataLoader {
                 finalCompanyName: row['최종거래처명'] || companyName,
                 companyCode: row['거래처코드'] || '',
                 isClosedBusiness: this.parseBoolean(row['폐업여부']),
-                representativeName: row['대표이사 또는 치과의사'] || row['대표자'] || '',
+                ceoOrDentist: row['대표이사 또는 치과의사'] || row['대표자'] || '',
                 customerRegion: row['고객사 지역'] || row['지역'] || '',
                 transactionStatus: row['거래상태'] || '활성',
                 department: row['담당부서'] || '',
@@ -349,10 +349,10 @@ export class ExcelDataLoader {
                 role = row['역할'];
             }
             
-            // 데이터 매핑
+            // 데이터 매핑 (데이터베이스 스키마에 맞춰 id 필드 사용)
             const employee = {
                 name: name.trim(),
-                employeeId: row['사번'] || `EMP${String(rowNum).padStart(3, '0')}`,
+                id: row['사번'] || `EMP${String(rowNum).padStart(3, '0')}`,
                 department: row['부서'] || '미지정',
                 position: row['직급'] || '',
                 joinDate: this.parseDate(row['입사일'] || row['입사일자']),
@@ -468,11 +468,11 @@ export class ExcelDataLoader {
                             addedCount++;
                         }
                         
-                        // 변경 이력 기록
+                        // 변경 이력 기록 (데이터베이스 스키마에 맞춰 id 필드 사용)
                         await historyStore.add({
                             tableName: 'employees',
                             operation: existing ? 'UPDATE' : 'CREATE',
-                            recordId: employee.employeeId,
+                            recordId: employee.id,
                             beforeData: existing || null,
                             afterData: employee,
                             timestamp: new Date().toISOString(),
@@ -601,51 +601,6 @@ export class ExcelDataLoader {
             },
             errors: this.errors.length,
             warnings: this.warnings.length
-        };
-    }
-    
-    /**
-     * 샘플 거래처 데이터 로드 (테스트용)
-     */
-    async loadSampleCompanies() {
-        const sampleCompanies = [
-            {
-                keyValue: 'COMP-001',
-                companyNameERP: 'ABC 치과',
-                finalCompanyName: 'ABC 치과병원',
-                representativeName: '김원장',
-                customerRegion: '서울',
-                transactionStatus: '활성',
-                department: '영업1팀',
-                salesProduct: '임플란트',
-                internalManager: '홍길동',
-                accumulatedSales: 50000000,
-                accumulatedCollection: 45000000,
-                accountsReceivable: 5000000
-            },
-            {
-                keyValue: 'COMP-002',
-                companyNameERP: 'XYZ 병원',
-                finalCompanyName: 'XYZ 종합병원',
-                representativeName: '이원장',
-                customerRegion: '경기',
-                transactionStatus: '활성',
-                department: '영업2팀',
-                salesProduct: '지르코니아',
-                internalManager: '김영업',
-                accumulatedSales: 80000000,
-                accumulatedCollection: 70000000,
-                accountsReceivable: 10000000
-            }
-        ];
-        
-        this.loadedData.companies = sampleCompanies;
-        await this.saveCompaniesToDB();
-        
-        return {
-            success: true,
-            data: this.loadedData,
-            summary: this.getSummary()
         };
     }
 }

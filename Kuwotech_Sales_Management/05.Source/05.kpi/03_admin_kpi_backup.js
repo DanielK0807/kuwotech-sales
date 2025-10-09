@@ -258,60 +258,6 @@ async function getEmployeeMainProductContributions() {
     });
 }
 
-// ============================================
-// [섹션: 샘플 KPI 데이터]
-// ============================================
-
-export function getSampleAdminKPI() {
-    console.log('[샘플 관리자 KPI 데이터 사용]');
-    
-    return {
-        // 전사 거래처 관련
-        totalCompanies: 247,
-        activeCompanies: 193,
-        activationRate: '78.14',
-        mainProductCompanies: 118,
-        
-        // 전사 달성율 관련
-        achievementRate: '2.92',
-        mainAchievementRate: '98.33',
-        targetBase: 240,
-        mainTarget: 120,
-        
-        // 전사 매출 관련
-        totalSales: 850000000,
-        mainProductSales: 470000000,
-        mainProductRatio: '55.29',
-        salesConcentration: 382166,
-        
-        // 전사 수금 관련
-        totalCollection: 800000000,
-        
-        // 추가 정보
-        salesPersonCount: 3,
-        currentMonth: 9,
-        
-        // 기여도 순위
-        salesContributions: getSampleSalesContributions(),
-        mainProductContributions: getSampleMainProductContributions()
-    };
-}
-
-export function getSampleSalesContributions() {
-    return [
-        { rank: 1, name: '이영업', companies: 90, activeCompanies: 70, sales: 320000000, contribution: '37.65' },
-        { rank: 2, name: '김영업', companies: 82, activeCompanies: 65, sales: 280000000, contribution: '32.94' },
-        { rank: 3, name: '박영업', companies: 75, activeCompanies: 58, sales: 250000000, contribution: '29.41' }
-    ];
-}
-
-export function getSampleMainProductContributions() {
-    return [
-        { rank: 1, name: '이영업', mainProductCompanies: 45, mainSales: 180000000, mainContribution: '38.30' },
-        { rank: 2, name: '김영업', mainProductCompanies: 38, mainSales: 150000000, mainContribution: '31.91' },
-        { rank: 3, name: '박영업', mainProductCompanies: 35, mainSales: 140000000, mainContribution: '29.79' }
-    ];
-}
 
 // ============================================
 // [섹션: KPI 포맷터]
@@ -380,7 +326,7 @@ export async function calculateContributionRanking(type = 'total') {
         }
     } catch (error) {
         console.error('[기여도 순위 계산 실패]', error);
-        return type === 'main' ? getSampleMainProductContributions() : getSampleSalesContributions();
+        return [];
     }
 }
 
@@ -409,8 +355,8 @@ export async function getRecentReports(limit = 5) {
             company: report.companyName || '-'
         }));
     } catch (error) {
-        console.log('[DB 접근 실패] 샘플 보고서 데이터 사용');
-        return getSampleRecentReports(limit);
+        console.error('[최근 보고서 조회 실패]', error);
+        return [];
     }
 }
 
@@ -434,104 +380,17 @@ export async function getNewCompanies(limit = 5) {
         
         return sortedCompanies.map(company => ({
             id: company.keyValue,
-            name: company.companyNameERP,
+            name: company.erpCompanyName,
             registeredDate: company.registeredDate,
             salesPerson: company.internalManager || '-',
             category: company.businessCategory || '일반'
         }));
     } catch (error) {
-        console.log('[DB 접근 실패] 샘플 거래처 데이터 사용');
-        return getSampleNewCompanies(limit);
+        console.error('[신규 거래처 조회 실패]', error);
+        return [];
     }
 }
 
-// ============================================
-// [섹션: 샘플 데이터 - 대시보드용]
-// ============================================
-
-function getSampleRecentReports(limit = 5) {
-    const sampleReports = [
-        {
-            id: 'RPT001',
-            title: '주간 영업활동 보고서',
-            date: new Date().toISOString(),
-            author: '김영업',
-            company: '서울치과'
-        },
-        {
-            id: 'RPT002',
-            title: '월간 실적 보고서',
-            date: new Date(Date.now() - 86400000).toISOString(),
-            author: '이영업',
-            company: '부산치과'
-        },
-        {
-            id: 'RPT003',
-            title: '거래처 방문 보고서',
-            date: new Date(Date.now() - 172800000).toISOString(),
-            author: '박영업',
-            company: '인천치과'
-        },
-        {
-            id: 'RPT004',
-            title: '분기 실적 보고서',
-            date: new Date(Date.now() - 259200000).toISOString(),
-            author: '김영업',
-            company: '강남치과'
-        },
-        {
-            id: 'RPT005',
-            title: '신규 거래처 개척 보고서',
-            date: new Date(Date.now() - 345600000).toISOString(),
-            author: '이영업',
-            company: '대구치과'
-        }
-    ];
-    
-    return sampleReports.slice(0, limit);
-}
-
-function getSampleNewCompanies(limit = 5) {
-    const sampleCompanies = [
-        {
-            id: 'COM006',
-            name: '신규치과의원',
-            registeredDate: new Date().toISOString(),
-            salesPerson: '김영업',
-            category: '일반'
-        },
-        {
-            id: 'COM007',
-            name: '서울스마일치과',
-            registeredDate: new Date(Date.now() - 86400000).toISOString(),
-            salesPerson: '이영업',
-            category: '일반'
-        },
-        {
-            id: 'COM008',
-            name: '부산프리미엄치과',
-            registeredDate: new Date(Date.now() - 172800000).toISOString(),
-            salesPerson: '박영업',
-            category: '프리미엄'
-        },
-        {
-            id: 'COM009',
-            name: '강남디지털치과',
-            registeredDate: new Date(Date.now() - 259200000).toISOString(),
-            salesPerson: '김영업',
-            category: '일반'
-        },
-        {
-            id: 'COM010',
-            name: '인천임플란트센터',
-            registeredDate: new Date(Date.now() - 345600000).toISOString(),
-            salesPerson: '이영업',
-            category: '전문'
-        }
-    ];
-    
-    return sampleCompanies.slice(0, limit);
-}
 
 // [내용: 관리자 KPI 11개 + 기여도 2개 + 대시보드용 함수]
 // 테스트: 전사 거래처, 달성율, 매출, 수금, 기여도, 최근활동

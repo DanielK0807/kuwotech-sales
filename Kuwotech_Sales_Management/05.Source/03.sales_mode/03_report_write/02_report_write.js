@@ -5,6 +5,8 @@
  */
 
 import ApiManager from '../../01.common/13_api_manager.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import { formatCurrency } from '../../01.common/03_format.js';
 
 // ============================================
 // API Manager 초기화
@@ -329,7 +331,7 @@ function handleCompanyInput(event) {
 
     // 일치하는 거래처 필터링
     const filteredCompanies = state.companies.filter(company => {
-        const companyName = (company.finalCompanyName || company.companyName || '').toLowerCase();
+        const companyName = getCompanyDisplayName(company).toLowerCase();
         return companyName.includes(inputValue);
     });
 
@@ -369,7 +371,7 @@ function displayAutocompleteResults(companies, searchTerm) {
 
     // 결과 항목 추가 (최대 10개)
     companies.slice(0, 10).forEach(company => {
-        const companyName = company.finalCompanyName || company.companyName;
+        const companyName = getCompanyDisplayName(company);
         const item = document.createElement('div');
         item.className = 'autocomplete-item';
 
@@ -394,7 +396,7 @@ function displayAutocompleteResults(companies, searchTerm) {
  * 자동완성에서 거래처 선택
  */
 function selectCompanyFromAutocomplete(company) {
-    const companyName = company.finalCompanyName || company.companyName;
+    const companyName = getCompanyDisplayName(company);
     elements.companySelect.value = companyName;
     state.selectedCompany = company;
     
@@ -432,8 +434,8 @@ async function handleVerifyCompany() {
     }
     
     // 거래처명으로 검색
-    const company = state.companies.find(c => 
-        (c.finalCompanyName || c.companyName) === companyName
+    const company = state.companies.find(c =>
+        getCompanyDisplayName(c) === companyName
     );
     
     if (!company) {
@@ -537,7 +539,7 @@ async function loadCompanyGoals(companyId) {
 
         if (response.success) {
             displayGoals({
-                title: `📊 ${state.selectedCompany.finalCompanyName} 실적`,
+                title: `📊 ${getCompanyDisplayName(state.selectedCompany)} 실적`,
                 period: `${year}년 ${month}월`,
                 monthly: {
                     collection: {
@@ -613,13 +615,6 @@ function updateGoalItem(prefix, data) {
     setTimeout(() => {
         progressBar.style.width = `${Math.min(rate, 100)}%`;
     }, 100);
-}
-
-/**
- * 통화 포맷 (천 단위 구분)
- */
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('ko-KR').format(amount);
 }
 
 // ============================================
@@ -1249,8 +1244,8 @@ function validateForm() {
     }
 
     // 입력한 거래처가 리스트에 있는지 확인
-    const company = state.companies.find(c => 
-        (c.finalCompanyName || c.companyName) === companyName
+    const company = state.companies.find(c =>
+        getCompanyDisplayName(c) === companyName
     );
     if (!company) {
         if (window.Toast) {
@@ -1347,7 +1342,7 @@ async function collectFormData() {
     // 거래처명으로 keyValue 찾기
     const companyName = elements.companySelect.value.trim();
     const company = state.companies.find(c =>
-        (c.finalCompanyName || c.companyName) === companyName
+        getCompanyDisplayName(c) === companyName
     );
 
     if (!company) {
@@ -1390,7 +1385,6 @@ async function collectFormData() {
         companyId: company.keyValue,            // 서버 필수: 거래처 ID (문자열 UUID)
         submittedBy: state.currentUser.name,    // 서버 필수: 제출자 이름 (employees.name 외래키)
         submittedDate: now,                     // 서버 필수: 제출 날짜/시간 (MySQL DATETIME 형식)
-        employeeName: state.currentUser.name,   // 제출자 이름
         status: '임시저장'                      // 승인 상태 (임시저장/제출완료/승인/반려)
     };
 

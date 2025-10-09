@@ -145,7 +145,7 @@ async function loadEmployeeData() {
                 role1: emp.role1 || '',
                 role2: emp.role2 || '',
                 department: emp.department || '',
-                joinDate: emp.hireDate || emp.joinDate || emp.created_at || '',
+                hireDate: emp.hireDate || '',
                 phone: emp.phone || '',
                 status: emp.status === 'active' || emp.status === '재직' ? 'active' : 'inactive',
                 companyCount: 0  // 나중에 계산
@@ -343,7 +343,7 @@ function createEmployeeRow(employee) {
         <td>${employee.id ? employee.id.substring(0, 8) : '-'}</td>
         <td><strong>${employee.name}</strong></td>
         <td>${employee.department || '-'}</td>
-        <td>${employee.joinDate ? formatDate(employee.joinDate) : '-'}</td>
+        <td>${employee.hireDate ? formatDate(employee.hireDate) : '-'}</td>
         <td>${employee.phone ? formatPhone(employee.phone) : '-'}</td>
         <td style="font-size: 0.9rem;">${employee.email || '-'}</td>
         <td>
@@ -443,7 +443,7 @@ window.showAddEmployee = function() {
                         role: document.getElementById('newRole').value,
                         department: document.getElementById('newDepartment').value,
                         phone: document.getElementById('newPhone').value.replace(/-/g, ''),
-                        joinDate: document.getElementById('newJoinDate').value || new Date().toISOString().split('T')[0],
+                        hireDate: document.getElementById('newJoinDate').value || new Date().toISOString().split('T')[0],
                         status: 'active'
                     };
                     
@@ -494,7 +494,7 @@ window.viewEmployee = function(id) {
                         <h3 style="margin-bottom: 15px;">직무 정보</h3>
                         <p><strong>역할:</strong> ${employee.role}</p>
                         <p><strong>부서:</strong> ${employee.department}</p>
-                        <p><strong>입사일:</strong> ${formatDateKorean(employee.joinDate)}</p>
+                        <p><strong>입사일:</strong> ${formatDateKorean(employee.hireDate)}</p>
                         <p><strong>상태:</strong> 
                             <span class="glass-badge ${employee.status === 'active' ? 'success' : 'warning'}">
                                 ${employee.status === 'active' ? '활성' : '비활성'}
@@ -1221,7 +1221,7 @@ function confirmRetirement(employee) {
                 </p>
                 <div class="glass-panel" style="padding: 15px; text-align: left; background: var(--glass-bg);">
                     <p style="margin: 5px 0;"><strong>부서:</strong> ${employee.department}</p>
-                    <p style="margin: 5px 0;"><strong>입사일:</strong> ${formatDateKorean(employee.joinDate)}</p>
+                    <p style="margin: 5px 0;"><strong>입사일:</strong> ${formatDateKorean(employee.hireDate)}</p>
                     <p style="margin: 5px 0;"><strong>담당 거래처:</strong> ${employee.companyCount}개</p>
                 </div>
                 <p style="margin-top: 20px; color: var(--text-secondary); font-size: 0.9rem;">

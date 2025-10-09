@@ -11,6 +11,8 @@
 import { getDB, withTransaction } from './02_schema.js';
 import { createBackup } from './07_backup.js';
 import { logChange } from './06_change_history.js';
+import { getCompanyDisplayName } from '../01.common/02_utils.js';
+import { formatNumber, formatDate } from '../01.common/03_format.js';
 
 // ============================================
 // [섹션: 엑셀 컬럼 정의]
@@ -416,10 +418,10 @@ function mapExcelToCompany(row) {
   
   return {
     keyValue: row[EXCEL_COLUMNS.KEY_VALUE],
-    companyNameERP: row[EXCEL_COLUMNS.COMPANY_NAME_ERP] || '',
+    erpCompanyName: row[EXCEL_COLUMNS.COMPANY_NAME_ERP] || '',
     finalCompanyName: row[EXCEL_COLUMNS.FINAL_COMPANY_NAME] || row[EXCEL_COLUMNS.COMPANY_NAME_ERP] || '',
     companyCode: row[EXCEL_COLUMNS.COMPANY_CODE] || '',
-    representative: row[EXCEL_COLUMNS.REPRESENTATIVE] || '',
+    ceoOrDentist: row[EXCEL_COLUMNS.REPRESENTATIVE] || '',
     internalManager: row[EXCEL_COLUMNS.INTERNAL_MANAGER] || '',
     externalManager: row[EXCEL_COLUMNS.EXTERNAL_MANAGER] || '',
     businessStatus: row[EXCEL_COLUMNS.BUSINESS_STATUS] || '활성',
@@ -595,7 +597,7 @@ export async function syncDbToExcel(options = {}) {
 function mapCompanyToExcel(company) {
   return {
     [EXCEL_COLUMNS.KEY_VALUE]: company.keyValue,
-    [EXCEL_COLUMNS.COMPANY_NAME_ERP]: company.companyNameERP,
+    [EXCEL_COLUMNS.COMPANY_NAME_ERP]: company.erpCompanyName,
     [EXCEL_COLUMNS.FINAL_COMPANY_NAME]: company.finalCompanyName,
     [EXCEL_COLUMNS.COMPANY_CODE]: company.companyCode,
     [EXCEL_COLUMNS.REPRESENTATIVE]: company.representative,
@@ -623,7 +625,7 @@ function mapReportToExcel(report) {
   return {
     '보고서ID': report.id,
     'KEY VALUE': report.keyValue,
-    '거래처명': report.companyName,
+    '거래처명': report.company ? getCompanyDisplayName(report.company) : (report.finalCompanyName || report.erpCompanyName || ''),
     '방문일자': formatDate(report.visitDate),
     '방문시간': report.visitTime,
     '방문목적': report.visitPurpose,
@@ -637,24 +639,6 @@ function mapReportToExcel(report) {
     '작성일': formatDate(report.createdAt),
     '작성자': report.createdBy
   };
-}
-
-/**
- * [기능: 숫자 포맷]
- */
-function formatNumber(value) {
-  if (!value || isNaN(value)) return 0;
-  return Math.round(value).toLocaleString('ko-KR');
-}
-
-/**
- * [기능: 날짜 포맷]
- */
-function formatDate(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (isNaN(date)) return '';
-  return date.toISOString().split('T')[0];
 }
 
 /**
@@ -742,16 +726,6 @@ async function getAllData(db, storeName) {
   const tx = db.transaction(storeName, 'readonly');
   const store = tx.objectStore(storeName);
   return await promisifyRequest(store.getAll());
-}
-
-/**
- * [기능: 날짜 포맷]
- */
-function formatDate(date) {
-  if (!date) return '';
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return '';
-  return d.toISOString().split('T')[0];
 }
 
 /**

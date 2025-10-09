@@ -155,8 +155,8 @@ export async function calculateDepartmentContribution() {
         return contributions;
         
     } catch (error) {
-        console.log('[부서별 기여도] 향후 구현 예정');
-        return getSampleDepartmentContribution();
+        console.error('[부서별 기여도 계산 실패]', error);
+        return [];
     }
 }
 
@@ -282,133 +282,6 @@ async function calculateDepartmentMainSales(deptId) {
     return 0;
 }
 
-// ============================================
-// [섹션: 샘플 데이터]
-// ============================================
-
-/**
- * 샘플 기여도 순위 데이터
- */
-export function getSampleContributionRanking(type) {
-    console.log('[샘플 기여도 순위 데이터 사용]');
-    
-    if (type === 'total') {
-        return {
-            rankings: [
-                {
-                    rank: 1,
-                    employeeId: 'emp003',
-                    name: '이영업',
-                    totalCompanies: 90,
-                    activeCompanies: 70,
-                    sales: 320000000,
-                    contribution: 37.65,
-                    achievementRate: '12.50',
-                    activationRate: '77.78',
-                    rankChange: '↑1'
-                },
-                {
-                    rank: 2,
-                    employeeId: 'emp001',
-                    name: '김영업',
-                    totalCompanies: 82,
-                    activeCompanies: 65,
-                    sales: 280000000,
-                    contribution: 32.94,
-                    achievementRate: '2.50',
-                    activationRate: '79.27',
-                    rankChange: '↓1'
-                },
-                {
-                    rank: 3,
-                    employeeId: 'emp002',
-                    name: '박영업',
-                    totalCompanies: 75,
-                    activeCompanies: 58,
-                    sales: 250000000,
-                    contribution: 29.41,
-                    achievementRate: '-6.25',
-                    activationRate: '77.33',
-                    rankChange: '-'
-                }
-            ],
-            totals: {
-                totalCompanies: 247,
-                activeCompanies: 193,
-                totalSales: 850000000,
-                averageContribution: '33.33'
-            },
-            type: 'total',
-            timestamp: new Date().toISOString()
-        };
-    } else {
-        return {
-            rankings: [
-                {
-                    rank: 1,
-                    employeeId: 'emp003',
-                    name: '이영업',
-                    mainProductCompanies: 45,
-                    mainSales: 180000000,
-                    mainContribution: 38.30,
-                    mainProductRatio: '56.25',
-                    rankChange: '-'
-                },
-                {
-                    rank: 2,
-                    employeeId: 'emp001',
-                    name: '김영업',
-                    mainProductCompanies: 38,
-                    mainSales: 150000000,
-                    mainContribution: 31.91,
-                    mainProductRatio: '53.57',
-                    rankChange: '↑1'
-                },
-                {
-                    rank: 3,
-                    employeeId: 'emp002',
-                    name: '박영업',
-                    mainProductCompanies: 35,
-                    mainSales: 140000000,
-                    mainContribution: 29.79,
-                    mainProductRatio: '56.00',
-                    rankChange: '↓1'
-                }
-            ],
-            totals: {
-                mainProductCompanies: 118,
-                mainProductSales: 470000000,
-                averageContribution: '33.33'
-            },
-            type: 'main',
-            timestamp: new Date().toISOString()
-        };
-    }
-}
-
-/**
- * 샘플 부서별 기여도 데이터
- */
-export function getSampleDepartmentContribution() {
-    return [
-        {
-            departmentId: 'dept01',
-            departmentName: '영업1팀',
-            employeeCount: 2,
-            totalSales: 530000000,
-            mainProductSales: 290000000,
-            contribution: '62.35'
-        },
-        {
-            departmentId: 'dept02',
-            departmentName: '영업2팀',
-            employeeCount: 1,
-            totalSales: 320000000,
-            mainProductSales: 180000000,
-            contribution: '37.65'
-        }
-    ];
-}
 
 // ============================================
 // [섹션: 기여도 차트 데이터]

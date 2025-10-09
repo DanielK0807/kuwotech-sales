@@ -10,7 +10,7 @@
 // [SECTION: 공통 모듈 임포트]
 // ============================================
 
-import { 
+import {
     GlobalConfig,
     formatNumber,
     formatCurrency,
@@ -26,6 +26,7 @@ import {
 } from '../../01.common/10_index.js';
 
 import { initDownloadButton, exportExcel, importExcel } from './03_companies_download.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -321,8 +322,8 @@ async function loadCompanies() {
         
         if (currentFilter.name) {
             const keyword = currentFilter.name.toLowerCase();
-            companyList = companyList.filter(c => 
-                (c.finalCompanyName || c.companyName || '').toLowerCase().includes(keyword)
+            companyList = companyList.filter(c =>
+                getCompanyDisplayName(c).toLowerCase().includes(keyword)
             );
         }
         
@@ -397,11 +398,11 @@ function renderCompanyTable() {
                 <td>${company.department || '-'}</td>
                 <td>
                     <div class="company-name">
-                        ${company.companyName || company.finalCompanyName || '-'}
+                        ${getCompanyDisplayName(company) || '-'}
                         ${company.isMainProduct ? '<span class="badge badge-primary">주요</span>' : ''}
                     </div>
                 </td>
-                <td>${company.representativeName || company.ceoOrDentist || '-'}</td>
+                <td>${company.ceoOrDentist || '-'}</td>
                 <td>${company.customerRegion || '-'}</td>
                 <td>
                     <span class="status-badge ${statusClass}">
@@ -459,7 +460,7 @@ function sortCompanies() {
     companyList.sort((a, b) => {
         switch (currentSort) {
             case 'name':
-                return (a.companyName || '').localeCompare(b.companyName || '');
+                return getCompanyDisplayName(a).localeCompare(getCompanyDisplayName(b));
             case 'sales':
                 return (b.accumulatedSales || 0) - (a.accumulatedSales || 0);
             case 'status':
@@ -478,14 +479,14 @@ function updateStatistics() {
     // 현재 필터된 companyList를 기반으로 통계 계산
     const totalCount = companyList.length;
     
-    // 필드명 fallback 처리 (백엔드 호환성)
+    // 백엔드 API 필드명 사용 (camelCase)
     const totalSales = companyList.reduce((sum, c) => {
-        const sales = Number(c.accumulatedSales || c.accumulated_sales || 0);
+        const sales = Number(c.accumulatedSales || 0);
         return sum + sales;
     }, 0);
-    
+
     const totalCollection = companyList.reduce((sum, c) => {
-        const collection = Number(c.accumulatedCollection || c.accumulated_collection || 0);
+        const collection = Number(c.accumulatedCollection || 0);
         return sum + collection;
     }, 0);
     
@@ -497,7 +498,7 @@ function updateStatistics() {
         totalCollection,
         totalReceivable,
         sampleData: companyList.slice(0, 2).map(c => ({
-            name: c.companyName || c.finalCompanyName,
+            name: getCompanyDisplayName(c),
             sales: c.accumulatedSales,
             collection: c.accumulatedCollection
         }))
@@ -611,11 +612,11 @@ function showCompanyDetailModal(company) {
                 <h4>기본 정보</h4>
                 <div class="detail-item">
                     <label>거래처명:</label>
-                    <span>${company.companyName || company.finalCompanyName}</span>
+                    <span>${getCompanyDisplayName(company)}</span>
                 </div>
                 <div class="detail-item">
                     <label>대표자:</label>
-                    <span>${company.representativeName || company.ceoOrDentist || '-'}</span>
+                    <span>${company.ceoOrDentist || '-'}</span>
                 </div>
                 <div class="detail-item">
                     <label>연락처:</label>
@@ -699,7 +700,7 @@ async function showCompanyEditModal(company) {
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="required">거래처명</label>
-                        <input type="text" id="modal-company-name" class="form-control" value="${company.companyName || ''}" required>
+                        <input type="text" id="modal-company-name" class="form-control" value="${getCompanyDisplayName(company)}" required>
                     </div>
                     <div class="form-group">
                         <label>거래처코드</label>
@@ -707,7 +708,7 @@ async function showCompanyEditModal(company) {
                     </div>
                     <div class="form-group">
                         <label class="required">대표자명</label>
-                        <input type="text" id="modal-representative" class="form-control" value="${company.representativeName || ''}" required>
+                        <input type="text" id="modal-representative" class="form-control" value="${company.ceoOrDentist || ''}" required>
                     </div>
                     <div class="form-group">
                         <label>연락처</label>
@@ -786,7 +787,7 @@ async function showCompanyEditModal(company) {
                     const updatedData = {
                         ...company,
                         companyName: companyName,
-                        representativeName: representative,
+                        ceoOrDentist: representative,
                         contact: document.getElementById('modal-contact')?.value || '',
                         address: document.getElementById('modal-address')?.value || '',
                         businessStatus: document.getElementById('modal-business-status')?.value || '활성',
@@ -1586,9 +1587,7 @@ function searchCompanies(keyword) {
     const filtered = companyList.filter(company => {
         const searchText = keyword.toLowerCase();
         return (
-            company.companyName?.toLowerCase().includes(searchText) ||
-            company.finalCompanyName?.toLowerCase().includes(searchText) ||
-            company.representativeName?.toLowerCase().includes(searchText) ||
+            getCompanyDisplayName(company).toLowerCase().includes(searchText) ||
             company.ceoOrDentist?.toLowerCase().includes(searchText) ||
             company.internalManager?.toLowerCase().includes(searchText) ||
             company.department?.toLowerCase().includes(searchText) ||

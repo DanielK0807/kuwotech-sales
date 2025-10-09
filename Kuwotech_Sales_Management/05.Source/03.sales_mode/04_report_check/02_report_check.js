@@ -14,6 +14,8 @@
  */
 
 import ApiManager from '../../01.common/13_api_manager.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import { formatNumber, formatDate } from '../../01.common/03_format.js';
 
 // =====================================================
 // API Manager 초기화
@@ -336,8 +338,8 @@ function populateCompanyFilter() {
 
   // 거래처명 기준 정렬
   const sortedCompanies = [...state.companies].sort((a, b) => {
-    const nameA = a.finalCompanyName || '';
-    const nameB = b.finalCompanyName || '';
+    const nameA = getCompanyDisplayName(a);
+    const nameB = getCompanyDisplayName(b);
     return nameA.localeCompare(nameB);
   });
 
@@ -345,7 +347,7 @@ function populateCompanyFilter() {
   sortedCompanies.forEach(company => {
     const option = document.createElement('option');
     option.value = company.keyValue; // 거래처 ID
-    option.textContent = company.finalCompanyName;
+    option.textContent = getCompanyDisplayName(company);
     elements.filterCompany.appendChild(option);
   });
 
@@ -384,7 +386,7 @@ function transformReportsData(apiData) {
       const productNames = targetProducts.map(p => p.name || p.productName).filter(Boolean).join(', ');
 
       const transformed = {
-        id: report.reportId,
+        reportId: report.reportId,
         type: report.reportType || 'weekly',
         companyId: report.companyId, // 거래처 ID (필터링용)
         companyName: report.companyName, // 거래처명 (표시용)
@@ -415,7 +417,7 @@ function transformReportsData(apiData) {
       console.error(`[Report Check] 보고서 #${index + 1} 변환 실패:`, error, report);
       // 실패한 보고서는 건너뛰지 않고 기본값으로 반환
       return {
-        id: report.reportId || 'unknown',
+        reportId: report.reportId || 'unknown',
         type: 'weekly',
         submitDate: formatDate(report.submittedDate),
         completeDates: [],
@@ -674,7 +676,7 @@ function renderReportList() {
     if (reportElement) {
       elements.reportList.appendChild(reportElement);
     } else {
-      console.warn('[Report Check] 보고서 요소 생성 실패:', report.id);
+      console.warn('[Report Check] 보고서 요소 생성 실패:', report.reportId);
     }
   });
 }
@@ -689,12 +691,12 @@ function createReportElement(report) {
   }
 
   // 데이터 속성 설정
-  reportItem.dataset.reportId = report.id;
+  reportItem.dataset.reportId = report.reportId;
 
   // ✅ 보고서 ID 표시 (앞 8자리만)
   const reportIdEl = reportItem.querySelector('.report-id');
   if (reportIdEl) {
-    reportIdEl.textContent = report.id.substring(0, 8);
+    reportIdEl.textContent = report.reportId.substring(0, 8);
   }
 
   // ✅ 보고서 유형 표시
@@ -887,7 +889,7 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
   } else {
     // ✅ DEBUG: 상세보기 클릭 시 전체 보고서 데이터 로깅
     console.log('[Report Check] ========== 상세보기 클릭 ==========');
-    console.log('[Report Check] 보고서 ID:', report.id);
+    console.log('[Report Check] 보고서 ID:', report.reportId);
     console.log('[Report Check] 전체 보고서 객체:', JSON.stringify(report, null, 2));
     console.log('[Report Check] collection.planned:', report.collection?.planned);
     console.log('[Report Check] sales.planned:', report.sales?.planned);
@@ -908,7 +910,7 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
     detailSection.style.display = 'block';
     btnToggle.innerHTML = '접기 <span class="toggle-icon">▲</span>';
     reportItem.classList.add('expanded');
-    state.expandedReportId = report.id;
+    state.expandedReportId = report.reportId;
 
     // 상세 정보 로드
     loadReportDetails(reportItem, report);
@@ -990,14 +992,14 @@ function addDynamicSalesRow(reportItem, report) {
 // =====================================================
 function loadReportDetails(reportItem, report) {
   console.log('[Report Check] ========== 상세 정보 로드 시작 ==========');
-  console.log('[Report Check] 보고서 ID:', report.id);
+  console.log('[Report Check] 보고서 ID:', report.reportId);
 
   // ✅ 보고서 기본정보 섹션 채우기
   console.log('[Report Check] --- 보고서 기본정보 ---');
 
   const detailReportId = reportItem.querySelector('.detail-report-id');
   if (detailReportId) {
-    detailReportId.textContent = report.id;
+    detailReportId.textContent = report.reportId;
   }
 
   const detailReportType = reportItem.querySelector('.detail-report-type');
@@ -1619,7 +1621,7 @@ function updateReportStatus(report) {
     updateSummaryCards();
 
     // 상태 배지 업데이트
-    const reportItem = document.querySelector(`.report-item[data-report-id="${report.id}"]`);
+    const reportItem = document.querySelector(`.report-item[data-report-id="${report.reportId}"]`);
     if (reportItem) {
       const statusBadge = reportItem.querySelector('.status-badge');
       statusBadge.className = `status-badge status-${report.status}`;
@@ -1652,7 +1654,7 @@ function updateCompleteDates(reportItem, report) {
 // =====================================================
 async function saveReportData(report) {
   try {
-    console.log('[Report Check] 보고서 저장 중:', report.id);
+    console.log('[Report Check] 보고서 저장 중:', report.reportId);
 
     // 확인 데이터 구조화
     const confirmationData = {
@@ -1666,7 +1668,7 @@ async function saveReportData(report) {
     };
 
     // API 호출
-    const response = await apiManager.updateReportConfirmation(report.id, {
+    const response = await apiManager.updateReportConfirmation(report.reportId, {
       status: report.status,
       confirmation_data: JSON.stringify(confirmationData),
       processed_by: state.currentUser.name,
@@ -1779,11 +1781,6 @@ async function handleConfirmSales(reportItem, report) {
 // =====================================================
 // 유틸리티 함수
 // =====================================================
-function formatNumber(num) {
-  if (!num && num !== 0) return '0';
-  return num.toLocaleString('ko-KR');
-}
-
 function calculateRate(actual, planned) {
   if (!planned || planned === 0) return 0;
   return (actual / planned) * 100;
@@ -1796,15 +1793,6 @@ function getStatusLabel(status) {
     incomplete: '미완료'
   };
   return labels[status] || '미확인';
-}
-
-function formatDate(dateString) {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 function showLoading(show) {

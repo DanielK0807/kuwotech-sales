@@ -4,7 +4,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { showToast } from '../../01.common/20_common_index.js';
-import { formatCurrency, formatDate as formatDateCommon, formatNumber } from '../../01.common/03_format.js';
+import { formatCurrency, formatDate, formatNumber } from '../../01.common/03_format.js';
 import { GlobalConfig } from '../../01.common/01_global_config.js';
 
 // ============================================
@@ -704,13 +704,6 @@ async function handleRefresh() {
 // ============================================
 // 유틸리티 함수
 // ============================================
-
-/**
- * 날짜 포맷팅 (공통 함수 래퍼)
- */
-function formatDate(dateString) {
-    return formatDateCommon(dateString);
-}
 
 /**
  * 금액 포맷팅 (공통 함수 래퍼 - 안전 처리)
