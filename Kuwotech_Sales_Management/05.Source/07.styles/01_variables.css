@@ -94,27 +94,28 @@
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
   
-  /* ========== 레이아웃 시스템 (UI 사양서) ========== */
-  --header-height: 96px;
-  --sidebar-width: 250px;
-  --sidebar-width-collapsed: 64px;
+  /* ========== 레이아웃 시스템 (Mobile-First) ========== */
+  /* ✅ Mobile-First 기본값 - 모바일에서 즉시 적용 */
+  --header-height: 56px;
+  --sidebar-width: 0;
+  --sidebar-width-collapsed: 0;
   --sidebar-width-mobile: 0px;
-  --sidebar-translate: 0;
+  --sidebar-translate: -100%;
   --sidebar-hover-bg: rgba(255, 255, 255, 0.05);
   --sidebar-hover-translate: 6px;
   --sidebar-active-bg-start: rgba(var(--accent-rgb), 0.1);
   --sidebar-active-bg-end: transparent;
-  
-  --content-max-width: 1400px;
-  --content-padding: var(--spacing-xl);
-  --container-max-width: 1200px;
-  
-  /* KPI 그리드 설정 */
-  --kpi-min-width: 280px;
-  --card-min-width: 300px;
-  
-  /* 모달 크기 변수 */
-  --modal-width: 600px;
+
+  --content-max-width: 100%;
+  --content-padding: var(--spacing-md);
+  --container-max-width: 100%;
+
+  /* KPI 그리드 설정 - Mobile First */
+  --kpi-min-width: 100%;
+  --card-min-width: 100%;
+
+  /* 모달 크기 변수 - Mobile First */
+  --modal-width: 95vw;
   --modal-min-height: 300px;
   --modal-max-height: 600px;
   --backdrop-opacity: 0.6;
@@ -202,69 +203,56 @@
    [2] 브레이크포인트별 변수 조정
 ============================================ */
 
-/* 초대형 데스크톱 (1536px 이상) */
-@media (min-width: 1536px) {
-  :root {
-    --sidebar-width: 280px;
-    --header-height: 105px;
-    --content-max-width: 1400px;
-    --font-base: 16px;
-  }
-}
+/* ✅ Mobile-First 방식으로 재구성 - min-width 사용 */
 
-/* 대형 데스크톱 (1280px - 1535px) */
-@media (min-width: 1280px) and (max-width: 1535px) {
+/* 태블릿 (768px 이상) */
+@media (min-width: 768px) {
   :root {
-    --sidebar-width: 250px;
-    --header-height: 96px;
-    --content-max-width: 1200px;
-  }
-}
-
-/* 데스크톱 (1024px - 1279px) */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  :root {
-    --sidebar-width: 250px;
-    --header-height: 96px;
-    --content-max-width: 100%;
-  }
-}
-
-/* 태블릿 (768px - 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
-  :root {
+    --header-height: 72px;
     --sidebar-width: 200px;
-    --header-height: 90px;
+    --sidebar-width-collapsed: 64px;
+    --sidebar-translate: 0;
     --content-max-width: 100%;
+    --content-padding: var(--spacing-lg);
     --font-base: 15px;
     --kpi-min-width: 240px;
     --card-min-width: 280px;
+    --modal-width: 600px;
   }
 }
 
-/* 대형 모바일 (640px - 767px) */
-@media (min-width: 640px) and (max-width: 767px) {
+/* 데스크톱 (1024px 이상) */
+@media (min-width: 1024px) {
   :root {
-    --sidebar-width: 0;
-    --header-height: 84px;
-    --content-max-width: 100%;
-    --font-base: 14px;
-    --kpi-min-width: 100%;
-    --card-min-width: 100%;
-    --content-padding: var(--spacing-lg);
+    --header-height: 96px;
+    --sidebar-width: 250px;
+    --sidebar-width-collapsed: 64px;
+    --sidebar-translate: 0;
+    --content-max-width: 1200px;
+    --content-padding: var(--spacing-xl);
+    --font-base: 16px;
+    --kpi-min-width: 280px;
+    --card-min-width: 300px;
+    --container-max-width: 1200px;
+    --modal-width: 600px;
   }
 }
 
-/* 모바일 (639px 이하) */
-@media (max-width: 639px) {
+/* 대형 데스크톱 (1280px 이상) */
+@media (min-width: 1280px) {
   :root {
-    --sidebar-width: 0;
-    --header-height: 84px;
-    --content-max-width: 100%;
-    --font-base: 14px;
-    --kpi-min-width: 100%;
-    --card-min-width: 100%;
-    --content-padding: var(--spacing-md);
+    --header-height: 96px;
+    --sidebar-width: 250px;
+    --content-max-width: 1400px;
+  }
+}
+
+/* 초대형 데스크톱 (1536px 이상) */
+@media (min-width: 1536px) {
+  :root {
+    --header-height: 105px;
+    --sidebar-width: 280px;
+    --content-max-width: 1400px;
   }
 }
 

@@ -136,24 +136,24 @@ body[data-mode="sales"] {
 }
 
 /* ============================================
-   [2] 헤더 스타일 - UI 사양서 기준
+   [2] 헤더 스타일 - Mobile-First + !important 제거
    ============================================ */
 .sales-header {
-  height: var(--header-height, 96px) !important;  /* UI 사양서 기준: 96px (1.5배) */
-  background: var(--gradient-primary) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  padding: 0 var(--spacing-lg, 30px) !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  z-index: var(--z-header, 1030) !important;  /* UI 사양서 기준 */
-  box-shadow: var(--shadow-md) !important;
-  border-bottom: 1px solid var(--glass-border) !important;
+  height: var(--header-height);  /* ✅ Mobile-First: 56px → 96px (fallback 제거) */
+  background: var(--gradient-primary);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--spacing-lg, 30px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-header, 1030);
+  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .header-left {
@@ -208,7 +208,7 @@ body[data-mode="sales"] {
 }
 
 .user-greeting {
-  font-size: 20px;
+  font-size: clamp(14px, 2.5vw, 20px);  /* ✅ Mobile-First 반응형 */
   font-weight: 600;
   color: #FFFFFF;
   white-space: nowrap;
@@ -216,20 +216,20 @@ body[data-mode="sales"] {
 
 /* 사용자 이름 강조 스타일 */
 .user-name-highlight {
-  font-size: 35px;
+  font-size: clamp(18px, 5vw, 35px);  /* ✅ Mobile-First 반응형 */
   font-weight: 700;
   color: #FFD700;  /* 골든 옐로우 */
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .user-name {
-  font-size: 27px;
+  font-size: clamp(16px, 4vw, 27px);  /* ✅ Mobile-First 반응형 */
   font-weight: 600;
   color: #FFFFFF;
 }
 
 .user-role {
-  font-size: 21px;
+  font-size: clamp(14px, 3vw, 21px);  /* ✅ Mobile-First 반응형 */
   font-weight: 600;
   text-transform: uppercase;
   color: #FFFFFF;
@@ -237,7 +237,7 @@ body[data-mode="sales"] {
 }
 
 .clock {
-  font-size: 12px;  /* 24px에서 12px로 축소 (절반) */
+  font-size: clamp(11px, 1.5vw, 14px);  /* ✅ Mobile-First 반응형 */
   font-weight: 600;
   color: #FFFFFF;
   /* 배경 제거 - 사용자 요청 */
@@ -257,7 +257,7 @@ body[data-mode="sales"] {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 16px;
+  font-size: var(--font-md);  /* ✅ CSS 변수 사용 */
   font-weight: 600;
   backdrop-filter: blur(10px);
 }
@@ -338,13 +338,13 @@ body[data-mode="sales"] {
 }
 
 .menu-item .icon {
-  font-size: 30px;
-  width: 36px;
+  font-size: clamp(20px, 4vw, 30px);  /* ✅ Mobile-First 반응형 */
+  width: clamp(24px, 4vw, 36px);  /* ✅ Mobile-First 반응형 */
   text-align: center;
 }
 
 .menu-item span {
-  font-size: 22.5px;
+  font-size: var(--font-lg);  /* ✅ CSS 변수 사용 */
   font-weight: 500;
 }
 

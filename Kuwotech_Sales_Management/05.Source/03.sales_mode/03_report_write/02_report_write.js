@@ -364,7 +364,7 @@ function displayAutocompleteResults(companies, searchTerm) {
     list.innerHTML = '';
 
     if (companies.length === 0) {
-        list.innerHTML = '<div class="autocomplete-item" style="color: var(--text-secondary); pointer-events: none;">검색 결과가 없습니다</div>';
+        list.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
         list.style.display = 'block';
         return;
     }
@@ -607,8 +607,8 @@ function updateGoalItem(prefix, data) {
     document.getElementById(`${prefix}Goal`).textContent = formatCurrency(goal);
     document.getElementById(`${prefix}Actual`).textContent = formatCurrency(actual);
 
-    // 달성률 표시
-    document.getElementById(`${prefix}Rate`).textContent = formatPercent(rate / 100, 1, true);
+    // 달성률 표시 (✅ % 소수점 2자리)
+    document.getElementById(`${prefix}Rate`).textContent = formatPercent(rate / 100, 2, true);
 
     // 프로그레스 바 애니메이션
     const progressBar = document.getElementById(`${prefix}Progress`);
@@ -695,10 +695,10 @@ function addProductRow() {
     productItem.className = 'product-item';
     productItem.dataset.productId = productId;
     productItem.innerHTML = `
-        <div class="form-field" style="position: relative;">
+        <div class="form-field pos-relative">
             <label class="field-label">제품명 *</label>
             <input type="text" class="glass-input product-name" placeholder="제품명 입력 또는 선택" required autocomplete="off">
-            <div class="autocomplete-list product-autocomplete" style="display: none;"></div>
+            <div class="autocomplete-list product-autocomplete d-none"></div>
         </div>
         <div class="form-field">
             <label class="field-label">금액 *</label>
@@ -781,12 +781,11 @@ function displayProductAutocomplete(products, searchTerm, autocompleteList, inpu
 
     if (products.length === 0) {
         const noResult = document.createElement('div');
-        noResult.className = 'autocomplete-item';
-        noResult.style.cssText = 'color: var(--text-secondary); cursor: default; font-style: italic; padding: 12px;';
+        noResult.className = 'autocomplete-item product-no-results';
         noResult.innerHTML = `
-            <div style="text-align: center;">
-                <div style="font-size: 14px; margin-bottom: 4px;">🔍 검색 결과 없음</div>
-                <div style="font-size: 12px;">입력한 제품명이 저장 시 자동으로 추가됩니다</div>
+            <div class="product-no-results-content">
+                <div class="product-no-results-title">🔍 검색 결과 없음</div>
+                <div class="product-no-results-message">입력한 제품명이 저장 시 자동으로 추가됩니다</div>
             </div>
         `;
         autocompleteList.appendChild(noResult);
@@ -802,16 +801,16 @@ function displayProductAutocomplete(products, searchTerm, autocompleteList, inpu
         // 우선순위 표시
         let badge = '';
         if (product.priority === 1) {
-            badge = '<span style="background: #1976d2; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">주요</span>';
+            badge = '<span class="badge-main-product">주요</span>';
         } else if (product.priority === 2) {
-            badge = '<span style="background: #388e3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">중요</span>';
+            badge = '<span class="badge-important-product">중요</span>';
         }
 
         // 검색어 하이라이팅
         let displayName = product.productName;
         if (searchTerm) {
             const regex = new RegExp(`(${searchTerm})`, 'gi');
-            displayName = product.productName.replace(regex, '<strong style="background: #fff3cd;">$1</strong>');
+            displayName = product.productName.replace(regex, '<strong class="search-highlight">$1</strong>');
         }
 
         item.innerHTML = displayName + badge;

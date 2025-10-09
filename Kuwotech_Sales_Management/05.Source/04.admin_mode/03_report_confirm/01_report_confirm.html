@@ -49,13 +49,13 @@
     </header>
 
     <!-- 로딩 상태 -->
-    <div id="loadingState" class="loading-state" style="display: flex;">
+    <div id="loadingState" class="loading-state flex-display">
         <div class="loading-spinner"></div>
         <p>보고서 데이터를 불러오는 중...</p>
     </div>
 
     <!-- 데이터 없음 상태 -->
-    <div id="emptyState" class="empty-state" style="display: none;">
+    <div id="emptyState" class="empty-state hidden">
         <div class="empty-icon">📭</div>
         <p>표시할 보고서가 없습니다.</p>
         <button class="glass-button primary" onclick="location.reload()">새로고침</button>
@@ -64,7 +64,7 @@
     <!-- ============================================
          메인 컨테이너: 3단 레이아웃
          ============================================ -->
-    <div class="main-layout" id="mainLayout" style="display: none;">
+    <div class="main-layout hidden" id="mainLayout">
 
         <!-- 1. 사이드바 (20%) -->
         <aside class="sidebar glass-card glass-3d-element" id="sidebar">
@@ -95,12 +95,12 @@
                 <h3 class="sidebar-title">📌 보고서 상태</h3>
                 <ul class="status-filter-list">
                     <li class="status-filter-item" data-status="incomplete">
-                        <button class="status-filter-btn">
+                        <button class="status-filter-btn active">
                             ❌ 미실행 (<span id="incompleteCount">0</span>)
                         </button>
                     </li>
                     <li class="status-filter-item" data-status="partial">
-                        <button class="status-filter-btn active">
+                        <button class="status-filter-btn">
                             ⚠️ 일부완료 (<span id="partialCount">0</span>)
                         </button>
                     </li>
@@ -149,7 +149,7 @@
             </div>
 
             <!-- 보고서 상세 내용 (숨김 상태로 시작) -->
-            <div class="detail-content" id="detailContent" style="display: none;">
+            <div class="detail-content hidden" id="detailContent">
 
                 <!-- 보고서 기본 정보 -->
                 <section class="detail-section glass-card">
@@ -794,6 +794,20 @@
             min-width: unset;
             max-width: unset;
         }
+    }
+
+    /* ============================================
+       유틸리티 클래스 (인라인 스타일 리팩토링)
+       ============================================ */
+
+    /* 숨김 상태 (JavaScript로 토글됨) */
+    .hidden {
+        display: none !important;
+    }
+
+    /* Flex 디스플레이 */
+    .flex-display {
+        display: flex !important;
     }
 </style>
 

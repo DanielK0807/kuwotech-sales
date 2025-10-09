@@ -524,7 +524,7 @@ class KPICard extends BaseComponent {
             label.style.color = 'var(--text-muted)';
             
             const percentage = document.createElement('span');
-            const percent = (this.config.progress.current / this.config.progress.target * 100).toFixed(1);
+            const percent = (this.config.progress.current / this.config.progress.target * 100).toFixed(2);  /* ✅ % 소수점 2자리 */
             percentage.textContent = `${percent}%`;
             percentage.style.color = 'var(--text-primary)';
             

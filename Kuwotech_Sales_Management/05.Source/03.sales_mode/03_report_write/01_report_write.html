@@ -46,7 +46,7 @@
         <!-- ============================================
              동적 목표 표시 영역
              ============================================ -->
-        <section id="goalDisplaySection" class="goal-display-section glass-card glass-3d-element" style="display: none;">
+        <section id="goalDisplaySection" class="goal-display-section glass-card glass-3d-element hidden">
             <div class="goal-header">
                 <h2 id="goalTitle" class="goal-title">📊 실적 로딩 중...</h2>
                 <span id="goalPeriod" class="goal-period badge-info">-</span>
@@ -68,7 +68,7 @@
                         <div class="goal-progress-row">
                             <span class="progress-label">달성률 <span id="annualCollectionRate" class="rate-text">0.0%</span></span>
                             <div class="progress-bar">
-                                <div id="annualCollectionProgress" class="progress-fill" style="width: 0%"></div>
+                                <div id="annualCollectionProgress" class="progress-fill progress-initial"></div>
                             </div>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                         <div class="goal-progress-row">
                             <span class="progress-label">달성률 <span id="annualSalesRate" class="rate-text">0.0%</span></span>
                             <div class="progress-bar">
-                                <div id="annualSalesProgress" class="progress-fill" style="width: 0%"></div>
+                                <div id="annualSalesProgress" class="progress-fill progress-initial"></div>
                             </div>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
                         <div class="goal-progress-row">
                             <span class="progress-label">달성률 <span id="monthlyCollectionRate" class="rate-text">0.0%</span></span>
                             <div class="progress-bar">
-                                <div id="monthlyCollectionProgress" class="progress-fill" style="width: 0%"></div>
+                                <div id="monthlyCollectionProgress" class="progress-fill progress-initial"></div>
                             </div>
                         </div>
                     </div>
@@ -121,7 +121,7 @@
                         <div class="goal-progress-row">
                             <span class="progress-label">달성률 <span id="monthlySalesRate" class="rate-text">0.0%</span></span>
                             <div class="progress-bar">
-                                <div id="monthlySalesProgress" class="progress-fill" style="width: 0%"></div>
+                                <div id="monthlySalesProgress" class="progress-fill progress-initial"></div>
                             </div>
                         </div>
                     </div>
@@ -166,14 +166,14 @@
                             </label>
                             <div class="input-with-button">
                                 <div class="autocomplete-wrapper">
-                                    <input 
-                                        type="text" 
-                                        id="companySelect" 
-                                        class="glass-input" 
+                                    <input
+                                        type="text"
+                                        id="companySelect"
+                                        class="glass-input"
                                         placeholder="거래처명을 입력하세요"
                                         autocomplete="off"
                                         required>
-                                    <div id="companyAutocompleteList" class="autocomplete-list" style="display: none;">
+                                    <div id="companyAutocompleteList" class="autocomplete-list hidden">
                                         <!-- 자동완성 목록이 여기 표시됨 -->
                                     </div>
                                 </div>
@@ -199,7 +199,7 @@
                         <button type="button" class="toggle-icon">▼</button>
                     </div>
 
-                    <div id="targetCollectionContent" class="section-content" style="display: none;">
+                    <div id="targetCollectionContent" class="section-content hidden">
                         <div class="form-row">
                             <div class="form-field">
                                 <label class="field-label">금액 (원)</label>
@@ -229,7 +229,7 @@
                         <button type="button" class="toggle-icon">▼</button>
                     </div>
 
-                    <div id="targetSalesContent" class="section-content" style="display: none;">
+                    <div id="targetSalesContent" class="section-content hidden">
                         <div id="salesProductList" class="product-list">
                             <!-- 제품 항목이 동적으로 추가됨 -->
                         </div>
@@ -251,7 +251,7 @@
                         <button type="button" class="toggle-icon">▼</button>
                     </div>
 
-                    <div id="activityContent" class="section-content" style="display: none;">
+                    <div id="activityContent" class="section-content hidden">
                         <!-- 활동 목록 -->
                         <div id="activityList" class="activity-list">
                             <!-- 추가된 활동들이 여기 표시됨 -->
@@ -289,7 +289,7 @@
 <!-- ============================================
      영업활동 입력 모달
      ============================================ -->
-<div id="activityModal" class="modal-container" style="display: none;">
+<div id="activityModal" class="modal-container hidden">
     <div class="modal-overlay"></div>
     <div class="modal-content glass-card">
         <!-- 모달 헤더 -->
@@ -376,7 +376,7 @@
             </div>
         </div>
 
-        <div id="callProxyFields" class="proxy-fields" style="display: none;">
+        <div id="callProxyFields" class="proxy-fields hidden">
             <div class="form-field">
                 <label class="field-label">대리 실행자 (딜러/대리점명)</label>
                 <input type="text" id="callProxyName" class="glass-input" placeholder="대리 실행자명">
@@ -428,7 +428,7 @@
             </div>
         </div>
 
-        <div id="visitProxyFields" class="proxy-fields" style="display: none;">
+        <div id="visitProxyFields" class="proxy-fields hidden">
             <div class="form-field">
                 <label class="field-label">대리 실행자 (딜러/대리점명)</label>
                 <input type="text" id="visitProxyName" class="glass-input" placeholder="대리 실행자명">
@@ -479,7 +479,7 @@
             </div>
         </div>
 
-        <div id="docProxyFields" class="proxy-fields" style="display: none;">
+        <div id="docProxyFields" class="proxy-fields hidden">
             <div class="form-field">
                 <label class="field-label">대리 실행자 (딜러/대리점명)</label>
                 <input type="text" id="docProxyName" class="glass-input" placeholder="대리 실행자명">
@@ -1263,6 +1263,20 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* ============================================
+       유틸리티 클래스 (인라인 스타일 리팩토링)
+       ============================================ */
+
+    /* 숨김 상태 (JavaScript로 토글됨) */
+    .hidden {
+        display: none;
+    }
+
+    /* 진행률 바 초기 상태 (JavaScript로 동적 업데이트됨) */
+    .progress-initial {
+        width: 0%;
     }
 
     .autocomplete-item {

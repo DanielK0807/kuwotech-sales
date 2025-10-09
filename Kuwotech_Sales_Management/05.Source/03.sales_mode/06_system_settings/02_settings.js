@@ -187,13 +187,13 @@ window.saveUserInfo = async function() {
         const confirmed = await showModal({
             title: '본인 정보 변경',
             content: `
-                <div style="padding: 20px; text-align: center; color: #ffffff;">
-                    <p style="margin-bottom: 15px; color: #ffffff;">변경된 정보를 저장하시겠습니까?</p>
-                    <div style="text-align: left; background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);">
-                        <p style="margin: 8px 0; color: #ffffff;"><strong>이메일:</strong> ${email || '(없음)'}</p>
-                        <p style="margin: 8px 0; color: #ffffff;"><strong>전화번호:</strong> ${phone || '(없음)'}</p>
-                        <p style="margin: 8px 0; color: #ffffff;"><strong>부서:</strong> ${department}</p>
-                        <p style="margin: 8px 0; color: #ffffff;"><strong>역할:</strong> ${role}</p>
+                <div class="settings-confirm-container">
+                    <p>변경된 정보를 저장하시겠습니까?</p>
+                    <div class="settings-info-box">
+                        <p><strong>이메일:</strong> ${email || '(없음)'}</p>
+                        <p><strong>전화번호:</strong> ${phone || '(없음)'}</p>
+                        <p><strong>부서:</strong> ${department}</p>
+                        <p><strong>역할:</strong> ${role}</p>
                     </div>
                 </div>
             `,
@@ -293,9 +293,9 @@ window.changePassword = async function() {
         const confirmed = await showModal({
             title: '비밀번호 변경',
             content: `
-                <div style="padding: 20px; text-align: center; color: #ffffff;">
-                    <p style="margin-bottom: 15px; color: #ffffff;">비밀번호를 변경하시겠습니까?</p>
-                    <p style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">
+                <div class="settings-confirm-container">
+                    <p>비밀번호를 변경하시겠습니까?</p>
+                    <p class="settings-note-text">
                         보안을 위해 변경 후 다시 로그인해야 합니다.
                     </p>
                 </div>

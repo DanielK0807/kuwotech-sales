@@ -23,8 +23,10 @@ const apiManager = new ApiManager();
 
 let allReports = [];           // 전체 보고서 데이터
 let allEmployees = [];         // 전체 직원 데이터
-let currentFilter = 'partial'; // 현재 선택된 필터 (기본: 일부완료)
+let currentFilter = 'incomplete'; // 현재 선택된 필터 (기본: 미실행)
 let selectedReportId = null;   // 현재 선택된 보고서 ID
+let isInitialized = false;     // 초기화 완료 플래그 (중복 방지)
+let isInitializing = false;    // 초기화 진행 중 플래그 (중복 방지)
 
 // ============================================
 // 유틸리티 함수
@@ -102,11 +104,13 @@ function getStatusBadgeHTML(status) {
  * 전체 보고서 데이터 로드
  */
 async function loadReports() {
-    try {
-        console.log('📊 보고서 데이터 로드 시작...');
-        console.log('API Manager 상태:', apiManager);
-        showLoading(true);
+    console.log('📊 보고서 데이터 로드 시작...');
+    console.log('API Manager 상태:', apiManager);
+    console.log('🔐 인증 토큰 존재:', !!localStorage.getItem('authToken'));
 
+    showLoading(true);
+
+    try {
         // 타임아웃 추가 (30초)
         const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('API 호출 타임아웃 (30초)')), 30000);
@@ -117,7 +121,7 @@ async function loadReports() {
             timeoutPromise
         ]);
 
-        console.log('API 응답:', response);
+        console.log('✅ API 응답 수신:', response);
         console.log('응답 타입:', typeof response);
         console.log('응답이 배열인가?', Array.isArray(response));
 
@@ -193,10 +197,21 @@ async function loadReports() {
         return true;
     } catch (error) {
         console.error('❌ 보고서 로드 에러:', error);
+        console.error('에러 이름:', error.name);
+        console.error('에러 메시지:', error.message);
         console.error('에러 스택:', error.stack);
-        alert('보고서 데이터를 불러오는데 실패했습니다:\n' + error.message + '\n\n브라우저 콘솔(F12)을 확인하세요.');
-        showLoading(false);
+
+        // HTTP 에러 상세 정보
+        if (error.status) {
+            console.error(`❌ HTTP ${error.status} 에러:`, error.statusText);
+            console.error('에러 응답 데이터:', error.data);
+        }
+
+        alert('보고서 데이터를 불러오는데 실패했습니다:\n' + error.message + '\n\n브라우저 콘솔(F12)에서 상세 정보를 확인하세요.');
         return false;
+    } finally {
+        // 로딩 상태는 initializePage에서 관리하므로 여기서는 제거하지 않음
+        console.log('📊 loadReports 함수 완료');
     }
 }
 
@@ -414,9 +429,15 @@ function renderReportDetail(reportId) {
         return;
     }
 
-    // 플레이스홀더 숨기고 상세 내용 표시
-    document.getElementById('detailPlaceholder').style.display = 'none';
-    document.getElementById('detailContent').style.display = 'block';
+    // 플레이스홀더 숨기고 상세 내용 표시 (CSS 클래스도 함께 관리)
+    const placeholder = document.getElementById('detailPlaceholder');
+    const content = document.getElementById('detailContent');
+
+    placeholder.style.display = 'none';
+    placeholder.classList.add('hidden');
+
+    content.style.display = 'block';
+    content.classList.remove('hidden'); // CRITICAL: Remove hidden class to show content
 
     // 기본 정보
     document.getElementById('detailReportId').textContent = report.reportId || '-';
@@ -458,21 +479,21 @@ function renderReportDetail(reportId) {
 
             if (Array.isArray(activities) && activities.length > 0) {
                 activityListEl.innerHTML = activities.map(activity => `
-                    <div class="activity-item glass-card" style="padding: 12px; margin-bottom: 8px;">
-                        <div style="font-weight: 500; color: var(--primary-color); margin-bottom: 4px;">
+                    <div class="activity-item glass-card activity-item-padding">
+                        <div class="activity-company">
                             ${activity.companyName || '회사명 없음'}
                         </div>
-                        <div style="font-size: 0.9em; color: var(--text-color);">
+                        <div class="activity-content-text">
                             ${activity.content || '-'}
                         </div>
                     </div>
                 `).join('');
             } else {
-                activityListEl.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">활동 내역이 없습니다</p>';
+                activityListEl.innerHTML = '<p class="activity-no-data">활동 내역이 없습니다</p>';
             }
         } catch (e) {
             console.error('활동내역 파싱 에러:', e);
-            activityListEl.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">-</p>';
+            activityListEl.innerHTML = '<p class="activity-no-data">-</p>';
         }
     }
 
@@ -484,24 +505,56 @@ function renderReportDetail(reportId) {
  * 상세 패널 플레이스홀더 표시
  */
 function showDetailPlaceholder() {
-    document.getElementById('detailPlaceholder').style.display = 'flex';
-    document.getElementById('detailContent').style.display = 'none';
+    const placeholder = document.getElementById('detailPlaceholder');
+    const content = document.getElementById('detailContent');
+
+    placeholder.style.display = 'flex';
+    placeholder.classList.remove('hidden');
+
+    content.style.display = 'none';
+    content.classList.add('hidden'); // Add hidden class to ensure content is hidden
 }
 
 /**
  * 로딩 상태 표시/숨김
  */
 function showLoading(show) {
+    console.log(`🔄 showLoading 호출됨: ${show ? '표시' : '숨김'}`);
+
     const loadingState = document.getElementById('loadingState');
     const mainLayout = document.getElementById('mainLayout');
 
-    if (show) {
-        loadingState.style.display = 'flex';
-        mainLayout.style.display = 'none';
-    } else {
-        loadingState.style.display = 'none';
-        mainLayout.style.display = 'flex';
+    console.log('loadingState 요소:', loadingState);
+    console.log('mainLayout 요소:', mainLayout);
+
+    if (!loadingState || !mainLayout) {
+        console.error('❌ DOM 요소를 찾을 수 없습니다!');
+        console.error('loadingState:', loadingState);
+        console.error('mainLayout:', mainLayout);
+        return;
     }
+
+    if (show) {
+        console.log('▶ 로딩 표시: loadingState flex, mainLayout none + hidden 클래스 추가');
+        loadingState.style.display = 'flex';
+        loadingState.classList.remove('hidden');
+        loadingState.classList.add('flex-display');
+        mainLayout.style.display = 'none';
+        mainLayout.classList.add('hidden');
+    } else {
+        console.log('▶ 로딩 숨김: loadingState none + hidden 클래스 추가, mainLayout flex + hidden 클래스 제거');
+        loadingState.style.display = 'none';
+        loadingState.classList.add('hidden');
+        loadingState.classList.remove('flex-display');
+        mainLayout.style.display = 'flex';
+        mainLayout.classList.remove('hidden');
+    }
+
+    console.log('✅ showLoading 실행 완료');
+    console.log('  - loadingState.style.display:', loadingState.style.display);
+    console.log('  - loadingState.classList:', loadingState.classList.toString());
+    console.log('  - mainLayout.style.display:', mainLayout.style.display);
+    console.log('  - mainLayout.classList:', mainLayout.classList.toString());
 }
 
 // ============================================
@@ -657,30 +710,47 @@ async function initializePage() {
             console.warn('⚠️ 보고서 데이터가 없습니다');
             showLoading(false);
 
-            // 빈 상태로 UI 렌더링
-            renderSubmissionStatus();
-            updateStatusCounts();
-            renderWeeklyReports();
-            renderFilteredReports();
-            showDetailPlaceholder();
+            // 빈 상태로 UI 렌더링 (에러 처리 포함)
+            safeRender('renderSubmissionStatus', renderSubmissionStatus);
+            safeRender('updateStatusCounts', updateStatusCounts);
+            safeRender('renderWeeklyReports', renderWeeklyReports);
+            safeRender('renderFilteredReports', renderFilteredReports);
+            safeRender('showDetailPlaceholder', showDetailPlaceholder);
 
             return;
         }
 
-        // UI 렌더링
-        renderSubmissionStatus();
-        updateStatusCounts();
-        renderWeeklyReports();
-        renderFilteredReports();
-        showDetailPlaceholder();
+        // UI 렌더링 (에러 처리 포함)
+        safeRender('renderSubmissionStatus', renderSubmissionStatus);
+        safeRender('updateStatusCounts', updateStatusCounts);
+        safeRender('renderWeeklyReports', renderWeeklyReports);
+        safeRender('renderFilteredReports', renderFilteredReports);
+        safeRender('showDetailPlaceholder', showDetailPlaceholder);
 
         showLoading(false);
 
         console.log('✅ 페이지 초기화 완료');
     } catch (error) {
         console.error('❌ 초기화 중 에러:', error);
+        console.error('에러 스택:', error.stack);
         showLoading(false);
-        alert('페이지 초기화 중 오류가 발생했습니다: ' + error.message);
+        alert('페이지 초기화 중 오류가 발생했습니다:\n\n' + error.message + '\n\n브라우저 콘솔(F12)을 확인하세요.');
+    }
+}
+
+/**
+ * 안전한 렌더링 헬퍼 함수
+ * 렌더 함수 실행 중 에러가 발생해도 전체 페이지가 중단되지 않도록 함
+ */
+function safeRender(funcName, renderFunc) {
+    try {
+        console.log(`🎨 ${funcName} 렌더링 시작`);
+        renderFunc();
+        console.log(`✅ ${funcName} 렌더링 완료`);
+    } catch (error) {
+        console.error(`❌ ${funcName} 렌더링 에러:`, error);
+        console.error('에러 스택:', error.stack);
+        // 개별 렌더 함수 에러는 전체 페이지를 중단시키지 않음
     }
 }
 
@@ -717,24 +787,63 @@ function attachEventListeners() {
  * 메인 초기화 함수
  */
 async function main() {
+    // 중복 초기화 방지
+    if (isInitialized) {
+        console.log('⚠️ 이미 초기화되었습니다 - 로딩만 해제하고 중복 호출 무시');
+        showLoading(false);
+        return;
+    }
+
+    if (isInitializing) {
+        console.log('⚠️ 초기화가 진행 중입니다 - 중복 호출 무시');
+        return;
+    }
+
+    isInitializing = true;
     console.log('📋 관리자모드 - 실적보고서 확인 페이지 로드');
 
     try {
         // API Manager 초기화 대기
         console.log('API Manager 초기화 중...');
 
-        // API Manager가 이미 초기화되었는지 확인
+        // API Manager 초기화 및 서버 연결 확인
+        let isConnected = false;
         if (typeof apiManager.init === 'function') {
-            await apiManager.init();
+            isConnected = await apiManager.init();
+            console.log('API Manager 초기화 결과:', isConnected ? '성공' : '실패');
+        } else {
+            console.error('❌ API Manager init 함수를 찾을 수 없습니다');
+            showLoading(false);
+            alert('❌ API Manager 초기화 함수를 찾을 수 없습니다.\n\n페이지를 새로고침해주세요.');
+            isInitializing = false;
+            return;
         }
+
+        // 서버 연결 실패 시 중단
+        if (!isConnected) {
+            console.error('❌ 백엔드 서버에 연결할 수 없습니다');
+            showLoading(false);
+            // API Manager가 이미 에러 배너를 표시하므로 추가 alert는 불필요
+            isInitializing = false;
+            return;
+        }
+
         console.log('✅ API Manager 초기화 완료');
 
         attachEventListeners();
         await initializePage();
+
+        // 초기화 완료 플래그 설정
+        isInitialized = true;
+        console.log('✅ 전체 초기화 완료');
+
     } catch (error) {
         console.error('❌ 페이지 로드 에러:', error);
+        console.error('에러 스택:', error.stack);
         showLoading(false);
-        alert('페이지 초기화에 실패했습니다: ' + error.message);
+        alert('페이지 초기화에 실패했습니다:\n\n' + error.message + '\n\n브라우저 콘솔(F12)을 확인하세요.');
+    } finally {
+        isInitializing = false;
     }
 }
 

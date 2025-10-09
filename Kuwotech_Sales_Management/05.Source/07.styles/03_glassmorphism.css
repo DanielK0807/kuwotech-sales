@@ -40,9 +40,9 @@
     /* 배경: 가이드 4.1 - Panel */
     background: rgba(255, 255, 255, 0.18);
 
-    /* 블러: 13px (50% 감소 - 성능 최적화) */
-    backdrop-filter: blur(13px) saturate(170%);
-    -webkit-backdrop-filter: blur(13px) saturate(170%);
+    /* 블러: 12px (52% 감소 - Phase 1.1 최적화) */
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
 
     /* 테두리: 2px solid */
     border: 2px solid rgba(255, 255, 255, 0.35);
@@ -76,9 +76,9 @@
         rgba(255, 255, 255, 0.15)
     );
 
-    /* 블러: 15px (50% 감소 - 성능 최적화) */
-    backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
-    -webkit-backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
+    /* 블러: 15px (50% 감소 - Phase 1.1 최적화) */
+    backdrop-filter: blur(15px) saturate(150%);
+    -webkit-backdrop-filter: blur(15px) saturate(150%);
 
     /* 테두리: 2px */
     border: 2px solid rgba(255, 255, 255, 0.45);
@@ -296,8 +296,8 @@
         rgba(255, 255, 255, 0.35),
         rgba(255, 255, 255, 0.15)
     );
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
     border: 2px solid rgba(255, 255, 255, 0.5);
     transform: translateZ(30px);
     box-shadow:
@@ -423,8 +423,8 @@
         rgba(255, 255, 255, 0.35),
         rgba(255, 255, 255, 0.15)
     );
-    backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
-    -webkit-backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
+    backdrop-filter: blur(15px) saturate(150%);
+    -webkit-backdrop-filter: blur(15px) saturate(150%);
     border: 2px solid rgba(255, 255, 255, 0.45);
     border-radius: 20px;
     padding: 28px;
@@ -470,12 +470,40 @@
 }
 
 @media (max-width: 640px) {
-    .glass-panel { backdrop-filter: blur(6px); padding: 16px; }
-    .glass-card { backdrop-filter: blur(8px); padding: 16px; }
-    .glass-button { padding: 10px 20px; font-size: 14px; backdrop-filter: blur(5px); }
-    .glass-input { padding: 12px 16px; font-size: 14px; backdrop-filter: blur(5px); }
-    .glass-modal { backdrop-filter: blur(10px); }
-    .kpi-card { backdrop-filter: blur(8px); }
+    .glass-panel {
+        backdrop-filter: blur(6px) saturate(120%);
+        -webkit-backdrop-filter: blur(6px) saturate(120%);
+        padding: 16px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+    }
+    .glass-card {
+        backdrop-filter: blur(8px) saturate(120%);
+        -webkit-backdrop-filter: blur(8px) saturate(120%);
+        padding: 16px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    .glass-button {
+        padding: 10px 20px;
+        font-size: 14px;
+        backdrop-filter: blur(5px) saturate(110%);
+        -webkit-backdrop-filter: blur(5px) saturate(110%);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    }
+    .glass-input {
+        padding: 12px 16px;
+        font-size: 14px;
+        backdrop-filter: blur(5px) saturate(110%);
+        -webkit-backdrop-filter: blur(5px) saturate(110%);
+    }
+    .glass-modal {
+        backdrop-filter: blur(12px) saturate(130%);
+        -webkit-backdrop-filter: blur(12px) saturate(130%);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+    }
+    .kpi-card {
+        backdrop-filter: blur(8px) saturate(120%);
+        -webkit-backdrop-filter: blur(8px) saturate(120%);
+    }
 }
 
 /* ============================================

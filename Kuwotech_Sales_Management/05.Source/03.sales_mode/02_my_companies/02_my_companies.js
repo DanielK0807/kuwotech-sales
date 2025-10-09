@@ -1096,7 +1096,7 @@ async function openCompanyDetailModal(keyValue) {
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="required">최종거래처명 ${isAdmin ? '' : '(관리자 전용)'}</label>
-                            <input type="text" id="modal-final-company-name" class="form-control" value="${company.finalCompanyName || ''}" ${isAdmin ? '' : 'readonly style="background-color: #f5f5f5;"'}>
+                            <input type="text" id="modal-final-company-name" class="form-control ${isAdmin ? '' : 'readonly-bg'}" value="${company.finalCompanyName || ''}" ${isAdmin ? '' : 'readonly'}>
                         </div>
                         <div class="form-group">
                             <label>사업자등록번호</label>
@@ -1182,31 +1182,31 @@ async function openCompanyDetailModal(keyValue) {
                     <div class="form-grid">
                         <div class="form-group">
                             <label>판매제품</label>
-                            <input type="text" class="form-control" value="${company.salesProduct || '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control readonly-bg" value="${company.salesProduct || '-'}" readonly>
                         </div>
                         <div class="form-group">
                             <label>마지막결제일</label>
-                            <input type="text" class="form-control" value="${company.lastPaymentDate || '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control readonly-bg" value="${company.lastPaymentDate || '-'}" readonly>
                         </div>
                         <div class="form-group">
                             <label>마지막총결재금액</label>
-                            <input type="text" class="form-control" value="${company.lastPaymentAmount ? formatCurrency(company.lastPaymentAmount, true) : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control readonly-bg" value="${company.lastPaymentAmount ? formatCurrency(company.lastPaymentAmount, true) : '-'}" readonly>
                         </div>
                         <div class="form-group">
                             <label>누적수금금액</label>
-                            <input type="text" class="form-control" value="${company.accumulatedCollection ? formatCurrency(company.accumulatedCollection, true) : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control readonly-bg" value="${company.accumulatedCollection ? formatCurrency(company.accumulatedCollection, true) : '-'}" readonly>
                         </div>
                         <div class="form-group">
                             <label>누적매출금액</label>
-                            <input type="text" class="form-control" value="${company.accumulatedSales ? formatCurrency(company.accumulatedSales, true) : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control readonly-bg" value="${company.accumulatedSales ? formatCurrency(company.accumulatedSales, true) : '-'}" readonly>
                         </div>
                         <div class="form-group">
                             <label>매출채권잔액</label>
-                            <input type="text" class="form-control" value="${company.accountsReceivable ? formatCurrency(company.accountsReceivable, true) : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control readonly-bg" value="${company.accountsReceivable ? formatCurrency(company.accountsReceivable, true) : '-'}" readonly>
                         </div>
                         <div class="form-group full-width">
                             <label>영업활동</label>
-                            <textarea class="form-control" rows="2" readonly style="background-color: #f5f5f5;">${company.activityNotes || '-'}</textarea>
+                            <textarea class="form-control readonly-bg" rows="2" readonly>${company.activityNotes || '-'}</textarea>
                         </div>
                     </div>
                 </div>

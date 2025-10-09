@@ -45,51 +45,51 @@ function showDownloadOptionsModal(type = 'all', selectedReports = []) {
             size: 'md',
             title: '📥 다운로드 옵션',
             content: `
-                <div class="download-options-container" style="padding: 20px;">
-                    
+                <div class="download-options-container">
+
                     <!-- 다운로드 타입 정보 -->
-                    <div class="download-type-info" style="margin-bottom: 25px; padding: 15px; background: var(--glass-bg); border-radius: 8px;">
-                        <h4 style="margin: 0 0 10px 0; color: var(--primary-color);">
-                            ${type === 'all' ? '📋 전체 보고서 다운로드' : 
-                              type === 'selected' ? '☑️ 선택된 보고서 다운로드' : 
+                    <div class="download-type-info">
+                        <h4>
+                            ${type === 'all' ? '📋 전체 보고서 다운로드' :
+                              type === 'selected' ? '☑️ 선택된 보고서 다운로드' :
                               '🔍 필터링된 보고서 다운로드'}
                         </h4>
-                        <p style="margin: 0; font-size: 0.9em; color: var(--text-secondary);">
-                            ${type === 'all' ? '시스템의 모든 보고서를 다운로드합니다.' : 
-                              type === 'selected' ? `선택된 ${selectedReports.length}개의 보고서를 다운로드합니다.` : 
+                        <p>
+                            ${type === 'all' ? '시스템의 모든 보고서를 다운로드합니다.' :
+                              type === 'selected' ? `선택된 ${selectedReports.length}개의 보고서를 다운로드합니다.` :
                               '현재 필터 조건에 해당하는 보고서를 다운로드합니다.'}
                         </p>
                     </div>
                     
                     <!-- 포함할 시트 선택 -->
-                    <div class="sheet-selection" style="margin-bottom: 25px;">
-                        <h4 style="margin: 0 0 15px 0;">포함할 데이터</h4>
-                        
-                        <label class="option-item" style="display: flex; align-items: center; padding: 12px; margin-bottom: 10px; background: var(--glass-bg); border-radius: 8px; cursor: pointer;">
-                            <input type="checkbox" id="include-reports" checked disabled style="margin-right: 10px; width: 18px; height: 18px;">
+                    <div class="sheet-selection">
+                        <h4>포함할 데이터</h4>
+
+                        <label class="option-item">
+                            <input type="checkbox" id="include-reports" checked disabled>
                             <div>
                                 <strong>보고서 데이터</strong>
-                                <p style="margin: 5px 0 0 0; font-size: 0.85em; color: var(--text-secondary);">
+                                <p>
                                     전체 방문보고서 내용 (필수)
                                 </p>
                             </div>
                         </label>
-                        
-                        <label class="option-item" style="display: flex; align-items: center; padding: 12px; margin-bottom: 10px; background: var(--glass-bg); border-radius: 8px; cursor: pointer;">
-                            <input type="checkbox" id="include-stats" checked style="margin-right: 10px; width: 18px; height: 18px;">
+
+                        <label class="option-item">
+                            <input type="checkbox" id="include-stats" checked>
                             <div>
                                 <strong>담당자별 통계</strong>
-                                <p style="margin: 5px 0 0 0; font-size: 0.85em; color: var(--text-secondary);">
+                                <p>
                                     작성자별 보고서 수, 매출액, 수금액 통계
                                 </p>
                             </div>
                         </label>
-                        
-                        <label class="option-item" style="display: flex; align-items: center; padding: 12px; background: var(--glass-bg); border-radius: 8px; cursor: pointer;">
-                            <input type="checkbox" id="include-status" style="margin-right: 10px; width: 18px; height: 18px;">
+
+                        <label class="option-item">
+                            <input type="checkbox" id="include-status">
                             <div>
                                 <strong>승인 상태별 분류</strong>
-                                <p style="margin: 5px 0 0 0; font-size: 0.85em; color: var(--text-secondary);">
+                                <p>
                                     대기중, 승인, 반려 시트로 분리
                                 </p>
                             </div>
@@ -97,28 +97,26 @@ function showDownloadOptionsModal(type = 'all', selectedReports = []) {
                     </div>
                     
                     <!-- 날짜 범위 선택 -->
-                    <div class="date-range-selection" style="margin-bottom: 25px;">
-                        <h4 style="margin: 0 0 15px 0;">기간 설정</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="date-range-selection">
+                        <h4>기간 설정</h4>
+                        <div class="grid-2col gap-md">
                             <div>
-                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">시작일</label>
-                                <input type="date" id="download-start-date" class="glass-input" 
-                                       value="${getDefaultStartDate()}" 
-                                       style="width: 100%;">
+                                <label>시작일</label>
+                                <input type="date" id="download-start-date" class="glass-input w-full"
+                                       value="${getDefaultStartDate()}">
                             </div>
                             <div>
-                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">종료일</label>
-                                <input type="date" id="download-end-date" class="glass-input" 
-                                       value="${getDefaultEndDate()}" 
-                                       style="width: 100%;">
+                                <label>종료일</label>
+                                <input type="date" id="download-end-date" class="glass-input w-full"
+                                       value="${getDefaultEndDate()}">
                             </div>
                         </div>
                     </div>
                     
                     <!-- 파일명 미리보기 -->
-                    <div class="filename-preview" style="padding: 15px; background: rgba(var(--primary-rgb, 0, 151, 167), 0.1); border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                    <div class="filename-preview">
                         <strong>📄 파일명:</strong>
-                        <p id="filename-preview" style="margin: 5px 0 0 0; font-family: monospace; color: var(--primary-color);">
+                        <p id="filename-preview">
                             방문보고서_전체_${new Date().getFullYear()}.xlsx
                         </p>
                     </div>
@@ -324,7 +322,7 @@ export async function downloadSingleReport(reportId) {
                 size: 'sm',
                 title: '📥 보고서 다운로드',
                 content: `
-                    <div style="padding: 20px; text-align: center;">
+                    <div class="p-lg text-center">
                         <p>선택한 보고서를 다운로드하시겠습니까?</p>
                     </div>
                 `,

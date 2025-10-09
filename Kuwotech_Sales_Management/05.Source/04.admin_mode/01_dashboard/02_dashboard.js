@@ -370,7 +370,7 @@ function renderKPISection(sectionId, kpiConfig) {
         console.log(`[KPI 섹션] ${sectionId} 렌더링 완료 (${kpiConfig.length}개 카드)`);
     } catch (error) {
         console.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
-        container.innerHTML = '<p style="color: red;">카드 렌더링 실패</p>';
+        container.innerHTML = '<p class="error-message">카드 렌더링 실패</p>';
     }
 }
 
@@ -440,174 +440,35 @@ async function showRankingModal(type) {
             }
 
             return `
-                <tr class="rank-${rank.rank}" style="
-                    background: var(--glass-bg);
-                    border-radius: 8px;
-                    transition: all 0.3s ease;
-                ">
-                    <td class="rank-number" style="
-                        padding: 14px 20px;
-                        text-align: center;
-                        font-size: 18px;
-                        font-weight: 600;
-                        font-family: 'Paperlogy', sans-serif;
-                        color: var(--primary-color);
-                    ">${getRankBadge(rank.rank)}</td>
-                    <td class="employee-name" style="
-                        padding: 14px 20px;
-                        text-align: left;
-                        font-weight: 600;
-                        font-size: 15px;
-                        font-family: 'Paperlogy', sans-serif;
-                        color: var(--text-primary);
-                    ">${rank.employeeName}</td>
-                    <td class="sales-amount ${salesClass}" style="
-                        padding: 14px 20px;
-                        text-align: right;
-                        font-weight: 700;
-                        font-size: 16px;
-                        font-family: 'Paperlogy', sans-serif;
-                    ">${salesFormatted}</td>
-                    <td class="contribution-rate ${contributionClass}" style="
-                        padding: 14px 20px;
-                        text-align: right;
-                        font-weight: 700;
-                        font-size: 16px;
-                        font-family: 'Paperlogy', sans-serif;
-                        color: var(--accent-color);
-                    ">${contributionFormatted}</td>
-                    <td class="cumulative-contribution ${cumulativeClass}" style="
-                        padding: 14px 20px;
-                        text-align: right;
-                        font-weight: 700;
-                        font-size: 16px;
-                        font-family: 'Paperlogy', sans-serif;
-                        color: var(--success-color);
-                    ">${cumulativeFormatted}</td>
+                <tr class="rank-${rank.rank}">
+                    <td class="rank-number">${getRankBadge(rank.rank)}</td>
+                    <td class="employee-name">${rank.employeeName}</td>
+                    <td class="sales-amount ${salesClass}">${salesFormatted}</td>
+                    <td class="contribution-rate ${contributionClass}">${contributionFormatted}</td>
+                    <td class="cumulative-contribution ${cumulativeClass}">${cumulativeFormatted}</td>
                 </tr>
             `;
         }).join('');
 
         const modalHTML = `
-            <div class="modal-overlay" id="rankingModal" style="
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.6);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 1000;
-                padding: 20px;
-                font-family: 'Paperlogy', sans-serif;
-            ">
-                <div class="modal-content glass-modal glass-layered glass-shimmer" style="
-                    max-width: 800px;
-                    max-height: 80vh;
-                    overflow-y: auto;
-                    width: 100%;
-                    padding: 28px;
-                ">
-                    <div class="modal-header bg-layer-2" style="
-                        padding: 28px;
-                        border-bottom: 2px solid var(--glass-border);
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        border-radius: 13px 13px 0 0;
-                        margin: -28px -28px 24px -28px;
-                    ">
-                        <h2 class="text-on-layer-2" style="
-                            margin: 0;
-                            font-size: 24px;
-                            font-weight: 700;
-                            font-family: 'Paperlogy', sans-serif;
-                            letter-spacing: -0.5px;
-                        ">${title}</h2>
-                        <button class="btn-close glass-button" onclick="closeRankingModal()" style="
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 20px;
-                            font-family: 'Paperlogy', sans-serif;
-                            padding: 0;
-                            border: 2px solid var(--glass-border);
-                            background: var(--glass-bg-light);
-                            backdrop-filter: blur(10px);
-                            color: var(--text-on-layer-2);
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                        ">✕</button>
+            <div class="ranking-modal-overlay" id="rankingModal">
+                <div class="ranking-modal-content glass-modal glass-layered glass-shimmer">
+                    <div class="ranking-modal-header bg-layer-2">
+                        <h2 class="text-on-layer-2">${title}</h2>
+                        <button class="ranking-modal-close glass-button" onclick="closeRankingModal()">✕</button>
                     </div>
-                    <div class="modal-body" style="
-                        padding: 0;
-                        overflow-x: auto;
-                    ">
-                        <table class="ranking-table glass-panel" style="
-                            width: 100%;
-                            border-collapse: separate;
-                            border-spacing: 0 8px;
-                            background: var(--glass-bg);
-                            border-radius: 12px;
-                            overflow: hidden;
-                            font-family: 'Paperlogy', sans-serif;
-                        ">
+                    <div class="ranking-modal-body">
+                        <table class="ranking-table glass-panel">
                             <thead>
                                 <tr class="bg-layer-3">
-                                    <th class="text-on-layer-3" style="
-                                        padding: 16px 20px;
-                                        text-align: center;
-                                        font-weight: 700;
-                                        font-size: 15px;
-                                        font-family: 'Paperlogy', sans-serif;
-                                        letter-spacing: 0.3px;
-                                        border-bottom: 2px solid var(--glass-border);
-                                    ">순위</th>
-                                    <th class="text-on-layer-3" style="
-                                        padding: 16px 20px;
-                                        text-align: left;
-                                        font-weight: 700;
-                                        font-size: 15px;
-                                        font-family: 'Paperlogy', sans-serif;
-                                        letter-spacing: 0.3px;
-                                        border-bottom: 2px solid var(--glass-border);
-                                    ">영업담당</th>
-                                    <th class="text-on-layer-3" style="
-                                        padding: 16px 20px;
-                                        text-align: right;
-                                        font-weight: 700;
-                                        font-size: 15px;
-                                        font-family: 'Paperlogy', sans-serif;
-                                        letter-spacing: 0.3px;
-                                        border-bottom: 2px solid var(--glass-border);
-                                    ">매출액</th>
-                                    <th class="text-on-layer-3" style="
-                                        padding: 16px 20px;
-                                        text-align: right;
-                                        font-weight: 700;
-                                        font-size: 15px;
-                                        font-family: 'Paperlogy', sans-serif;
-                                        letter-spacing: 0.3px;
-                                        border-bottom: 2px solid var(--glass-border);
-                                    ">기여도</th>
-                                    <th class="text-on-layer-3" style="
-                                        padding: 16px 20px;
-                                        text-align: right;
-                                        font-weight: 700;
-                                        font-size: 15px;
-                                        font-family: 'Paperlogy', sans-serif;
-                                        letter-spacing: 0.3px;
-                                        border-bottom: 2px solid var(--glass-border);
-                                    ">누적기여도</th>
+                                    <th class="text-on-layer-3 text-center">순위</th>
+                                    <th class="text-on-layer-3 text-left">영업담당</th>
+                                    <th class="text-on-layer-3 text-right">매출액</th>
+                                    <th class="text-on-layer-3 text-right">기여도</th>
+                                    <th class="text-on-layer-3 text-right">누적기여도</th>
                                 </tr>
                             </thead>
-                            <tbody style="
-                                background: var(--glass-bg-light);
-                            ">
+                            <tbody>
                                 ${tableRows}
                             </tbody>
                         </table>

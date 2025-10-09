@@ -5,6 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KUWOTECH 영업관리 시스템 - 영업담당모드</title>
 
+    <!-- ✅ [섹션: 즉시 실행 브레이크포인트 스크립트] CSS 로드 전에 실행 -->
+    <script>
+      (function() {
+        const width = window.innerWidth;
+        let bp;
+
+        if (width < 640) bp = 'xs';
+        else if (width < 768) bp = 'sm';
+        else if (width < 1024) bp = 'md';
+        else if (width < 1280) bp = 'lg';
+        else if (width < 1536) bp = 'xl';
+        else bp = '2xl';
+
+        document.documentElement.dataset.breakpoint = bp;
+        document.documentElement.classList.add('breakpoint-' + bp);
+        document.body.classList.add('breakpoint-' + bp);
+
+        console.log('[초기 브레이크포인트 설정]', bp, window.innerWidth + 'px');
+      })();
+    </script>
+
     <!-- [섹션: 공통 스타일] -->
     <link rel="stylesheet" href="../../07.styles/00_root.css" />
     <link rel="stylesheet" href="../../07.styles/01_variables.css" />
@@ -17,6 +38,9 @@
     <!-- [섹션: 외부 라이브러리] -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/idb@7.1.1/build/umd.js"></script>
+
+    <!-- ✅ [섹션: 메인 스크립트] defer로 DOM 준비 후 실행 -->
+    <script type="module" defer src="./02_sales_layout.js"></script>
   </head>
   <body class="theme-sales" data-mode="sales">
     <!-- [섹션: 로딩 오버레이] -->
@@ -93,7 +117,6 @@
     <!-- [섹션: 모달 컨테이너] -->
     <div id="modal-container"></div>
 
-    <!-- [섹션: 스크립트] -->
-    <script type="module" src="./02_sales_layout.js"></script>
+    <!-- ✅ 스크립트는 head로 이동됨 (defer 속성 사용) -->
   </body>
 </html>

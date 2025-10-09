@@ -37,11 +37,11 @@ Date: 2025-01-27
     </div>
 
     <!-- [섹션: 중요 안내사항] -->
-    <div class="info-box glass-card" style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid rgba(255, 193, 7, 0.8);">
-        <h3 style="color: rgba(255, 193, 7, 0.9); margin-bottom: 12px;">
+    <div class="info-box glass-card info-box-warning">
+        <h3 class="info-box-title">
             <i class="fas fa-exclamation-triangle"></i> 중요 안내사항
         </h3>
-        <ul style="color: var(--text-primary); line-height: 1.8; margin-left: 20px;">
+        <ul class="info-box-list">
             <li><strong>"기본정보"</strong> 시트만 업로드됩니다.</li>
             <li>업로드 전 <strong>자동 백업</strong>이 생성됩니다.</li>
             <li>기존 데이터와 비교하여 <strong>변경사항이 자동 감지</strong>됩니다.</li>
@@ -59,11 +59,11 @@ Date: 2025-01-27
             <button class="btn-import" id="select-file-btn">
                 <i class="fas fa-file-upload"></i> 파일 선택
             </button>
-            <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;">
+            <input type="file" id="excel-file-input" accept=".xlsx,.xls" class="hidden">
         </div>
 
         <!-- [섹션: 파일 정보 표시] -->
-        <div class="file-info" id="file-info" style="display: none;">
+        <div class="file-info hidden" id="file-info">
             <div class="file-details glass-effect-light">
                 <div class="file-icon">📄</div>
                 <div class="file-content">
@@ -77,20 +77,20 @@ Date: 2025-01-27
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
-            <button class="btn-save" id="upload-btn" style="width: 100%; margin-top: 20px;">
+
+            <button class="btn-save btn-full-mt" id="upload-btn">
                 <i class="fas fa-cloud-upload-alt"></i> 데이터베이스에 업로드
             </button>
         </div>
     </div>
 
     <!-- [섹션: 처리 결과] -->
-    <div class="upload-result" id="upload-result" style="display: none;">
+    <div class="upload-result hidden" id="upload-result">
         <!-- 동적 생성 -->
     </div>
 
     <!-- [섹션: 변경사항 모달] -->
-    <div class="changes-modal-overlay" id="changes-modal" style="display: none;">
+    <div class="changes-modal-overlay hidden" id="changes-modal">
         <div class="changes-modal-content glass-card">
             <div class="modal-header">
                 <h2>변경사항 확인</h2>
@@ -426,13 +426,45 @@ Date: 2025-01-27
     .excel-upload-page {
         padding: var(--spacing-md);
     }
-    
+
     .upload-status {
         grid-template-columns: 1fr;
     }
-    
+
     .upload-zone {
         padding: var(--spacing-xl);
     }
+}
+
+/* ============================================
+   유틸리티 클래스 (인라인 스타일 리팩토링)
+   ============================================ */
+
+/* 숨김 상태 (JavaScript로 토글됨) */
+.hidden {
+    display: none !important;
+}
+
+/* 안내사항 박스 스타일 */
+.info-box-warning {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid rgba(255, 193, 7, 0.8);
+}
+
+.info-box-title {
+    color: rgba(255, 193, 7, 0.9);
+    margin-bottom: 12px;
+}
+
+.info-box-list {
+    color: var(--text-primary);
+    line-height: 1.8;
+    margin-left: 20px;
+}
+
+/* 버튼 유틸리티 */
+.btn-full-mt {
+    width: 100%;
+    margin-top: 20px;
 }
 </style>

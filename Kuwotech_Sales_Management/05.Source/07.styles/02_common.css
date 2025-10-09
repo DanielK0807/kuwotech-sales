@@ -654,6 +654,23 @@ label {
   background: var(--color-border-dark);
 }
 
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-bar-thumb) var(--scroll-bar-track);
+}
+
+/* 텍스트 선택시 배경색/글자색 */
+::selection {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+}
+
+::-moz-selection {
+  background: var(--primary-color);
+  color: var(--text-on-primary);
+}
+
 /* ============================================
    [SECTION: 유틸리티 클래스]
    ============================================ */
@@ -869,8 +886,8 @@ label {
 @media (max-width: 639px) {
     /* 글래스 입력 필드 모바일 최적화 */
     .glass-input {
-        backdrop-filter: blur(5px) saturate(150%);
-        -webkit-backdrop-filter: blur(5px) saturate(150%);
+        backdrop-filter: blur(5px) saturate(120%);
+        -webkit-backdrop-filter: blur(5px) saturate(120%);
         transform: translateZ(3px);
     }
 

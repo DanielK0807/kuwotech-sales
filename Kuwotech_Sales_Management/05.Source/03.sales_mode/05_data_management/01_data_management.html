@@ -30,244 +30,60 @@
 </head>
 <body class="theme-sales">
     <!-- 메인 컨테이너 -->
-    <div class="main-container" style="max-width: 1400px; margin: 0 auto; transform-style: preserve-3d;">
-        
+    <div class="main-container data-main-container">
+
         <!-- 페이지 헤더 -->
-        <div class="page-header" style="
-            padding: 24px;
-            margin-bottom: 30px;
-            border-radius: 16px;
-            background: linear-gradient(
-                145deg,
-                rgba(255, 255, 255, 0.25),
-                rgba(255, 255, 255, 0.15)
-            );
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border: 2px solid rgba(255, 255, 255, 0.35);
-            transform: translateZ(30px) rotateX(1deg);
-            transform-style: preserve-3d;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow:
-                0 25px 50px -12px rgba(0, 0, 0, 0.35),
-                0 15px 30px -8px rgba(0, 0, 0, 0.25),
-                0 8px 16px -4px rgba(0, 0, 0, 0.15),
-                inset 0 2px 6px rgba(255, 255, 255, 0.3),
-                inset 0 -2px 6px rgba(0, 0, 0, 0.1);
-        ">
-            <h2 class="page-title" style="
-                font-size: 28px;
-                font-weight: 700;
-                background: linear-gradient(135deg, #6B9071, #AEC3B0);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                margin-bottom: 8px;
-            ">💾 데이터 관리</h2>
-            <p class="page-description" style="color: rgba(255, 255, 255, 0.8); font-size: 16px;">내 거래처, 보고서, KPI 데이터를 다운로드하고 백업합니다.</p>
+        <div class="page-header data-page-header">
+            <h2 class="page-title data-page-title">💾 데이터 관리</h2>
+            <p class="page-description data-page-description">내 거래처, 보고서, KPI 데이터를 다운로드하고 백업합니다.</p>
         </div>
         
         <!-- 다운로드 섹션 -->
-        <div class="download-section" style="margin-bottom: 40px;">
-            <h3 class="section-title" style="
-                padding: 16px 24px;
-                margin-bottom: 24px;
-                background: linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, 0.2),
-                    rgba(255, 255, 255, 0.1)
-                );
-                backdrop-filter: blur(15px) saturate(160%);
-                -webkit-backdrop-filter: blur(15px) saturate(160%);
-                border-radius: 12px;
-                border: 1.5px solid rgba(255, 255, 255, 0.25);
-                transform: translateZ(25px);
-                box-shadow:
-                    0 10px 20px -6px rgba(0, 0, 0, 0.25),
-                    0 6px 12px -3px rgba(0, 0, 0, 0.15),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.25);
-                color: rgba(255, 255, 255, 0.95);
-                font-size: 20px;
-                font-weight: 600;
-            ">📥 데이터 다운로드</h3>
-            
-            <div class="download-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+        <div class="download-section data-section">
+            <h3 class="section-title data-section-title">📥 데이터 다운로드</h3>
+
+            <div class="download-grid data-download-grid">
                 <!-- 내 거래처 다운로드 -->
-                <div class="download-card" style="
-                    padding: 28px;
-                    text-align: center;
-                    background: linear-gradient(
-                        145deg,
-                        rgba(255, 255, 255, 0.3),
-                        rgba(255, 255, 255, 0.15)
-                    );
-                    backdrop-filter: blur(30px) saturate(200%);
-                    -webkit-backdrop-filter: blur(30px) saturate(200%);
-                    border: 2px solid rgba(255, 255, 255, 0.4);
-                    border-radius: 20px;
-                    transform: translateZ(40px) rotateX(1deg) rotateY(-1deg);
-                    transform-style: preserve-3d;
-                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow:
-                        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-                        0 15px 35px -10px rgba(0, 0, 0, 0.3),
-                        0 8px 16px -8px rgba(0, 0, 0, 0.2),
-                        inset 0 2px 8px rgba(255, 255, 255, 0.35),
-                        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
-                    position: relative;
-                    overflow: hidden;
-                ">
+                <div class="download-card data-download-card">
                     <!-- 홀로그래픽 효과 -->
-                    <div style="
-                        position: absolute;
-                        top: -50%;
-                        left: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: linear-gradient(
-                            105deg,
-                            transparent 40%,
-                            rgba(255, 255, 255, 0.2) 50%,
-                            transparent 60%
-                        );
-                        animation: shimmer-3d 5s ease-in-out infinite;
-                        pointer-events: none;
-                    "></div>
-                    <div class="card-icon" style="font-size: 48px; margin-bottom: 16px;">🏢</div>
-                    <h4 class="card-title" style="
-                        font-size: 20px;
-                        font-weight: 700;
-                        margin-bottom: 12px;
-                        background: linear-gradient(135deg, #6B9071, #AEC3B0);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                    ">내 거래처</h4>
-                    <p class="card-description" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; line-height: 1.5;">
+                    <div class="data-holographic-effect"></div>
+                    <div class="card-icon data-card-icon">🏢</div>
+                    <h4 class="card-title data-card-title">내 거래처</h4>
+                    <p class="card-description data-card-description">
                         담당 거래처 정보를 엑셀 파일로 다운로드합니다.
                     </p>
-                    <div class="card-info" style="
-                        background: rgba(255, 255, 255, 0.1);
-                        backdrop-filter: blur(10px);
-                        border-radius: 12px;
-                        padding: 16px;
-                        margin-bottom: 20px;
-                        border: 1px solid rgba(255, 255, 255, 0.15);
-                    ">
-                        <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-                            <span class="info-label" style="font-weight: 500; color: rgba(255, 255, 255, 0.7);">거래처 수:</span>
-                            <span class="info-value" id="companyCount" style="font-weight: 600; color: #AEC3B0;">0개</span>
+                    <div class="card-info data-card-info">
+                        <div class="info-item data-info-item">
+                            <span class="info-label data-info-label">거래처 수:</span>
+                            <span class="info-value data-info-value" id="companyCount">0개</span>
                         </div>
-                        <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-                            <span class="info-label" style="font-weight: 500; color: rgba(255, 255, 255, 0.7);">최근 업데이트:</span>
-                            <span class="info-value" id="companyUpdate" style="font-weight: 600; color: #AEC3B0;">-</span>
+                        <div class="info-item data-info-item">
+                            <span class="info-label data-info-label">최근 업데이트:</span>
+                            <span class="info-value data-info-value" id="companyUpdate">-</span>
                         </div>
                     </div>
-                    <button onclick="downloadCompanies()" style="
-                        width: 100%;
-                        padding: 14px 28px;
-                        background: linear-gradient(
-                            135deg,
-                            rgba(107, 144, 113, 0.9),
-                            rgba(107, 144, 113, 0.7)
-                        );
-                        backdrop-filter: blur(15px) saturate(180%);
-                        border: 2px solid rgba(255, 255, 255, 0.4);
-                        border-radius: 12px;
-                        color: white;
-                        font-size: 16px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transform: translateZ(20px);
-                        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-                        box-shadow:
-                            0 20px 40px -12px rgba(107, 144, 113, 0.5),
-                            0 10px 20px -8px rgba(107, 144, 113, 0.3),
-                            inset 0 2px 4px rgba(255, 255, 255, 0.3);
-                    ">
+                    <button onclick="downloadCompanies()" class="data-download-btn">
                         <span>📥 다운로드</span>
                     </button>
                 </div>
                 
                 <!-- 보고서 다운로드 -->
-                <div class="download-card" style="
-                    padding: 28px;
-                    text-align: center;
-                    background: linear-gradient(
-                        145deg,
-                        rgba(255, 255, 255, 0.3),
-                        rgba(255, 255, 255, 0.15)
-                    );
-                    backdrop-filter: blur(30px) saturate(200%);
-                    -webkit-backdrop-filter: blur(30px) saturate(200%);
-                    border: 2px solid rgba(255, 255, 255, 0.4);
-                    border-radius: 20px;
-                    transform: translateZ(40px) rotateX(1deg);
-                    transform-style: preserve-3d;
-                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow:
-                        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-                        0 15px 35px -10px rgba(0, 0, 0, 0.3),
-                        0 8px 16px -8px rgba(0, 0, 0, 0.2),
-                        inset 0 2px 8px rgba(255, 255, 255, 0.35),
-                        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
-                    position: relative;
-                    overflow: hidden;
-                ">
+                <div class="download-card data-download-card">
                     <!-- 홀로그래픽 효과 -->
-                    <div style="
-                        position: absolute;
-                        top: -50%;
-                        left: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: linear-gradient(
-                            105deg,
-                            transparent 40%,
-                            rgba(255, 255, 255, 0.2) 50%,
-                            transparent 60%
-                        );
-                        animation: shimmer-3d 5s ease-in-out infinite;
-                        animation-delay: 0.5s;
-                        pointer-events: none;
-                    "></div>
-                    <div class="card-icon" style="font-size: 48px; margin-bottom: 16px;">📋</div>
-                    <h4 class="card-title" style="
-                        font-size: 20px;
-                        font-weight: 700;
-                        margin-bottom: 12px;
-                        background: linear-gradient(135deg, #6B9071, #AEC3B0);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                    ">실적보고서</h4>
-                    <p class="card-description" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; line-height: 1.5;">
+                    <div class="data-holographic-effect" style="animation-delay: 0.5s;"></div>
+                    <div class="card-icon data-card-icon">📋</div>
+                    <h4 class="card-title data-card-title">실적보고서</h4>
+                    <p class="card-description data-card-description">
                         작성한 실적보고서를 엑셀 파일로 다운로드합니다.
                     </p>
-                    <div class="card-info" style="
-                        background: rgba(255, 255, 255, 0.1);
-                        backdrop-filter: blur(10px);
-                        border-radius: 12px;
-                        padding: 16px;
-                        margin-bottom: 20px;
-                        border: 1px solid rgba(255, 255, 255, 0.15);
-                    ">
-                        <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-                            <span class="info-label" style="font-weight: 500; color: rgba(255, 255, 255, 0.7);">보고서 수:</span>
-                            <span class="info-value" id="reportCount" style="font-weight: 600; color: #AEC3B0;">0개</span>
+                    <div class="card-info data-card-info">
+                        <div class="info-item data-info-item">
+                            <span class="info-label data-info-label">보고서 수:</span>
+                            <span class="info-value data-info-value" id="reportCount">0개</span>
                         </div>
-                        <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-                            <span class="info-label" style="font-weight: 500; color: rgba(255, 255, 255, 0.7);">기간:</span>
-                            <select id="reportPeriod" style="
-                                padding: 6px 12px;
-                                background: rgba(255, 255, 255, 0.1);
-                                backdrop-filter: blur(8px);
-                                border: 1px solid rgba(255, 255, 255, 0.2);
-                                border-radius: 6px;
-                                color: white;
-                                font-size: 14px;
-                                cursor: pointer;
-                            ">
+                        <div class="info-item data-info-item">
+                            <span class="info-label data-info-label">기간:</span>
+                            <select id="reportPeriod" class="data-period-select">
                                 <option value="1">최근 1개월</option>
                                 <option value="3">최근 3개월</option>
                                 <option value="6">최근 6개월</option>
@@ -276,126 +92,31 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="downloadReports()" style="
-                        width: 100%;
-                        padding: 14px 28px;
-                        background: linear-gradient(
-                            135deg,
-                            rgba(107, 144, 113, 0.9),
-                            rgba(107, 144, 113, 0.7)
-                        );
-                        backdrop-filter: blur(15px) saturate(180%);
-                        border: 2px solid rgba(255, 255, 255, 0.4);
-                        border-radius: 12px;
-                        color: white;
-                        font-size: 16px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transform: translateZ(20px);
-                        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-                        box-shadow:
-                            0 20px 40px -12px rgba(107, 144, 113, 0.5),
-                            0 10px 20px -8px rgba(107, 144, 113, 0.3),
-                            inset 0 2px 4px rgba(255, 255, 255, 0.3);
-                    ">
+                    <button onclick="downloadReports()" class="data-download-btn">
                         <span>📥 다운로드</span>
                     </button>
                 </div>
                 
                 <!-- KPI 다운로드 -->
-                <div class="download-card" style="
-                    padding: 28px;
-                    text-align: center;
-                    background: linear-gradient(
-                        145deg,
-                        rgba(255, 255, 255, 0.3),
-                        rgba(255, 255, 255, 0.15)
-                    );
-                    backdrop-filter: blur(30px) saturate(200%);
-                    -webkit-backdrop-filter: blur(30px) saturate(200%);
-                    border: 2px solid rgba(255, 255, 255, 0.4);
-                    border-radius: 20px;
-                    transform: translateZ(40px) rotateX(1deg) rotateY(1deg);
-                    transform-style: preserve-3d;
-                    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                    box-shadow:
-                        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-                        0 15px 35px -10px rgba(0, 0, 0, 0.3),
-                        0 8px 16px -8px rgba(0, 0, 0, 0.2),
-                        inset 0 2px 8px rgba(255, 255, 255, 0.35),
-                        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
-                    position: relative;
-                    overflow: hidden;
-                ">
+                <div class="download-card data-download-card" style="transform: translateZ(40px) rotateX(1deg) rotateY(1deg);">
                     <!-- 홀로그래픽 효과 -->
-                    <div style="
-                        position: absolute;
-                        top: -50%;
-                        left: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: linear-gradient(
-                            105deg,
-                            transparent 40%,
-                            rgba(255, 255, 255, 0.2) 50%,
-                            transparent 60%
-                        );
-                        animation: shimmer-3d 5s ease-in-out infinite;
-                        animation-delay: 1s;
-                        pointer-events: none;
-                    "></div>
-                    <div class="card-icon" style="font-size: 48px; margin-bottom: 16px;">📊</div>
-                    <h4 class="card-title" style="
-                        font-size: 20px;
-                        font-weight: 700;
-                        margin-bottom: 12px;
-                        background: linear-gradient(135deg, #6B9071, #AEC3B0);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                    ">KPI 현황</h4>
-                    <p class="card-description" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; line-height: 1.5;">
+                    <div class="data-holographic-effect" style="animation-delay: 1s;"></div>
+                    <div class="card-icon data-card-icon">📊</div>
+                    <h4 class="card-title data-card-title">KPI 현황</h4>
+                    <p class="card-description data-card-description">
                         개인 KPI 현황을 엑셀 파일로 다운로드합니다.
                     </p>
-                    <div class="card-info" style="
-                        background: rgba(255, 255, 255, 0.1);
-                        backdrop-filter: blur(10px);
-                        border-radius: 12px;
-                        padding: 16px;
-                        margin-bottom: 20px;
-                        border: 1px solid rgba(255, 255, 255, 0.15);
-                    ">
-                        <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-                            <span class="info-label" style="font-weight: 500; color: rgba(255, 255, 255, 0.7);">KPI 지표:</span>
-                            <span class="info-value" style="font-weight: 600; color: #AEC3B0;">14개</span>
+                    <div class="card-info data-card-info">
+                        <div class="info-item data-info-item">
+                            <span class="info-label data-info-label">KPI 지표:</span>
+                            <span class="info-value data-info-value">14개</span>
                         </div>
-                        <div class="info-item" style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-                            <span class="info-label" style="font-weight: 500; color: rgba(255, 255, 255, 0.7);">계산 기준:</span>
-                            <span class="info-value" id="kpiDate" style="font-weight: 600; color: #AEC3B0;">-</span>
+                        <div class="info-item data-info-item">
+                            <span class="info-label data-info-label">계산 기준:</span>
+                            <span class="info-value data-info-value" id="kpiDate">-</span>
                         </div>
                     </div>
-                    <button onclick="downloadKPI()" style="
-                        width: 100%;
-                        padding: 14px 28px;
-                        background: linear-gradient(
-                            135deg,
-                            rgba(107, 144, 113, 0.9),
-                            rgba(107, 144, 113, 0.7)
-                        );
-                        backdrop-filter: blur(15px) saturate(180%);
-                        border: 2px solid rgba(255, 255, 255, 0.4);
-                        border-radius: 12px;
-                        color: white;
-                        font-size: 16px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transform: translateZ(20px);
-                        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-                        box-shadow:
-                            0 20px 40px -12px rgba(107, 144, 113, 0.5),
-                            0 10px 20px -8px rgba(107, 144, 113, 0.3),
-                            inset 0 2px 4px rgba(255, 255, 255, 0.3);
-                    ">
+                    <button onclick="downloadKPI()" class="data-download-btn">
                         <span>📥 다운로드</span>
                     </button>
                 </div>
@@ -403,101 +124,26 @@
         </div>
         
         <!-- 백업 섹션 -->
-        <div class="backup-section" style="margin-bottom: 40px;">
-            <h3 class="section-title" style="
-                padding: 16px 24px;
-                margin-bottom: 24px;
-                background: linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, 0.2),
-                    rgba(255, 255, 255, 0.1)
-                );
-                backdrop-filter: blur(15px) saturate(160%);
-                -webkit-backdrop-filter: blur(15px) saturate(160%);
-                border-radius: 12px;
-                border: 1.5px solid rgba(255, 255, 255, 0.25);
-                transform: translateZ(25px);
-                box-shadow:
-                    0 10px 20px -6px rgba(0, 0, 0, 0.25),
-                    0 6px 12px -3px rgba(0, 0, 0, 0.15),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.25);
-                color: rgba(255, 255, 255, 0.95);
-                font-size: 20px;
-                font-weight: 600;
-            ">💼 데이터 백업</h3>
-            
-            <div style="
-                padding: 32px;
-                background: linear-gradient(
-                    145deg,
-                    rgba(255, 255, 255, 0.25),
-                    rgba(255, 255, 255, 0.15)
-                );
-                backdrop-filter: blur(25px) saturate(180%);
-                -webkit-backdrop-filter: blur(25px) saturate(180%);
-                border-radius: 16px;
-                border: 2px solid rgba(255, 255, 255, 0.35);
-                transform: translateZ(35px);
-                box-shadow:
-                    0 25px 50px -12px rgba(0, 0, 0, 0.35),
-                    0 15px 30px -8px rgba(0, 0, 0, 0.25),
-                    0 8px 16px -4px rgba(0, 0, 0, 0.15),
-                    inset 0 2px 6px rgba(255, 255, 255, 0.3),
-                    inset 0 -2px 6px rgba(0, 0, 0, 0.1);
-            ">
-                <div class="backup-info">
-                    <h4 style="
-                        font-size: 22px;
-                        font-weight: 600;
-                        color: rgba(255, 255, 255, 0.95);
-                        margin-bottom: 16px;
-                    ">전체 데이터 백업</h4>
-                    <p style="margin: 15px 0; color: rgba(255, 255, 255, 0.7); line-height: 1.6;">
+        <div class="backup-section data-section">
+            <h3 class="section-title data-section-title">💼 데이터 백업</h3>
+
+            <div class="data-backup-container">
+                <div class="backup-info data-backup-info">
+                    <h4 class="data-backup-title">전체 데이터 백업</h4>
+                    <p class="data-backup-description">
                         모든 거래처, 보고서, KPI 데이터를 하나의 엑셀 파일로 백업합니다.
                     </p>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0;">
-                        <div style="
-                            padding: 16px;
-                            background: rgba(255, 255, 255, 0.1);
-                            backdrop-filter: blur(10px);
-                            border-radius: 10px;
-                            border: 1px solid rgba(255, 255, 255, 0.15);
-                        ">
-                            <span style="font-weight: 600; color: rgba(255, 255, 255, 0.8);">마지막 백업:</span>
-                            <span id="lastBackup" style="color: #AEC3B0; margin-left: 8px;">없음</span>
+                    <div class="data-backup-stats">
+                        <div class="data-backup-stat-box">
+                            <span class="data-backup-stat-label">마지막 백업:</span>
+                            <span id="lastBackup" class="data-backup-stat-value">없음</span>
                         </div>
-                        <div style="
-                            padding: 16px;
-                            background: rgba(255, 255, 255, 0.1);
-                            backdrop-filter: blur(10px);
-                            border-radius: 10px;
-                            border: 1px solid rgba(255, 255, 255, 0.15);
-                        ">
-                            <span style="font-weight: 600; color: rgba(255, 255, 255, 0.8);">백업 크기:</span>
-                            <span id="backupSize" style="color: #AEC3B0; margin-left: 8px;">-</span>
+                        <div class="data-backup-stat-box">
+                            <span class="data-backup-stat-label">백업 크기:</span>
+                            <span id="backupSize" class="data-backup-stat-value">-</span>
                         </div>
                     </div>
-                    <button onclick="createBackup()" style="
-                        padding: 14px 32px;
-                        background: linear-gradient(
-                            135deg,
-                            rgba(255, 112, 67, 0.9),
-                            rgba(255, 112, 67, 0.7)
-                        );
-                        backdrop-filter: blur(15px) saturate(180%);
-                        border: 2px solid rgba(255, 255, 255, 0.4);
-                        border-radius: 12px;
-                        color: white;
-                        font-size: 16px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        transform: translateZ(20px);
-                        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-                        box-shadow:
-                            0 20px 40px -12px rgba(255, 112, 67, 0.5),
-                            0 10px 20px -8px rgba(255, 112, 67, 0.3),
-                            inset 0 2px 4px rgba(255, 255, 255, 0.3);
-                    ">
+                    <button onclick="createBackup()" class="data-backup-btn">
                         <span>💾 전체 백업 생성</span>
                     </button>
                 </div>
@@ -506,55 +152,17 @@
         
         <!-- 다운로드 이력 -->
         <div class="history-section">
-            <h3 class="section-title" style="
-                padding: 16px 24px;
-                margin-bottom: 24px;
-                background: linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, 0.2),
-                    rgba(255, 255, 255, 0.1)
-                );
-                backdrop-filter: blur(15px) saturate(160%);
-                -webkit-backdrop-filter: blur(15px) saturate(160%);
-                border-radius: 12px;
-                border: 1.5px solid rgba(255, 255, 255, 0.25);
-                transform: translateZ(25px);
-                box-shadow:
-                    0 10px 20px -6px rgba(0, 0, 0, 0.25),
-                    0 6px 12px -3px rgba(0, 0, 0, 0.15),
-                    inset 0 2px 4px rgba(255, 255, 255, 0.25);
-                color: rgba(255, 255, 255, 0.95);
-                font-size: 20px;
-                font-weight: 600;
-            ">📜 다운로드 이력</h3>
-            
-            <div style="
-                padding: 24px;
-                background: linear-gradient(
-                    145deg,
-                    rgba(255, 255, 255, 0.25),
-                    rgba(255, 255, 255, 0.15)
-                );
-                backdrop-filter: blur(25px) saturate(180%);
-                -webkit-backdrop-filter: blur(25px) saturate(180%);
-                border-radius: 16px;
-                border: 2px solid rgba(255, 255, 255, 0.35);
-                transform: translateZ(35px);
-                box-shadow:
-                    0 25px 50px -12px rgba(0, 0, 0, 0.35),
-                    0 15px 30px -8px rgba(0, 0, 0, 0.25),
-                    0 8px 16px -4px rgba(0, 0, 0, 0.15),
-                    inset 0 2px 6px rgba(255, 255, 255, 0.3),
-                    inset 0 -2px 6px rgba(0, 0, 0, 0.1);
-            ">
-                <table style="width: 100%; border-collapse: collapse;">
+            <h3 class="section-title data-section-title">📜 다운로드 이력</h3>
+
+            <div class="data-history-container">
+                <table class="data-history-table">
                     <thead>
-                        <tr style="background: linear-gradient(135deg, rgba(107, 144, 113, 0.15), rgba(107, 144, 113, 0.08));">
-                            <th style="padding: 12px; text-align: left; color: rgba(255, 255, 255, 0.9); border-bottom: 2px solid rgba(255, 255, 255, 0.2);">일시</th>
-                            <th style="padding: 12px; text-align: left; color: rgba(255, 255, 255, 0.9); border-bottom: 2px solid rgba(255, 255, 255, 0.2);">파일명</th>
-                            <th style="padding: 12px; text-align: left; color: rgba(255, 255, 255, 0.9); border-bottom: 2px solid rgba(255, 255, 255, 0.2);">유형</th>
-                            <th style="padding: 12px; text-align: left; color: rgba(255, 255, 255, 0.9); border-bottom: 2px solid rgba(255, 255, 255, 0.2);">크기</th>
-                            <th style="padding: 12px; text-align: left; color: rgba(255, 255, 255, 0.9); border-bottom: 2px solid rgba(255, 255, 255, 0.2);">상태</th>
+                        <tr class="data-history-header-row">
+                            <th class="data-history-th">일시</th>
+                            <th class="data-history-th">파일명</th>
+                            <th class="data-history-th">유형</th>
+                            <th class="data-history-th">크기</th>
+                            <th class="data-history-th">상태</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody">

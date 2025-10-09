@@ -148,14 +148,14 @@ async function loadCurrentStatus() {
                 const lastDate = new Date(lastHistory.timestamp);
                 document.getElementById('last-upload').textContent = formatDate(lastDate);
                 document.getElementById('storage-status').innerHTML = `
-                    <span style="color: rgba(76, 175, 80, 0.9);">
+                    <span class="color-success">
                         <i class="fas fa-check-circle"></i> 데이터 있음
                     </span>
                 `;
             } else {
                 document.getElementById('last-upload').textContent = '데이터 없음';
                 document.getElementById('storage-status').innerHTML = `
-                    <span style="color: rgba(255, 193, 7, 0.9);">
+                    <span class="color-warning">
                         <i class="fas fa-exclamation-circle"></i> 데이터 없음
                     </span>
                 `;
@@ -442,61 +442,61 @@ function displayPreview(data, sheetName) {
     
     // 미리보기 HTML 생성
     let html = `
-        <div style="margin-bottom: var(--spacing-lg);">
-            <h3 style="color: var(--text-primary); display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
+        <div class="mb-lg">
+            <h3 class="text-primary d-flex align-items-center gap-sm mb-md">
                 <i class="fas fa-table"></i> 데이터 미리보기
-                <span style="font-size: var(--font-md); color: var(--text-secondary); font-weight: normal;">
+                <span class="text-md text-secondary font-normal">
                     (시트: ${sheetName})
                 </span>
             </h3>
-            
+
             <!-- 통계 정보 -->
-            <div class="preview-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                <div class="stat-card glass-effect-light" style="padding: var(--spacing-md); border-radius: var(--border-radius-sm); text-align: center;">
-                    <div style="font-size: var(--font-xl); font-weight: var(--font-weight-bold); color: rgba(33, 150, 243, 0.9);">
+            <div class="preview-stats grid-auto-fit gap-md mb-lg">
+                <div class="stat-card glass-effect-light">
+                    <div class="stat-card-value color-info">
                         ${formatNumber(data.length)}
                     </div>
-                    <div style="font-size: var(--font-sm); color: var(--text-secondary); margin-top: var(--spacing-xs);">
+                    <div class="stat-card-label">
                         총 데이터 행
                     </div>
                 </div>
-                
-                <div class="stat-card glass-effect-light" style="padding: var(--spacing-md); border-radius: var(--border-radius-sm); text-align: center;">
-                    <div style="font-size: var(--font-xl); font-weight: var(--font-weight-bold); color: rgba(76, 175, 80, 0.9);">
+
+                <div class="stat-card glass-effect-light">
+                    <div class="stat-card-value color-success">
                         ${formatNumber(stats.validRows)}
                     </div>
-                    <div style="font-size: var(--font-sm); color: var(--text-secondary); margin-top: var(--spacing-xs);">
+                    <div class="stat-card-label">
                         유효한 데이터
                     </div>
                 </div>
-                
-                <div class="stat-card glass-effect-light" style="padding: var(--spacing-md); border-radius: var(--border-radius-sm); text-align: center;">
-                    <div style="font-size: var(--font-xl); font-weight: var(--font-weight-bold); color: rgba(255, 193, 7, 0.9);">
+
+                <div class="stat-card glass-effect-light">
+                    <div class="stat-card-value color-warning">
                         ${Object.keys(data[0] || {}).length}
                     </div>
-                    <div style="font-size: var(--font-sm); color: var(--text-secondary); margin-top: var(--spacing-xs);">
+                    <div class="stat-card-label">
                         컬럼 수
                     </div>
                 </div>
             </div>
-            
+
             ${stats.warnings.length > 0 ? `
-                <div class="preview-warnings" style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid rgba(255, 193, 7, 0.8); padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-lg);">
-                    <div style="color: rgba(255, 193, 7, 0.9); font-weight: var(--font-weight-semibold); margin-bottom: var(--spacing-xs);">
+                <div class="preview-warnings bg-warning-light border-left-warning p-md border-radius-sm mb-lg">
+                    <div class="color-warning font-semibold mb-xs">
                         <i class="fas fa-exclamation-triangle"></i> 주의사항 (${stats.warnings.length}개)
                     </div>
-                    <div style="font-size: var(--font-sm); color: var(--text-secondary); max-height: 100px; overflow-y: auto;">
+                    <div class="text-sm text-secondary max-h-100 overflow-y-auto">
                         ${stats.warnings.slice(0, 5).map(w => `• ${w}`).join('<br>')}
                         ${stats.warnings.length > 5 ? `<br>• ... 외 ${stats.warnings.length - 5}개` : ''}
                     </div>
                 </div>
             ` : ''}
-            
+
             <!-- 데이터 테이블 -->
-            <div style="color: var(--text-secondary); font-size: var(--font-sm); margin-bottom: var(--spacing-sm);">
+            <div class="text-secondary text-sm mb-sm">
                 처음 10행의 데이터를 표시합니다:
             </div>
-            <div class="preview-table-wrapper" style="max-height: 400px; overflow: auto; border-radius: var(--border-radius-sm); background: rgba(0, 0, 0, 0.3);">
+            <div class="preview-table-wrapper max-h-400 overflow-auto border-radius-sm bg-dark-30">
                 ${generatePreviewTable(data.slice(0, 10))}
             </div>
         </div>
@@ -558,16 +558,16 @@ function analyzeData(data) {
 
 function generatePreviewTable(data) {
     if (!data || data.length === 0) {
-        return '<div style="padding: var(--spacing-xl); text-align: center; color: var(--text-tertiary);">데이터가 없습니다.</div>';
+        return '<div class="no-data">데이터가 없습니다.</div>';
     }
-    
+
     const columns = Object.keys(data[0]);
-    
+
     // 주요 컬럼만 표시 (너무 많으면 가독성 저하)
     const displayColumns = columns.filter(col => {
         // 빈 컬럼명 제외
         if (!col || col.trim() === '') return false;
-        
+
         // 중요 컬럼 우선 표시
         const importantCols = [
             'KEY VALUE',
@@ -579,55 +579,43 @@ function generatePreviewTable(data) {
             '거래상태',
             '담당부서'
         ];
-        
+
         return importantCols.includes(col) || importantCols.length < 8;
     }).slice(0, 8); // 최대 8개 컬럼
-    
+
     let html = `
-        <table style="width: 100%; border-collapse: collapse; font-size: var(--font-sm);">
+        <table class="preview-table">
             <thead>
-                <tr style="background: rgba(255, 255, 255, 0.1); position: sticky; top: 0;">
-                    <th style="padding: var(--spacing-sm); text-align: left; color: var(--text-primary); border-bottom: 2px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
-                        #
-                    </th>
-                    ${displayColumns.map(col => `
-                        <th style="padding: var(--spacing-sm); text-align: left; color: var(--text-primary); border-bottom: 2px solid rgba(255, 255, 255, 0.2); white-space: nowrap;">
-                            ${col}
-                        </th>
-                    `).join('')}
+                <tr>
+                    <th>#</th>
+                    ${displayColumns.map(col => `<th>${col}</th>`).join('')}
                 </tr>
             </thead>
             <tbody>
                 ${data.map((row, index) => `
-                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-                        <td style="padding: var(--spacing-sm); color: var(--text-tertiary);">
-                            ${index + 1}
-                        </td>
+                    <tr>
+                        <td class="text-tertiary">${index + 1}</td>
                         ${displayColumns.map(col => {
                             const value = row[col] || '';
-                            const displayValue = value.toString().length > 30 
-                                ? value.toString().substring(0, 30) + '...' 
+                            const displayValue = value.toString().length > 30
+                                ? value.toString().substring(0, 30) + '...'
                                 : value;
-                            return `
-                                <td style="padding: var(--spacing-sm); color: var(--text-secondary);" title="${value}">
-                                    ${displayValue}
-                                </td>
-                            `;
+                            return `<td title="${value}">${displayValue}</td>`;
                         }).join('')}
                     </tr>
                 `).join('')}
             </tbody>
         </table>
     `;
-    
+
     if (columns.length > displayColumns.length) {
         html += `
-            <div style="padding: var(--spacing-sm); text-align: center; color: var(--text-tertiary); font-size: var(--font-xs); background: rgba(0, 0, 0, 0.2);">
+            <div class="p-sm text-center text-tertiary text-xs" style="background: rgba(0, 0, 0, 0.2);">
                 ${columns.length - displayColumns.length}개의 추가 컬럼이 더 있습니다.
             </div>
         `;
     }
-    
+
     return html;
 }
 
@@ -694,60 +682,60 @@ async function uploadToDatabase() {
 
 function showChanges(result) {
     const { changes, validation } = result;
-    const totalChanges = (changes.added?.length || 0) + 
-                        (changes.modified?.length || 0) + 
+    const totalChanges = (changes.added?.length || 0) +
+                        (changes.modified?.length || 0) +
                         (changes.removed?.length || 0);
-    
+
     let html = `
         <div class="changes-summary">
-            <h3 style="color: white; margin-bottom: var(--spacing-lg);">
+            <h3 class="text-white mb-lg">
                 🔄 변경사항 요약
             </h3>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+            <div class="grid-3col gap-lg mb-xl">
     `;
-    
+
     if (changes.added && changes.added.length > 0) {
         html += `
-            <div class="change-card" style="background: rgba(76, 175, 80, 0.1); padding: var(--spacing-lg); border-radius: var(--border-radius-md); text-align: center;">
-                <div style="font-size: 2rem; color: rgba(76, 175, 80, 0.9); margin-bottom: var(--spacing-sm);">
+            <div class="change-card bg-success-light">
+                <div class="change-card-value color-success">
                     +${changes.added.length}
                 </div>
-                <div style="color: white;">신규 추가</div>
+                <div class="text-white">신규 추가</div>
             </div>
         `;
     }
-    
+
     if (changes.modified && changes.modified.length > 0) {
         html += `
-            <div class="change-card" style="background: rgba(255, 193, 7, 0.1); padding: var(--spacing-lg); border-radius: var(--border-radius-md); text-align: center;">
-                <div style="font-size: 2rem; color: rgba(255, 193, 7, 0.9); margin-bottom: var(--spacing-sm);">
+            <div class="change-card bg-warning-light">
+                <div class="change-card-value color-warning">
                     ${changes.modified.length}
                 </div>
-                <div style="color: white;">정보 수정</div>
+                <div class="text-white">정보 수정</div>
             </div>
         `;
     }
-    
+
     if (changes.removed && changes.removed.length > 0) {
         html += `
-            <div class="change-card" style="background: rgba(244, 67, 54, 0.1); padding: var(--spacing-lg); border-radius: var(--border-radius-md); text-align: center;">
-                <div style="font-size: 2rem; color: rgba(244, 67, 54, 0.9); margin-bottom: var(--spacing-sm);">
+            <div class="change-card bg-danger-light">
+                <div class="change-card-value color-danger">
                     -${changes.removed.length}
                 </div>
-                <div style="color: white;">삭제됨</div>
+                <div class="text-white">삭제됨</div>
             </div>
         `;
     }
-    
+
     html += `
             </div>
         </div>
-        
-        <div class="changes-details" style="max-height: 400px; overflow-y: auto; margin-bottom: var(--spacing-xl);">
+
+        <div class="changes-details max-h-400 overflow-y-auto mb-xl">
             ${generateChangeDetails(changes)}
         </div>
-        
-        <div style="display: flex; gap: var(--spacing-md); justify-content: center; padding-top: var(--spacing-lg); border-top: 2px solid rgba(255, 255, 255, 0.1);">
+
+        <div class="d-flex gap-md justify-center pt-lg" style="border-top: 2px solid rgba(255, 255, 255, 0.1);">
             <button class="btn btn-success" id="apply-changes-btn" style="padding: var(--spacing-md) var(--spacing-xl);">
                 <i class="fas fa-check"></i> 변경사항 적용
             </button>
@@ -756,18 +744,18 @@ function showChanges(result) {
             </button>
         </div>
     `;
-    
+
     const modalBody = document.getElementById('changes-modal-body');
     modalBody.innerHTML = html;
-    
+
     // 모달 표시
     document.getElementById('changes-modal').style.display = 'flex';
-    
+
     // 이벤트 리스너
     document.getElementById('apply-changes-btn')?.addEventListener('click', async () => {
         await applyChanges(result);
     });
-    
+
     document.getElementById('cancel-changes-btn')?.addEventListener('click', () => {
         document.getElementById('changes-modal').style.display = 'none';
         currentData = null;
@@ -780,86 +768,86 @@ function showChanges(result) {
 
 function generateChangeDetails(changes) {
     let html = '';
-    
+
     if (changes.added && changes.added.length > 0) {
         html += `
-            <div style="margin-bottom: var(--spacing-lg);">
-                <h4 style="color: rgba(76, 175, 80, 0.9); margin-bottom: var(--spacing-md);">
+            <div class="mb-lg">
+                <h4 class="color-success mb-md">
                     <i class="fas fa-plus-circle"></i> 신규 추가 (${changes.added.length}개)
                 </h4>
-                <div style="display: grid; gap: var(--spacing-sm); margin-left: var(--spacing-lg);">
+                <div class="d-grid gap-sm" style="margin-left: var(--spacing-lg);">
         `;
-        
+
         changes.added.slice(0, 10).forEach(item => {
             const company = item.employee || item.company;
             html += `
-                <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm); border-radius: var(--border-radius-sm);">
-                    • ${company.finalCompanyName || company.erpCompanyName || company.name} 
+                <div class="bg-white-05 p-sm border-radius-sm">
+                    • ${company.finalCompanyName || company.erpCompanyName || company.name}
                     ${company.internalManager ? `(담당: ${company.internalManager})` : ''}
                 </div>
             `;
         });
-        
+
         if (changes.added.length > 10) {
-            html += `<div style="color: rgba(255, 255, 255, 0.7); margin-top: var(--spacing-xs);">... 외 ${changes.added.length - 10}개</div>`;
+            html += `<div class="mt-xs" style="color: rgba(255, 255, 255, 0.7);">... 외 ${changes.added.length - 10}개</div>`;
         }
-        
+
         html += `</div></div>`;
     }
-    
+
     if (changes.modified && changes.modified.length > 0) {
         html += `
-            <div style="margin-bottom: var(--spacing-lg);">
-                <h4 style="color: rgba(255, 193, 7, 0.9); margin-bottom: var(--spacing-md);">
+            <div class="mb-lg">
+                <h4 class="color-warning mb-md">
                     <i class="fas fa-edit"></i> 정보 수정 (${changes.modified.length}개)
                 </h4>
-                <div style="display: grid; gap: var(--spacing-sm); margin-left: var(--spacing-lg);">
+                <div class="d-grid gap-sm" style="margin-left: var(--spacing-lg);">
         `;
-        
+
         changes.modified.slice(0, 5).forEach(item => {
             const company = item.employee || item.company;
             html += `
-                <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm); border-radius: var(--border-radius-sm);">
+                <div class="bg-white-05 p-sm border-radius-sm">
                     • ${company.finalCompanyName || company.erpCompanyName || company.name}
-                    ${item.changes ? `<div style="margin-left: var(--spacing-md); font-size: var(--font-sm); color: rgba(255, 255, 255, 0.7);">
+                    ${item.changes ? `<div class="text-sm" style="margin-left: var(--spacing-md); color: rgba(255, 255, 255, 0.7);">
                         ${item.changes.map(c => `- ${c.field}: ${c.old} → ${c.new}`).join('<br>')}
                     </div>` : ''}
                 </div>
             `;
         });
-        
+
         if (changes.modified.length > 5) {
-            html += `<div style="color: rgba(255, 255, 255, 0.7); margin-top: var(--spacing-xs);">... 외 ${changes.modified.length - 5}개</div>`;
+            html += `<div class="mt-xs" style="color: rgba(255, 255, 255, 0.7);">... 외 ${changes.modified.length - 5}개</div>`;
         }
-        
+
         html += `</div></div>`;
     }
-    
+
     if (changes.removed && changes.removed.length > 0) {
         html += `
             <div>
-                <h4 style="color: rgba(244, 67, 54, 0.9); margin-bottom: var(--spacing-md);">
+                <h4 class="color-danger mb-md">
                     <i class="fas fa-minus-circle"></i> 삭제됨 (${changes.removed.length}개)
                 </h4>
-                <div style="display: grid; gap: var(--spacing-sm); margin-left: var(--spacing-lg);">
+                <div class="d-grid gap-sm" style="margin-left: var(--spacing-lg);">
         `;
-        
+
         changes.removed.slice(0, 10).forEach(item => {
             const company = item.employee || item.company;
             html += `
-                <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-sm); border-radius: var(--border-radius-sm); text-decoration: line-through;">
+                <div class="bg-white-05 p-sm border-radius-sm" style="text-decoration: line-through;">
                     • ${company.finalCompanyName || company.erpCompanyName || company.name}
                 </div>
             `;
         });
-        
+
         if (changes.removed.length > 10) {
-            html += `<div style="color: rgba(255, 255, 255, 0.7); margin-top: var(--spacing-xs);">... 외 ${changes.removed.length - 10}개</div>`;
+            html += `<div class="mt-xs" style="color: rgba(255, 255, 255, 0.7);">... 외 ${changes.removed.length - 10}개</div>`;
         }
-        
+
         html += `</div></div>`;
     }
-    
+
     return html;
 }
 
@@ -920,35 +908,35 @@ async function applyChanges(result) {
 
 async function showUploadResult(result) {
     const resultDiv = document.getElementById('upload-result');
-    
+
     const summary = result.summary || {
         companies: {
             total: result.data?.companies?.length || 0
         }
     };
-    
+
     let html = `
-        <div class="glass-card" style="padding: var(--spacing-xl); background: rgba(76, 175, 80, 0.1); border-left: 4px solid rgba(76, 175, 80, 0.8);">
-            <h3 style="color: rgba(76, 175, 80, 0.9); margin-bottom: var(--spacing-md);">
+        <div class="glass-card p-xl bg-success-light border-left-success">
+            <h3 class="color-success mb-md">
                 <i class="fas fa-check-circle"></i> 업로드 완료!
             </h3>
-            <div style="color: white; font-size: var(--font-lg); line-height: 1.8;">
+            <div class="text-white text-lg" style="line-height: 1.8;">
                 <p><strong>${formatNumber(summary.companies.total)}개</strong>의 거래처 데이터가 데이터베이스에 저장되었습니다.</p>
                 ${result.validation && result.validation.warnings?.length > 0 ? `
-                    <p style="color: rgba(255, 193, 7, 0.9); margin-top: var(--spacing-sm);">
+                    <p class="color-warning mt-sm">
                         <i class="fas fa-exclamation-triangle"></i> ${result.validation.warnings.length}개의 경고가 있습니다.
                     </p>
                 ` : ''}
-                <p style="margin-top: var(--spacing-md); font-size: var(--font-md); color: rgba(255, 255, 255, 0.8);">
+                <p class="mt-md text-md" style="color: rgba(255, 255, 255, 0.8);">
                     모든 관리자와 영업담당이 이 데이터를 즉시 사용할 수 있습니다.
                 </p>
             </div>
         </div>
     `;
-    
+
     resultDiv.innerHTML = html;
     resultDiv.style.display = 'block';
-    
+
     // 3초 후 페이드아웃
     setTimeout(() => {
         resultDiv.style.transition = 'opacity 1s ease';
@@ -958,7 +946,7 @@ async function showUploadResult(result) {
             resultDiv.style.opacity = '1';
         }, 1000);
     }, 5000);
-    
+
     showToast('데이터베이스 업로드 완료!', 'success');
 }
 
@@ -968,33 +956,33 @@ async function showUploadResult(result) {
 
 function showValidationErrors(validation) {
     const resultDiv = document.getElementById('upload-result');
-    
+
     let html = `
-        <div class="glass-card" style="padding: var(--spacing-xl); background: rgba(244, 67, 54, 0.1); border-left: 4px solid rgba(244, 67, 54, 0.8);">
-            <h3 style="color: rgba(244, 67, 54, 0.9); margin-bottom: var(--spacing-md);">
+        <div class="glass-card p-xl bg-danger-light border-left-danger">
+            <h3 class="color-danger mb-md">
                 <i class="fas fa-exclamation-circle"></i> 데이터 검증 실패
             </h3>
-            <div style="color: white;">
-                <p style="margin-bottom: var(--spacing-md);">
+            <div class="text-white">
+                <p class="mb-md">
                     ${validation.errors.length}개의 오류가 발견되었습니다.
                 </p>
-                <div style="max-height: 300px; overflow-y: auto; background: rgba(0, 0, 0, 0.3); padding: var(--spacing-md); border-radius: var(--border-radius-sm);">
+                <div class="p-md border-radius-sm" style="max-height: 300px; overflow-y: auto; background: rgba(0, 0, 0, 0.3);">
     `;
-    
+
     validation.errors.slice(0, 20).forEach((error, index) => {
-        html += `<div style="margin-bottom: var(--spacing-xs);">${index + 1}. ${error}</div>`;
+        html += `<div class="mb-xs">${index + 1}. ${error}</div>`;
     });
-    
+
     if (validation.errors.length > 20) {
-        html += `<div style="margin-top: var(--spacing-sm); color: rgba(255, 193, 7, 0.9);">... 외 ${validation.errors.length - 20}개 더</div>`;
+        html += `<div class="mt-sm color-warning">... 외 ${validation.errors.length - 20}개 더</div>`;
     }
-    
+
     html += `
                 </div>
             </div>
         </div>
     `;
-    
+
     resultDiv.innerHTML = html;
     resultDiv.style.display = 'block';
 }
@@ -1033,33 +1021,33 @@ async function loadUploadHistory() {
         
         if (history && history.length > 0) {
             let html = '';
-            
+
             history.forEach(record => {
                 const date = new Date(record.timestamp);
                 const operation = record.operation || 'UPDATE';
                 const tableName = record.tableName || 'companies';
-                
+
                 html += `
-                    <div class="history-item" style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-sm);">
-                        <div class="history-time" style="color: rgba(255, 255, 255, 0.7); font-size: var(--font-sm); margin-bottom: var(--spacing-xs);">
+                    <div class="history-item bg-white-05 p-md border-radius-sm mb-sm">
+                        <div class="history-time text-sm mb-xs" style="color: rgba(255, 255, 255, 0.7);">
                             <i class="fas fa-clock"></i> ${formatDate(date)}
                         </div>
-                        <div class="history-details" style="color: white;">
-                            <strong>${operation}</strong> - ${tableName} 
+                        <div class="history-details text-white">
+                            <strong>${operation}</strong> - ${tableName}
                             ${record.recordId ? `(${record.recordId})` : ''}
                         </div>
                     </div>
                 `;
             });
-            
+
             historyList.innerHTML = html;
         } else {
-            historyList.innerHTML = '<div class="no-data" style="text-align: center; padding: var(--spacing-xl); color: rgba(255, 255, 255, 0.5);">업로드 이력이 없습니다.</div>';
+            historyList.innerHTML = '<div class="no-data">업로드 이력이 없습니다.</div>';
         }
-        
+
     } catch (error) {
         console.error('[업로드 이력] 로드 실패:', error);
-        document.getElementById('history-list').innerHTML = '<div class="no-data" style="text-align: center; padding: var(--spacing-xl); color: rgba(255, 255, 255, 0.5);">이력을 불러올 수 없습니다.</div>';
+        document.getElementById('history-list').innerHTML = '<div class="no-data">이력을 불러올 수 없습니다.</div>';
     }
 }
 

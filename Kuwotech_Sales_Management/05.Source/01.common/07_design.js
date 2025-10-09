@@ -548,11 +548,11 @@ class GlassmorphismManager {
 
         toast.style.borderColor = colors[type];
         toast.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 20px;">
+            <div class="toast-content-container">
+                <span class="toast-icon">
                     ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
                 </span>
-                <span style="color: var(--text-primary); font-weight: 500;">${message}</span>
+                <span class="toast-message-text">${message}</span>
             </div>
         `;
 

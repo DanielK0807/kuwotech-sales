@@ -28,19 +28,20 @@ class FormatManager {
     }
 
     /**
-     * 천단위 구분 기호가 있는 숫자 포맷 (정수만)
+     * 천단위 구분 기호가 있는 숫자 포맷
      * @param {number} value - 포맷할 숫자
+     * @param {number} decimals - 소수점 자릿수
      * @param {boolean} useParentheses - 음수를 괄호로 표시 (회계 기준)
      * @returns {string|object} - "1,234,567" 또는 { text: "(1,234)", isNegative: true }
      */
-    formatNumber(value, useParentheses = false) {
+    formatNumber(value, decimals = 0, useParentheses = false) {
         if (value == null || isNaN(value)) return '0';
 
         const isNegative = value < 0;
         const absValue = Math.abs(value);
         const formatted = new Intl.NumberFormat(this.locale, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
         }).format(absValue);
 
         if (useParentheses && isNegative) {
@@ -671,7 +672,7 @@ const formatManager = new FormatManager();
 
 // 개별 함수 export (편의성)
 export const applyNegativeStyle = (element, isNegative) => formatManager.applyNegativeStyle(element, isNegative);
-export const formatNumber = (value, useParentheses) => formatManager.formatNumber(value, useParentheses);
+export const formatNumber = (value, decimals, useParentheses) => formatManager.formatNumber(value, decimals, useParentheses);
 export const formatCurrency = (value, useParentheses) => formatManager.formatCurrency(value, useParentheses);
 export const formatPercent = (value, decimals, useParentheses) => formatManager.formatPercent(value, decimals, useParentheses);
 export const formatNumberKorean = (value) => formatManager.formatNumberKorean(value);

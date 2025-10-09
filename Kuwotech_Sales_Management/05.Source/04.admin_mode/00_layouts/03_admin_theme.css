@@ -158,21 +158,21 @@ body[data-mode="admin"] {
    ============================================ */
 
 .admin-header {
-    height: var(--header-height, 96px) !important;  /* UI 사양서 기준: 96px (1.5배) */
-    background: var(--gradient-primary) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 0 var(--spacing-lg, 30px) !important;
-    box-shadow: var(--shadow-md) !important;
-    position: fixed !important;  /* UI 사양서: 고정 헤더 */
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: var(--z-header, 1030) !important;  /* UI 사양서 기준 */
-    border-bottom: 1px solid var(--glass-border) !important;
+    height: var(--header-height);  /* ✅ Mobile-First 기본값 사용, !important 제거 */
+    background: var(--gradient-primary);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-lg, 30px);
+    box-shadow: var(--shadow-md);
+    position: fixed;  /* UI 사양서: 고정 헤더 */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-header, 1030);  /* UI 사양서 기준 */
+    border-bottom: 1px solid var(--glass-border);
 }
 
 .admin-header.glass-effect {
@@ -215,7 +215,7 @@ body[data-mode="admin"] {
 }
 
 .clock {
-    font-size: 12px;  /* 24px에서 12px로 축소 (절반) */
+    font-size: clamp(11px, 1.5vw, 14px);  /* ✅ Mobile-First 반응형 */
     font-weight: 600;
     color: #FFFFFF;
     /* 배경 제거 - 사용자 요청 */
@@ -246,7 +246,7 @@ body[data-mode="admin"] {
 }
 
 .user-greeting {
-    font-size: 20px;
+    font-size: clamp(14px, 2.5vw, 20px);  /* ✅ Mobile-First 반응형 */
     font-weight: 600;
     color: #FFFFFF;
     white-space: nowrap;
@@ -254,14 +254,14 @@ body[data-mode="admin"] {
 
 /* 사용자 이름 강조 스타일 */
 .user-name-highlight {
-    font-size: 35px;
+    font-size: clamp(18px, 5vw, 35px);  /* ✅ Mobile-First 반응형 */
     font-weight: 700;
     color: #FFD700;  /* 골든 옐로우 */
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .user-role {
-    font-size: 21px;
+    font-size: clamp(14px, 3vw, 21px);  /* ✅ Mobile-First 반응형 */
     font-weight: 600;
     text-transform: uppercase;
     color: #FFFFFF;
@@ -269,7 +269,7 @@ body[data-mode="admin"] {
 }
 
 .user-name {
-    font-size: 27px;
+    font-size: clamp(16px, 4vw, 27px);  /* ✅ Mobile-First 반응형 */
     font-weight: 600;
     color: #FFFFFF;
 }
@@ -282,7 +282,7 @@ body[data-mode="admin"] {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 16px;
+    font-size: var(--font-md);  /* ✅ CSS 변수 사용 */
     font-weight: 600;
     backdrop-filter: blur(10px);
 }
@@ -340,8 +340,8 @@ body[data-mode="admin"] {
 }
 
 .menu-item .icon {
-    font-size: 30px;
-    width: 36px;
+    font-size: clamp(20px, 4vw, 30px);  /* ✅ Mobile-First 반응형 */
+    width: clamp(24px, 4vw, 36px);  /* ✅ Mobile-First 반응형 */
     text-align: center;
     transition: all 0.3s ease;
 }
@@ -380,7 +380,7 @@ body[data-mode="admin"] {
 }
 
 .menu-item span {
-    font-size: 22.5px;
+    font-size: var(--font-lg);  /* ✅ CSS 변수 사용 */
     font-weight: 500;
 }
 

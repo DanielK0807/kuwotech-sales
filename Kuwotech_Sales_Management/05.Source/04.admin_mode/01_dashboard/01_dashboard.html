@@ -46,13 +46,13 @@
         </header>
 
         <!-- 로딩 상태 -->
-        <div id="kpiLoadingState" class="loading-state" style="display: none;">
+        <div id="kpiLoadingState" class="loading-state hidden">
             <div class="loading-spinner"></div>
             <p>KPI 데이터를 불러오는 중...</p>
         </div>
 
         <!-- 데이터 없음 상태 -->
-        <div id="kpiEmptyState" class="empty-state" style="display: none;">
+        <div id="kpiEmptyState" class="empty-state hidden">
             <div class="empty-icon">📊</div>
             <p>표시할 KPI 데이터가 없습니다.</p>
             <button class="btn-primary" onclick="location.reload()">새로고침</button>
@@ -379,11 +379,20 @@
             .kpi-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .header-content {
                 flex-direction: column;
                 align-items: flex-start;
             }
+        }
+
+        /* ============================================
+           유틸리티 클래스 (인라인 스타일 리팩토링)
+           ============================================ */
+
+        /* 숨김 상태 (JavaScript로 토글됨) */
+        .hidden {
+            display: none;
         }
     </style>
     

@@ -532,27 +532,16 @@ function createClockModal() {
         className: 'clock-modal',
         title: '현재 시간',
         content: `
-            <div class="clock-display" style="
-                text-align: center;
-                padding: var(--spacing-2xl);
-            ">
-                <div class="time" style="
-                    font-size: clamp(2rem, 5vw, 3rem);
-                    font-weight: 700;
-                    margin-bottom: var(--spacing-md);
-                    color: var(--text-primary);
-                "></div>
-                <div class="date" style="
-                    font-size: var(--font-lg);
-                    color: var(--text-secondary);
-                "></div>
+            <div class="clock-display">
+                <div class="clock-time"></div>
+                <div class="clock-date"></div>
             </div>
         `,
         onOpen: (modal) => {
             const updateTime = () => {
                 const now = new Date();
-                const timeEl = modal.element.querySelector('.time');
-                const dateEl = modal.element.querySelector('.date');
+                const timeEl = modal.element.querySelector('.clock-time');
+                const dateEl = modal.element.querySelector('.clock-date');
                 
                 if (timeEl && dateEl) {
                     timeEl.textContent = now.toLocaleTimeString('ko-KR');
@@ -711,7 +700,7 @@ function alert(message, title = '알림') {
     const modal = new Modal({
         size: 'sm',
         title,
-        content: `<p style="font-size: calc(var(--font-md) * 1.5); line-height: 1.6;">${message}</p>`,
+        content: `<p class="modal-message">${message}</p>`,
         buttons: [{
             text: '확인',
             className: 'btn-primary'
@@ -733,7 +722,7 @@ function confirm(message, title = '확인') {
         const modal = new Modal({
             size: 'sm',
             title,
-            content: `<p style="font-size: calc(var(--font-md) * 1.5); line-height: 1.6;">${message}</p>`,
+            content: `<p class="modal-message">${message}</p>`,
             buttons: [
                 {
                     text: '취소',
@@ -773,13 +762,8 @@ function prompt(message, title = '입력', defaultValue = '') {
             size: 'sm',
             title,
             content: `
-                <p style="font-size: calc(var(--font-md) * 1.5); line-height: 1.6;">${message}</p>
-                <input type="text" id="${inputId}" class="form-input" value="${defaultValue}" style="
-                    width: 100%;
-                    margin-top: calc(var(--spacing-md) * 1.5);
-                    font-size: calc(var(--font-md) * 1.5);
-                    padding: calc(var(--spacing-sm) * 1.5);
-                ">
+                <p class="modal-message">${message}</p>
+                <input type="text" id="${inputId}" class="form-input prompt-input" value="${defaultValue}">
             `,
             buttons: [
                 {

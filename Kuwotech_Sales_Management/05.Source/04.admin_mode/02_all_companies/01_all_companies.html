@@ -143,7 +143,7 @@
                 </tbody>
             </table>
             
-            <div id="no-data" class="no-data" style="display: none;">
+            <div id="no-data" class="no-data hidden">
                 <p>등록된 거래처가 없습니다.</p>
             </div>
         </div>
@@ -763,6 +763,15 @@
     box-shadow:
         0 10px 20px -6px rgba(0, 230, 118, 0.5),
         0 6px 12px -4px rgba(0, 230, 118, 0.3);
+}
+
+/* ============================================
+   유틸리티 클래스 (인라인 스타일 리팩토링)
+   ============================================ */
+
+/* 숨김 상태 (JavaScript로 토글됨) */
+.hidden {
+    display: none;
 }
 </style>
 

@@ -121,7 +121,7 @@
     <!-- ============================================
          로딩 상태
          ============================================ -->
-    <div id="loadingState" class="loading-state" style="display: none;">
+    <div id="loadingState" class="loading-state hidden">
         <div class="loading-spinner"></div>
         <p>보고서를 불러오는 중...</p>
     </div>
@@ -129,7 +129,7 @@
     <!-- ============================================
          데이터 없음 상태
          ============================================ -->
-    <div id="emptyState" class="empty-state" style="display: none;">
+    <div id="emptyState" class="empty-state hidden">
         <div class="empty-icon">📊</div>
         <p>표시할 보고서가 없습니다.</p>
         <button class="glass-button primary" onclick="location.reload()">새로고침</button>
@@ -187,7 +187,7 @@
         </div>
 
         <!-- 2단계: 상세 확인 영역 (아코디언) -->
-        <div class="report-detail" style="display: none;">
+        <div class="report-detail hidden">
 
             <!-- 보고서 상세 정보 -->
             <div class="detail-section glass-card">
@@ -227,7 +227,7 @@
             </div>
 
             <!-- 목표수금금액 섹션 -->
-            <div class="detail-section glass-card collection-section" style="display: none;">
+            <div class="detail-section glass-card collection-section hidden">
                 <h3 class="section-title collapsible-section-title" data-section="collection">
                     <span class="section-title-text">💰 목표수금금액(<span class="collection-status-text"></span>)</span>
                     <div class="section-title-actions">
@@ -237,7 +237,7 @@
                         <span class="section-toggle-icon">▼</span>
                     </div>
                 </h3>
-                <div class="section-content" style="display: none;">
+                <div class="section-content hidden">
 
                 <!-- 동적 그리드 구조 -->
                 <div class="section-grid-container">
@@ -271,7 +271,7 @@
             </div><!-- collection-section 끝 -->
 
             <!-- 목표매출액 섹션 -->
-            <div class="detail-section glass-card sales-section" style="display: none;">
+            <div class="detail-section glass-card sales-section hidden">
                 <h3 class="section-title collapsible-section-title" data-section="sales">
                     <span class="section-title-text">💵 목표매출액(<span class="sales-product-names-header"></span>)(<span class="sales-status-text"></span>)</span>
                     <div class="section-title-actions">
@@ -281,7 +281,7 @@
                         <span class="section-toggle-icon">▼</span>
                     </div>
                 </h3>
-                <div class="section-content" style="display: none;">
+                <div class="section-content hidden">
 
                 <!-- 동적 그리드 구조 -->
                 <div class="section-grid-container">
@@ -318,7 +318,7 @@
             </div><!-- sales-section 끝 -->
 
             <!-- 영업활동 섹션 -->
-            <div class="detail-section glass-card activity-section" style="display: none;">
+            <div class="detail-section glass-card activity-section hidden">
                 <h3 class="section-title collapsible-section-title" data-section="activity">
                     <span class="section-title-text">📝 영업활동(특이사항)(<span class="activity-status-text"></span>)</span>
                     <div class="section-title-actions">
@@ -328,7 +328,7 @@
                         <span class="section-toggle-icon">▼</span>
                     </div>
                 </h3>
-                <div class="section-content" style="display: none;">
+                <div class="section-content hidden">
 
                 <!-- 작성 내용 표시 -->
                 <div class="written-content glass-card">
@@ -341,8 +341,8 @@
                 <!-- 활동 실행 여부 확인 -->
                 <div class="actual-input glass-card">
                     <h4 class="content-subtitle">✏️ 활동 실행 여부 확인:</h4>
-                    <div class="input-group activity-input-group" style="display: flex; flex-direction: column; align-items: center;">
-                        <div class="form-field" style="width: 100%; max-width: 900px;">
+                    <div class="input-group activity-input-group flex-column-center">
+                        <div class="form-field width-full-max-900">
                             <label>실행 내용: (15자 이상 필수)</label>
                             <textarea class="glass-input execution-content" rows="4" placeholder="실행 내용을 입력하세요 (15자 이상)"></textarea>
                             <div class="char-counter">
@@ -350,9 +350,9 @@
                                 <span class="char-status invalid">❌ (15자 이상 필요)</span>
                             </div>
                         </div>
-                        <div class="form-field" style="width: 100%; max-width: 900px; text-align: center;">
+                        <div class="form-field width-full-max-900-center">
                             <label>실행 여부:</label>
-                            <div class="radio-group" style="justify-content: center;">
+                            <div class="radio-group justify-center">
                                 <label class="radio-label">
                                     <input type="radio" name="activity-executed" value="yes"> 실행
                                 </label>
@@ -1441,6 +1441,39 @@
     /* 동적 입력줄 컨테이너 */
     .dynamic-input-rows {
         display: contents;
+    }
+
+    /* ============================================
+       유틸리티 클래스 (인라인 스타일 리팩토링)
+       ============================================ */
+
+    /* 숨김 상태 (JavaScript로 토글됨) */
+    .hidden {
+        display: none;
+    }
+
+    /* Flexbox 레이아웃 */
+    .flex-column-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 너비 제한 */
+    .width-full-max-900 {
+        width: 100%;
+        max-width: 900px;
+    }
+
+    .width-full-max-900-center {
+        width: 100%;
+        max-width: 900px;
+        text-align: center;
+    }
+
+    /* Flexbox 정렬 */
+    .justify-center {
+        justify-content: center;
     }
 </style>
 

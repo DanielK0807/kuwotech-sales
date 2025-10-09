@@ -21,73 +21,50 @@ class BreakpointManager {
             '2xl': 1536   // 초대형 데스크톱 (1536px 이상)
         };
         
-        // UI 사양서 기반 레이아웃 설정
+        // ✅ Mobile-First: CSS 변수 의존, 동작 설정만 관리
+        // sidebarWidth, headerHeight, contentMaxWidth는 CSS에서 관리
         this.layoutConfigs = {
             xs: {
-                sidebarWidth: '0',
-                headerHeight: '56px',
-                contentMaxWidth: '100%',
                 kpiColumns: 1,
                 tableColumns: 'mobile-view',
                 sidebarOverlay: true,
                 mobileMenu: true,
-                cardView: true,
-                contentPadding: '16px'
+                cardView: true
             },
             sm: {
-                sidebarWidth: '0',
-                headerHeight: '56px',
-                contentMaxWidth: '100%',
                 kpiColumns: 1,
                 tableColumns: 'priority-essential',
                 sidebarOverlay: true,
                 mobileMenu: true,
-                cardView: false,
-                contentPadding: '24px'
+                cardView: false
             },
             md: {
-                sidebarWidth: '200px',
-                headerHeight: '60px',
-                contentMaxWidth: '100%',
                 kpiColumns: 2,
                 tableColumns: 'priority-medium',
                 sidebarCollapsible: true,
                 mobileMenu: false,
-                cardView: false,
-                contentPadding: '24px'
+                cardView: false
             },
             lg: {
-                sidebarWidth: '250px',
-                headerHeight: '64px',
-                contentMaxWidth: '100%',
                 kpiColumns: 3,
                 tableColumns: 'priority-high',
                 sidebarCollapsible: false,
                 mobileMenu: false,
-                cardView: false,
-                contentPadding: '32px'
+                cardView: false
             },
             xl: {
-                sidebarWidth: '250px',
-                headerHeight: '64px',
-                contentMaxWidth: '1200px',
                 kpiColumns: 4,
                 tableColumns: 'all',
                 sidebarCollapsible: false,
                 mobileMenu: false,
-                cardView: false,
-                contentPadding: '32px'
+                cardView: false
             },
             '2xl': {
-                sidebarWidth: '280px',
-                headerHeight: '70px',
-                contentMaxWidth: '1400px',
                 kpiColumns: 5,
                 tableColumns: 'all',
                 sidebarCollapsible: false,
                 mobileMenu: false,
-                cardView: false,
-                contentPadding: '40px'
+                cardView: false
             }
         };
         
@@ -192,29 +169,17 @@ class BreakpointManager {
     
     /**
      * CSS 변수 업데이트
+     * ✅ Mobile-First: CSS가 이미 정의한 변수를 덮어쓰지 않음
      * @param {string} breakpoint - 현재 브레이크포인트
      */
     updateCSSVariables(breakpoint) {
         const root = document.documentElement;
-        const config = this.layoutConfigs[breakpoint];
-        
-        // 레이아웃 관련 CSS 변수 업데이트
-        Object.entries(config).forEach(([key, value]) => {
-            if (typeof value === 'string' || typeof value === 'number') {
-                const cssVarName = `--${this.kebabCase(key)}`;
-                root.style.setProperty(cssVarName, value);
-            }
-        });
-        
-        // 추가 동적 변수 설정
+
+        // ✅ 동작 관련 변수만 설정 (레이아웃 변수는 CSS가 관리)
         if (breakpoint === 'xs' || breakpoint === 'sm') {
-            root.style.setProperty('--sidebar-translate', '-100%');
-            root.style.setProperty('--modal-width', '95vw');
             root.style.setProperty('--table-display', 'none');
             root.style.setProperty('--card-display', 'block');
         } else {
-            root.style.setProperty('--sidebar-translate', '0');
-            root.style.setProperty('--modal-width', '600px');
             root.style.setProperty('--table-display', 'table');
             root.style.setProperty('--card-display', 'none');
         }
