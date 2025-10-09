@@ -1290,6 +1290,44 @@
 /* Overflow Utilities */
 .overflow-auto { overflow-y: auto; }
 
+/* Scroll Container - Week 3 Day 5 Bug Fix */
+.scroll-container,
+.max-h-300.overflow-auto {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Ensure text visibility in scroll containers */
+.scroll-container *,
+.max-h-300.overflow-auto * {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Scrollbar styling for visibility */
+.scroll-container::-webkit-scrollbar,
+.max-h-300.overflow-auto::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-track,
+.max-h-300.overflow-auto::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb,
+.max-h-300.overflow-auto::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover,
+.max-h-300.overflow-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
 /* Background Utilities */
 .bg-info {
     background: rgba(74, 158, 255, 0.1);
