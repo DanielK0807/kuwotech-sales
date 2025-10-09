@@ -56,7 +56,7 @@ Date: 2025-01-27
             <i class="upload-icon">📁</i>
             <h3>엑셀 파일을 선택하거나 드래그하세요</h3>
             <p>지원 형식: .xlsx, .xls</p>
-            <button class="btn btn-primary" id="select-file-btn">
+            <button class="btn-import" id="select-file-btn">
                 <i class="fas fa-file-upload"></i> 파일 선택
             </button>
             <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display: none;">
@@ -73,12 +73,12 @@ Date: 2025-01-27
                         <span id="file-date">-</span>
                     </div>
                 </div>
-                <button class="btn btn-sm btn-danger" id="remove-file-btn">
+                <button class="btn-delete" id="remove-file-btn">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <button class="btn btn-success btn-lg" id="upload-btn" style="width: 100%; margin-top: 20px;">
+            <button class="btn-save" id="upload-btn" style="width: 100%; margin-top: 20px;">
                 <i class="fas fa-cloud-upload-alt"></i> 데이터베이스에 업로드
             </button>
         </div>
