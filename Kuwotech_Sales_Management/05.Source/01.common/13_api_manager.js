@@ -125,7 +125,7 @@ class ApiManager {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
             
-            const response = await fetch(`${this.config.baseURL}/health`, {
+            const response = await fetch(`${this.config.baseURL}/api/health`, {
                 method: 'GET',
                 signal: controller.signal
             });
