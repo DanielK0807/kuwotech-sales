@@ -21,13 +21,13 @@
 */
 
 /* ============================================
-   [NEW FOUNDATION: 3D 뷰포트 설정]
+   [NEW FOUNDATION: 3D 뷰포트 설정 - 단순화]
    ⚠️ overflow 속성 제거: position: sticky 작동 방해
+   ⚠️ perspective 제거: 성능 최적화
 ============================================ */
 .viewport-3d {
-    perspective: 1500px;
-    perspective-origin: 50% 50%;
     transform-style: preserve-3d;
+    /* perspective 제거 - 성능 최적화 */
     /* overflow 속성 제거 - sticky를 위해 필수 */
 }
 
@@ -39,32 +39,30 @@
 .glass-panel {
     /* 배경: 가이드 4.1 - Panel */
     background: rgba(255, 255, 255, 0.18);
-    
-    /* 블러: 25px (Panel 스펙) */
-    backdrop-filter: blur(25px) saturate(170%);
-    -webkit-backdrop-filter: blur(25px) saturate(170%);
-    
+
+    /* 블러: 13px (50% 감소 - 성능 최적화) */
+    backdrop-filter: blur(13px) saturate(170%);
+    -webkit-backdrop-filter: blur(13px) saturate(170%);
+
     /* 테두리: 2px solid */
     border: 2px solid rgba(255, 255, 255, 0.35);
-    
+
     /* 모서리: xl */
     border-radius: 16px;
-    
+
     /* 패딩: 28px */
     padding: 28px;
-    
-    /* 3D 효과: translateZ(30px) */
-    transform: translateZ(30px);
+
+    /* 3D 효과: translateZ(15px) - 단순화 */
+    transform: translateZ(15px);
     transform-style: preserve-3d;
-    
-    /* Elevated Shadow */
-    box-shadow: 
-        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-        0 15px 35px -10px rgba(0, 0, 0, 0.3),
-        0 8px 16px -8px rgba(0, 0, 0, 0.2),
-        inset 0 2px 8px rgba(255, 255, 255, 0.35),
-        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
-    
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 20px 40px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -6px rgba(0, 0, 0, 0.2),
+        inset 0 1px 4px rgba(255, 255, 255, 0.3);
+
     /* 트랜지션 */
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -77,32 +75,30 @@
         rgba(255, 255, 255, 0.3),
         rgba(255, 255, 255, 0.15)
     );
-    
-    /* 블러: 30px (Card 스펙) */
-    backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
-    -webkit-backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
-    
+
+    /* 블러: 15px (50% 감소 - 성능 최적화) */
+    backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
+    -webkit-backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
+
     /* 테두리: 2px */
     border: 2px solid rgba(255, 255, 255, 0.45);
-    
+
     /* 모서리: 20px */
     border-radius: 20px;
-    
+
     /* 패딩: 28px */
     padding: 28px;
-    
-    /* 3D 효과: 40px + 회전 */
-    transform: perspective(1000px) rotateX(1deg) translateZ(40px);
+
+    /* 3D 효과: translateZ(20px) - 단순화 */
+    transform: translateZ(20px);
     transform-style: preserve-3d;
-    
-    /* 3D Shadow */
-    box-shadow: 
-        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-        0 15px 35px -10px rgba(0, 0, 0, 0.3),
-        0 8px 16px -8px rgba(0, 0, 0, 0.2),
-        inset 0 2px 8px rgba(255, 255, 255, 0.35),
-        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
-    
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 20px 40px -10px rgba(0, 0, 0, 0.3),
+        0 10px 20px -6px rgba(0, 0, 0, 0.2),
+        inset 0 1px 4px rgba(255, 255, 255, 0.3);
+
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -113,17 +109,14 @@
         rgba(255, 255, 255, 0.35),
         rgba(255, 255, 255, 0.2)
     );
-    transform: translateY(-8px) translateZ(50px) scale(1.03);
+    transform: translateY(-6px) translateZ(25px) scale(1.02);
     border-color: rgba(255, 255, 255, 0.5);
-    
-    /* Elevated 3D Shadow */
-    box-shadow: 
-        0 40px 80px -20px rgba(0, 0, 0, 0.5),
-        0 25px 50px -15px rgba(0, 0, 0, 0.4),
-        0 15px 30px -10px rgba(0, 0, 0, 0.3),
-        0 5px 15px -5px rgba(0, 0, 0, 0.2),
-        inset 0 3px 10px rgba(255, 255, 255, 0.4),
-        inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.4),
+        0 12px 25px -8px rgba(0, 0, 0, 0.3),
+        inset 0 2px 6px rgba(255, 255, 255, 0.35);
 }
 
 /* 🔷 글래스 버튼 (Button) - 가이드 4.1 & 4.5.1 */
@@ -134,36 +127,34 @@
         rgba(255, 255, 255, 0.25),
         rgba(255, 255, 255, 0.15)
     );
-    
-    /* 블러: 15px (Button 스펙) */
-    backdrop-filter: blur(15px) saturate(180%);
-    -webkit-backdrop-filter: blur(15px) saturate(180%);
-    
+
+    /* 블러: 8px (성능 최적화) */
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+
     /* 테두리: 2px */
     border: 2px solid rgba(255, 255, 255, 0.4);
-    
+
     /* 모서리: 12px */
     border-radius: 12px;
-    
+
     /* 패딩: 14px 28px */
     padding: 14px 28px;
-    
+
     /* 폰트 */
     font-size: 15px;
     font-weight: 600;
-    
-    /* 3D 효과: 20px */
-    transform: translateZ(20px);
+
+    /* 3D 효과: 10px - 단순화 */
+    transform: translateZ(10px);
     transform-style: preserve-3d;
-    
-    /* Multi-layer Shadow */
-    box-shadow: 
-        0 20px 40px -12px rgba(0, 0, 0, 0.35),
-        0 10px 20px -8px rgba(0, 0, 0, 0.25),
-        0 4px 8px -4px rgba(0, 0, 0, 0.15),
-        inset 0 2px 4px rgba(255, 255, 255, 0.3),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.1);
-    
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 12px 24px -8px rgba(0, 0, 0, 0.3),
+        0 6px 12px -4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -171,19 +162,17 @@
 /* Button Hover - 가이드 4.3 */
 .glass-button:hover {
     background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-4px) translateZ(25px) rotateX(5deg);
+    transform: translateY(-3px) translateZ(15px);
     border-color: rgba(255, 255, 255, 0.5);
-    
-    box-shadow: 
-        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-        0 15px 30px -10px rgba(0, 0, 0, 0.3),
-        0 8px 16px -8px rgba(0, 0, 0, 0.2),
-        inset 0 2px 8px rgba(255, 255, 255, 0.4),
-        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+
+    box-shadow:
+        0 16px 32px -10px rgba(0, 0, 0, 0.35),
+        0 8px 16px -6px rgba(0, 0, 0, 0.25),
+        inset 0 1px 4px rgba(255, 255, 255, 0.35);
 }
 
 .glass-button:active {
-    transform: translateY(-2px) translateZ(10px) scale(0.98);
+    transform: translateY(-1px) translateZ(5px) scale(0.98);
 }
 
 /* 🔷 글래스 입력 필드 (Input) - 가이드 4.1 & 4.5.2 */
@@ -194,33 +183,32 @@
         rgba(255, 255, 255, 0.15),
         rgba(255, 255, 255, 0.08)
     );
-    
-    /* 블러: 12px (Input 스펙) */
-    backdrop-filter: blur(12px) saturate(150%);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    
+
+    /* 블러: 8px (성능 최적화) */
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+
     /* 테두리: 2px */
     border: 2px solid rgba(255, 255, 255, 0.25);
-    
+
     /* 모서리: 10px */
     border-radius: 10px;
-    
+
     /* 패딩: 14px 18px */
     padding: 14px 18px;
-    
+
     /* 폰트: 15px */
     font-size: 15px;
-    
-    /* 3D 효과: 10px */
-    transform: translateZ(10px);
+
+    /* 3D 효과: 5px - 단순화 */
+    transform: translateZ(5px);
     transform-style: preserve-3d;
-    
-    /* Depth Shadow */
-    box-shadow: 
-        0 8px 24px -8px rgba(0, 0, 0, 0.3),
-        0 4px 12px -4px rgba(0, 0, 0, 0.2),
+
+    /* Shadow 2개 레이어로 축소 */
+    box-shadow:
+        0 6px 16px -6px rgba(0, 0, 0, 0.25),
         inset 0 1px 2px rgba(255, 255, 255, 0.25);
-    
+
     width: 100%;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -234,13 +222,12 @@
         rgba(255, 255, 255, 0.12)
     );
     border-color: var(--primary-color, #4A9EFF);
-    transform: translateZ(15px) scale(1.02);
-    
-    /* Multi-layer glow */
-    box-shadow: 
+    transform: translateZ(8px) scale(1.01);
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
         0 0 0 3px rgba(74, 158, 255, 0.3),
-        0 10px 30px rgba(0, 0, 0, 0.2),
-        0 4px 12px -4px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(0, 0, 0, 0.15),
         inset 0 1px 3px rgba(255, 255, 255, 0.3);
 }
 
@@ -252,24 +239,24 @@
 .glass-dropdown {
     /* 배경: rgba(255,255,255,0.2) */
     background: rgba(255, 255, 255, 0.2);
-    
-    /* 블러: 18px (Dropdown 스펙) */
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    
+
+    /* 블러: 10px (성능 최적화) */
+    backdrop-filter: blur(10px) saturate(160%);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
+
     /* 테두리: 2px */
     border: 2px solid rgba(255, 255, 255, 0.4);
-    
+
     /* 모서리 */
     border-radius: 8px;
-    
-    /* 3D 효과: 25px */
-    transform: translateZ(25px);
-    
-    /* Layered Shadow */
-    box-shadow: 
-        0 25px 50px -12px rgba(0, 0, 0, 0.35),
-        0 12px 25px -8px rgba(0, 0, 0, 0.25),
+
+    /* 3D 효과: 12px - 단순화 */
+    transform: translateZ(12px);
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 16px 32px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -6px rgba(0, 0, 0, 0.2),
         inset 0 1px 3px rgba(255, 255, 255, 0.3);
 }
 
@@ -277,28 +264,25 @@
 .glass-modal {
     /* 배경: rgba(255,255,255,0.35) */
     background: rgba(255, 255, 255, 0.35);
-    
-    /* 블러: 40px (Modal 스펙) */
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    
+
+    /* 블러: 20px (50% 감소 - 성능 최적화) */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+
     /* 테두리: 3px */
     border: 3px solid rgba(255, 255, 255, 0.5);
-    
+
     /* 모서리 */
     border-radius: 16px;
-    
-    /* 3D 효과: 60px */
-    transform: translateZ(60px);
-    
-    /* Deep Shadow */
-    box-shadow: 
-        0 40px 80px -20px rgba(0, 0, 0, 0.5),
-        0 25px 50px -15px rgba(0, 0, 0, 0.4),
+
+    /* 3D 효과: 30px - 단순화 */
+    transform: translateZ(30px);
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
         0 15px 30px -10px rgba(0, 0, 0, 0.3),
-        0 5px 15px -5px rgba(0, 0, 0, 0.2),
-        inset 0 3px 10px rgba(255, 255, 255, 0.4),
-        inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+        inset 0 2px 6px rgba(255, 255, 255, 0.35);
 }
 
 /* ============================================
@@ -312,14 +296,13 @@
         rgba(255, 255, 255, 0.35),
         rgba(255, 255, 255, 0.15)
     );
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 2px solid rgba(255, 255, 255, 0.5);
-    transform: translateZ(60px);
+    transform: translateZ(30px);
     box-shadow:
-        0 30px 60px rgba(0, 0, 0, 0.4),
-        inset 0 2px 10px rgba(255, 255, 255, 0.4),
-        inset 0 -2px 10px rgba(0, 0, 0, 0.1);
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        inset 0 1px 5px rgba(255, 255, 255, 0.35);
 }
 
 /* 🔷 Crystal Glass (크리스탈 유리) */
@@ -330,10 +313,10 @@
         rgba(255, 255, 255, 0.1),
         rgba(255, 255, 255, 0.3)
     );
-    backdrop-filter: blur(25px) brightness(1.1) contrast(1.1);
-    -webkit-backdrop-filter: blur(25px) brightness(1.1) contrast(1.1);
+    backdrop-filter: blur(13px) brightness(1.1) contrast(1.1);
+    -webkit-backdrop-filter: blur(13px) brightness(1.1) contrast(1.1);
     border: 2.5px solid rgba(255, 255, 255, 0.6);
-    transform: translateZ(50px);
+    transform: translateZ(25px);
 }
 
 /* 🔷 Holographic Glass (홀로그래픽 유리) */
@@ -353,10 +336,10 @@
     );
     background-size: 400% 400%;
     animation: holographic 10s ease infinite;
-    backdrop-filter: blur(30px) saturate(200%);
-    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    backdrop-filter: blur(15px) saturate(200%);
+    -webkit-backdrop-filter: blur(15px) saturate(200%);
     border: 2px solid rgba(255, 255, 255, 0.5);
-    transform: translateZ(60px) rotateY(-2deg);
+    transform: translateZ(30px);
 }
 
 /* 🔷 Layered Glassmorphism (계층형) */
@@ -367,11 +350,11 @@
         rgba(255, 255, 255, 0.25),
         rgba(255, 255, 255, 0.1)
     );
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
     border: 2px solid rgba(255, 255, 255, 0.35);
     border-radius: 16px;
-    transform: translateZ(40px);
+    transform: translateZ(20px);
 }
 
 .glass-layered::before {
@@ -385,7 +368,7 @@
     );
     border-radius: inherit;
     z-index: -1;
-    backdrop-filter: blur(40px);
+    backdrop-filter: blur(20px);
 }
 
 .glass-layered::after {
@@ -399,7 +382,7 @@
     );
     border-radius: inherit;
     z-index: -2;
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(10px);
     opacity: 0.7;
 }
 
@@ -440,64 +423,59 @@
         rgba(255, 255, 255, 0.35),
         rgba(255, 255, 255, 0.15)
     );
-    backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
-    -webkit-backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
+    backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
+    -webkit-backdrop-filter: blur(15px) saturate(200%) contrast(1.2);
     border: 2px solid rgba(255, 255, 255, 0.45);
     border-radius: 20px;
     padding: 28px;
-    
-    /* 3D 회전 효과 */
-    transform: translateZ(50px) rotateX(2deg) rotateY(-2deg);
+
+    /* 3D 효과 단순화 */
+    transform: translateZ(25px);
     transform-style: preserve-3d;
-    
-    /* 극적인 3D Shadow */
-    box-shadow: 
-        0 40px 80px -20px rgba(0, 0, 0, 0.4),
-        0 20px 40px -10px rgba(0, 0, 0, 0.3),
-        0 10px 20px -5px rgba(0, 0, 0, 0.2),
-        inset 0 2px 10px rgba(255, 255, 255, 0.35),
-        inset 0 -2px 10px rgba(0, 0, 0, 0.1);
-    
+
+    /* Shadow 3개 레이어로 축소 */
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.3),
+        0 12px 25px -8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 5px rgba(255, 255, 255, 0.3);
+
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .kpi-card:hover {
-    transform: translateY(-8px) translateZ(70px) rotateX(3deg) rotateY(-3deg) scale(1.02);
-    box-shadow: 
-        0 50px 100px -25px rgba(0, 0, 0, 0.5),
-        0 30px 60px -15px rgba(0, 0, 0, 0.4),
-        0 15px 30px -8px rgba(0, 0, 0, 0.3),
-        inset 0 3px 12px rgba(255, 255, 255, 0.4),
-        inset 0 -3px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px) translateZ(35px) scale(1.02);
+    box-shadow:
+        0 32px 64px -16px rgba(0, 0, 0, 0.35),
+        0 16px 32px -10px rgba(0, 0, 0, 0.25),
+        inset 0 2px 6px rgba(255, 255, 255, 0.35);
 }
 
 /* ============================================
-   [NEW: 3D Transform 요소]
+   [NEW: 3D Transform 요소 - 단순화]
 ============================================ */
 .glass-3d-element {
-    transform: 
-        rotateX(2deg)
-        rotateY(-3deg)
-        translateZ(30px)
-        scale3d(1, 1, 1);
+    transform: translateZ(15px);
     transform-style: preserve-3d;
     backface-visibility: hidden;
 }
 
 /* ============================================
-   [NEW: 반응형 조정]
+   [NEW: 반응형 조정 - 모바일 70% 감소]
 ============================================ */
 @media (max-width: 1024px) {
-    .glass-panel { backdrop-filter: blur(15px); padding: 20px; }
-    .glass-card { backdrop-filter: blur(20px); padding: 20px; }
-    .glass-modal { backdrop-filter: blur(25px); }
+    .glass-panel { backdrop-filter: blur(8px); padding: 20px; }
+    .glass-card { backdrop-filter: blur(10px); padding: 20px; }
+    .glass-modal { backdrop-filter: blur(12px); }
+    .kpi-card { backdrop-filter: blur(10px); }
 }
 
 @media (max-width: 640px) {
-    .glass-panel { backdrop-filter: blur(10px); padding: 16px; }
-    .glass-card { backdrop-filter: blur(15px); padding: 16px; }
-    .glass-button { padding: 10px 20px; font-size: 14px; }
-    .glass-input { padding: 12px 16px; font-size: 14px; }
+    .glass-panel { backdrop-filter: blur(6px); padding: 16px; }
+    .glass-card { backdrop-filter: blur(8px); padding: 16px; }
+    .glass-button { padding: 10px 20px; font-size: 14px; backdrop-filter: blur(5px); }
+    .glass-input { padding: 12px 16px; font-size: 14px; backdrop-filter: blur(5px); }
+    .glass-modal { backdrop-filter: blur(10px); }
+    .kpi-card { backdrop-filter: blur(8px); }
 }
 
 /* ============================================
