@@ -312,7 +312,7 @@ class KPICard extends BaseComponent {
             case '건':
             case '명':
             case '개사':
-                const numberResult = formatNumber(this.config.value, true);
+                const numberResult = formatNumber(this.config.value, 0, true);  /* ✅ 개수 소수점 0자리 */
                 if (typeof numberResult === 'object') {
                     formattedValue = numberResult.text + this.config.unit;
                     isNegative = numberResult.isNegative;
@@ -323,7 +323,7 @@ class KPICard extends BaseComponent {
                 break;
             default:
                 if (typeof this.config.value === 'number') {
-                    const defaultResult = formatNumber(this.config.value, true);
+                    const defaultResult = formatNumber(this.config.value, 0, true);  /* ✅ 숫자 소수점 0자리 */
                     if (typeof defaultResult === 'object') {
                         formattedValue = defaultResult.text;
                         isNegative = defaultResult.isNegative;
@@ -793,7 +793,7 @@ class KPICard extends BaseComponent {
                 case '건':
                 case '명':
                 case '개사':
-                    const numberResult = formatNumber(Math.round(current), true);
+                    const numberResult = formatNumber(Math.round(current), 0, true);  /* ✅ 개수 소수점 0자리 */
                     if (typeof numberResult === 'object') {
                         formattedValue = numberResult.text + unit;
                         isNegative = numberResult.isNegative;
@@ -802,7 +802,7 @@ class KPICard extends BaseComponent {
                     }
                     break;
                 default:
-                    const defaultResult = formatNumber(Math.round(current), true);
+                    const defaultResult = formatNumber(Math.round(current), 0, true);  /* ✅ 숫자 소수점 0자리 */
                     if (typeof defaultResult === 'object') {
                         formattedValue = defaultResult.text;
                         isNegative = defaultResult.isNegative;
