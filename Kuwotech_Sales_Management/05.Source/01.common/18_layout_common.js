@@ -21,101 +21,37 @@
  * @returns {HTMLElement} - 모달 오버레이 요소
  */
 export function createGlassModal(title, message, onConfirm, onCancel) {
-    // 모달 오버레이
+    // 모달 오버레이 (CSS 클래스로 스타일 적용)
     const overlay = document.createElement('div');
     overlay.className = 'logout-modal-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        animation: fadeIn 0.3s ease;
-    `;
 
-    // 모달 컨테이너
+    // 모달 컨테이너 (CSS 클래스로 스타일 적용)
     const modal = document.createElement('div');
     modal.className = 'logout-modal glass-card';
-    modal.style.cssText = `
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 32px;
-        min-width: 400px;
-        max-width: 500px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        animation: slideUp 0.3s ease;
-        text-align: center;
-    `;
 
-    // 아이콘
+    // 아이콘 (CSS 클래스로 스타일 적용)
     const icon = document.createElement('div');
-    icon.style.cssText = `
-        font-size: 48px;
-        margin-bottom: 16px;
-    `;
+    icon.className = 'modal-icon';
     icon.textContent = '🚪';
 
-    // 제목
+    // 제목 (CSS 클래스로 스타일 적용)
     const titleEl = document.createElement('h2');
-    titleEl.style.cssText = `
-        color: white;
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 16px;
-    `;
+    titleEl.className = 'modal-title';
     titleEl.textContent = title;
 
-    // 메시지
+    // 메시지 (CSS 클래스로 스타일 적용)
     const messageEl = document.createElement('p');
-    messageEl.style.cssText = `
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 16px;
-        margin-bottom: 32px;
-        line-height: 1.5;
-    `;
+    messageEl.className = 'modal-message';
     messageEl.textContent = message;
 
-    // 버튼 컨테이너
+    // 버튼 컨테이너 (CSS 클래스로 스타일 적용)
     const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = `
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-    `;
+    buttonContainer.className = 'modal-button-container';
 
-    // 취소 버튼
+    // 취소 버튼 (CSS 클래스로 스타일 적용, hover는 CSS에서 처리)
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'btn btn-glass';
-    cancelBtn.style.cssText = `
-        padding: 12px 32px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        color: white;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    `;
     cancelBtn.textContent = '취소';
-    cancelBtn.onmouseover = () => {
-        cancelBtn.style.background = 'rgba(255, 255, 255, 0.15)';
-        cancelBtn.style.transform = 'translateY(-2px)';
-    };
-    cancelBtn.onmouseout = () => {
-        cancelBtn.style.background = 'rgba(255, 255, 255, 0.1)';
-        cancelBtn.style.transform = 'translateY(0)';
-    };
     cancelBtn.onclick = () => {
         overlay.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => {
@@ -124,29 +60,10 @@ export function createGlassModal(title, message, onConfirm, onCancel) {
         }, 300);
     };
 
-    // 확인 버튼
+    // 확인 버튼 (CSS 클래스로 스타일 적용, hover는 CSS에서 처리)
     const confirmBtn = document.createElement('button');
-    confirmBtn.className = 'btn btn-primary';
-    confirmBtn.style.cssText = `
-        padding: 12px 32px;
-        background: rgba(255, 59, 48, 0.8);
-        border: 1px solid rgba(255, 59, 48, 0.4);
-        border-radius: 8px;
-        color: white;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    `;
+    confirmBtn.className = 'btn btn-danger';
     confirmBtn.textContent = '로그아웃';
-    confirmBtn.onmouseover = () => {
-        confirmBtn.style.background = 'rgba(255, 59, 48, 1)';
-        confirmBtn.style.transform = 'translateY(-2px)';
-    };
-    confirmBtn.onmouseout = () => {
-        confirmBtn.style.background = 'rgba(255, 59, 48, 0.8)';
-        confirmBtn.style.transform = 'translateY(0)';
-    };
     confirmBtn.onclick = () => {
         overlay.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => {
@@ -165,33 +82,6 @@ export function createGlassModal(title, message, onConfirm, onCancel) {
     modal.appendChild(buttonContainer);
 
     overlay.appendChild(modal);
-
-    // 애니메이션 스타일 추가
-    if (!document.getElementById('logout-modal-styles')) {
-        const style = document.createElement('style');
-        style.id = 'logout-modal-styles';
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
 
     // ESC 키로 닫기
     const handleEsc = (e) => {
@@ -246,26 +136,21 @@ export function checkUnsavedWork() {
 }
 
 /**
- * 에러 페이지 표시
+ * 에러 페이지 표시 (CSS 클래스 사용)
  * @param {string} message - 에러 메시지
  */
 export function showErrorPage(message) {
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
         mainContent.innerHTML = `
-            <div class="error-container glass-card" style="
-                max-width: 600px;
-                margin: 100px auto;
-                padding: 40px;
-                text-align: center;
-            ">
-                <h2 style="color: #ff6b6b; margin-bottom: 20px;">
+            <div class="error-container glass-card">
+                <h2>
                     ⚠️ 페이지 로드 오류
                 </h2>
-                <p style="color: #ffffff; margin-bottom: 30px;">
+                <p>
                     ${message}
                 </p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
+                <div class="button-group">
                     <button class="btn btn-glass" onclick="location.reload()">
                         새로고침
                     </button>

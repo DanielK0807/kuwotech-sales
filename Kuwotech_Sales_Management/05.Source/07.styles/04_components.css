@@ -442,6 +442,137 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+/* Modal Size Variants */
+.modal-sm {
+    max-width: 400px;
+}
+
+.modal-md {
+    max-width: 600px;
+}
+
+.modal-lg {
+    max-width: 800px;
+}
+
+.modal-xl {
+    max-width: 1000px;
+}
+
+/* Modal Utility Classes */
+.modal-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.modal-message {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    margin-bottom: 32px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.modal-button-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Logout Modal Specific Styles */
+.logout-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.logout-modal {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 32px;
+    min-width: 400px;
+    max-width: 500px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.3s ease;
+    text-align: center;
+}
+
+/* Error Container */
+.error-container {
+    max-width: 600px;
+    margin: 100px auto;
+    padding: 40px;
+    text-align: center;
+}
+
+.error-container h2 {
+    color: #ff6b6b;
+    margin-bottom: 20px;
+}
+
+.error-container p {
+    color: #ffffff;
+    margin-bottom: 30px;
+}
+
+.error-container .button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* Glass Card Utility (if not already defined) */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Button Styles (for programmatic modals) */
+.btn-glass {
+    padding: 12px 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Fade Out Animation */
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
 /* ============================================
    [SECTION: 입력 컴포넌트] - Enhanced 3D (가이드 4.5.2)
    ============================================ */
@@ -1098,3 +1229,113 @@
         transform: translateZ(2px);
     }
 }
+
+/* ============================================
+   [SECTION: 유틸리티 클래스] - Week 3 Day 5
+   ============================================ */
+
+/* Spacing Utilities */
+.p-10 { padding: 10px; }
+.p-15 { padding: 15px; }
+.p-20 { padding: 20px; }
+
+.m-0 { margin: 0; }
+.mt-20 { margin-top: 20px; }
+.mt-30 { margin-top: 30px; }
+.mb-5 { margin-bottom: 5px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-15 { margin-bottom: 15px; }
+.mb-20 { margin-bottom: 20px; }
+.ml-10 { margin-left: 10px; }
+.m-5-0 { margin: 5px 0; }
+
+/* Typography Utilities */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-xs { font-size: 0.85rem; }
+.text-sm { font-size: 0.9rem; }
+.text-md { font-size: 0.95rem; }
+.text-lg { font-size: 1.1rem; }
+
+.text-success { color: #10b981; }
+.text-warning { color: #f59e0b; }
+.text-danger { color: #ef4444; }
+.text-white { color: #FFFFFF; }
+.text-shadow { text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); }
+
+.font-weight-600 { font-weight: 600; }
+
+/* Layout Utilities */
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.d-none { display: none; }
+.flex-1 { flex: 1; }
+.gap-15 { gap: 15px; }
+.gap-20 { gap: 20px; }
+
+.align-center { align-items: center; }
+.justify-center { justify-content: center; }
+
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Width/Height Utilities */
+.w-full { width: 100%; }
+.max-h-300 { max-height: 300px; }
+
+/* Overflow Utilities */
+.overflow-auto { overflow-y: auto; }
+
+/* Background Utilities */
+.bg-info {
+    background: rgba(74, 158, 255, 0.1);
+    padding: 15px;
+}
+
+.bg-warning {
+    background: rgba(245, 158, 11, 0.1);
+    padding: 20px;
+}
+
+.bg-success {
+    background: rgba(16, 185, 129, 0.1);
+    padding: 15px;
+}
+
+.bg-glass {
+    background: var(--glass-bg);
+}
+
+.bg-glass-08 {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.bg-code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 6px;
+}
+
+/* Border Utilities */
+.border-info {
+    border: 2px solid rgba(74, 158, 255, 0.3);
+    border-radius: 8px;
+}
+
+.border-glass {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+}
+
+.border-radius-6 { border-radius: 6px; }
+.border-radius-8 { border-radius: 8px; }
+
+/* Cursor Utilities */
+.cursor-pointer { cursor: pointer; }
+
+/* Line Height Utilities */
+.line-height-1-6 { line-height: 1.6; }
