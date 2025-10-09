@@ -12,7 +12,7 @@
 // [SECTION: 공통 모듈 임포트]
 // ============================================
 
-import { 
+import {
     initCommonModules,
     GlobalConfig,
     showToast,
@@ -32,6 +32,16 @@ import {
 
 // 세션 매니저 임포트
 import sessionManager, { startSessionMonitoring, handleLogout, isAuthenticated, hasRole } from '../../01.common/16_session_manager.js';
+
+// 레이아웃 공통 함수 임포트
+import {
+    activateMenu,
+    checkUnsavedWork,
+    showErrorPage,
+    setupGlobalEvents,
+    setupLogoutButton,
+    setupMenuEvents
+} from '../../01.common/18_layout_common.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -194,13 +204,13 @@ async function initSalesMode() {
         }
         
         // 5. 메뉴 이벤트 설정
-        setupMenuEvents();
-        
+        setupMenuEvents(loadPage, { value: currentPage });
+
         // 6. 로그아웃 버튼 설정
-        setupLogoutButton();
-        
+        setupLogoutButton(handleLogout, showToast, user);
+
         // 7. 글로벌 이벤트 설정
-        setupGlobalEvents();
+        setupGlobalEvents(loadPage, { value: isInitialized }, { isAdmin: false, user: user });
         
         // 8. 세션 모니터링 시작
         startSessionMonitoring();
@@ -229,38 +239,7 @@ async function initSalesMode() {
 // ============================================
 // [SECTION: 메뉴 이벤트 설정]
 // ============================================
-
-function setupMenuEvents() {
-    const menuItems = document.querySelectorAll('.menu-item');
-    
-    menuItems.forEach(item => {
-        item.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            const page = item.dataset.page;
-            
-            // 이미 활성화된 메뉴면 무시
-            if (item.classList.contains('active') && currentPage === page) {
-                return;
-            }
-            
-            // 활성 메뉴 변경
-            menuItems.forEach(m => m.classList.remove('active'));
-            item.classList.add('active');
-            
-            // 페이지 로드
-            await loadPage(page);
-        });
-        
-        // 키보드 접근성
-        item.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                item.click();
-            }
-        });
-    });
-}
+// → 18_layout_common.js에서 import
 
 // ============================================
 // [SECTION: 페이지 로드 함수]
@@ -389,164 +368,22 @@ async function renderPage(container, html, mapping, page) {
     sessionManager.updateActivity();
 }
 
-/**
- * 에러 페이지 표시
- */
-function showErrorPage(message) {
-    const mainContent = document.getElementById('main-content');
-    if (mainContent) {
-        mainContent.innerHTML = `
-            <div class="error-container glass-card" style="
-                max-width: 600px;
-                margin: 100px auto;
-                padding: 40px;
-                text-align: center;
-            ">
-                <h2 style="color: #ff6b6b; margin-bottom: 20px;">
-                    ⚠️ 페이지 로드 오류
-                </h2>
-                <p style="color: #ffffff; margin-bottom: 30px;">
-                    ${message}
-                </p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button class="btn btn-glass" onclick="location.reload()">
-                        새로고침
-                    </button>
-                    <button class="btn btn-glass" onclick="history.back()">
-                        이전 페이지
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-}
+// showErrorPage → 18_layout_common.js에서 import
 
 // ============================================
 // [SECTION: 로그아웃 설정]
 // ============================================
-
-function setupLogoutButton() {
-    const logoutBtn = document.getElementById('logout-btn');
-    
-    console.log('[로그아웃 버튼] 설정 시작, 버튼 요소:', logoutBtn);
-    
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            console.log('[로그아웃 버튼] 클릭됨');
-            
-            // 간단한 confirm 사용
-            const confirmed = confirm('정말 로그아웃 하시겠습니까?');
-            
-            console.log('[로그아웃 확인]:', confirmed);
-            
-            if (confirmed) {
-                console.log('[로그아웃] 처리 시작');
-                showToast('로그아웃 중...', 'info');
-                
-                setTimeout(() => {
-                    handleLogout(); // 세션 매니저의 로그아웃 처리
-                }, 500);
-            }
-        });
-        
-        console.log('[로그아웃 버튼] 이벤트 리스너 등록 완료');
-    } else {
-        console.error('[로그아웃 버튼] 버튼 요소를 찾을 수 없습니다!');
-    }
-}
+// → 18_layout_common.js에서 import
 
 // ============================================
 // [SECTION: 글로벌 이벤트]
 // ============================================
-
-function setupGlobalEvents() {
-    // 브라우저 뒤로가기 처리
-    window.addEventListener('popstate', (e) => {
-        if (e.state && e.state.page) {
-            // 메뉴 활성화 상태 업데이트
-            const menuItems = document.querySelectorAll('.menu-item');
-            menuItems.forEach(item => {
-                if (item.dataset.page === e.state.page) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-            
-            // 페이지 로드
-            loadPage(e.state.page);
-        }
-    });
-    
-    // 새로고침 시 확인
-    window.addEventListener('beforeunload', (e) => {
-        if (isInitialized) {
-            // 작업 중인 내용 확인
-            const hasUnsavedWork = checkUnsavedWork();
-            if (hasUnsavedWork) {
-                e.preventDefault();
-                e.returnValue = '작업 중인 내용이 저장되지 않을 수 있습니다.';
-            }
-        }
-    });
-    
-    // 네트워크 상태 감지
-    window.addEventListener('online', () => {
-        showToast('네트워크가 연결되었습니다.', 'success');
-    });
-    
-    window.addEventListener('offline', () => {
-        showToast('네트워크 연결이 끊어졌습니다.', 'warning');
-    });
-    
-    // 에러 처리
-    window.addEventListener('error', (e) => {
-        console.error('[전역 에러]:', e.error);
-        if (!e.error?.message?.includes('Failed to fetch')) {
-            showToast('예기치 않은 오류가 발생했습니다.', 'error');
-        }
-    });
-    
-    window.addEventListener('unhandledrejection', (e) => {
-        console.error('[Promise 거부]:', e.reason);
-        if (!e.reason?.message?.includes('Failed to fetch')) {
-            showToast('비동기 처리 중 오류가 발생했습니다.', 'error');
-        }
-    });
-}
-
-/**
- * 저장되지 않은 작업 확인
- */
-function checkUnsavedWork() {
-    // 페이지별로 저장되지 않은 작업 확인
-    const unsavedIndicators = [
-        document.querySelector('form[data-unsaved="true"]'),
-        document.querySelector('input[data-changed="true"]'),
-        document.querySelector('textarea[data-changed="true"]')
-    ];
-    
-    return unsavedIndicators.some(el => el !== null);
-}
+// → 18_layout_common.js에서 import (setupGlobalEvents, checkUnsavedWork)
 
 // ============================================
 // [SECTION: 유틸리티 함수]
 // ============================================
-
-/**
- * 메뉴 활성화
- * @param {string} page - 페이지 이름
- */
-export function activateMenu(page) {
-    const menuItems = document.querySelectorAll('.menu-item');
-    menuItems.forEach(item => {
-        if (item.dataset.page === page) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
-    });
-}
+// activateMenu → 18_layout_common.js에서 import 및 re-export
 
 /**
  * 페이지 새로고침
@@ -574,249 +411,18 @@ export async function navigateTo(page) {
 // [SECTION: 내보내기]
 // ============================================
 
-export { 
+export {
     currentPage,
     user,
     loadPage,
-    pageFileMap
+    pageFileMap,
+    activateMenu  // re-export from 18_layout_common.js
 };
 
 // ============================================
 // [SECTION: 전역 로그아웃 함수]
 // ============================================
-
-// 글래스모핀 모달 생성 함수
-function createGlassModal(title, message, onConfirm, onCancel) {
-    // 모달 오버레이
-    const overlay = document.createElement('div');
-    overlay.className = 'logout-modal-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        animation: fadeIn 0.3s ease;
-    `;
-    
-    // 모달 컨테이너
-    const modal = document.createElement('div');
-    modal.className = 'logout-modal glass-card';
-    modal.style.cssText = `
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 32px;
-        min-width: 400px;
-        max-width: 500px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        animation: slideUp 0.3s ease;
-        text-align: center;
-    `;
-    
-    // 아이콘
-    const icon = document.createElement('div');
-    icon.style.cssText = `
-        font-size: 48px;
-        margin-bottom: 16px;
-    `;
-    icon.textContent = '🚪';
-    
-    // 제목
-    const titleEl = document.createElement('h2');
-    titleEl.style.cssText = `
-        color: white;
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 16px;
-    `;
-    titleEl.textContent = title;
-    
-    // 메시지
-    const messageEl = document.createElement('p');
-    messageEl.style.cssText = `
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 16px;
-        margin-bottom: 32px;
-        line-height: 1.5;
-    `;
-    messageEl.textContent = message;
-    
-    // 버튼 컨테이너
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.cssText = `
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-    `;
-    
-    // 취소 버튼
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'btn btn-glass';
-    cancelBtn.style.cssText = `
-        padding: 12px 32px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        color: white;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    `;
-    cancelBtn.textContent = '취소';
-    cancelBtn.onmouseover = () => {
-        cancelBtn.style.background = 'rgba(255, 255, 255, 0.15)';
-        cancelBtn.style.transform = 'translateY(-2px)';
-    };
-    cancelBtn.onmouseout = () => {
-        cancelBtn.style.background = 'rgba(255, 255, 255, 0.1)';
-        cancelBtn.style.transform = 'translateY(0)';
-    };
-    cancelBtn.onclick = () => {
-        overlay.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-            overlay.remove();
-            if (onCancel) onCancel();
-        }, 300);
-    };
-    
-    // 확인 버튼
-    const confirmBtn = document.createElement('button');
-    confirmBtn.className = 'btn btn-primary';
-    confirmBtn.style.cssText = `
-        padding: 12px 32px;
-        background: rgba(255, 59, 48, 0.8);
-        border: 1px solid rgba(255, 59, 48, 0.4);
-        border-radius: 8px;
-        color: white;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    `;
-    confirmBtn.textContent = '로그아웃';
-    confirmBtn.onmouseover = () => {
-        confirmBtn.style.background = 'rgba(255, 59, 48, 1)';
-        confirmBtn.style.transform = 'translateY(-2px)';
-    };
-    confirmBtn.onmouseout = () => {
-        confirmBtn.style.background = 'rgba(255, 59, 48, 0.8)';
-        confirmBtn.style.transform = 'translateY(0)';
-    };
-    confirmBtn.onclick = () => {
-        overlay.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => {
-            overlay.remove();
-            if (onConfirm) onConfirm();
-        }, 300);
-    };
-    
-    // 요소 조립
-    buttonContainer.appendChild(cancelBtn);
-    buttonContainer.appendChild(confirmBtn);
-    
-    modal.appendChild(icon);
-    modal.appendChild(titleEl);
-    modal.appendChild(messageEl);
-    modal.appendChild(buttonContainer);
-    
-    overlay.appendChild(modal);
-    
-    // 애니메이션 스타일 추가
-    if (!document.getElementById('logout-modal-styles')) {
-        const style = document.createElement('style');
-        style.id = 'logout-modal-styles';
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-            @keyframes slideUp {
-                from { 
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to { 
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // ESC 키로 닫기
-    const handleEsc = (e) => {
-        if (e.key === 'Escape') {
-            cancelBtn.click();
-            document.removeEventListener('keydown', handleEsc);
-        }
-    };
-    document.addEventListener('keydown', handleEsc);
-    
-    // 오버레이 클릭으로 닫기
-    overlay.onclick = (e) => {
-        if (e.target === overlay) {
-            cancelBtn.click();
-        }
-    };
-    
-    return overlay;
-}
-
-// HTML onclick에서 호출할 수 있도록 전역 함수로 등록
-window.handleLogoutClick = function() {
-    console.log('[GLOBAL] 로그아웃 버튼 클릭 - 전역 함수 호출됨');
-    
-    // 글래스모핀 모달 생성
-    const modal = createGlassModal(
-        '로그아웃',
-        '정말 로그아웃 하시겠습니까?\n역할 선택 화면으로 이동합니다.',
-        () => {
-            // 확인 버튼 클릭 시
-            console.log('[GLOBAL] 로그아웃 확인 - handleLogout 호출');
-            
-            // showToast가 사용 가능한지 확인
-            if (typeof showToast === 'function') {
-                showToast('로그아웃 중...', 'info');
-            } else {
-                console.log('[GLOBAL] showToast 함수를 찾을 수 없음');
-            }
-            
-            setTimeout(() => {
-                if (typeof handleLogout === 'function') {
-                    console.log('[GLOBAL] handleLogout 함수 호출');
-                    handleLogout();
-                } else {
-                    console.error('[GLOBAL] handleLogout 함수를 찾을 수 없음 - 직접 리다이렉트');
-                    window.location.href = '../../02.login/01_login.html';
-                }
-            }, 500);
-        },
-        () => {
-            // 취소 버튼 클릭 시
-            console.log('[GLOBAL] 로그아웃 취소');
-        }
-    );
-    
-    document.body.appendChild(modal);
-};
-
-console.log('[GLOBAL] handleLogoutClick 함수 등록 완료');
+// → 18_layout_common.js의 setupLogoutButton 사용 (confirm 기반)
 
 // ============================================
 // [SECTION: 개발 모드 헬퍼]
