@@ -11,9 +11,24 @@ class FormatManager {
     }
 
     // ==================== 숫자 포맷팅 ====================
-    
+
     /**
-     * 천단위 구분 기호가 있는 숫자 포맷
+     * 음수 스타일 적용 헬퍼 함수
+     * @param {HTMLElement} element - 스타일을 적용할 요소
+     * @param {boolean} isNegative - 음수 여부
+     */
+    applyNegativeStyle(element, isNegative) {
+        if (!element) return;
+
+        if (isNegative) {
+            element.classList.add('text-negative');
+        } else {
+            element.classList.remove('text-negative');
+        }
+    }
+
+    /**
+     * 천단위 구분 기호가 있는 숫자 포맷 (정수만)
      * @param {number} value - 포맷할 숫자
      * @param {boolean} useParentheses - 음수를 괄호로 표시 (회계 기준)
      * @returns {string|object} - "1,234,567" 또는 { text: "(1,234)", isNegative: true }
@@ -23,7 +38,10 @@ class FormatManager {
 
         const isNegative = value < 0;
         const absValue = Math.abs(value);
-        const formatted = new Intl.NumberFormat(this.locale).format(absValue);
+        const formatted = new Intl.NumberFormat(this.locale, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(absValue);
 
         if (useParentheses && isNegative) {
             return {
@@ -414,12 +432,106 @@ class FormatManager {
      */
     formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
-        
+
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
+
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // ==================== 입력 필드 포맷팅 ====================
+
+    /**
+     * 입력 필드용 숫자 포맷 (정수만)
+     * @param {HTMLInputElement} input - 입력 필드 요소
+     */
+    formatInputNumber(input) {
+        if (!input) return;
+
+        // 현재 커서 위치 저장
+        const cursorPosition = input.selectionStart;
+        const oldLength = input.value.length;
+
+        // 숫자만 추출 (마이너스 포함, 소수점 제외)
+        let value = input.value.replace(/[^\d-]/g, '');
+
+        // 빈 값 처리
+        if (value === '' || value === '-') {
+            input.value = value;
+            return;
+        }
+
+        // 숫자로 변환
+        const numValue = parseInt(value);
+        if (isNaN(numValue)) {
+            input.value = '';
+            return;
+        }
+
+        // 포맷 적용 (정수만)
+        const formatted = this.formatNumber(numValue, false);
+        const formattedText = typeof formatted === 'object' ? formatted.text : formatted;
+        input.value = formattedText;
+
+        // 음수 스타일 적용
+        this.applyNegativeStyle(input, numValue < 0);
+
+        // 커서 위치 복원 (쉼표가 추가된 만큼 조정)
+        const newLength = input.value.length;
+        const diff = newLength - oldLength;
+        const newCursorPosition = Math.max(0, cursorPosition + diff);
+        input.setSelectionRange(newCursorPosition, newCursorPosition);
+    }
+
+    /**
+     * 입력 필드 자동 포맷 초기화 (정수만)
+     * @param {string} selector - 입력 필드 선택자 (기본값: 'input[type="number"], input[data-format="number"]')
+     */
+    initNumberInputs(selector = 'input[type="number"], input[data-format="number"]') {
+        const inputs = document.querySelectorAll(selector);
+
+        inputs.forEach(input => {
+            // type="number"를 type="text"로 변경 (브라우저 기본 포맷 방지)
+            if (input.type === 'number') {
+                input.type = 'text';
+                input.inputMode = 'numeric';
+            }
+
+            // blur 이벤트: 포맷 적용
+            input.addEventListener('blur', () => {
+                this.formatInputNumber(input);
+            });
+
+            // focus 이벤트: 포맷 제거 (편집 용이)
+            input.addEventListener('focus', () => {
+                const value = input.value.replace(/[^\d-]/g, '');
+                input.value = value;
+                input.select();
+            });
+
+            // input 이벤트: 정수만 허용
+            input.addEventListener('input', (e) => {
+                // 숫자와 마이너스(-)만 허용
+                const value = e.target.value;
+                const cleaned = value.replace(/[^\d-]/g, '');
+
+                // 마이너스는 맨 앞에만 허용
+                const parts = cleaned.split('-');
+                if (parts.length > 2) {
+                    e.target.value = '-' + parts.slice(1).join('');
+                } else if (parts.length === 2 && parts[0] !== '') {
+                    e.target.value = '-' + parts.join('');
+                } else {
+                    e.target.value = cleaned;
+                }
+            });
+
+            // 초기값이 있으면 포맷 적용
+            if (input.value) {
+                this.formatInputNumber(input);
+            }
+        });
     }
 
     // ==================== 유틸리티 ====================
@@ -558,6 +670,7 @@ class FormatManager {
 const formatManager = new FormatManager();
 
 // 개별 함수 export (편의성)
+export const applyNegativeStyle = (element, isNegative) => formatManager.applyNegativeStyle(element, isNegative);
 export const formatNumber = (value, useParentheses) => formatManager.formatNumber(value, useParentheses);
 export const formatCurrency = (value, useParentheses) => formatManager.formatCurrency(value, useParentheses);
 export const formatPercent = (value, decimals, useParentheses) => formatManager.formatPercent(value, decimals, useParentheses);
@@ -576,6 +689,8 @@ export const maskName = (name) => formatManager.maskName(name);
 export const maskPhone = (phone) => formatManager.maskPhone(phone);
 export const maskEmail = (email) => formatManager.maskEmail(email);
 export const formatFileSize = (bytes) => formatManager.formatFileSize(bytes);
+export const formatInputNumber = (input) => formatManager.formatInputNumber(input);
+export const initNumberInputs = (selector) => formatManager.initNumberInputs(selector);
 export const formatEmpty = (value, def) => formatManager.formatEmpty(value, def);
 export const formatBoolean = (value) => formatManager.formatBoolean(value);
 export const formatStatus = (status) => formatManager.formatStatus(status);
