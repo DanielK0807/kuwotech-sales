@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자의견 확인 - KUWOTECH 영업관리 시스템</title>
+
+    <!-- ✅ 스타일시트 (실적보고서 확인과 동일한 순서) -->
+    <link rel="stylesheet" href="../../07.styles/00_root.css">
+    <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/02_common.css">
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
+    <link rel="stylesheet" href="../../07.styles/04_components.css">
+
+    <!-- 시스템 로더 -->
+    <script type="module" src="../../01.common/17_system_loader.js"></script>
+
+    <!-- ✨ 글래스모피즘 자동 적용 -->
+    <script type="module" src="../../01.common/18_glassmorphism_auto_apply.js"></script>
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" href="../../../02.Fonts_Logos/logo.png">
+
+    <style>
+        /* === 헤더 (실적보고서 확인과 동일) === */
+        .page-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            padding: var(--spacing-xl) 0 !important;
+            margin-bottom: var(--spacing-2xl) !important;
+        }
+
+        .header-content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: var(--spacing-lg) !important;
+            width: 95% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .header-text h1 {
+            margin: 0;
+            font-size: calc(var(--font-3xl) + 2px);
+            font-weight: var(--font-weight-bold);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            margin-top: var(--spacing-xs);
+            opacity: 0.9;
+        }
+
+        .btn-refresh {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: var(--font-md);
+            font-weight: var(--font-weight-medium);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-on-layer-1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-refresh:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* === 통계 카드 === */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .summary-card {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .card-content {
+            flex: 1;
+        }
+
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            line-height: 1;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .card-value.success {
+            color: var(--color-success);
+        }
+
+        .card-label {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            opacity: 0.8;
+        }
+
+        /* ============================================ */
+        /* 2열 레이아웃 (사이드바 + 메인 콘텐츠) */
+        /* ============================================ */
+        .admin-feedback-container {
+            display: flex;
+            gap: var(--spacing-lg);
+            height: calc(100vh - 500px);
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* === 사이드바 (보고서 리스트) === */
+        .feedback-sidebar {
+            flex: 0 0 280px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .feedback-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* 보고서 리스트 아이템 */
+        .report-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .report-item {
+            padding: var(--spacing-md);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .report-item:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .report-item.active {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .report-date {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .report-company {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .feedback-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            margin-top: 6px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* === 메인 콘텐츠 (상세보기) === */
+        .feedback-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+        }
+
+        .content-header {
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .content-header h2 {
+            margin: 0 0 var(--spacing-sm) 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .report-meta {
+            display: flex;
+            gap: var(--spacing-lg);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .report-meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        /* 실적보고서 섹션 */
+        .report-section {
+            padding: var(--spacing-lg);
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .report-field {
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .field-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .field-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .field-value.highlight {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        /* 영업활동 리스트 */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .activity-item {
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--primary-color);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .activity-company {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .activity-content {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        /* 관리자 의견 섹션 */
+        .admin-opinion-section {
+            padding: var(--spacing-lg);
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.1) 100%);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .opinion-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .opinion-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .opinion-badge {
+            padding: 4px 12px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .opinion-content {
+            padding: var(--spacing-lg);
+            background: white;
+            border-radius: var(--border-radius-sm);
+            min-height: 150px;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .opinion-empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: var(--spacing-xl);
+            font-style: italic;
+        }
+
+        .opinion-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-md);
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-state-subtext {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* 스크롤바 스타일 */
+        .feedback-sidebar::-webkit-scrollbar,
+        .feedback-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .feedback-sidebar::-webkit-scrollbar-track,
+        .feedback-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .feedback-sidebar::-webkit-scrollbar-thumb,
+        .feedback-content::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .feedback-sidebar::-webkit-scrollbar-thumb:hover,
+        .feedback-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* === 반응형 === */
+        @media (max-width: 1024px) {
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .admin-feedback-container {
+                height: auto;
+                flex-direction: column;
+            }
+
+            .feedback-sidebar {
+                flex: 0 0 auto;
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                align-items: flex-start;
+            }
+
+            .admin-feedback-container {
+                gap: var(--spacing-md);
+            }
+
+            .feedback-sidebar {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-sales viewport-3d" data-page-type="admin-feedback" data-mode="sales">
+
+<!-- ============================================
+     KUWOTECH 영업관리 시스템 - 관리자의견 확인
+     ============================================ -->
+
+<div class="report-confirm-container">
+
+    <!-- ============================================
+         페이지 헤더 (실적보고서 확인과 동일한 구조)
+         ============================================ -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">관리자의견 확인</h1>
+                <p class="subtitle text-on-layer-1">관리자가 작성한 의견이 포함된 보고서를 확인하세요</p>
+            </div>
+            <button
+                id="btnRefresh"
+                class="btn-refresh glass-button"
+                title="데이터 새로고침">
+                🔄 새로고침
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================
+         통계 요약 카드
+         ============================================ -->
+    <section class="summary-cards">
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">📊</div>
+            <div class="card-content">
+                <div class="card-value" id="totalReports">0</div>
+                <div class="card-label">전체 보고서</div>
+            </div>
+        </div>
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">💬</div>
+            <div class="card-content">
+                <div class="card-value success" id="feedbackReports">0</div>
+                <div class="card-label">의견 작성됨</div>
+            </div>
+        </div>
+    </section>
+
+        <!-- ============================================ -->
+        <!-- 2열 레이아웃 (사이드바 + 메인 콘텐츠) -->
+        <!-- ============================================ -->
+        <div class="admin-feedback-container">
+        <!-- === 사이드바: 관리자 의견이 있는 보고서 리스트 === -->
+        <aside class="feedback-sidebar glass-card glass-3d-element">
+            <div class="sidebar-header">
+                <h3>💬 관리자 의견</h3>
+                <span class="feedback-count" id="feedbackCount">0</span>
+            </div>
+            <div class="report-list" id="reportList">
+                <!-- JavaScript로 동적 생성 -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <div class="empty-state-text">의견이 작성된 보고서가 없습니다</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- === 메인 콘텐츠: 보고서 상세 및 관리자 의견 === -->
+        <main class="feedback-content glass-card glass-3d-element" id="detailContent">
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text">보고서를 선택해주세요</div>
+                <div class="empty-state-subtext">왼쪽 목록에서 보고서를 클릭하면 상세 내용과 관리자 의견을 확인할 수 있습니다</div>
+            </div>
+        </main>
+    </div>
+    <!-- admin-feedback-container 끝 -->
+
+</div>
+<!-- report-confirm-container 끝 -->
+
+<script type="module" src="./02_admin_feedback.js"></script>
+</body>
+</html>

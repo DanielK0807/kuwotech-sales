@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>User 정보 확인</title>
+</head>
+<body>
+    <h1>User 정보 디버깅</h1>
+    <button onclick="checkUser()">User 정보 확인</button>
+    <pre id="result"></pre>
+
+    <script>
+        function checkUser() {
+            const user = JSON.parse(sessionStorage.getItem('user'));
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+
+            const result = document.getElementById('result');
+            result.textContent = JSON.stringify({
+                'sessionStorage.user': user,
+                'sessionStorage.currentUser': currentUser,
+                'user 객체 keys': user ? Object.keys(user) : null,
+                'currentUser 객체 keys': currentUser ? Object.keys(currentUser) : null
+            }, null, 2);
+        }
+
+        // 페이지 로드 시 자동 실행
+        checkUser();
+    </script>
+</body>
+</html>

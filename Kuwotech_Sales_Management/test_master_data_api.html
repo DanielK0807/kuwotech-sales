@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마스터 데이터 API 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+        .info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        input[type="text"], input[type="password"] {
+            width: 300px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 마스터 데이터 API 테스트</h1>
+
+    <div class="test-section">
+        <h2>1. 로그인</h2>
+        <div class="login-form">
+            <input type="text" id="username" placeholder="사용자 이름" value="강민">
+            <input type="password" id="password" placeholder="비밀번호" value="">
+            <select id="role">
+                <option value="관리자">관리자</option>
+                <option value="영업담당">영업담당</option>
+            </select>
+            <button onclick="login()">로그인</button>
+        </div>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 담당부서 조회 (/api/master/departments)</h2>
+        <button onclick="testDepartments()" id="btnDepartments" disabled>부서 목록 조회</button>
+        <div id="departmentResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 직원 목록 조회 (/api/employees)</h2>
+        <button onclick="testEmployees()" id="btnEmployees" disabled>직원 목록 조회</button>
+        <div id="employeeResult"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://kuwotech-sales-production-aa64.up.railway.app';
+        let authToken = null;
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: username,
+                        password: password,
+                        selectedRole: role
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    authToken = data.token;
+                    showResult('loginResult', `✅ 로그인 성공!
+토큰: ${authToken.substring(0, 50)}...
+사용자: ${data.name}
+역할: ${data.role}`, 'success');
+
+                    // 버튼 활성화
+                    document.getElementById('btnDepartments').disabled = false;
+                    document.getElementById('btnEmployees').disabled = false;
+                } else {
+                    showResult('loginResult', `❌ 로그인 실패: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showResult('loginResult', `❌ 로그인 오류: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDepartments() {
+            if (!authToken) {
+                showResult('departmentResult', '❌ 먼저 로그인하세요', 'error');
+                return;
+            }
+
+            try {
+                console.log('📡 [담당부서] API 호출:', `${API_BASE_URL}/api/master/departments`);
+                console.log('🔑 [담당부서] 토큰:', authToken.substring(0, 20) + '...');
+
+                const response = await fetch(`${API_BASE_URL}/api/master/departments`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                console.log('📡 [담당부서] 응답 상태:', response.status, response.statusText);
+
+                const data = await response.json();
+                console.log('📦 [담당부서] 응답 데이터:', data);
+
+                if (response.ok && data.success) {
+                    showResult('departmentResult', `✅ 부서 목록 조회 성공!
+총 ${data.departments.length}개 부서
+
+부서 목록:
+${data.departments.map(d => `- ${d.department_name} (${d.department_code})`).join('\n')}`, 'success');
+                } else {
+                    showResult('departmentResult', `❌ 부서 조회 실패 (${response.status}):
+${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('departmentResult', `❌ 부서 조회 오류: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEmployees() {
+            if (!authToken) {
+                showResult('employeeResult', '❌ 먼저 로그인하세요', 'error');
+                return;
+            }
+
+            try {
+                console.log('📡 [직원] API 호출:', `${API_BASE_URL}/api/employees`);
+                console.log('🔑 [직원] 토큰:', authToken.substring(0, 20) + '...');
+
+                const response = await fetch(`${API_BASE_URL}/api/employees`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                console.log('📡 [직원] 응답 상태:', response.status, response.statusText);
+
+                const data = await response.json();
+                console.log('📦 [직원] 응답 데이터:', data);
+
+                if (response.ok && data.success) {
+                    showResult('employeeResult', `✅ 직원 목록 조회 성공!
+총 ${data.count}명
+
+직원 목록 (최대 10명):
+${data.employees.slice(0, 10).map(e => `- ${e.name} (${e.department || '부서없음'}) - ${e.role1}`).join('\n')}
+${data.count > 10 ? `\n... 외 ${data.count - 10}명` : ''}`, 'success');
+                } else {
+                    showResult('employeeResult', `❌ 직원 조회 실패 (${response.status}):
+${JSON.stringify(data, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult('employeeResult', `❌ 직원 조회 오류: ${error.message}`, 'error');
+            }
+        }
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+    </script>
+</body>
+</html>

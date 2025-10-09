@@ -1,0 +1,416 @@
+/**
+ * ============================================
+ * KUWOTECH 영업관리 시스템 - 다운로드 UI 스타일
+ * ============================================
+ * 
+ * @파일명: 10_download_ui.css
+ * @작성일: 2025-09-30
+ * @설명: 다운로드 버튼, 모달, 옵션 UI 스타일
+ */
+
+/* ============================================
+   [섹션 1: 헤더 액션 버튼]
+   ============================================ */
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.glass-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Paperlogy', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-on-primary, #FFFFFF);
+}
+
+.glass-button .icon {
+    width: 20px;
+    height: 20px;
+}
+
+.glass-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.glass-button:active {
+    transform: translateY(0);
+}
+
+/* Primary 버튼 (영업담당) */
+.glass-button.primary {
+    background: linear-gradient(135deg, #0097A7 0%, #00ACC1 100%);
+    border-color: rgba(0, 151, 167, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 151, 167, 0.4);
+}
+
+.glass-button.primary:hover {
+    background: linear-gradient(135deg, #00ACC1 0%, #00BCD4 100%);
+    box-shadow: 0 6px 20px rgba(0, 151, 167, 0.6);
+}
+
+/* 관리자 버튼 스타일 */
+.glass-button.admin-primary {
+    background: linear-gradient(135deg, #64B5F6 0%, #90CAF9 100%);
+    color: #212121;
+    border-color: rgba(100, 181, 246, 0.3);
+    box-shadow: 0 4px 15px rgba(100, 181, 246, 0.4);
+}
+
+.glass-button.admin-accent {
+    background: linear-gradient(135deg, #00E676 0%, #69F0AE 100%);
+    color: #212121;
+    border-color: rgba(0, 230, 118, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
+}
+
+.glass-button.admin-secondary {
+    background: rgba(66, 66, 66, 0.15);
+    color: #212121;
+    border-color: rgba(66, 66, 66, 0.2);
+}
+
+/* 작은 버튼 */
+.glass-button.small {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.glass-button.small .icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* ============================================
+   [섹션 2: 다운로드 옵션 모달]
+   ============================================ */
+
+.download-options-container {
+    padding: 0;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.download-options-container .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5em;
+    font-weight: 700;
+    margin-bottom: 25px;
+    padding: 25px 30px;
+    background: linear-gradient(135deg, #0097A7 0%, #00ACC1 100%);
+    color: #FFFFFF;
+    border-radius: 16px 16px 0 0;
+    margin: 0;
+}
+
+.download-options-container.admin-modal .modal-title {
+    background: linear-gradient(135deg, #64B5F6 0%, #90CAF9 100%);
+    color: #212121;
+}
+
+.modal-title .icon {
+    font-size: 1.2em;
+}
+
+/* 옵션 그룹 */
+.option-group {
+    margin: 20px 30px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.option-group.admin-card {
+    background: rgba(100, 181, 246, 0.05);
+    border-color: rgba(100, 181, 246, 0.2);
+}
+
+.option-group h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--text-primary, #212121);
+}
+
+/* 날짜 범위 선택 */
+.date-range-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.date-input-group label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+}
+
+.glass-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    color: var(--text-primary, #212121);
+    font-family: 'Paperlogy', sans-serif;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.glass-input.admin-input {
+    border-color: rgba(100, 181, 246, 0.3);
+}
+
+.glass-input:focus {
+    outline: none;
+    border-color: var(--primary-color, #0097A7);
+    box-shadow: 0 0 0 3px rgba(0, 151, 167, 0.1);
+}
+
+/* 빠른 선택 버튼 */
+.quick-select-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* 체크박스/라디오 스타일 */
+.sheet-selection,
+.radio-selection,
+.filter-options,
+.additional-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.checkbox-label,
+.radio-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.checkbox-label:hover,
+.radio-label:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.checkbox-label input[type="checkbox"],
+.radio-label input[type="radio"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-text,
+.radio-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.checkbox-text strong,
+.radio-text strong {
+    font-weight: 600;
+    color: var(--text-primary, #212121);
+}
+
+.checkbox-text small,
+.radio-text small {
+    font-size: 0.85em;
+    color: var(--text-secondary, #666);
+}
+
+/* 파일명 입력 */
+.filename-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.filename-input-group .glass-input {
+    border-radius: 8px 0 0 8px;
+    border-right: none;
+}
+
+.filename-input-group .file-extension {
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    font-weight: 600;
+    color: var(--text-secondary, #666);
+}
+
+/* 정렬 선택 */
+.sort-selection select {
+    width: 100%;
+}
+
+/* 모달 액션 버튼 */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 30px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0 0 16px 16px;
+    margin-top: 20px;
+}
+
+/* ============================================
+   [섹션 3: 반응형]
+   ============================================ */
+
+@media (max-width: 768px) {
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .glass-button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .date-range-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-select-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .download-options-container {
+        max-height: 90vh;
+    }
+    
+    .option-group {
+        margin: 15px 20px;
+        padding: 15px;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+        padding: 15px 20px;
+    }
+    
+    .modal-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .download-options-container .modal-title {
+        font-size: 1.2em;
+        padding: 20px;
+    }
+    
+    .option-group h3 {
+        font-size: 1em;
+    }
+    
+    .glass-button {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .quick-select-buttons {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   [섹션 4: 애니메이션]
+   ============================================ */
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.download-options-container {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+/* 버튼 클릭 피드백 */
+.glass-button:active {
+    transform: scale(0.98);
+}
+
+/* 체크박스/라디오 활성 상태 */
+.checkbox-label:has(input:checked),
+.radio-label:has(input:checked) {
+    background: rgba(0, 151, 167, 0.15);
+    border: 1px solid rgba(0, 151, 167, 0.3);
+}
+
+.admin-modal .checkbox-label:has(input:checked),
+.admin-modal .radio-label:has(input:checked) {
+    background: rgba(100, 181, 246, 0.15);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+}
+
+/* ============================================
+   [섹션 5: 다크모드 지원]
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .glass-input {
+        background: rgba(255, 255, 255, 0.05);
+        color: #FFFFFF;
+    }
+    
+    .checkbox-text strong,
+    .radio-text strong,
+    .option-group h3 {
+        color: #FFFFFF;
+    }
+    
+    .checkbox-text small,
+    .radio-text small {
+        color: rgba(255, 255, 255, 0.7);
+    }
+}

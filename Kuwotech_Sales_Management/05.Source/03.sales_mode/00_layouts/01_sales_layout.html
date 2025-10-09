@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko" data-mode="sales">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KUWOTECH 영업관리 시스템 - 영업담당모드</title>
+
+    <!-- [섹션: 공통 스타일] -->
+    <link rel="stylesheet" href="../../07.styles/00_root.css" />
+    <link rel="stylesheet" href="../../07.styles/01_variables.css" />
+    <link rel="stylesheet" href="../../07.styles/09_fonts.css" />
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css" />
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css" />
+    <link rel="stylesheet" href="../../07.styles/02_common.css" />
+    <link rel="stylesheet" href="./03_sales_theme.css" />
+
+    <!-- [섹션: 외부 라이브러리] -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/idb@7.1.1/build/umd.js"></script>
+  </head>
+  <body class="theme-sales" data-mode="sales">
+    <!-- [섹션: 로딩 오버레이] -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">처리 중...</div>
+    </div>
+
+    <!-- [섹션: 헤더] -->
+    <header id="main-header" class="sales-header glass-effect">
+      <div class="header-left">
+        <div id="header-logo-container">
+          <!-- 로고는 JavaScript 공통 함수(createLogoElement)로 동적 생성됨 -->
+        </div>
+        <h1 class="system-title">영업관리 시스템 - 영업담당모드</h1>
+      </div>
+
+      <div class="header-right">
+        <div class="user-info glass-effect-light">
+          <span id="user-greeting" class="user-greeting"></span>
+        </div>
+        <button id="logout-btn" class="btn btn-glass" onclick="window.handleLogoutClick()">로그아웃</button>
+        <div id="current-time" class="clock"></div>
+      </div>
+    </header>
+
+    <!-- [섹션: 메인 컨테이너] -->
+    <div class="main-container">
+      <!-- [섹션: 사이드바] -->
+      <aside id="sidebar" class="sales-sidebar glass-effect">
+        <nav class="sidebar-nav">
+          <ul class="menu-list">
+            <li class="menu-item glass-hover active" data-page="dashboard">
+              <i class="icon">📊</i>
+              <span>대시보드</span>
+            </li>
+            <li class="menu-item glass-hover" data-page="my-companies">
+              <i class="icon">🏢</i>
+              <span>담당거래처관리</span>
+            </li>
+            <li class="menu-item glass-hover" data-page="report-write">
+              <i class="icon">✏️</i>
+              <span>실적보고서 작성</span>
+            </li>
+            <li class="menu-item glass-hover" data-page="report-check">
+              <i class="icon">📋</i>
+              <span>실적보고서 확인</span>
+            </li>
+            <li class="menu-item glass-hover" data-page="admin-feedback">
+              <i class="icon">💬</i>
+              <span>관리자의견 확인</span>
+            </li>
+            <li class="menu-item glass-hover" data-page="system-settings">
+              <i class="icon">⚙️</i>
+              <span>시스템설정</span>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- [섹션: 콘텐츠 영역] -->
+      <main id="main-content" class="sales-content">
+        <!-- 동적 로드 영역 -->
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>페이지를 불러오는 중...</p>
+        </div>
+      </main>
+    </div>
+
+    <!-- [섹션: 토스트 컨테이너] -->
+    <div id="toast-container"></div>
+
+    <!-- [섹션: 모달 컨테이너] -->
+    <div id="modal-container"></div>
+
+    <!-- [섹션: 스크립트] -->
+    <script type="module" src="./02_sales_layout.js"></script>
+  </body>
+</html>

@@ -1,0 +1,576 @@
+/* ============================================
+   [10] 숨김 처리 클래스
+   ============================================ */
+.hidden {
+  display: none !important;
+}
+/* ============================================
+   KUWOTECH 영업관리 시스템 - 영업담당모드 테마
+   파일 위치: 03.sales_mode/00_common/03_sales_theme.css
+   작성일: 2025-01-27
+   ============================================ */
+
+/* ============================================
+   [0] Body/HTML 스크롤 제어 - 헤더 고정을 위해 필수
+   ============================================ */
+html {
+  overflow-y: auto !important;
+  height: 100%;
+}
+
+body.theme-sales,
+body[data-mode="sales"] {
+  overflow: hidden !important;
+  height: 100vh !important;
+  position: relative;
+}
+
+/* ============================================
+   [1] 영업모드 색상 변수 - 최신 5단계 레이어 체계
+   참조: 14_최신_색상_규칙_및_글래스모피즘_가이드.md
+   ============================================ */
+.theme-sales,
+[data-mode="sales"] {
+  /* ============================================
+     영업담당 테마 색상 - 그린 계열 5단계 레이어
+     ============================================ */
+  
+  /* ----- 5단계 레이어 색상 ----- */
+  --layer-1: #0F2A1D;            /* Deep Forest - 최상단/어두움 */
+  --layer-2: #375534;            /* Dark Olive - 짙은 톤 */
+  --layer-3: #6B9071;            /* Medium Sage - 중간 톤 */
+  --layer-4: #AEC3B0;            /* Light Sage - 밝은 톤 */
+  --layer-5: #E3EED4;            /* Pale Mint - 최하단/밝음 */
+  
+  /* ----- 레이어별 자동 텍스트 색상 (대비율 최적화) ----- */
+  --text-on-layer-1: #FFFFFF;    /* Layer 1 위 텍스트 (대비율 16.8:1) */
+  --text-on-layer-2: #FFFFFF;    /* Layer 2 위 텍스트 (대비율 11.5:1) */
+  --text-on-layer-3: #FFFFFF;    /* Layer 3 위 텍스트 (대비율 4.6:1) */
+  --text-on-layer-4: #37474F;    /* Layer 4 위 텍스트 (대비율 6.8:1) */
+  --text-on-layer-5: #37474F;    /* Layer 5 위 텍스트 (대비율 11.2:1) */
+  
+  /* ----- 주요 색상 (레이어 기반) ----- */
+  --primary-color: #375534;      /* Layer 2 - Dark Olive */
+  --primary-bg: #375534;
+  --primary-light: #6B9071;      /* Layer 3 - Medium Sage */
+  --primary-dark: #0F2A1D;       /* Layer 1 - Deep Forest */
+  --primary-text: #FFFFFF;       /* Primary 위 텍스트 */
+  --primary-hover: #2A4128;
+  --primary-active: #0F2A1D;
+  
+  --secondary-color: #AEC3B0;    /* Layer 4 - Light Sage */
+  --secondary-bg: #AEC3B0;
+  --secondary-light: #E3EED4;    /* Layer 5 - Pale Mint */
+  --secondary-dark: #6B9071;     /* Layer 3 - Medium Sage */
+  --secondary-text: #37474F;     /* Secondary 위 텍스트 */
+  --secondary-hover: #9DB39F;
+  
+  --accent-color: #FF7043;       /* Vivid Orange - CTA/강조 */
+  --accent-bg: #FF7043;
+  --accent-light: #FF8A65;       /* 밝은 오렌지 */
+  --accent-dark: #FF5722;        /* 어두운 오렌지 */
+  --accent-text: #37474F;        /* Accent 위 텍스트 */
+  --accent-hover: #FF5722;
+  
+  /* ----- 배경 색상 ----- */
+  --bg-color: #FFFFFF;           /* 클린 화이트 - 메인 배경 */
+  --bg-text: #37474F;            /* 배경 위 텍스트 */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --bg-tertiary: #EEEEEE;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-hover: rgba(107, 144, 113, 0.05);
+  --bg-dark: #F5F5F5;
+  
+  /* ----- 텍스트 색상 (호환성) ----- */
+  --text-primary: #37474F;       /* 다크 차콜 */
+  --text-secondary: #607D8B;
+  --text-tertiary: #90A4AE;
+  --text-disabled: #B0BEC5;
+  --text-on-primary: #FFFFFF;
+  --text-on-secondary: #37474F;
+  --text-on-accent: #37474F;
+  
+  /* ----- 상태 색상 (영업담당 전용) ----- */
+  --success-color: #66BB6A;      /* 성공 */
+  --success-text: #FFFFFF;
+  --success-bg: rgba(102, 187, 106, 0.1);
+  
+  --warning-color: #FFC107;      /* 경고 */
+  --warning-text: #37474F;
+  --warning-bg: rgba(255, 193, 7, 0.1);
+  
+  --danger-color: #EF5350;       /* 위험 */
+  --danger-text: #FFFFFF;
+  --danger-bg: rgba(239, 83, 80, 0.1);
+  
+  --info-color: #26A69A;         /* 정보 */
+  --info-text: #FFFFFF;
+  --info-bg: rgba(38, 166, 154, 0.1);
+  
+  /* ----- 그라데이션 ----- */
+  --gradient-primary: linear-gradient(135deg, #0F2A1D 0%, #375534 100%);
+  --gradient-secondary: linear-gradient(135deg, #6B9071 0%, #AEC3B0 100%);
+  --gradient-accent: linear-gradient(135deg, #AEC3B0 0%, #E3EED4 100%);
+  --gradient-highlight: linear-gradient(135deg, #AEC3B0 0%, #E3EED4 100%);
+  
+  /* ----- 글래스모피즘 ----- */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-light: rgba(255, 255, 255, 0.08);
+  --glass-bg-heavy: rgba(255, 255, 255, 0.15);
+  
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-border-heavy: rgba(255, 255, 255, 0.3);
+  
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.4);
+  --glass-blur: blur(20px);
+  
+  /* ----- 그림자 효과 ----- */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --shadow-primary: 0 4px 12px rgba(55, 85, 52, 0.3);
+  --shadow-hover: 0 6px 20px rgba(55, 85, 52, 0.4);
+}
+
+/* ============================================
+   [2] 헤더 스타일 - UI 사양서 기준
+   ============================================ */
+.sales-header {
+  height: var(--header-height, 96px) !important;  /* UI 사양서 기준: 96px (1.5배) */
+  background: var(--gradient-primary) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 0 var(--spacing-lg, 30px) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: var(--z-header, 1030) !important;  /* UI 사양서 기준 */
+  box-shadow: var(--shadow-md) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.header-left .logo,
+#header-logo-container img {
+  height: calc(var(--header-height, 96px) * 0.6);  /* UI 사양서: 헤더 높이의 60% */
+  width: auto;
+  flex-shrink: 0;
+}
+
+.header-left .system-title {
+  font-size: var(--font-2xl, 30px);  /* UI 사양서: 변수 사용 (1.5배) */
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 15px !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 10px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-greeting {
+  font-size: 20px;
+  font-weight: 600;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+/* 사용자 이름 강조 스타일 */
+.user-name-highlight {
+  font-size: 35px;
+  font-weight: 700;
+  color: #FFD700;  /* 골든 옐로우 */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.user-name {
+  font-size: 27px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.user-role {
+  font-size: 21px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  opacity: 0.9;
+}
+
+.clock {
+  font-size: 12px;  /* 24px에서 12px로 축소 (절반) */
+  font-weight: 600;
+  color: #FFFFFF;
+  /* 배경 제거 - 사용자 요청 */
+  background: transparent;
+  padding: 8px 20px;
+  border-radius: 0;
+  backdrop-filter: none;
+  border: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#logout-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+#logout-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+/* ============================================
+   [3] 사이드바 스타일 - UI 사양서 기준
+   ============================================ */
+.sales-sidebar {
+  width: var(--sidebar-width, 250px);
+  background: var(--secondary-color);  /* #37474F - Secondary 배경 */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-right: 1px solid var(--glass-border);
+  position: fixed;
+  left: 0;
+  top: var(--header-height, 96px);
+  bottom: 0;
+  overflow-y: auto;
+  z-index: var(--z-sidebar, 1020);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  transition: transform var(--animation-duration, 0.3s);
+}
+
+.sidebar-nav {
+  padding: 20px 0;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-md, 15px) var(--spacing-lg, 20px);
+  color: var(--secondary-text);  /* #FFFFFF - Secondary 텍스트 */
+  cursor: pointer;
+  transition: all var(--animation-duration, 0.3s) ease;
+  position: relative;
+  gap: var(--spacing-md, 15px);
+  font-weight: 500;
+  margin: var(--spacing-xs, 5px) 0;
+  border-radius: var(--border-radius-md, 12px);
+  background: transparent;
+  min-height: calc(var(--spacing-unit, 8px) * 6);
+}
+
+.menu-item:hover {
+  background: var(--sidebar-hover-bg, var(--bg-hover));
+  transform: translateX(var(--sidebar-hover-translate, 6px));  /* UI 사양서 기준 */
+}
+
+.menu-item.glass-hover {
+  transition: all 0.3s ease;
+}
+
+.menu-item.glass-hover:hover {
+  background: var(--sidebar-hover-bg, var(--bg-hover));
+  transform: translateX(var(--sidebar-hover-translate, 6px));
+}
+
+.menu-item.glass-hover:hover .icon {
+  transform: scale(1.1);
+}
+
+.menu-item.active {
+  background: linear-gradient(90deg, var(--sidebar-active-bg-start, rgba(0, 151, 167, 0.2)), var(--sidebar-active-bg-end, rgba(0, 151, 167, 0.05)));  /* UI 사양서: 90도 그라데이션 */
+  color: var(--primary-color);
+  border-left: 4px solid var(--accent-color);  /* UI 사양서: 왼쪽 강조 */
+  box-shadow: var(--shadow-primary);
+}
+
+.menu-item .icon {
+  font-size: 30px;
+  width: 36px;
+  text-align: center;
+}
+
+.menu-item span {
+  font-size: 22.5px;
+  font-weight: 500;
+}
+
+/* ============================================
+   [4] 콘텐츠 영역 - UI 사양서 기준
+   ============================================ */
+.main-container {
+  display: flex;
+  margin-top: var(--header-height, 96px);  /* UI 사양서: 헤더 높이만큼 마진 */
+  height: calc(100vh - var(--header-height, 96px));
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.sales-content {
+  margin-left: var(--sidebar-width, 250px);  /* UI 사양서: 사이드바 너비만큼 마진 */
+  flex: 1;
+  padding: var(--spacing-xl, 30px);
+  background: var(--bg-primary);
+  overflow-y: auto;
+  position: relative;
+  min-height: calc(100vh - var(--header-height, 96px));
+  transition: margin-left var(--animation-duration, 0.3s);  /* UI 사양서: 반응형 전환 */
+}
+
+/* ============================================
+   [5] 로딩 상태
+   ============================================ */
+
+/* 로딩 컨테이너 - 관리자 모드와 동일한 구조 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(0, 151, 167, 0.2);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.loading-container p {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+/* 기존 로딩 스타일 (호환성 유지) */
+.theme-sales .loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.loading::before {
+  content: "";
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 151, 167, 0.1);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 15px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   [6] 에러 메시지
+   ============================================ */
+.error-container {
+  text-align: center;
+  padding: 60px 40px;
+  max-width: 500px;
+  margin: 100px auto;
+}
+
+.error-container h2 {
+  color: var(--danger-color);
+  margin-bottom: 20px;
+}
+
+.error-container p {
+  color: var(--text-secondary);
+  margin-bottom: 30px;
+}
+
+/* ============================================
+   [7] 반응형 스타일
+   ============================================ */
+@media (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);  /* UI 사양서: 2열 */
+  }
+}
+
+@media (max-width: 768px) {
+  .sales-sidebar {
+    transform: translateX(calc(var(--sidebar-width, 250px) * -1));  /* UI 사양서: transform 사용 */
+  }
+
+  .sales-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sales-content {
+    margin-left: 0;  /* 모바일에서는 마진 제거 */
+    padding: var(--spacing-lg, 20px);
+  }
+  
+  .kpi-grid {
+    grid-template-columns: 1fr;  /* UI 사양서: 1열 */
+  }
+
+  .header-left .system-title {
+    display: none;
+  }
+  
+  .header-center {
+    display: none;  /* UI 사양서: 모바일에서 시계 숨김 */
+  }
+}
+
+/* ============================================
+   [8] 스크롤바 커스터마이징
+   ============================================ */
+.sales-sidebar::-webkit-scrollbar,
+.sales-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sales-sidebar::-webkit-scrollbar-track,
+.sales-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.sales-sidebar::-webkit-scrollbar-thumb,
+.sales-content::-webkit-scrollbar-thumb {
+  background: rgba(74, 158, 255, 0.3);
+  border-radius: 4px;
+}
+
+.sales-sidebar::-webkit-scrollbar-thumb:hover,
+.sales-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 158, 255, 0.5);
+}
+
+/* ============================================
+   [9] 애니메이션 클래스
+   ============================================ */
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   [섹션: 강제 배경색 적용 - 최종 우선순위]
+   ============================================ */
+
+/* body 배경색 강제 적용 */
+body.theme-sales,
+body[data-mode="sales"] {
+    background: #FFFFFF !important;  /* 클린 화이트 */
+    background-color: #FFFFFF !important;
+    color: #37474F !important;  /* 다크 차콜 */
+}
+
+/* 메인 컨테이너 배경색 강제 적용 */
+.theme-sales .main-container {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+}
+
+/* 컨텐츠 영역 배경색 강제 적용 */
+.theme-sales .sales-content {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    color: #37474F !important;
+}

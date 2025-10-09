@@ -1,0 +1,652 @@
+/* ============================================
+   [STYLE: 로그???�이지 ?��???
+   ?�일 ?�치: 05.Source/08.styles/03_login.css
+   구체???�용: 로그???�이지 ?�용 ?��???   ============================================ */
+
+/* ============================================
+   [SECTION: 로그???�이지 배경]
+   ============================================ */
+
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 배경 ?�버?�이 */
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 102, 204, 0.1) 50%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+  z-index: 1;
+}
+
+/* 글?�스모피�??�턴 */
+.glass-bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 35px,
+      rgba(255, 255, 255, 0.01) 35px,
+      rgba(255, 255, 255, 0.01) 70px
+    );
+  z-index: 2;
+}
+
+/* ============================================
+   [SECTION: 로그???�퍼]
+   ============================================ */
+
+.login-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+/* ============================================
+   [SECTION: 로그???�더]
+   ============================================ */
+
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.company-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: brightness(1.1);
+}
+
+.system-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #0099FF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-clock-btn {
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: var(--transition-all);
+  font-size: var(--font-size-xl);
+}
+
+.header-clock-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+/* ============================================
+   [SECTION: 진행�??�시]
+   ============================================ */
+
+.progress-container {
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+}
+
+.progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-pill);
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--sales-gradient);
+  border-radius: var(--border-radius-pill);
+  transition: width 0.5s ease;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  opacity: 0.5;
+  transition: var(--transition-all);
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-round);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  transition: var(--transition-all);
+}
+
+.step.active .step-number {
+  background: var(--sales-primary);
+  border-color: var(--sales-primary);
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+}
+
+.step-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ============================================
+   [SECTION: 로그??컨테?�너]
+   ============================================ */
+
+.login-container {
+  position: relative;
+}
+
+/* ============================================
+   [SECTION: 로그???�계]
+   ============================================ */
+
+.login-step {
+  display: none;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.login-step.active {
+  display: block;
+  animation: slideIn 0.5s forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step-content {
+  padding: var(--spacing-2xl);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-xl);
+}
+
+.step-content h2 {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.step-description {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xl);
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   [SECTION: 개발??모드]
+   ============================================ */
+
+.dev-mode .step-content {
+  border: 2px solid var(--sales-primary);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 102, 204, 0.05) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+/* ============================================
+   [SECTION: 로그????
+   ============================================ */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.login-form .form-group {
+  margin-bottom: 0;
+}
+
+.login-form label {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.login-form input {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  padding: var(--spacing-md);
+  transition: var(--transition-all);
+}
+
+.login-form input:focus {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: var(--sales-primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
+
+/* ============================================
+   [SECTION: ?�로???�션]
+   ============================================ */
+
+.upload-options {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.upload-options .btn {
+  flex: 1;
+  padding: var(--spacing-lg);
+  font-size: var(--font-size-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-height: 100px;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid transparent;
+  transition: var(--transition-all);
+}
+
+.upload-options .btn .emoji {
+  font-size: var(--font-size-2xl);
+}
+
+.upload-options .btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--sales-primary);
+}
+
+.upload-options .btn.has-data {
+  border-color: var(--color-success);
+  background: rgba(40, 167, 69, 0.1);
+}
+
+/* ============================================
+   [SECTION: ?�로???�태]
+   ============================================ */
+
+.upload-status {
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   [SECTION: ??�� ?�보]
+   ============================================ */
+
+.role-info {
+  background: rgba(0, 0, 0, 0.3);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.info-value {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ============================================
+   [SECTION: 로딩 컨테?�너]
+   ============================================ */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl);
+  gap: var(--spacing-lg);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--sales-primary);
+  border-radius: var(--border-radius-round);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ============================================
+   [SECTION: ?�계 모달]
+   ============================================ */
+
+.clock-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: var(--z-index-modal-backdrop);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.clock-modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.clock-modal .modal-content {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  min-width: 400px;
+  box-shadow: var(--shadow-2xl);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.clock-modal.active .modal-content {
+  transform: scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xl);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-round);
+  transition: var(--transition-all);
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.clock-display {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.digital-clock {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--sales-primary);
+  font-family: var(--font-family-mono);
+  margin-bottom: var(--spacing-sm);
+}
+
+.date-display {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   [SECTION: ?�스??메시지]
+   ============================================ */
+
+.toast-container {
+  position: fixed;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  z-index: var(--z-index-toast);
+  max-width: 400px;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease;
+}
+
+.toast-container.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  border-left: 4px solid;
+}
+
+.toast-success .toast-content {
+  border-left-color: var(--color-success);
+  background: linear-gradient(90deg, rgba(40, 167, 69, 0.1) 0%, var(--bg-secondary) 100%);
+}
+
+.toast-error .toast-content {
+  border-left-color: var(--color-danger);
+  background: linear-gradient(90deg, rgba(220, 53, 69, 0.1) 0%, var(--bg-secondary) 100%);
+}
+
+.toast-warning .toast-content {
+  border-left-color: var(--color-warning);
+  background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, var(--bg-secondary) 100%);
+}
+
+.toast-info .toast-content {
+  border-left-color: var(--color-info);
+  background: linear-gradient(90deg, rgba(23, 162, 184, 0.1) 0%, var(--bg-secondary) 100%);
+}
+
+.toast-icon {
+  font-size: var(--font-size-xl);
+}
+
+.toast-message {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================
+   [SECTION: 로딩 ?�버?�이]
+   ============================================ */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: var(--z-index-loading);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.loading-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-content .loading-spinner {
+  margin: 0 auto var(--spacing-lg);
+}
+
+.loading-content .loading-message {
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+}
+
+/* ============================================
+   [SECTION: 반응???�자??
+   ============================================ */
+
+@media (max-width: 768px) {
+  .login-wrapper {
+    padding: var(--spacing-md);
+  }
+  
+  .progress-steps {
+    display: none;
+  }
+  
+  .progress-container {
+    padding: var(--spacing-md);
+  }
+  
+  .step-content {
+    padding: var(--spacing-lg);
+  }
+  
+  .upload-options {
+    flex-direction: column;
+  }
+  
+  .system-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .company-logo {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* [?�자??규칙: 로그???�이지 100% 기존 ?�자???��?]
+   #로그??#?��???*/

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>담당거래처 관리 - KUWOTECH 영업관리 시스템</title>
+    
+    <!-- 스타일시트 -->
+    <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/02_common.css">
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
+    <link rel="stylesheet" href="../../07.styles/06_mode_themes.css">
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
+    <link rel="stylesheet" href="../../07.styles/10_download_ui.css">
+    
+    <!-- 강화된 3D 글래스모피즘 스타일 -->
+    <style>
+        /* 3D 뷰포트 설정 */
+        .viewport-3d {
+            perspective: 1500px;
+            perspective-origin: 50% 50%;
+            transform-style: preserve-3d;
+        }
+    </style>
+    
+    <!-- SheetJS CDN -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body class="theme-sales viewport-3d">
+
+<!-- ============================================
+     KUWOTECH 영업관리 시스템 - 담당거래처 관리
+     Created by: Daniel.K
+     Date: 2025-01-27
+     ============================================ -->
+
+<div class="companies-container">
+    
+    <!-- [섹션: 페이지 헤더] -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">담당거래처 관리</h1>
+                <p class="subtitle text-on-layer-1">나의 거래처 정보를 관리해 보세요</p>
+            </div>
+            <button id="add-company-btn" class="btn-refresh glass-button" title="새로운 거래처 추가">
+                ➕ 거래처 추가
+            </button>
+        </div>
+    </header>
+    
+    <!-- [섹션: 필터 영역] -->
+    <div class="filter-section glass-card glass-3d-element">
+        <div class="filter-row">
+            <div class="filter-item">
+                <label>거래처명</label>
+                <input type="text" id="filter-name" class="glass-input" placeholder="거래처명 검색">
+            </div>
+            <div class="filter-item">
+                <label>거래상태</label>
+                <select id="filter-status" class="glass-input">
+                    <option value="">전체</option>
+                    <option value="활성">활성</option>
+                    <option value="비활성">비활성</option>
+                    <option value="불용">불용</option>
+                    <option value="추가확인">추가확인</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>판매제품</label>
+                <select id="filter-product" class="glass-input">
+                    <option value="">전체</option>
+                    <!-- 동적으로 로드됨 -->
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>고객사 지역</label>
+                <select id="filter-region" class="glass-input">
+                    <option value="">전체</option>
+                    <!-- 동적으로 로드됨 -->
+                </select>
+            </div>
+            <button class="glass-button primary" onclick="applyFilter()">
+                🔍 검색
+            </button>
+        </div>
+    </div>
+    
+    <!-- [섹션: 거래처 목록] -->
+    <div class="companies-section">
+        <div class="section-header">
+            <h3 class="section-title">거래처 목록</h3>
+            <div class="section-info-group">
+                <div class="section-info">
+                    총 <span id="total-count">0</span>개 거래처
+                </div>
+                <div class="section-info">
+                    누적매출금액합계: <span id="total-sales">₩0</span>
+                </div>
+                <div class="section-info">
+                    누적수금금액합계: <span id="total-collection">₩0</span>
+                </div>
+                <div class="section-info">
+                    매출채권잔액합계: <span id="total-receivable">₩0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container glass-panel glass-layered">
+            <table class="companies-table">
+                <thead>
+                    <tr>
+                        <th width="14%">거래처명</th>
+                        <th width="10%">대표이사</th>
+                        <th width="10%">고객사 지역</th>
+                        <th width="10%">거래상태</th>
+                        <th width="11%">판매제품</th>
+                        <th width="11%">마지막결제일</th>
+                        <th width="11%">마지막총결재금액</th>
+                        <th width="11%">누적매출금액</th>
+                        <th width="11%">누적수금금액</th>
+                        <th width="11%">매출채권잔액</th>
+                    </tr>
+                </thead>
+                <tbody id="companies-tbody">
+                    <!-- 동적으로 생성됨 -->
+                </tbody>
+            </table>
+            
+            <div id="no-data" class="no-data" style="display: none;">
+                <p>등록된 거래처가 없습니다.</p>
+            </div>
+        </div>
+        
+        <!-- 페이지네이션 -->
+        <div class="pagination-container">
+            <div id="pagination" class="pagination">
+                <!-- 동적으로 생성됨 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
+html {
+    height: 100% !important;
+    overflow: hidden !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: 100% !important;
+}
+
+/* === 레이아웃 === */
+.viewport-3d {
+    min-height: 100vh;
+    position: relative;
+    overflow: visible !important;
+}
+
+/* 거래처 관리 전용 스타일 - Enhanced 3D */
+.companies-container {
+    padding: 0 5px;
+    width: 100%;
+    margin: 0 auto;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+/* === 페이지 헤더 (대시보드와 동일) === */
+.page-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    padding: var(--spacing-xl) 0 !important;
+    margin-bottom: var(--spacing-2xl) !important;
+    background: rgba(15, 42, 29, 0.98) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 16px !important;
+    will-change: transform !important;
+}
+
+.header-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: var(--spacing-lg) !important;
+    width: 95% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.header-text h1 {
+    margin: 0;
+    font-size: calc(var(--font-3xl) + 2px);
+    font-weight: var(--font-weight-bold);
+}
+
+.header-text .subtitle {
+    margin-top: var(--spacing-xs);
+    opacity: 0.9;
+}
+
+.btn-refresh {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-refresh:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-refresh:active {
+    transform: translateY(0);
+}
+
+/* 필터 섹션 - Enhanced 3D Glassmorphism */
+.filter-section {
+    padding: 24px;
+    margin-bottom: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 95%;
+    border-radius: 16px;
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.25),
+        rgba(255, 255, 255, 0.15)
+    );
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    transform: translateZ(30px) rotateX(1deg);
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.35),
+        0 15px 30px -8px rgba(0, 0, 0, 0.25),
+        0 8px 16px -4px rgba(0, 0, 0, 0.15),
+        inset 0 2px 6px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section:hover {
+    transform: translateY(-4px) translateZ(40px) rotateX(2deg) scale(1.01);
+    box-shadow:
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 20px 40px -10px rgba(0, 0, 0, 0.3),
+        0 10px 20px -5px rgba(0, 0, 0, 0.2),
+        inset 0 3px 8px rgba(255, 255, 255, 0.35),
+        inset 0 -3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-item label {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* 입력 필드 스타일 - Enhanced 3D */
+.input-glass,
+.select-glass,
+.glass-input {
+    padding: 12px 16px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.18),
+        rgba(255, 255, 255, 0.08)
+    );
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 16px;
+    transform: translateZ(10px);
+    transform-style: preserve-3d;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 8px 24px -8px rgba(0, 0, 0, 0.3),
+        0 4px 12px -4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+.input-glass:hover,
+.select-glass:hover,
+.glass-input:hover {
+    transform: translateZ(12px) scale(1.01);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow:
+        0 10px 28px -8px rgba(0, 0, 0, 0.35),
+        0 6px 16px -4px rgba(0, 0, 0, 0.25),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.input-glass:focus,
+.select-glass:focus,
+.glass-input:focus {
+    outline: none;
+    transform: translateZ(15px) scale(1.02);
+    border-color: var(--primary-color);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.22),
+        rgba(255, 255, 255, 0.12)
+    );
+    box-shadow:
+        0 0 0 3px rgba(55, 85, 52, 0.3),
+        0 0 20px rgba(55, 85, 52, 0.2),
+        0 12px 32px -8px rgba(0, 0, 0, 0.35),
+        0 6px 16px -4px rgba(0, 0, 0, 0.25),
+        inset 0 1px 4px rgba(255, 255, 255, 0.35);
+}
+
+/* 테이블 컨테이너 - Enhanced 3D Glassmorphism */
+.table-container {
+    padding: 0;
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.3),
+        rgba(255, 255, 255, 0.15)
+    );
+    backdrop-filter: blur(30px) saturate(200%) contrast(1.1);
+    -webkit-backdrop-filter: blur(30px) saturate(200%) contrast(1.1);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    transform: translateZ(40px) rotateX(1deg) rotateY(-1deg);
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 35px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -8px rgba(0, 0, 0, 0.2),
+        inset 0 2px 8px rgba(255, 255, 255, 0.35),
+        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 홀로그래픽 반사 효과 */
+.table-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 60%
+    );
+    animation: shimmer-3d 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer-3d {
+    0% { transform: translateX(-100%) translateZ(1px); }
+    100% { transform: translateX(100%) translateZ(1px); }
+}
+
+.table-container:hover {
+    transform: translateY(-6px) translateZ(50px) rotateX(1.5deg) rotateY(-1.5deg) scale(1.01);
+    box-shadow:
+        0 40px 80px -20px rgba(0, 0, 0, 0.5),
+        0 25px 50px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        0 5px 15px -5px rgba(0, 0, 0, 0.2),
+        inset 0 3px 10px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.companies-table {
+    width: 100%;
+    border-collapse: collapse;
+    display: block;
+    overflow-y: auto;
+    max-height: 540px;
+}
+
+.companies-table thead {
+    background: linear-gradient(
+        135deg,
+        rgba(107, 144, 113, 0.15),
+        rgba(107, 144, 113, 0.08)
+    );
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.companies-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--glass-border);
+    background: linear-gradient(
+        135deg,
+        rgba(107, 144, 113, 0.2),
+        rgba(107, 144, 113, 0.12)
+    );
+    backdrop-filter: blur(10px);
+}
+
+.companies-table tbody {
+    display: block;
+    overflow-y: auto;
+    max-height: calc(540px - 52px);
+    width: 100%;
+}
+
+.companies-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.companies-table td {
+    padding: 12px 15px;
+    font-size: 16px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+
+
+.companies-table tbody tr:hover {
+    background: linear-gradient(
+        90deg,
+        rgba(107, 144, 113, 0.08),
+        rgba(107, 144, 113, 0.05)
+    );
+    transform: translateX(4px) scale(1.005);
+    box-shadow: -4px 0 8px rgba(107, 144, 113, 0.15);
+}
+
+/* 상태 배지 - Enhanced 3D */
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transform: translateZ(5px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 4px 8px -2px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.status-badge:hover {
+    transform: translateZ(10px) scale(1.1);
+    box-shadow:
+        0 6px 12px -3px rgba(0, 0, 0, 0.3),
+        inset 0 1px 3px rgba(255, 255, 255, 0.4);
+}
+
+.status-badge.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.status-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.status-badge.suspended {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.status-badge.inactive {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--text-muted);
+}
+
+/* 액션 버튼 - Enhanced 3D */
+.action-btn {
+    padding: 8px 14px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1)
+    );
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transform: translateZ(8px);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow:
+        0 6px 12px -4px rgba(0, 0, 0, 0.25),
+        0 3px 6px -2px rgba(0, 0, 0, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+.action-btn:hover {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-light)
+    );
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px) translateZ(12px) scale(1.05);
+    box-shadow:
+        0 10px 20px -6px rgba(55, 85, 52, 0.4),
+        0 6px 12px -4px rgba(55, 85, 52, 0.3),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.action-btn:active {
+    transform: translateY(0) translateZ(6px) scale(0.98);
+}
+
+/* 페이지네이션 - Enhanced 3D */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    transform-style: preserve-3d;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.15),
+        rgba(255, 255, 255, 0.08)
+    );
+    backdrop-filter: blur(15px) saturate(160%);
+    -webkit-backdrop-filter: blur(15px) saturate(160%);
+    border-radius: 16px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    transform: translateZ(20px);
+    box-shadow:
+        0 15px 30px -8px rgba(0, 0, 0, 0.3),
+        0 8px 16px -4px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.pagination button {
+    padding: 10px 14px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.18),
+        rgba(255, 255, 255, 0.1)
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transform: translateZ(5px);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow:
+        0 4px 8px -2px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.pagination button:hover:not(:disabled) {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-light)
+    );
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-3px) translateZ(10px) scale(1.08);
+    box-shadow:
+        0 8px 16px -4px rgba(55, 85, 52, 0.35),
+        0 4px 8px -2px rgba(55, 85, 52, 0.25),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.pagination button.active {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-dark)
+    );
+    color: white;
+    border-color: var(--primary-dark);
+    transform: translateZ(8px) scale(1.05);
+    box-shadow:
+        0 6px 12px -3px rgba(55, 85, 52, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.2),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: translateZ(0);
+}
+
+.pagination button:active:not(:disabled) {
+    transform: translateY(0) translateZ(3px) scale(0.95);
+}
+
+/* 데이터 없음 */
+.no-data {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+/* 거래처 섹션 */
+.companies-section {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: var(--spacing-2xl);
+}
+
+/* 섹션 헤더 - Enhanced 3D */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 16px 24px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.1)
+    );
+    backdrop-filter: blur(15px) saturate(160%);
+    -webkit-backdrop-filter: blur(15px) saturate(160%);
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    transform: translateZ(25px);
+    box-shadow:
+        0 10px 20px -6px rgba(0, 0, 0, 0.25),
+        0 6px 12px -3px rgba(0, 0, 0, 0.15),
+        inset 0 2px 4px rgba(255, 255, 255, 0.25);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.section-header:hover {
+    transform: translateY(-2px) translateZ(30px) scale(1.01);
+    box-shadow:
+        0 15px 30px -8px rgba(0, 0, 0, 0.3),
+        0 8px 16px -4px rgba(0, 0, 0, 0.2),
+        inset 0 2px 6px rgba(255, 255, 255, 0.3);
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--primary-light)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-info-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.section-info {
+    font-size: 15px;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+#total-count,
+#total-sales,
+#total-collection,
+#total-receivable {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(55, 85, 52, 0.2);
+}
+
+/* 음수 표시 스타일 */
+.text-negative {
+    color: var(--danger-color, #ef4444);
+    font-weight: 600;
+}
+</style>
+
+<!-- JavaScript 모듈 로드 -->
+<script type="module" src="./02_my_companies.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,472 @@
+/* ============================================
+   ROOT 변수 정의 - KUWOTECH 디자인 시스템
+   파일 위치: 05.Source/07.styles/00_root.css
+   수정일: 2025-01-30
+   버전: 3.0 (COMPLETE RENEWAL - 최신 색상 시스템)
+   
+   ⚠️ 중요: 이 파일은 기본 시스템 변수만 정의합니다.
+   ✅ 테마 색상은 07_theme_colors.css에서 관리됩니다.
+   ✅ 레이아웃 변수는 01_variables.css에서 관리됩니다.
+   
+   참조: 14_최신_색상_규칙_및_글래스모피즘_가이드.md
+   ============================================ */
+
+/* ============================================
+   [IMPORT] 테마 색상 시스템 로드
+   ============================================ */
+@import url('07_theme_colors.css');
+
+/* ============================================
+   [ROOT] 기본 시스템 변수 (테마 독립적)
+   ============================================ */
+:root {
+    /* ===== 공통 상태 색상 (WCAG 2.1 준수) ===== */
+    --success-color: #4CAF50;
+    --success-text: #FFFFFF;
+    
+    --warning-color: #FF9800;
+    --warning-text: #212121;
+    
+    --danger-color: #F44336;
+    --danger-text: #FFFFFF;
+    
+    --info-color: #2196F3;
+    --info-text: #FFFFFF;
+    
+    /* ===== 폰트 시스템 (최적화) ===== */
+    --font-primary: 'Paperlogy', -apple-system, BlinkMacSystemFont, system-ui, 'Noto Sans KR', sans-serif;
+    --font-secondary: 'Paperlogy', 'Noto Sans KR', sans-serif;
+    --font-mono: 'D2Coding', 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+    
+    /* 폰트 크기 (반응형 clamp 적용) */
+    --font-xs: clamp(11px, 1.5vw, 12px);
+    --font-sm: clamp(13px, 1.75vw, 14px);
+    --font-md: clamp(15px, 2vw, 16px);
+    --font-lg: clamp(17px, 2.25vw, 18px);
+    --font-xl: clamp(19px, 2.5vw, 20px);
+    --font-2xl: clamp(22px, 3vw, 24px);
+    --font-3xl: clamp(28px, 3.75vw, 30px);
+    --font-4xl: clamp(34px, 4.5vw, 36px);
+    --font-5xl: clamp(44px, 6vw, 48px);
+    
+    /* 폰트 두께 (Variable Font 지원) */
+    --font-thin: 100;
+    --font-light: 300;
+    --font-regular: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --font-extrabold: 800;
+    --font-black: 900;
+    
+    /* Line Height */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+    
+    /* ===== Border Radius (UI 사양서 기준) ===== */
+    --radius-xs: 2px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-3xl: 24px;
+    --radius-full: 9999px;
+    
+    /* ===== 트랜지션 (Enhanced 3D) ===== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-3d: 400ms cubic-bezier(0.23, 1, 0.32, 1);
+    --transition-spring: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-bounce: 600ms cubic-bezier(0.68, -0.6, 0.32, 1.6);
+    
+    /* ===== 그림자 시스템 ===== */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.25);
+    --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.3);
+    
+    /* === 3D 그림자 (Enhanced) === */
+    --shadow-3d-button: 
+        0 20px 40px -12px rgba(0, 0, 0, 0.35),
+        0 10px 20px -8px rgba(0, 0, 0, 0.25),
+        0 4px 8px -4px rgba(0, 0, 0, 0.15),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+    
+    --shadow-3d-card:
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 35px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -8px rgba(0, 0, 0, 0.2),
+        inset 0 2px 8px rgba(255, 255, 255, 0.35),
+        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+    
+    --shadow-3d-modal:
+        0 40px 80px -20px rgba(0, 0, 0, 0.5),
+        0 25px 50px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        0 5px 15px -5px rgba(0, 0, 0, 0.2),
+        inset 0 3px 10px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+    
+    /* ===== 글래스모피즘 시스템 (Enhanced 3D) ===== */
+    /* 배경 투명도 */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-bg-light: rgba(255, 255, 255, 0.08);
+    --glass-bg-medium: rgba(255, 255, 255, 0.15);
+    --glass-bg-heavy: rgba(255, 255, 255, 0.25);
+    --glass-bg-solid: rgba(255, 255, 255, 0.95);
+    
+    /* 테두리 */
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-border-light: rgba(255, 255, 255, 0.15);
+    --glass-border-medium: rgba(255, 255, 255, 0.3);
+    --glass-border-heavy: rgba(255, 255, 255, 0.45);
+    
+    /* 블러 효과 */
+    --glass-blur: blur(20px) saturate(180%);
+    --glass-blur-sm: blur(10px) saturate(150%);
+    --glass-blur-md: blur(20px) saturate(180%);
+    --glass-blur-lg: blur(30px) saturate(200%);
+    --glass-blur-xl: blur(40px) saturate(180%);
+    
+    /* 글래스 그림자 */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.37);
+    --shadow-glass-sm: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --shadow-glass-lg: 0 12px 48px rgba(0, 0, 0, 0.4);
+    
+    /* 내부 광택 효과 */
+    --glass-inner-light: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    --glass-inner-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+    
+    /* ===== Spacing 시스템 (8px 기반) ===== */
+    --spacing-unit: 8px;
+    --spacing-xs: calc(var(--spacing-unit) * 0.5);   /* 4px */
+    --spacing-sm: calc(var(--spacing-unit) * 1);     /* 8px */
+    --spacing-md: calc(var(--spacing-unit) * 2);     /* 16px */
+    --spacing-lg: calc(var(--spacing-unit) * 3);     /* 24px */
+    --spacing-xl: calc(var(--spacing-unit) * 4);     /* 32px */
+    --spacing-2xl: calc(var(--spacing-unit) * 6);    /* 48px */
+    --spacing-3xl: calc(var(--spacing-unit) * 8);    /* 64px */
+    --spacing-4xl: calc(var(--spacing-unit) * 10);   /* 80px */
+    --spacing-5xl: calc(var(--spacing-unit) * 12);   /* 96px */
+    
+    /* ===== Z-Index 레이어링 ===== */
+    --z-base: 1;
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    --z-toast: 1080;
+    --z-notification: 1090;
+    --z-max: 9999;
+    
+    /* 별칭 (호환성) */
+    --z-header: var(--z-fixed);
+    --z-sidebar: var(--z-sticky);
+    
+    /* ===== 반응형 브레이크포인트 ===== */
+    --breakpoint-xs: 0px;
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+    
+    /* ===== 레이아웃 시스템 ===== */
+    --header-height: 96px;
+    --sidebar-width: 250px;
+    --sidebar-width-collapsed: 64px;
+    --sidebar-width-mobile: 0px;
+    --content-max-width: 1400px;
+    --content-padding: var(--spacing-xl);
+    --container-max-width: 1200px;
+    
+    /* KPI 그리드 설정 */
+    --kpi-min-width: 280px;
+    --card-min-width: 300px;
+    
+    /* 모달 크기 */
+    --modal-width: 600px;
+    --modal-min-height: 300px;
+    --modal-max-height: 600px;
+    --backdrop-opacity: 0.6;
+    
+    /* ===== 애니메이션 타이밍 ===== */
+    --animation-duration: 300ms;
+    --animation-fast: 200ms;
+    --animation-slow: 500ms;
+    --animation-very-slow: 1000ms;
+}
+
+/* ============================================
+   [NOTICE] 테마 색상 시스템 안내
+   ============================================ */
+/*
+ * 테마별 색상 정의는 07_theme_colors.css 파일에서 관리됩니다.
+ * 이 파일(00_root.css)은 테마 독립적인 기본 시스템 변수만 정의합니다.
+ * 
+ * 파일 구조:
+ * - 00_root.css: 기본 시스템 변수 + 07_theme_colors.css import
+ * - 01_variables.css: 동적 레이아웃 시스템
+ * - 07_theme_colors.css: 테마별 색상 정의 (COMPLETE RENEWAL)
+ */
+
+/* ============================================
+   [UTILITIES] 공통 유틸리티 클래스
+   ============================================ */
+
+/* 텍스트 그라데이션 */
+.text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: var(--font-bold);
+}
+
+/* 글래스 효과 기본 클래스 */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-glass);
+}
+
+.glass-light {
+    background: var(--glass-bg-light);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid var(--glass-border-light);
+}
+
+.glass-heavy {
+    background: var(--glass-bg-heavy);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
+    border: 1px solid var(--glass-border-heavy);
+}
+
+/* 3D 효과 클래스 */
+.effect-3d {
+    transform-style: preserve-3d;
+    transform: translateZ(0);
+    transition: transform var(--transition-3d);
+}
+
+.effect-3d:hover {
+    transform: translateY(-4px) translateZ(20px);
+}
+
+/* ============================================
+   [ANIMATIONS] 애니메이션 정의
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   [SCROLLBAR] 커스텀 스크롤바
+   ============================================ */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-rgb, 0, 0, 0), 0.3);
+    border-radius: var(--radius-full);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--primary-rgb, 0, 0, 0), 0.5);
+}
+
+/* Firefox 스크롤바 */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   [RESPONSIVE] 반응형 유틸리티
+   ============================================ */
+
+/* 모바일 숨김 */
+@media (max-width: 767px) {
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+/* 태블릿 숨김 */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .hide-tablet {
+        display: none !important;
+    }
+}
+
+/* 데스크톱 숨김 */
+@media (min-width: 1024px) {
+    .hide-desktop {
+        display: none !important;
+    }
+}
+
+/* ============================================
+   [ACCESSIBILITY] 접근성 유틸리티
+   ============================================ */
+
+/* 스크린 리더 전용 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* 포커스 시 표시 */
+.sr-only-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* 키보드 포커스 스타일 */
+:focus-visible {
+    outline: 2px solid var(--accent-color, #00E676);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   [PRINT] 인쇄 스타일
+   ============================================ */
+
+@media print {
+    * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    a, a:visited {
+        text-decoration: underline;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+    
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+}
+
+/* ============================================
+   [END OF FILE]
+   ============================================ */

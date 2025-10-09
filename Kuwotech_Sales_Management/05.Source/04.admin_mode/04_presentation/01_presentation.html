@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보고서 발표 - KUWOTECH 영업관리 시스템</title>
+
+    <!-- 공통 스타일 -->
+    <link rel="stylesheet" href="../../07.styles/09_fonts.css">
+    <link rel="stylesheet" href="../../07.styles/00_root.css">
+    <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/02_common.css">
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
+    <link rel="stylesheet" href="../../07.styles/04_components.css">
+</head>
+<body class="theme-admin viewport-3d" data-page-type="report-presentation" data-mode="admin">
+
+<div class="presentation-container">
+    <!-- 헤더 (대시보드와 동일한 구조) -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">보고서 발표</h1>
+                <p class="subtitle text-on-layer-1">담당자별 실적 현황을 확인하세요</p>
+            </div>
+            <button id="btnRefresh" class="btn-refresh glass-button" title="데이터 새로고침">
+                🔄 새로고침
+            </button>
+        </div>
+    </header>
+
+    <!-- 필터 영역 -->
+    <section class="filter-area glass-card glass-3d-element">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label">기간</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="period" value="weekly" checked>
+                        <span>금주</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="period" value="monthly">
+                        <span>월간</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="period" value="yearly">
+                        <span>년간</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-label" for="departmentFilter">담당부서</label>
+                <select id="departmentFilter" class="glass-input">
+                    <option value="">전체</option>
+                    <!-- 동적으로 로드됨 -->
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label" for="employeeFilter">내부담당자</label>
+                <select id="employeeFilter" class="glass-input">
+                    <option value="">전체</option>
+                    <!-- 동적으로 로드됨 -->
+                </select>
+            </div>
+
+            <button id="btnApplyFilter" class="btn-primary glass-button">
+                📊 조회하기
+            </button>
+        </div>
+    </section>
+
+    <!-- 기간 표시 -->
+    <section class="period-display glass-card">
+        <p class="period-text">
+            📅 기간: <span id="periodRange">-</span>
+        </p>
+    </section>
+
+    <!-- 보고서 테이블 -->
+    <section class="report-table-section glass-card glass-3d-element">
+        <div class="table-wrapper">
+            <table class="report-table" id="reportTable">
+                <thead>
+                    <tr>
+                        <th>보고서<br>제출일</th>
+                        <th>담당<br>부서</th>
+                        <th>내부<br>담당자</th>
+                        <th>거래처명</th>
+                        <th>대표이사<br>(치과의사)</th>
+                        <th>목표<br>수금금액</th>
+                        <th>실제<br>수금금액</th>
+                        <th>달성률</th>
+                        <th>목표<br>매출금액</th>
+                        <th>실제<br>매출금액</th>
+                        <th>달성률</th>
+                        <th>영업활동<br>(특이사항)</th>
+                        <th>이행<br>여부</th>
+                        <th>누적<br>매출액</th>
+                        <th>누적<br>수금액</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    <!-- 동적으로 생성 -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 요약 영역 -->
+    <section class="summary-area glass-card glass-3d-element">
+        <h3>💰 전체 총합</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="summary-label">담당자:</span>
+                <span class="summary-value" id="totalEmployees">0명</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">보고서:</span>
+                <span class="summary-value" id="totalReports">0건</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">목표수금:</span>
+                <span class="summary-value" id="totalTargetCollection">0원</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">실제수금:</span>
+                <span class="summary-value" id="totalActualCollection">0원</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">수금달성률:</span>
+                <span class="summary-value" id="collectionRate">0%</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">목표매출:</span>
+                <span class="summary-value" id="totalTargetSales">0원</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">실제매출:</span>
+                <span class="summary-value" id="totalActualSales">0원</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">매출달성률:</span>
+                <span class="summary-value" id="salesRate">0%</span>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- 인라인 스타일 -->
+<style>
+    /* CRITICAL: 헤더 고정을 위한 html/body 설정 */
+    html {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: 100% !important;
+    }
+
+    /* 메인 컨테이너 */
+    .presentation-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+    }
+
+    /* 헤더 (대시보드와 동일) */
+    .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(2, 16, 36, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+    }
+
+    .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+    }
+
+    .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-refresh:active {
+        transform: translateY(0);
+    }
+
+    /* 필터 영역 */
+    .filter-area {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .filter-row {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .filter-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .filter-label {
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-sm);
+        color: var(--text-primary);
+    }
+
+    .radio-group {
+        display: flex;
+        gap: var(--spacing-lg);
+    }
+
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        cursor: pointer;
+        font-size: var(--font-md);
+    }
+
+    .radio-label input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .glass-input {
+        padding: var(--spacing-md);
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        font-size: var(--font-md);
+    }
+
+    .glass-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-primary {
+        padding: var(--spacing-md) var(--spacing-2xl);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.5);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    /* 기간 표시 */
+    .period-display {
+        padding: var(--spacing-md) var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        text-align: center;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .period-text {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        color: var(--text-primary);
+    }
+
+    .period-text span {
+        color: var(--color-primary);
+        font-weight: var(--font-weight-bold);
+    }
+
+    /* 테이블 섹션 */
+    .report-table-section {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        overflow: hidden;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: calc(100vh - 450px);
+    }
+
+    /* 테이블 기본 스타일 */
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--font-sm);
+        background: var(--bg-primary);
+    }
+
+    .report-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bg-layer-1);
+    }
+
+    .report-table th {
+        padding: var(--spacing-md);
+        text-align: center;
+        font-weight: var(--font-weight-bold);
+        color: var(--text-on-layer-1);
+        border: 1px solid var(--border-primary);
+        white-space: nowrap;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    .report-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .report-table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.05);
+    }
+
+    .report-table td {
+        padding: var(--spacing-md);
+        text-align: center;
+        border: 1px solid var(--border-primary);
+        color: var(--text-primary);
+    }
+
+    /* 컬럼 너비 설정 */
+    /* 그룹 A: 담당부서, 내부담당자, 거래처명, 대표이사 - 동일 너비 */
+    .report-table th:nth-child(2),  /* 담당부서 */
+    .report-table th:nth-child(3),  /* 내부담당자 */
+    .report-table th:nth-child(4),  /* 거래처명 */
+    .report-table th:nth-child(5),  /* 대표이사 */
+    .report-table td:nth-child(2),
+    .report-table td:nth-child(3),
+    .report-table td:nth-child(4),
+    .report-table td:nth-child(5) {
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+    }
+
+    /* 그룹 B: 수금달성율, 매출달성율, 이행여부 - 동일 너비 (더 좁음) */
+    .report-table th:nth-child(8),  /* 수금달성율 */
+    .report-table th:nth-child(11), /* 매출달성율 */
+    .report-table th:nth-child(13), /* 이행여부 */
+    .report-table td:nth-child(8),
+    .report-table td:nth-child(11),
+    .report-table td:nth-child(13) {
+        width: 80px;
+        min-width: 80px;
+        max-width: 80px;
+    }
+
+    /* 그룹 C: 나머지 컬럼들 - 동일 너비 */
+    .report-table th:nth-child(1),  /* 보고일 */
+    .report-table th:nth-child(6),  /* 목표수금액 */
+    .report-table th:nth-child(7),  /* 실제수금액 */
+    .report-table th:nth-child(9),  /* 목표매출액 */
+    .report-table th:nth-child(10), /* 실제매출액 */
+    .report-table th:nth-child(12), /* 영업활동 */
+    .report-table th:nth-child(14), /* 누적매출 */
+    .report-table th:nth-child(15), /* 누적수금 */
+    .report-table td:nth-child(1),
+    .report-table td:nth-child(6),
+    .report-table td:nth-child(7),
+    .report-table td:nth-child(9),
+    .report-table td:nth-child(10),
+    .report-table td:nth-child(12),
+    .report-table td:nth-child(14),
+    .report-table td:nth-child(15) {
+        width: 110px;
+        min-width: 110px;
+        max-width: 110px;
+    }
+
+    /* 그룹 헤더 */
+    .group-header {
+        background: rgba(59, 130, 246, 0.1);
+        cursor: pointer;
+    }
+
+    .group-header:hover {
+        background: rgba(59, 130, 246, 0.15);
+    }
+
+    .group-header-cell {
+        padding: var(--spacing-lg) var(--spacing-md) !important;
+    }
+
+    .group-header-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .toggle-btn {
+        background: none;
+        border: none;
+        font-size: var(--font-lg);
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-primary);
+        transition: transform 0.3s ease;
+    }
+
+    .group-header.expanded .toggle-btn {
+        transform: rotate(90deg);
+    }
+
+    .employee-info {
+        flex: 1;
+        text-align: left;
+    }
+
+    .employee-info strong {
+        font-size: var(--font-md);
+        color: var(--color-primary);
+    }
+
+    .group-summary {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+    }
+
+    /* 금액 표시 */
+    .amount {
+        text-align: right !important;
+        font-family: var(--font-primary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    /* 달성률 표시 */
+    .rate {
+        font-weight: var(--font-weight-bold);
+    }
+
+    .rate.excellent {
+        color: #10b981;
+    }
+
+    .rate.good {
+        color: #3b82f6;
+    }
+
+    .rate.warning {
+        color: #f59e0b;
+    }
+
+    .rate.poor {
+        color: #ef4444;
+    }
+
+    /* 영업활동 */
+    .activity {
+        text-align: left !important;
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 이행여부 배지 */
+    .badge {
+        display: inline-block;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-xs);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .badge-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .badge-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .badge-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    /* 소계 행 */
+    .subtotal-row {
+        background: rgba(59, 130, 246, 0.08);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .subtotal-label {
+        text-align: left !important;
+        padding-left: var(--spacing-2xl) !important;
+    }
+
+    /* 요약 영역 */
+    .summary-area {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .summary-area h3 {
+        font-size: var(--font-xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md);
+        background: rgba(59, 130, 246, 0.05);
+        border-radius: var(--radius-md);
+        border-left: 3px solid var(--color-primary);
+    }
+
+    .summary-label {
+        font-size: var(--font-sm);
+        font-weight: var(--font-weight-medium);
+        color: var(--text-secondary);
+    }
+
+    .summary-value {
+        font-size: var(--font-lg);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+    }
+
+    /* 빈 상태 */
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-3xl);
+        color: var(--text-secondary);
+    }
+
+    /* 반응형 */
+    @media (max-width: 1024px) {
+        .filter-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+
+        .btn-primary {
+            width: 100%;
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .presentation-container {
+            padding: var(--spacing-md);
+        }
+
+        .header-text h1 {
+            font-size: var(--font-xl);
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .report-table {
+            min-width: 1200px;
+        }
+    }
+
+    /* 모달 스타일 */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 9999;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: #2a3441;
+        border-radius: 16px;
+        padding: var(--spacing-2xl);
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease-out;
+        position: relative;
+        color: #ffffff;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xl);
+        padding-bottom: var(--spacing-md);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        color: #ffffff;
+        font-size: var(--font-xl);
+    }
+
+    .modal-close {
+        background: transparent;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #adb5bd;
+        padding: 4px 8px;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+        color: #ffffff;
+    }
+
+    .modal-body {
+        color: #ffffff;
+    }
+
+    .detail-section {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .detail-section h3 {
+        color: #4a9eff;
+        font-size: var(--font-lg);
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-label {
+        font-size: var(--font-sm);
+        color: #adb5bd;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        font-size: var(--font-md);
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .detail-value.amount {
+        color: #ffd93d;
+        font-family: var(--font-primary);
+    }
+
+    .detail-value.rate {
+        font-weight: 700;
+    }
+
+    .detail-value.excellent {
+        color: #10b981;
+    }
+
+    .detail-value.good {
+        color: #3b82f6;
+    }
+
+    .detail-value.warning {
+        color: #f59e0b;
+    }
+
+    .detail-value.poor {
+        color: #ef4444;
+    }
+
+    .detail-full {
+        grid-column: 1 / -1;
+    }
+
+    .activity-content {
+        background: rgba(0, 0, 0, 0.3);
+        padding: var(--spacing-md);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        color: #ffffff;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- 보고서 상세 모달 -->
+<div id="reportModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>보고서 상세</h2>
+            <button class="modal-close" onclick="window.closeReportModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- 동적으로 채워짐 -->
+        </div>
+    </div>
+</div>
+
+<script type="module" src="./02_presentation.js"></script>
+</body>
+</html>

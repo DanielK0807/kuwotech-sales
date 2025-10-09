@@ -1,0 +1,542 @@
+/* ============================================
+   글래스모피즘 디자인 시스템 - COMPLETE RENEWAL 2025
+   파일: 07.styles/03_glassmorphism.css
+   업데이트: 2025-01-27
+   참조: 14_최신_색상_규칙_및_글래스모피즘_가이드.md
+   
+   ⚠️ 기존 시스템 완전 제거 후 재작성
+   ✅ 새로운 3D Enhanced 글래스모피즘 적용
+   🎨 가이드 문서 4.1~4.6 완벽 구현
+============================================ */
+
+/* ============================================
+   [RESET: 기존 글래스 효과 완전 초기화]
+   ⚠️ CRITICAL: position: sticky 작동을 위해 전역 리셋 제거
+============================================ */
+/* REMOVED: 전역 backdrop-filter 리셋 (sticky 헤더 방해)
+* {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+*/
+
+/* ============================================
+   [NEW FOUNDATION: 3D 뷰포트 설정]
+   ⚠️ overflow 속성 제거: position: sticky 작동 방해
+============================================ */
+.viewport-3d {
+    perspective: 1500px;
+    perspective-origin: 50% 50%;
+    transform-style: preserve-3d;
+    /* overflow 속성 제거 - sticky를 위해 필수 */
+}
+
+/* ============================================
+   [NEW CORE: 글래스 기본 클래스 - 가이드 4.1 기준]
+============================================ */
+
+/* 🔷 기본 글래스 패널 (Panel) */
+.glass-panel {
+    /* 배경: 가이드 4.1 - Panel */
+    background: rgba(255, 255, 255, 0.18);
+    
+    /* 블러: 25px (Panel 스펙) */
+    backdrop-filter: blur(25px) saturate(170%);
+    -webkit-backdrop-filter: blur(25px) saturate(170%);
+    
+    /* 테두리: 2px solid */
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    
+    /* 모서리: xl */
+    border-radius: 16px;
+    
+    /* 패딩: 28px */
+    padding: 28px;
+    
+    /* 3D 효과: translateZ(30px) */
+    transform: translateZ(30px);
+    transform-style: preserve-3d;
+    
+    /* Elevated Shadow */
+    box-shadow: 
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 35px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -8px rgba(0, 0, 0, 0.2),
+        inset 0 2px 8px rgba(255, 255, 255, 0.35),
+        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+    
+    /* 트랜지션 */
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* 🔷 글래스 카드 (Card) - 가이드 4.1 */
+.glass-card {
+    /* 배경: 그라데이션 */
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.3),
+        rgba(255, 255, 255, 0.15)
+    );
+    
+    /* 블러: 30px (Card 스펙) */
+    backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
+    -webkit-backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
+    
+    /* 테두리: 2px */
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    
+    /* 모서리: 20px */
+    border-radius: 20px;
+    
+    /* 패딩: 28px */
+    padding: 28px;
+    
+    /* 3D 효과: 40px + 회전 */
+    transform: perspective(1000px) rotateX(1deg) translateZ(40px);
+    transform-style: preserve-3d;
+    
+    /* 3D Shadow */
+    box-shadow: 
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 35px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -8px rgba(0, 0, 0, 0.2),
+        inset 0 2px 8px rgba(255, 255, 255, 0.35),
+        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+    
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover 효과 - 가이드 4.3 */
+.glass-card:hover {
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.35),
+        rgba(255, 255, 255, 0.2)
+    );
+    transform: translateY(-8px) translateZ(50px) scale(1.03);
+    border-color: rgba(255, 255, 255, 0.5);
+    
+    /* Elevated 3D Shadow */
+    box-shadow: 
+        0 40px 80px -20px rgba(0, 0, 0, 0.5),
+        0 25px 50px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        0 5px 15px -5px rgba(0, 0, 0, 0.2),
+        inset 0 3px 10px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 🔷 글래스 버튼 (Button) - 가이드 4.1 & 4.5.1 */
+.glass-button {
+    /* Primary 버튼 스펙 */
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.25),
+        rgba(255, 255, 255, 0.15)
+    );
+    
+    /* 블러: 15px (Button 스펙) */
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+    
+    /* 테두리: 2px */
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    
+    /* 모서리: 12px */
+    border-radius: 12px;
+    
+    /* 패딩: 14px 28px */
+    padding: 14px 28px;
+    
+    /* 폰트 */
+    font-size: 15px;
+    font-weight: 600;
+    
+    /* 3D 효과: 20px */
+    transform: translateZ(20px);
+    transform-style: preserve-3d;
+    
+    /* Multi-layer Shadow */
+    box-shadow: 
+        0 20px 40px -12px rgba(0, 0, 0, 0.35),
+        0 10px 20px -8px rgba(0, 0, 0, 0.25),
+        0 4px 8px -4px rgba(0, 0, 0, 0.15),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+    
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Button Hover - 가이드 4.3 */
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-4px) translateZ(25px) rotateX(5deg);
+    border-color: rgba(255, 255, 255, 0.5);
+    
+    box-shadow: 
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        0 8px 16px -8px rgba(0, 0, 0, 0.2),
+        inset 0 2px 8px rgba(255, 255, 255, 0.4),
+        inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.glass-button:active {
+    transform: translateY(-2px) translateZ(10px) scale(0.98);
+}
+
+/* 🔷 글래스 입력 필드 (Input) - 가이드 4.1 & 4.5.2 */
+.glass-input {
+    /* 배경: 그라데이션 */
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.15),
+        rgba(255, 255, 255, 0.08)
+    );
+    
+    /* 블러: 12px (Input 스펙) */
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    
+    /* 테두리: 2px */
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    
+    /* 모서리: 10px */
+    border-radius: 10px;
+    
+    /* 패딩: 14px 18px */
+    padding: 14px 18px;
+    
+    /* 폰트: 15px */
+    font-size: 15px;
+    
+    /* 3D 효과: 10px */
+    transform: translateZ(10px);
+    transform-style: preserve-3d;
+    
+    /* Depth Shadow */
+    box-shadow: 
+        0 8px 24px -8px rgba(0, 0, 0, 0.3),
+        0 4px 12px -4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    
+    width: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Input Focus - 가이드 4.5.2 */
+.glass-input:focus {
+    outline: none;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.12)
+    );
+    border-color: var(--primary-color, #4A9EFF);
+    transform: translateZ(15px) scale(1.02);
+    
+    /* Multi-layer glow */
+    box-shadow: 
+        0 0 0 3px rgba(74, 158, 255, 0.3),
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        0 4px 12px -4px rgba(0, 0, 0, 0.15),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+.glass-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* 🔷 글래스 드롭다운 (Dropdown) - 가이드 4.1 */
+.glass-dropdown {
+    /* 배경: rgba(255,255,255,0.2) */
+    background: rgba(255, 255, 255, 0.2);
+    
+    /* 블러: 18px (Dropdown 스펙) */
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    
+    /* 테두리: 2px */
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    
+    /* 모서리 */
+    border-radius: 8px;
+    
+    /* 3D 효과: 25px */
+    transform: translateZ(25px);
+    
+    /* Layered Shadow */
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.35),
+        0 12px 25px -8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+}
+
+/* 🔷 글래스 모달 (Modal) - 가이드 4.1 */
+.glass-modal {
+    /* 배경: rgba(255,255,255,0.35) */
+    background: rgba(255, 255, 255, 0.35);
+    
+    /* 블러: 40px (Modal 스펙) */
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    
+    /* 테두리: 3px */
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    
+    /* 모서리 */
+    border-radius: 16px;
+    
+    /* 3D 효과: 60px */
+    transform: translateZ(60px);
+    
+    /* Deep Shadow */
+    box-shadow: 
+        0 40px 80px -20px rgba(0, 0, 0, 0.5),
+        0 25px 50px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        0 5px 15px -5px rgba(0, 0, 0, 0.2),
+        inset 0 3px 10px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   [NEW: 고급 글래스모피즘 효과 - 가이드 4.6]
+============================================ */
+
+/* 🔷 Frosted Glass (서리낀 유리) */
+.glass-frosted {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.35),
+        rgba(255, 255, 255, 0.15)
+    );
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transform: translateZ(60px);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.4),
+        inset 0 2px 10px rgba(255, 255, 255, 0.4),
+        inset 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔷 Crystal Glass (크리스탈 유리) */
+.glass-crystal {
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.4),
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0.3)
+    );
+    backdrop-filter: blur(25px) brightness(1.1) contrast(1.1);
+    -webkit-backdrop-filter: blur(25px) brightness(1.1) contrast(1.1);
+    border: 2.5px solid rgba(255, 255, 255, 0.6);
+    transform: translateZ(50px);
+}
+
+/* 🔷 Holographic Glass (홀로그래픽 유리) */
+@keyframes holographic {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.glass-holographic {
+    background: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.3),
+        rgba(255, 200, 255, 0.2),
+        rgba(200, 255, 255, 0.2),
+        rgba(255, 255, 200, 0.2)
+    );
+    background-size: 400% 400%;
+    animation: holographic 10s ease infinite;
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transform: translateZ(60px) rotateY(-2deg);
+}
+
+/* 🔷 Layered Glassmorphism (계층형) */
+.glass-layered {
+    position: relative;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.25),
+        rgba(255, 255, 255, 0.1)
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 16px;
+    transform: translateZ(40px);
+}
+
+.glass-layered::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.4),
+        rgba(255, 255, 255, 0.1)
+    );
+    border-radius: inherit;
+    z-index: -1;
+    backdrop-filter: blur(40px);
+}
+
+.glass-layered::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.2),
+        rgba(255, 255, 255, 0.05)
+    );
+    border-radius: inherit;
+    z-index: -2;
+    backdrop-filter: blur(20px);
+    opacity: 0.7;
+}
+
+/* 🔷 Shimmer Effect (반짝임) */
+@keyframes glass-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.glass-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 60%
+    );
+    animation: glass-shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* ============================================
+   [NEW: KPI 카드 특수 스타일 - 가이드 4.5.3]
+============================================ */
+.kpi-card {
+    background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.35),
+        rgba(255, 255, 255, 0.15)
+    );
+    backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
+    -webkit-backdrop-filter: blur(30px) saturate(200%) contrast(1.2);
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-radius: 20px;
+    padding: 28px;
+    
+    /* 3D 회전 효과 */
+    transform: translateZ(50px) rotateX(2deg) rotateY(-2deg);
+    transform-style: preserve-3d;
+    
+    /* 극적인 3D Shadow */
+    box-shadow: 
+        0 40px 80px -20px rgba(0, 0, 0, 0.4),
+        0 20px 40px -10px rgba(0, 0, 0, 0.3),
+        0 10px 20px -5px rgba(0, 0, 0, 0.2),
+        inset 0 2px 10px rgba(255, 255, 255, 0.35),
+        inset 0 -2px 10px rgba(0, 0, 0, 0.1);
+    
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.kpi-card:hover {
+    transform: translateY(-8px) translateZ(70px) rotateX(3deg) rotateY(-3deg) scale(1.02);
+    box-shadow: 
+        0 50px 100px -25px rgba(0, 0, 0, 0.5),
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -8px rgba(0, 0, 0, 0.3),
+        inset 0 3px 12px rgba(255, 255, 255, 0.4),
+        inset 0 -3px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   [NEW: 3D Transform 요소]
+============================================ */
+.glass-3d-element {
+    transform: 
+        rotateX(2deg)
+        rotateY(-3deg)
+        translateZ(30px)
+        scale3d(1, 1, 1);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+/* ============================================
+   [NEW: 반응형 조정]
+============================================ */
+@media (max-width: 1024px) {
+    .glass-panel { backdrop-filter: blur(15px); padding: 20px; }
+    .glass-card { backdrop-filter: blur(20px); padding: 20px; }
+    .glass-modal { backdrop-filter: blur(25px); }
+}
+
+@media (max-width: 640px) {
+    .glass-panel { backdrop-filter: blur(10px); padding: 16px; }
+    .glass-card { backdrop-filter: blur(15px); padding: 16px; }
+    .glass-button { padding: 10px 20px; font-size: 14px; }
+    .glass-input { padding: 12px 16px; font-size: 14px; }
+}
+
+/* ============================================
+   [NEW: GPU 최적화]
+============================================ */
+.glass-panel,
+.glass-card,
+.glass-button,
+.glass-input,
+.glass-modal,
+.kpi-card {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* ============================================
+   [NEW: Fallback - backdrop-filter 미지원 브라우저]
+============================================ */
+@supports not (backdrop-filter: blur(20px)) {
+    .glass-panel,
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.15),
+            inset 0 1px 3px rgba(255, 255, 255, 1);
+    }
+    
+    .theme-admin .glass-panel,
+    .theme-admin .glass-card {
+        background: linear-gradient(135deg, 
+            rgba(5, 38, 89, 0.95),
+            rgba(90, 127, 160, 0.9));
+    }
+    
+    .theme-sales .glass-panel,
+    .theme-sales .glass-card {
+        background: linear-gradient(135deg,
+            rgba(55, 85, 52, 0.95),
+            rgba(107, 144, 113, 0.9));
+    }
+}

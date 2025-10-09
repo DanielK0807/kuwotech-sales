@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KUWOTECH 영업관리 시스템 - 로그인</title>
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" href="../../02.Fonts_Logos/logo.png" />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- 스타일시트 -->
+    <link rel="stylesheet" href="../07.styles/00_root.css" />
+    <link rel="stylesheet" href="../07.styles/01_variables.css" />
+    <link rel="stylesheet" href="../07.styles/09_fonts.css" />
+    <link rel="stylesheet" href="../07.styles/02_common.css" />
+    <link rel="stylesheet" href="../07.styles/03_glassmorphism.css" />
+    <link rel="stylesheet" href="../07.styles/04_components.css" />
+
+    <style>
+      /* ============================================
+           로그인 페이지 스타일
+           ============================================ */
+
+      /* 배경 */
+      body.login-page {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* 배경 애니메이션 */
+      body.login-page::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+          radial-gradient(circle at 20% 80%, rgba(255, 193, 7, 0.15) 0%, transparent 50%),
+          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        animation: backgroundMove 20s ease infinite;
+        pointer-events: none;
+      }
+
+      @keyframes backgroundMove {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-20px, -20px); }
+      }
+
+      /* 로그인 컨테이너 */
+      .login-container {
+        width: 100%;
+        max-width: 600px; /* 480px에서 600px로 확대 */
+        padding: var(--spacing-xl);
+        position: relative;
+        z-index: 1;
+        animation: fadeInUp 0.6s ease;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* 로그인 카드 - 글래스모피즘 효과 강화 */
+      .login-card {
+        /* 글래스모피즘 클래스 사용 */
+        background: rgba(255, 255, 255, 0.15); /* 투명도 낮춰서 글래스 효과 강화 */
+        backdrop-filter: blur(30px) saturate(200%);
+        -webkit-backdrop-filter: blur(30px) saturate(200%);
+        border-radius: var(--border-radius-xl);
+        padding: var(--spacing-3xl);
+        box-shadow: 
+          0 30px 60px rgba(0, 0, 0, 0.3),
+          0 15px 35px rgba(0, 0, 0, 0.25),
+          inset 0 2px 8px rgba(255, 255, 255, 0.35),
+          inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        transform: translateZ(40px);
+        transform-style: preserve-3d;
+      }
+
+      /* 헤더 */
+      .login-header {
+        text-align: center;
+        margin-bottom: var(--spacing-2xl);
+      }
+
+      /* 로고 컨테이너 */
+      .logo-container {
+        margin-bottom: var(--spacing-lg);
+      }
+
+      .login-title {
+        font-size: var(--font-xl);
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.95);
+        margin-bottom: var(--spacing-md);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .login-subtitle {
+        font-size: var(--font-md);
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: var(--spacing-md);
+      }
+
+      .server-info {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--border-radius-md);
+        font-size: var(--font-xs);
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .server-info div {
+        margin: 2px 0;
+      }
+
+      .server-info i {
+        margin-right: var(--spacing-xs);
+        color: rgba(255, 193, 7, 0.9);
+      }
+
+      /* 구분선 */
+      .divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.2);
+        margin: var(--spacing-xl) 0;
+      }
+
+      /* 폼 그룹 */
+      .form-group {
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .form-label {
+        display: block;
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.95);
+        margin-bottom: var(--spacing-sm);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .form-label .required {
+        color: #ff9800;
+        margin-left: 4px;
+      }
+
+      /* 라디오 버튼 그룹 */
+      .radio-group {
+        display: flex;
+        gap: var(--spacing-xl);
+        padding: var(--spacing-md);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius-md);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .radio-option {
+        flex: 1;
+        position: relative;
+      }
+
+      .radio-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .radio-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-md);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .radio-label i {
+        margin-right: var(--spacing-sm);
+        font-size: var(--font-lg);
+      }
+
+      .radio-option input[type="radio"]:checked + .radio-label {
+        background: rgba(255, 193, 7, 0.3);
+        border-color: rgba(255, 193, 7, 0.8);
+        color: white;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+        transform: translateY(-2px);
+      }
+
+      /* 셀렉트 박스 */
+      .form-select {
+        width: 100%;
+        padding: var(--spacing-md);
+        font-size: var(--font-md);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: var(--border-radius-md);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+      }
+
+      .form-select option {
+        background: #1a237e;
+        color: white;
+      }
+
+      .form-select:focus {
+        outline: none;
+        border-color: rgba(255, 193, 7, 0.8);
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+      }
+
+      .form-select:disabled {
+        background-color: rgba(255, 255, 255, 0.05);
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+
+      /* 입력 필드 */
+      .form-input {
+        width: 100%;
+        padding: var(--spacing-md);
+        font-size: var(--font-md);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: var(--border-radius-md);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        color: white;
+        transition: all 0.3s ease;
+      }
+
+      .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: rgba(255, 193, 7, 0.8);
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+      }
+
+      /* 로그인 버튼 */
+      .login-button {
+        width: 100%;
+        padding: var(--spacing-lg);
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: #1a237e;
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 160, 0, 0.95));
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 193, 7, 0.5);
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: var(--spacing-xl);
+        box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+      }
+
+      .login-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 1), rgba(255, 160, 0, 1));
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(255, 193, 7, 0.5);
+      }
+
+      .login-button:disabled {
+        background: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.5);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* 안내 메시지 */
+      .info-message {
+        margin-top: var(--spacing-xl);
+        padding: var(--spacing-md);
+        background: rgba(33, 150, 243, 0.15);
+        backdrop-filter: blur(10px);
+        border-left: 4px solid rgba(33, 150, 243, 0.8);
+        border-radius: var(--border-radius-sm);
+        font-size: var(--font-sm);
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(33, 150, 243, 0.3);
+      }
+
+      .info-message i {
+        margin-right: var(--spacing-sm);
+        color: rgba(33, 150, 243, 0.9);
+      }
+
+      /* 반응형 */
+      @media (max-width: 640px) {
+        .login-container {
+          padding: var(--spacing-md);
+          max-width: 100%;
+        }
+
+        .login-card {
+          padding: var(--spacing-xl);
+        }
+
+        .radio-group {
+          flex-direction: column;
+          gap: var(--spacing-md);
+        }
+      }
+    </style>
+  </head>
+  <body class="login-page">
+    <div class="login-container">
+      <div class="login-card glass-card">
+        <!-- 헤더 -->
+        <div class="login-header">
+          <!-- 로고 -->
+          <div class="logo-container" id="logoContainer"></div>
+          
+          <!-- 제목 -->
+          <h1 class="login-title">영업관리 시스템 로그인</h1>
+          <p class="login-subtitle">환영합니다</p>
+          
+          <!-- 서버 정보 -->
+          <div class="server-info">
+            <div><i class="fas fa-database"></i> 데이터 출처: Railway MySQL</div>
+            <div><i class="fas fa-server"></i> 서버: kuwotech-sales-production</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 로그인 폼 -->
+        <form id="loginForm">
+          <!-- 역할 선택 -->
+          <div class="form-group">
+            <label class="form-label">
+              역할 선택
+              <span class="required">*</span>
+            </label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="role-sales" name="role" value="영업담당" />
+                <label class="radio-label" for="role-sales">
+                  <i class="fas fa-user-tie"></i>
+                  영업담당
+                </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="role-admin" name="role" value="관리자" />
+                <label class="radio-label" for="role-admin">
+                  <i class="fas fa-user-shield"></i>
+                  관리자
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 직원 선택 -->
+          <div class="form-group">
+            <label class="form-label" for="employee">
+              직원 선택
+              <span class="required">*</span>
+            </label>
+            <select id="employee" class="form-select" disabled required>
+              <option value="">먼저 역할을 선택해주세요</option>
+            </select>
+          </div>
+
+          <!-- 비밀번호 -->
+          <div class="form-group">
+            <label class="form-label" for="password">
+              비밀번호
+              <span class="required">*</span>
+            </label>
+            <input
+              type="password"
+              id="password"
+              class="form-input"
+              placeholder="비밀번호를 입력하세요"
+              required
+            />
+          </div>
+
+          <!-- 로그인 버튼 -->
+          <button type="submit" class="login-button" id="loginButton" disabled>
+            로그인
+          </button>
+
+          <!-- 안내 메시지 -->
+          <div class="info-message">
+            <i class="fas fa-info-circle"></i>
+            <strong>초기 비밀번호: 1234</strong><br />
+            로그인 후 비밀번호를 변경해주세요
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 토스트 메시지 컨테이너 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JavaScript 모듈 -->
+    <script type="module">
+      // 로고 및 폰트 매니저 임포트
+      import { insertLogo, initLogoAndFont } from '../01.common/21_logo_font_manager.js';
+      import glassmorphismAuto from '../01.common/18_glassmorphism_auto_apply.js';
+      
+      // 로고와 폰트 초기화
+      document.addEventListener('DOMContentLoaded', async () => {
+        // 폰트 로드 및 body에 적용
+        await initLogoAndFont({
+          loadFonts: true,
+          applyToBody: true
+        });
+        
+        // 로고 삽입 (높이 60px, 원본 색상)
+        insertLogo('#logoContainer', {
+          height: 60,
+          white: false,  // 원본 로고 색상 사용
+          className: 'login-logo'
+        });
+        
+        // 글래스모피즘 효과 적용
+        glassmorphismAuto.apply();
+      });
+    </script>
+    <script type="module" src="../01.common/14_toast.js"></script>
+    <script type="module" src="./02_login.js"></script>
+  </body>
+</html>

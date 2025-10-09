@@ -1,0 +1,660 @@
+<div class="employee-management-container">
+    <!-- 페이지 헤더 -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">직원 관리</h1>
+                <p class="subtitle text-on-layer-1">직원 정보를 관리하고 권한을 설정합니다</p>
+            </div>
+            <button id="btnRefresh" class="btn-refresh glass-button" title="데이터 새로고침">
+                🔄 새로고침
+            </button>
+        </div>
+    </header>
+
+    <!-- 로딩 상태 -->
+    <div id="employeeLoadingState" class="loading-state" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>직원 데이터를 불러오는 중...</p>
+    </div>
+
+    <!-- 데이터 없음 상태 -->
+    <div id="employeeEmptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">👥</div>
+        <p>표시할 직원 데이터가 없습니다.</p>
+        <button class="btn-primary" onclick="location.reload()">새로고침</button>
+    </div>
+
+    <!-- 1️⃣ 직원 통계 -->
+    <div class="kpi-section">
+        <h2 class="section-title">📊 직원 통계</h2>
+        <div class="stats-grid">
+            <div class="stat-card glass-card glass-3d-element">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalEmployees">0</div>
+                    <div class="stat-label">전체 직원</div>
+                </div>
+            </div>
+            <div class="stat-card glass-card glass-3d-element">
+                <div class="stat-icon">💼</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="salesEmployees">0</div>
+                    <div class="stat-label">영업 직원</div>
+                </div>
+            </div>
+            <div class="stat-card glass-card glass-3d-element">
+                <div class="stat-icon">👨‍💼</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="adminEmployees">0</div>
+                    <div class="stat-label">관리자</div>
+                </div>
+            </div>
+            <div class="stat-card glass-card glass-3d-element">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="activeEmployees">0</div>
+                    <div class="stat-label">활성 계정</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2️⃣ 직원 관리 도구 -->
+    <div class="kpi-section">
+        <h2 class="section-title">🛠️ 관리 도구</h2>
+        <section class="toolbar-section glass-card glass-3d-element">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="glass-button primary" onclick="showAddEmployee()">
+                        <span>➕ 직원 추가</span>
+                    </button>
+                    <button class="glass-button" onclick="importEmployees()">
+                        <span>📤 일괄 등록</span>
+                    </button>
+                    <button id="btnExport" class="glass-button">
+                        <span>📥 내보내기</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 3️⃣ 직원 목록 -->
+    <div class="kpi-section">
+        <h2 class="section-title">📋 직원 목록</h2>
+        <section class="table-section glass-card glass-3d-element">
+            <div class="table-wrapper">
+                <table class="glass-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            </th>
+                            <th style="width: 80px;">ID</th>
+                            <th style="width: 100px;">이름</th>
+                            <th style="width: 120px;">부서</th>
+                            <th style="width: 120px;">입사일</th>
+                            <th style="width: 130px;">전화번호</th>
+                            <th style="width: 200px;">이메일</th>
+                            <th style="width: 100px;">담당거래처</th>
+                            <th style="width: 80px;">상태</th>
+                            <th style="width: 120px;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        <!-- 동적 생성 -->
+                    </tbody>
+                </table>
+
+                <!-- 페이지네이션 -->
+                <div class="pagination">
+                    <button class="glass-button" onclick="previousPage()">이전</button>
+                    <span id="pageInfo">1 / 1</span>
+                    <button class="glass-button" onclick="nextPage()">다음</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 선택 작업 -->
+        <section class="bulk-actions glass-card glass-3d-element" style="display: none;" id="bulkActions">
+            <span id="selectedCount">0개 선택됨</span>
+            <button class="glass-button" onclick="bulkActivate()">활성화</button>
+            <button class="glass-button" onclick="bulkDeactivate()">비활성화</button>
+            <button class="glass-button danger" onclick="bulkDelete()">삭제</button>
+        </section>
+    </div>
+</div>
+
+<!-- JavaScript 모듈 -->
+<script type="module" src="./02_employees.js"></script>
+
+<style>
+    /* === CRITICAL: 헤더 고정을 위한 html/body 설정 (대시보드와 동일) === */
+    html {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important; /* 스크롤 컨테이너 명시 */
+        height: 100% !important;
+    }
+
+    /* === 헤더 스타일 (대시보드와 동일) === */
+    .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(2, 16, 36, 0.98) !important; /* 관리자 색상 유지 */
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+    }
+
+    .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+    }
+
+    .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-refresh:active {
+        transform: translateY(0);
+    }
+
+    /* Shimmer 효과 속도 조절 (대시보드와 동일) */
+    .glass-shimmer::before {
+        animation: glass-shimmer 30s ease-in-out infinite !important;
+    }
+
+    /* === 페이지 컨테이너 (대시보드와 동일) === */
+    .employee-management-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+        padding-bottom: var(--spacing-2xl);
+    }
+
+    /* === 로딩 & 빈 상태 (대시보드와 동일) === */
+    .loading-state,
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-3xl);
+        min-height: 300px;
+        text-align: center;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: var(--spacing-md) 0;
+        color: var(--text-secondary);
+        font-size: var(--font-lg);
+    }
+
+    /* === KPI 섹션 (대시보드와 동일) === */
+    .kpi-section {
+        display: block !important;
+        visibility: visible !important;
+        margin-bottom: var(--spacing-3xl, 64px);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section-title {
+        /* 글래스모피즘 효과 - 더 진한 배경 (관리자 색상) */
+        background: rgba(2, 16, 36, 0.6) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: var(--radius-lg, 12px) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+
+        /* 텍스트 스타일 */
+        font-size: 22px !important;
+        font-weight: var(--font-weight-bold, 700) !important;
+        color: #FFFFFF !important;
+        text-shadow:
+          2px 2px 4px rgba(0, 0, 0, 0.8),
+          0 0 10px rgba(255, 255, 255, 0.3) !important;
+
+        /* 레이아웃 - kpi-section의 100% (메인창 기준 95%) */
+        width: 100% !important;
+        padding: var(--spacing-md, 16px) var(--spacing-lg, 24px) !important;
+        margin-bottom: var(--spacing-lg, 24px) !important;
+        box-sizing: border-box !important;
+
+        /* 강제 표시 */
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+
+        /* 호버 효과 */
+        transition: all 0.3s ease !important;
+    }
+
+    .section-title:hover {
+        background: rgba(2, 16, 36, 0.8);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        text-shadow:
+          2px 2px 6px rgba(0, 0, 0, 1),
+          0 0 15px rgba(255, 255, 255, 0.5);
+    }
+
+    /* 섹션 기본 스타일 */
+    .toolbar-section,
+    .table-section,
+    .bulk-actions {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-lg);
+    }
+
+    .stat-card {
+        padding: var(--spacing-xl);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-lg);
+        transition: all 0.3s ease;
+        cursor: default;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(74, 158, 255, 0.15);
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        opacity: 0.9;
+        flex-shrink: 0;
+    }
+
+    .stat-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    /* 도구 모음 섹션 */
+    .toolbar-section {
+        padding: var(--spacing-xl);
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+        display: flex;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .search-box {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+
+    .search-box input {
+        min-width: 250px;
+    }
+
+    /* 테이블 섹션 */
+    .table-section {
+        padding: var(--spacing-xl);
+    }
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+        
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-xl);
+        padding-top: var(--spacing-lg);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+        
+    /* 상태 배지 */
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-inactive {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* 액션 버튼 */
+    .action-buttons {
+        display: flex;
+        gap: var(--spacing-xs);
+    }
+
+    .btn-icon {
+        padding: 6px 10px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        transition: all 0.3s ease;
+    }
+
+    .btn-icon:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary-color);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(74, 158, 255, 0.2);
+    }
+        
+    /* 대량 작업 섹션 */
+    .bulk-actions {
+        padding: var(--spacing-lg) var(--spacing-xl);
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+    }
+
+    .bulk-actions #selectedCount {
+        margin-right: auto;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+        
+    /* Danger 버튼 */
+    .glass-button.danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+
+    .glass-button.danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    /* 담당거래처 배지 */
+    .company-count-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        padding: 5px 10px;
+        background: rgba(74, 158, 255, 0.1);
+        border: 1px solid rgba(74, 158, 255, 0.3);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--primary-color);
+        cursor: help;
+        transition: all 0.3s ease;
+    }
+
+    .company-count-badge:hover {
+        background: rgba(74, 158, 255, 0.2);
+        transform: translateY(-1px);
+    }
+        
+    /* 모달 스타일 */
+    .modal-form {
+        display: grid;
+        gap: var(--spacing-md);
+        padding: var(--spacing-xl);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-md);
+    }
+
+    /* ===========================================
+       모달 폼 스타일 (텍스트 가독성 강화)
+       =========================================== */
+    .modal-form {
+        padding: var(--spacing-md, 16px);
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs, 8px);
+        margin-bottom: var(--spacing-md, 16px);
+    }
+
+    .modal-form label,
+    .form-group label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #FFFFFF !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        margin-bottom: 4px;
+        display: block;
+    }
+
+    .glass-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #FFFFFF !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .glass-input::placeholder {
+        color: rgba(255, 255, 255, 0.5) !important;
+        text-shadow: none;
+    }
+
+    .glass-input:focus {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-color: var(--primary-color, #4A9EFF);
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+    }
+
+    .glass-input:hover {
+        background: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Select 드롭다운 스타일 */
+    .glass-input option {
+        background: rgba(2, 16, 36, 0.95);
+        color: #FFFFFF;
+        padding: 8px;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 1400px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .employee-management-container {
+            width: 98%;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .stat-card {
+            padding: var(--spacing-lg);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+        }
+
+        .toolbar {
+            flex-direction: column;
+        }
+
+        .toolbar-left,
+        .toolbar-right {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .search-box {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .table-wrapper {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+        }
+    }
+</style>

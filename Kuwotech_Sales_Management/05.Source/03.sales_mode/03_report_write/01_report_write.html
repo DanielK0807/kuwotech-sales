@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실적보고서 작성 - KUWOTECH 영업관리 시스템</title>
+
+    <!-- ✅ 스타일시트 (순서 중요 - 변수 → 공통 → 글래스모피즘 → 테마 색상) -->
+    <link rel="stylesheet" href="../../07.styles/00_root.css">
+    <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/02_common.css">
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
+    <link rel="stylesheet" href="../../07.styles/04_components.css">
+
+    <!-- 시스템 로더 -->
+    <script type="module" src="../../01.common/17_system_loader.js"></script>
+
+    <!-- ✨ 글래스모피즘 자동 적용 -->
+    <script type="module" src="../../01.common/18_glassmorphism_auto_apply.js"></script>
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" href="../../../02.Fonts_Logos/logo.png">
+</head>
+<body class="theme-sales viewport-3d" data-page-type="report-write" data-mode="sales">
+
+<!-- ============================================
+     KUWOTECH 영업관리 시스템 - 실적보고서 작성
+     ============================================ -->
+
+<!-- ✅ UPDATED: report-container 구조로 변경 (Dashboard/My Companies 패턴 적용) -->
+<div class="report-container">
+
+    <!-- ============================================
+         페이지 헤더
+         ============================================ -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">실적보고서 작성</h1>
+                <p class="subtitle text-on-layer-1">실적보고서를 작성해 주세요</p>
+            </div>
+        </div>
+    </header>
+
+        <!-- ============================================
+             동적 목표 표시 영역
+             ============================================ -->
+        <section id="goalDisplaySection" class="goal-display-section glass-card glass-3d-element" style="display: none;">
+            <div class="goal-header">
+                <h2 id="goalTitle" class="goal-title">📊 실적 로딩 중...</h2>
+                <span id="goalPeriod" class="goal-period badge-info">-</span>
+            </div>
+
+            <div class="goal-content">
+                <!-- 연간 실적 -->
+                <div class="goal-group glass-card">
+                    <h3 class="goal-group-title">연간 실적</h3>
+
+                    <div class="goal-item">
+                        <div class="goal-label-row">
+                            <span class="goal-label">💰 연간 수금:</span>
+                            <span class="goal-values">
+                                목표 <span id="annualCollectionGoal" class="amount-text">0</span>원 |
+                                실적 <span id="annualCollectionActual" class="amount-text">0</span>원
+                            </span>
+                        </div>
+                        <div class="goal-progress-row">
+                            <span class="progress-label">달성률 <span id="annualCollectionRate" class="rate-text">0.0%</span></span>
+                            <div class="progress-bar">
+                                <div id="annualCollectionProgress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="goal-item">
+                        <div class="goal-label-row">
+                            <span class="goal-label">📊 연간 매출:</span>
+                            <span class="goal-values">
+                                목표 <span id="annualSalesGoal" class="amount-text">0</span>원 |
+                                실적 <span id="annualSalesActual" class="amount-text">0</span>원
+                            </span>
+                        </div>
+                        <div class="goal-progress-row">
+                            <span class="progress-label">달성률 <span id="annualSalesRate" class="rate-text">0.0%</span></span>
+                            <div class="progress-bar">
+                                <div id="annualSalesProgress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 월간 실적 -->
+                <div class="goal-group glass-card">
+                    <h3 class="goal-group-title">월간 실적</h3>
+
+                    <div class="goal-item">
+                        <div class="goal-label-row">
+                            <span class="goal-label">💰 월간 수금:</span>
+                            <span class="goal-values">
+                                목표 <span id="monthlyCollectionGoal" class="amount-text">0</span>원 |
+                                실적 <span id="monthlyCollectionActual" class="amount-text">0</span>원
+                            </span>
+                        </div>
+                        <div class="goal-progress-row">
+                            <span class="progress-label">달성률 <span id="monthlyCollectionRate" class="rate-text">0.0%</span></span>
+                            <div class="progress-bar">
+                                <div id="monthlyCollectionProgress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="goal-item">
+                        <div class="goal-label-row">
+                            <span class="goal-label">📊 월간 매출:</span>
+                            <span class="goal-values">
+                                목표 <span id="monthlySalesGoal" class="amount-text">0</span>원 |
+                                실적 <span id="monthlySalesActual" class="amount-text">0</span>원
+                            </span>
+                        </div>
+                        <div class="goal-progress-row">
+                            <span class="progress-label">달성률 <span id="monthlySalesRate" class="rate-text">0.0%</span></span>
+                            <div class="progress-bar">
+                                <div id="monthlySalesProgress" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="goal-warning">
+                <span class="warning-icon">⚠️</span>
+                <span>거래처 선택 시 위의 목표 표시가 변경됩니다!</span>
+            </div>
+        </section>
+
+        <!-- ============================================
+             보고서 작성 폼
+             ============================================ -->
+        <section class="report-form-section">
+            <form id="reportForm" class="report-form">
+
+                <!-- 헤더 정보 -->
+                <div class="form-section glass-card glass-3d-element">
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label class="field-label">📋 보고서 유형 *</label>
+                            <select id="reportType" class="glass-input" required>
+                                <option value="">선택하세요</option>
+                                <option value="weekly" selected>주간보고서</option>
+                                <option value="monthly">월간보고서</option>
+                                <option value="annual">연간보고서</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label">📅 작성일 *</label>
+                            <input type="date" id="reportDate" class="glass-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-field full-width">
+                            <label class="field-label">
+                                거래처
+                                <span class="required">*</span>
+                            </label>
+                            <div class="input-with-button">
+                                <div class="autocomplete-wrapper">
+                                    <input 
+                                        type="text" 
+                                        id="companySelect" 
+                                        class="glass-input" 
+                                        placeholder="거래처명을 입력하세요"
+                                        autocomplete="off"
+                                        required>
+                                    <div id="companyAutocompleteList" class="autocomplete-list" style="display: none;">
+                                        <!-- 자동완성 목록이 여기 표시됨 -->
+                                    </div>
+                                </div>
+                                <button type="button" class="glass-button secondary" id="verifyCompanyBtn" title="거래처 확인">
+                                    ✅ 확인
+                                </button>
+                            </div>
+                            <small class="field-hint">💡 거래처명을 입력하면 자동완성됩니다. 입력 후 확인 버튼을 눌러주세요.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 본문: 선택적 항목들 (접기/펼치기) -->
+
+                <!-- 1. 목표수금금액 -->
+                <div class="form-section glass-card glass-3d-element">
+                    <div class="section-header collapsible" data-target="targetCollectionContent">
+                        <input type="checkbox" id="enableTargetCollection" class="section-checkbox">
+                        <label for="enableTargetCollection" class="section-title">
+                            <span class="section-icon">💰</span>
+                            <span>목표수금금액</span>
+                        </label>
+                        <button type="button" class="toggle-icon">▼</button>
+                    </div>
+
+                    <div id="targetCollectionContent" class="section-content" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="field-label">금액 (원)</label>
+                                <input type="number" id="targetCollectionAmount" class="glass-input" min="0" step="1000" placeholder="0">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">통화</label>
+                                <select id="targetCollectionCurrency" class="glass-input">
+                                    <option value="KRW" selected>KRW (원)</option>
+                                    <option value="USD">USD (달러)</option>
+                                    <option value="EUR">EUR (유로)</option>
+                                    <option value="JPY">JPY (엔)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 목표매출액 -->
+                <div class="form-section glass-card glass-3d-element">
+                    <div class="section-header collapsible" data-target="targetSalesContent">
+                        <input type="checkbox" id="enableTargetSales" class="section-checkbox">
+                        <label for="enableTargetSales" class="section-title">
+                            <span class="section-icon">📊</span>
+                            <span>목표매출액</span>
+                        </label>
+                        <button type="button" class="toggle-icon">▼</button>
+                    </div>
+
+                    <div id="targetSalesContent" class="section-content" style="display: none;">
+                        <div id="salesProductList" class="product-list">
+                            <!-- 제품 항목이 동적으로 추가됨 -->
+                        </div>
+                        <button type="button" id="addProductBtn" class="glass-button secondary add-item-btn">
+                            <span class="btn-icon">➕</span>
+                            <span>제품 추가</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. 영업활동(특이사항) -->
+                <div class="form-section glass-card glass-3d-element">
+                    <div class="section-header collapsible" data-target="activityContent">
+                        <input type="checkbox" id="enableActivity" class="section-checkbox">
+                        <label for="enableActivity" class="section-title">
+                            <span class="section-icon">📝</span>
+                            <span>영업활동(특이사항)</span>
+                        </label>
+                        <button type="button" class="toggle-icon">▼</button>
+                    </div>
+
+                    <div id="activityContent" class="section-content" style="display: none;">
+                        <!-- 활동 목록 -->
+                        <div id="activityList" class="activity-list">
+                            <!-- 추가된 활동들이 여기 표시됨 -->
+                        </div>
+
+                        <!-- 활동 추가 버튼 -->
+                        <button type="button" id="addActivityBtn" class="glass-button secondary add-item-btn">
+                            <span class="btn-icon">➕</span>
+                            <span>활동 추가</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 푸터: 버튼 -->
+                <div class="form-footer glass-card">
+                    <button type="button" id="resetBtn" class="glass-button secondary">
+                        <span class="btn-icon">🔄</span>
+                        <span>전체 재작성</span>
+                    </button>
+                    <button type="button" id="cancelBtn" class="glass-button">
+                        <span class="btn-icon">✕</span>
+                        <span>취소</span>
+                    </button>
+                    <button type="submit" id="submitBtn" class="glass-button primary">
+                        <span class="btn-icon">💾</span>
+                        <span>저장</span>
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+</div>
+
+<!-- ============================================
+     영업활동 입력 모달
+     ============================================ -->
+<div id="activityModal" class="modal-container" style="display: none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content glass-card">
+        <!-- 모달 헤더 -->
+        <header class="modal-header">
+            <h2>📝 영업활동 입력</h2>
+            <button type="button" class="btn-close-modal" aria-label="닫기">✕</button>
+        </header>
+
+        <!-- 모달 본문 -->
+        <div class="modal-body">
+            <!-- 활동 유형 선택 -->
+            <div class="form-field">
+                <label class="field-label">활동 유형 선택 <span class="required">*</span></label>
+                <select id="modalActivityType" class="glass-input">
+                    <option value="">선택하세요</option>
+                    <option value="call">전화통화 예정</option>
+                    <option value="visit">방문예정</option>
+                    <option value="document">문서전달</option>
+                    <option value="other">기타</option>
+                </select>
+            </div>
+
+            <!-- 활동 유형별 폼 컨테이너 -->
+            <div id="activityFormContainer">
+                <!-- 선택한 유형에 따라 동적으로 표시 -->
+            </div>
+        </div>
+
+        <!-- 모달 푸터 -->
+        <footer class="modal-footer">
+            <button type="button" id="cancelActivityBtn" class="glass-button secondary">
+                <span class="btn-icon">✕</span>
+                <span>취소</span>
+            </button>
+            <button type="button" id="saveActivityBtn" class="glass-button primary">
+                <span class="btn-icon">💾</span>
+                <span>저장</span>
+            </button>
+        </footer>
+    </div>
+</div>
+
+<!-- ============================================
+     활동 유형별 템플릿
+     ============================================ -->
+
+<!-- 전화통화 예정 템플릿 -->
+<template id="activity-call-template">
+    <div class="activity-form glass-card">
+        <h4 class="form-subtitle">📞 전화통화 예정</h4>
+
+        <div class="form-row">
+            <div class="form-field">
+                <label class="field-label">날짜 <span class="required">*</span></label>
+                <input type="date" id="callDate" class="glass-input" required>
+            </div>
+            <div class="form-field">
+                <label class="field-label">시간 <span class="required">*</span></label>
+                <input type="time" id="callTime" class="glass-input" required>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">대상자 <span class="required">*</span></label>
+            <input type="text" id="callTarget" class="glass-input" placeholder="통화 대상자" required>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">목적 <span class="required">*</span></label>
+            <textarea id="callPurpose" class="glass-input" rows="4" placeholder="통화 목적을 입력하세요 (자유 입력)" required></textarea>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">실행자</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="callExecutor" value="self" checked>
+                    <span>본인</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="callExecutor" value="proxy">
+                    <span>대리 실행</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="callProxyFields" class="proxy-fields" style="display: none;">
+            <div class="form-field">
+                <label class="field-label">대리 실행자 (딜러/대리점명)</label>
+                <input type="text" id="callProxyName" class="glass-input" placeholder="대리 실행자명">
+            </div>
+            <div class="form-field">
+                <label class="field-label">전화번호</label>
+                <input type="tel" id="callProxyPhone" class="glass-input" placeholder="000-0000-0000">
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- 방문예정 템플릿 -->
+<template id="activity-visit-template">
+    <div class="activity-form glass-card">
+        <h4 class="form-subtitle">🚗 방문예정</h4>
+
+        <div class="form-field">
+            <label class="field-label">날짜 <span class="required">*</span></label>
+            <input type="date" id="visitDate" class="glass-input" required>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">장소 <span class="required">*</span></label>
+            <input type="text" id="visitLocation" class="glass-input" placeholder="방문 장소" required>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">대상자(미팅) <span class="required">*</span></label>
+            <input type="text" id="visitTarget" class="glass-input" placeholder="미팅 대상자" required>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">목적 <span class="required">*</span></label>
+            <textarea id="visitPurpose" class="glass-input" rows="4" placeholder="방문 목적을 입력하세요 (자유 입력)" required></textarea>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">실행자</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="visitExecutor" value="self" checked>
+                    <span>본인</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="visitExecutor" value="proxy">
+                    <span>대리 실행</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="visitProxyFields" class="proxy-fields" style="display: none;">
+            <div class="form-field">
+                <label class="field-label">대리 실행자 (딜러/대리점명)</label>
+                <input type="text" id="visitProxyName" class="glass-input" placeholder="대리 실행자명">
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- 문서전달 템플릿 -->
+<template id="activity-document-template">
+    <div class="activity-form glass-card">
+        <h4 class="form-subtitle">📄 문서전달</h4>
+
+        <div class="form-field">
+            <label class="field-label">날짜 <span class="required">*</span></label>
+            <input type="date" id="docDate" class="glass-input" required>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">전달방법 <span class="required">*</span></label>
+            <select id="docMethod" class="glass-input" required>
+                <option value="visit">방문</option>
+                <option value="email">이메일</option>
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">전달문서 <span class="required">*</span></label>
+            <input type="text" id="docName" class="glass-input" placeholder="문서명" required>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">전달문서 내용 <span class="required">*</span></label>
+            <textarea id="docContent" class="glass-input" rows="4" placeholder="문서 내용을 입력하세요 (자유 입력)" required></textarea>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">실행자</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="docExecutor" value="self" checked>
+                    <span>본인</span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="docExecutor" value="proxy">
+                    <span>대리 실행</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="docProxyFields" class="proxy-fields" style="display: none;">
+            <div class="form-field">
+                <label class="field-label">대리 실행자 (딜러/대리점명)</label>
+                <input type="text" id="docProxyName" class="glass-input" placeholder="대리 실행자명">
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- 기타 활동 템플릿 -->
+<template id="activity-other-template">
+    <div class="activity-form glass-card">
+        <h4 class="form-subtitle">📝 기타 영업활동</h4>
+
+        <div class="form-field">
+            <label class="field-label">활동 내용 <span class="required">*</span></label>
+            <textarea id="otherContent" class="glass-input" rows="6" placeholder="영업활동 내용을 자유롭게 입력하세요" required></textarea>
+        </div>
+    </div>
+</template>
+
+<!-- 커스텀 스타일 -->
+<style>
+    /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
+    html {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: 100% !important;
+    }
+
+    /* === 레이아웃 === */
+    .report-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+    }
+
+    /* === 헤더 === */
+    .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(15, 42, 29, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+    }
+
+    .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+    }
+
+    /* 전체 폰트 크기 1.5배 - 강력 적용 */
+    body[data-page-type="report-write"] * {
+        font-size: 1.5em !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Input, Select, Textarea 폰트 크기 */
+    body[data-page-type="report-write"] input,
+    body[data-page-type="report-write"] select,
+    body[data-page-type="report-write"] textarea,
+    body[data-page-type="report-write"] .glass-input {
+        font-size: 1.5em !important;
+        padding: 12px 18px !important;
+        line-height: 1.4 !important;
+        height: auto !important;
+    }
+    
+    /* 거래처 입력란 특별 스타일 */
+    body[data-page-type="report-write"] #companySelect {
+        font-size: 1.3em !important;
+        padding: 10px 15px !important;
+        min-height: 45px !important;
+        height: 45px !important;
+    }
+    
+    /* 버튼 폰트 크기 */
+    body[data-page-type="report-write"] button,
+    body[data-page-type="report-write"] .glass-button {
+        font-size: 1.5em !important;
+        padding: 12px 24px !important;
+    }
+    
+    /* 검색 버튼 특별 스타일 */
+    body[data-page-type="report-write"] #searchCompanyBtn {
+        font-size: 1.2em !important;
+        padding: 10px 20px !important;
+        min-width: 90px !important;
+        height: 45px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+    }
+    
+    /* 레이블 폰트 크기 - 2배로 증가 */
+    body[data-page-type="report-write"] .field-label,
+    body[data-page-type="report-write"] label {
+        font-size: 3em !important;
+        font-weight: 600 !important;
+    }
+    
+    /* 제목 폰트 크기 */
+    body[data-page-type="report-write"] h1,
+    body[data-page-type="report-write"] h2,
+    body[data-page-type="report-write"] h3,
+    body[data-page-type="report-write"] h4 {
+        font-size: 2em !important;
+    }
+    
+    /* 섹션 타이틀 */
+    body[data-page-type="report-write"] .section-title {
+        font-size: 1.8em !important;
+    }
+    
+    /* 아이콘 크기 조정 */
+    body[data-page-type="report-write"] .section-icon,
+    body[data-page-type="report-write"] .btn-icon {
+        font-size: 1.5em !important;
+    }
+
+    /* 목표 표시 섹션 */
+    .goal-display-section {
+        margin-bottom: var(--spacing-xl);
+        padding: var(--spacing-xl);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* 보고서 작성 폼 섹션 */
+    .report-form-section {
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .goal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-xl);
+        padding-bottom: var(--spacing-lg);
+        border-bottom: 2px solid var(--glass-border);
+    }
+
+    .goal-title {
+        font-size: var(--font-2xl);
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .goal-period {
+        font-size: var(--font-md);
+        padding: var(--spacing-sm) var(--spacing-lg);
+        background: var(--color-info-bg);
+        color: var(--color-info);
+        border-radius: var(--radius-full);
+        font-weight: 600;
+    }
+
+    .goal-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .goal-group {
+        padding: var(--spacing-lg);
+    }
+
+    .goal-group-title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        margin: 0 0 var(--spacing-lg) 0;
+        color: var(--text-secondary);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .goal-item {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .goal-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .goal-label-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .goal-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: var(--font-sm);
+    }
+
+    .goal-values {
+        font-size: var(--font-md);
+        color: var(--text-primary);
+    }
+
+    .amount-text {
+        font-weight: 600;
+        color: var(--color-success);
+    }
+
+    .goal-progress-row {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .progress-label {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+    }
+
+    .rate-text {
+        font-weight: 700;
+        color: var(--color-info);
+    }
+
+    .progress-bar {
+        height: 12px;
+        background: var(--glass-bg-heavy);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--color-success) 0%, var(--color-info) 100%);
+        border-radius: var(--radius-full);
+        transition: width 0.5s ease-in-out;
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+    }
+
+    .goal-warning {
+        margin-top: var(--spacing-xl);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: rgba(255, 152, 0, 0.1);
+        border-left: 4px solid var(--color-warning);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .warning-icon {
+        font-size: var(--font-xl);
+    }
+
+    .goal-warning span:last-child {
+        color: var(--color-warning);
+        font-weight: 600;
+    }
+
+    /* 폼 섹션 */
+    .form-section {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-xl);
+        width: 100%;
+    }
+
+    .section-title-fixed {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        margin: 0 0 var(--spacing-lg) 0;
+        color: var(--text-primary);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .form-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .form-field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .field-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: var(--font-sm);
+    }
+
+    .required {
+        color: var(--color-error);
+        font-weight: bold;
+    }
+
+    .field-hint {
+        display: block;
+        margin-top: var(--spacing-xs);
+        font-size: 1.1em !important;
+        color: var(--color-info);
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .input-with-button {
+        display: flex;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .input-with-button input {
+        flex: 1;
+    }
+
+    .input-with-button button {
+        flex-shrink: 0;
+        white-space: nowrap;
+        min-width: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-xs);
+        height: 45px;
+    }
+
+    /* 접기/펼치기 섹션 헤더 */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--glass-bg-light);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+
+    .section-header:hover {
+        background: var(--glass-bg-heavy);
+        transform: translateY(-2px);
+    }
+
+    .section-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+    }
+
+    .section-title {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        margin: 0;
+        position: relative;
+        z-index: 5;
+    }
+
+    .section-icon {
+        font-size: var(--font-xl);
+    }
+
+    .toggle-icon {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: var(--font-lg);
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        padding: var(--spacing-xs);
+        flex-shrink: 0;
+    }
+
+    .toggle-icon.open {
+        transform: rotate(180deg);
+    }
+
+    .section-content {
+        margin-top: var(--spacing-lg);
+        padding-top: var(--spacing-lg);
+        border-top: 1px solid var(--glass-border);
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 제품 리스트 */
+    .product-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .product-item {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
+        background: var(--glass-bg);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--glass-border);
+        align-items: end;
+    }
+
+    .remove-product-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-error);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 80px;
+    }
+
+    .remove-product-btn:hover {
+        background: #c62828;
+        transform: scale(1.05);
+    }
+
+    .add-item-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 서브섹션 */
+    .subsection {
+        margin-top: var(--spacing-lg);
+        padding-top: var(--spacing-lg);
+        border-top: 1px dashed var(--glass-border);
+    }
+
+    .subsection-title {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin: 0 0 var(--spacing-lg) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .subsection-title::before {
+        content: '';
+        width: 4px;
+        height: 20px;
+        background: var(--color-primary);
+        border-radius: var(--radius-sm);
+    }
+
+    /* 라디오 그룹 */
+    .radio-group {
+        display: flex;
+        gap: var(--spacing-xl);
+    }
+
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        cursor: pointer;
+        font-size: var(--font-md);
+        color: var(--text-primary);
+    }
+
+    .radio-label input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    /* 폼 푸터 */
+    .form-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+        padding: var(--spacing-xl);
+        margin-top: var(--spacing-xl);
+    }
+
+    .glass-button {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-size: var(--font-md);
+        font-weight: 600;
+    }
+
+    .btn-icon {
+        font-size: var(--font-lg);
+    }
+
+    .glass-button.primary {
+        background: var(--color-success);
+        color: white;
+    }
+
+    .glass-button.primary:hover {
+        background: #43a047;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    }
+
+    .glass-button.secondary {
+        background: var(--glass-bg-light);
+    }
+
+    .glass-button.secondary:hover {
+        background: var(--glass-bg-heavy);
+    }
+
+    /* 활동 리스트 */
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .activity-item {
+        padding: var(--spacing-lg);
+        background: var(--glass-bg);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--glass-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: var(--spacing-md);
+    }
+
+    .activity-item-content {
+        flex: 1;
+    }
+
+    .activity-type-badge {
+        display: inline-block;
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: var(--color-info-bg);
+        color: var(--color-info);
+        border-radius: var(--radius-full);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .activity-summary {
+        font-size: var(--font-md);
+        color: var(--text-primary);
+        margin-top: var(--spacing-xs);
+    }
+
+    .remove-activity-btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-error);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 60px;
+    }
+
+    .remove-activity-btn:hover {
+        background: #c62828;
+        transform: scale(1.05);
+    }
+
+    /* 모달 스타일 */
+    .modal-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1;
+    }
+
+    .modal-content {
+        position: relative;
+        max-width: 700px;
+        width: 90%;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease;
+        z-index: 2;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-xl);
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: var(--font-xl);
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .btn-close-modal {
+        background: none;
+        border: none;
+        font-size: var(--font-2xl);
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: var(--spacing-xs);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-md);
+        transition: all 0.3s ease;
+    }
+
+    .btn-close-modal:hover {
+        background: var(--glass-bg-heavy);
+        color: var(--color-error);
+        transform: scale(1.1);
+    }
+
+    .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--spacing-xl);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-md);
+        padding: var(--spacing-xl);
+        border-top: 1px solid var(--glass-border);
+    }
+
+    /* 활동 폼 스타일 */
+    .activity-form {
+        padding: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
+    }
+
+    .form-subtitle {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 var(--spacing-lg) 0;
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 2px solid var(--glass-border);
+    }
+
+    .proxy-fields {
+        margin-top: var(--spacing-lg);
+        padding-top: var(--spacing-lg);
+        border-top: 1px dashed var(--glass-border);
+    }
+
+    /* 자동완성 래퍼 */
+    .autocomplete-wrapper {
+        position: relative;
+        flex: 1;
+    }
+
+    /* 자동완성 목록 */
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.98); /* 불투명한 흰색 배경 */
+        border: 2px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        margin-top: 5px;
+        z-index: 1000;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .autocomplete-item {
+        padding: 12px 18px;
+        cursor: pointer;
+        font-size: 1.3em !important;
+        color: #1a1a1a !important;
+        font-weight: 500 !important;
+        border-bottom: 1px solid var(--glass-border);
+        transition: all 0.2s ease;
+    }
+
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+        background: rgba(76, 175, 80, 0.15);
+        color: #2d7a2f !important;
+        font-weight: 600 !important;
+    }
+
+    .autocomplete-item strong {
+        color: #2d7a2f !important;
+        font-weight: 700 !important;
+    }
+
+    /* 거래처 확인 상태 */
+    #companySelect.verified {
+        border: 3px solid var(--color-success) !important;
+        background: rgba(76, 175, 80, 0.05) !important;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1) !important;
+    }
+
+    #companySelect.verified:focus {
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2) !important;
+    }
+
+    /* 확인 버튼 활성화 상태 */
+    #verifyCompanyBtn.verified {
+        background: var(--color-success) !important;
+        color: white !important;
+        pointer-events: none;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+        .container {
+            padding: var(--spacing-md);
+        }
+
+        .goal-content {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .product-item {
+            grid-template-columns: 1fr;
+        }
+
+        .form-footer {
+            flex-direction: column;
+        }
+
+        .glass-button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 95%;
+            max-height: 95vh;
+        }
+
+        .modal-header, .modal-body, .modal-footer {
+            padding: var(--spacing-lg);
+        }
+    }
+</style>
+
+<!-- JavaScript 모듈 -->
+<script type="module" src="./02_report_write.js"></script>
+
+</body>
+</html>

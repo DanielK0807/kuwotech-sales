@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자의견 확인 UI 프리뷰</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-rgb: 74, 144, 226;
+            --primary-light: #E8F4FF;
+            --primary-dark: #357ABD;
+            --success-color: #52C41A;
+            --text-color: #2c3e50;
+            --text-muted: #7f8c8d;
+            --bg-secondary: #f8f9fa;
+            --card-bg: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --hover-bg: #f0f7ff;
+            --border-color: #e1e8ed;
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --border-radius-sm: 6px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .preview-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-header {
+            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .preview-header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .preview-header p {
+            opacity: 0.9;
+        }
+
+        /* ============================================ */
+        /* 페이지 레이아웃 */
+        /* ============================================ */
+        .admin-feedback-container {
+            display: flex;
+            gap: var(--spacing-lg);
+            height: 800px;
+            padding: var(--spacing-lg);
+            background: #f5f7fa;
+        }
+
+        /* === 사이드바 (보고서 리스트) === */
+        .feedback-sidebar {
+            flex: 0 0 280px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .feedback-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            padding: 0 8px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* 보고서 리스트 아이템 */
+        .report-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .report-item {
+            padding: var(--spacing-md);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .report-item:hover {
+            background: var(--hover-bg);
+            border-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .report-item.active {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .report-date {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .report-company {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .feedback-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            margin-top: 6px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* === 메인 콘텐츠 (상세보기) === */
+        .feedback-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .content-header {
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .content-header h2 {
+            margin: 0 0 var(--spacing-sm) 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .report-meta {
+            display: flex;
+            gap: var(--spacing-lg);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .report-meta-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        /* 실적보고서 섹션 */
+        .report-section {
+            padding: var(--spacing-lg);
+            background: var(--card-bg);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .report-field {
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .field-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .field-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .field-value.highlight {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        /* 영업활동 리스트 */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .activity-item {
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--primary-color);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .activity-company {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .activity-content {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        /* 관리자 의견 섹션 */
+        .admin-opinion-section {
+            padding: var(--spacing-lg);
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.1) 100%);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .opinion-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .opinion-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .opinion-badge {
+            padding: 4px 12px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .opinion-content {
+            padding: var(--spacing-lg);
+            background: white;
+            border-radius: var(--border-radius-sm);
+            min-height: 150px;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-color);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .opinion-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* 스크롤바 스타일 */
+        .feedback-sidebar::-webkit-scrollbar,
+        .feedback-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .feedback-sidebar::-webkit-scrollbar-track,
+        .feedback-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .feedback-sidebar::-webkit-scrollbar-thumb,
+        .feedback-content::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="preview-header">
+            <h1>💬 관리자의견 확인 - UI 프리뷰</h1>
+            <p>영업담당모드 > 관리자의견 확인 페이지</p>
+        </div>
+
+        <div class="admin-feedback-container">
+            <!-- === 사이드바: 관리자 의견이 있는 보고서 리스트 === -->
+            <aside class="feedback-sidebar">
+                <div class="sidebar-header">
+                    <h3>💬 관리자 의견</h3>
+                    <span class="feedback-count">3</span>
+                </div>
+                <div class="report-list">
+                    <div class="report-item active">
+                        <div class="report-date">📅 2025-10-08</div>
+                        <div class="report-company">🏢 (주)테크이노베이션</div>
+                        <span class="feedback-badge">💬 의견 확인</span>
+                    </div>
+                    <div class="report-item">
+                        <div class="report-date">📅 2025-10-07</div>
+                        <div class="report-company">🏢 글로벌솔루션</div>
+                        <span class="feedback-badge">💬 의견 확인</span>
+                    </div>
+                    <div class="report-item">
+                        <div class="report-date">📅 2025-10-05</div>
+                        <div class="report-company">🏢 스마트시스템즈</div>
+                        <span class="feedback-badge">💬 의견 확인</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- === 메인 콘텐츠: 보고서 상세 및 관리자 의견 === -->
+            <main class="feedback-content">
+                <!-- 헤더 -->
+                <div class="content-header">
+                    <h2>📋 실적보고서 상세</h2>
+                    <div class="report-meta">
+                        <div class="report-meta-item">
+                            <span>📅 제출일:</span>
+                            <strong>2025-10-08</strong>
+                        </div>
+                        <div class="report-meta-item">
+                            <span>🏢 거래처:</span>
+                            <strong>(주)테크이노베이션</strong>
+                        </div>
+                        <div class="report-meta-item">
+                            <span>👤 작성자:</span>
+                            <strong>강민</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 실적 정보 -->
+                <div class="report-section">
+                    <div class="section-title">
+                        💰 실적 정보
+                    </div>
+                    <div class="report-grid">
+                        <div class="report-field">
+                            <div class="field-label">목표 수금액</div>
+                            <div class="field-value highlight">
+                                5,000,000원
+                            </div>
+                        </div>
+                        <div class="report-field">
+                            <div class="field-label">목표 매출액</div>
+                            <div class="field-value highlight">
+                                10,000,000원
+                            </div>
+                        </div>
+                        <div class="report-field">
+                            <div class="field-label">목표 상품</div>
+                            <div class="field-value">
+                                스마트센서, IoT게이트웨이
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 영업활동 내역 -->
+                <div class="report-section">
+                    <div class="section-title">
+                        📝 영업활동 내역
+                    </div>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-company">(주)테크이노베이션</div>
+                            <div class="activity-content">신제품 스마트센서 시연 완료. 구매팀장 긍정적 반응. 다음주 견적 요청 예정.</div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-company">글로벌솔루션</div>
+                            <div class="activity-content">IoT게이트웨이 납품 협의. 수량 100대 확정, 계약서 검토 중.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 관리자 의견 -->
+                <div class="admin-opinion-section">
+                    <div class="opinion-header">
+                        <h3>💬 관리자 의견</h3>
+                        <span class="opinion-badge">READ ONLY</span>
+                    </div>
+                    <div class="opinion-content">수고하셨습니다.
+
+테크이노베이션 건은 다음주 견적 제출 시 10% 할인 조건 적용하여 진행해주시기 바랍니다.
+
+글로벌솔루션 IoT게이트웨이 계약은 우선 추진 건으로 빠른 마무리 부탁드립니다.
+
+다음 주 실적 보고 시 두 건의 진행 상황 상세히 기재 바랍니다.</div>
+                    <div class="opinion-footer">
+                        <span>작성자: 강정환</span>
+                        <span>작성일: 2025-10-08</span>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

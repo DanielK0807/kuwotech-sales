@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>영업 대시보드 - KUWOTECH 영업관리 시스템</title>
+
+    <!-- ✅ NEW: 순서 중요 - 변수 → 공통 → 글래스모피즘 → 테마 색상 -->
+    <link rel="stylesheet" href="../../07.styles/00_root.css" />
+    <link rel="stylesheet" href="../../07.styles/01_variables.css" />
+    <link rel="stylesheet" href="../../07.styles/02_common.css" />
+
+    <!-- ✅ UPDATED: 새로운 글래스모피즘 & 색상 시스템 -->
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css" />
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css" />
+
+    <!-- 기타 스타일 -->
+    <link rel="stylesheet" href="../../07.styles/04_components.css" />
+    <link rel="stylesheet" href="../../07.styles/10_download_ui.css" />
+
+    <!-- 시스템 로더 -->
+    <script type="module" src="../../01.common/17_system_loader.js"></script>
+
+    <!-- ✨ NEW: 글래스모피즘 자동 적용 -->
+    <script
+      type="module"
+      src="../../01.common/18_glassmorphism_auto_apply.js"
+    ></script>
+  </head>
+  <body
+    class="theme-sales viewport-3d"
+    data-page-type="dashboard"
+    data-mode="sales"
+  >
+    <!-- ✅ UPDATED: dashboard-container 구조로 변경 (My Companies 패턴 적용) -->
+    <div class="dashboard-container">
+      <!-- ✅ UPDATED: 헤더 - Layer 1 색상 적용 (그린 계열) -->
+      <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="text-on-layer-1">영업담당 모드 KPI</h1>
+            <p class="subtitle text-on-layer-1">
+              나의 실적 현황을 한눈에 확인하세요
+            </p>
+          </div>
+          <button
+            id="btnRefreshKPI"
+            class="btn-refresh glass-button"
+            title="데이터 새로고침">
+            🔄 새로고침
+          </button>
+        </div>
+      </header>
+
+      <!-- 로딩 상태 -->
+      <div id="kpiLoadingState" class="loading-state" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>KPI 데이터를 불러오는 중...</p>
+      </div>
+
+      <!-- 데이터 없음 상태 -->
+      <div id="kpiEmptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">📊</div>
+        <p>표시할 KPI 데이터가 없습니다.</p>
+        <button class="btn-primary" onclick="location.reload()">새로고침</button>
+      </div>
+
+      <!-- 1️⃣ 거래처 관리 지표 (4개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">📊 거래처 관리 지표</h2>
+        <div class="kpi-grid" id="kpiSection1">
+          <!-- JavaScript로 동적 생성됨 -->
+        </div>
+      </div>
+
+      <!-- 2️⃣ 목표 달성 지표 (2개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">🎯 거래처확보 목표 달성지표</h2>
+        <div class="kpi-grid" id="kpiSection2">
+          <!-- JavaScript로 동적 생성됨 -->
+        </div>
+      </div>
+
+      <!-- 3️⃣ 매출 성과 지표 (3개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">💰 매출 성과 지표</h2>
+        <div class="kpi-grid" id="kpiSection3">
+          <!-- JavaScript로 동적 생성됨 -->
+        </div>
+      </div>
+
+      <!-- 4️⃣ 재무 및 기여도 지표 (5개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">📈 재무 및 기여도 지표</h2>
+        <div class="kpi-grid" id="kpiSection4">
+          <!-- JavaScript로 동적 생성됨 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ NEW: 인라인 스타일 (영업담당 테마용) -->
+    <style>
+      /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
+      html {
+        height: 100% !important;
+        overflow: hidden !important;
+      }
+      
+      body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important; /* 스크롤 컨테이너 명시 */
+        height: 100% !important;
+      }
+
+      /* === 레이아웃 === */
+      .dashboard-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+      }
+
+      /* === 헤더 === */
+      .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(15, 42, 29, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+      }
+
+      .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+      
+      .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+      }
+      
+      .btn-refresh:active {
+        transform: translateY(0);
+      }
+
+      .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+      }
+      
+      /* === 로딩 & 빈 상태 === */
+      .loading-state,
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-3xl);
+        min-height: 300px;
+        text-align: center;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--spacing-lg);
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .empty-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.5;
+      }
+      
+      .empty-state p {
+        margin: var(--spacing-md) 0;
+        color: var(--text-secondary);
+        font-size: var(--font-lg);
+      }
+
+      .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+      }
+
+      /* === KPI 섹션 === */
+      .kpi-section {
+        display: block !important; /* 강제 표시 */
+        visibility: visible !important;
+        margin-bottom: var(--spacing-3xl, 64px);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .section-title {
+        /* 글래스모피즘 효과 - 더 진한 배경 */
+        background: rgba(15, 42, 29, 0.6) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: var(--radius-lg, 12px) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+
+        /* 텍스트 스타일 */
+        font-size: 22px !important;
+        font-weight: var(--font-weight-bold, 700) !important;
+        color: #FFFFFF !important;
+        text-shadow:
+          2px 2px 4px rgba(0, 0, 0, 0.8),
+          0 0 10px rgba(255, 255, 255, 0.3) !important;
+
+        /* 레이아웃 - kpi-section의 100% (메인창 기준 95%) */
+        width: 100% !important;
+        padding: var(--spacing-md, 16px) var(--spacing-lg, 24px) !important;
+        margin-bottom: var(--spacing-lg, 24px) !important;
+        box-sizing: border-box !important;
+
+        /* 강제 표시 */
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+
+        /* 호버 효과 */
+        transition: all 0.3s ease !important;
+      }
+
+      .section-title:hover {
+        background: rgba(15, 42, 29, 0.8);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        text-shadow:
+          2px 2px 6px rgba(0, 0, 0, 1),
+          0 0 15px rgba(255, 255, 255, 0.5);
+      }
+
+      /* === KPI 그리드 === */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-lg);
+      }
+
+      .kpi-card {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+      }
+
+      .kpi-icon {
+        font-size: var(--font-3xl);
+        line-height: 1;
+      }
+
+      .kpi-content {
+        flex: 1;
+      }
+
+      .kpi-label {
+        font-size: var(--font-sm);
+        margin-bottom: var(--spacing-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+      }
+
+      .kpi-value {
+        font-size: var(--font-2xl);
+        font-weight: var(--font-weight-bold);
+        line-height: 1.2;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        /* color: var(--primary-dark); */ /* 테마별 색상으로 자동 적용 */
+      }
+
+      .kpi-unit {
+        font-size: var(--font-md);
+        color: var(--text-secondary);
+        display: inline-block;
+        margin-left: var(--spacing-xs);
+      }
+
+      .kpi-trend {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        margin-top: var(--spacing-sm);
+        font-size: var(--font-sm);
+      }
+
+      .trend-up {
+        color: var(--success-color);
+      }
+      .trend-down {
+        color: var(--danger-color);
+      }
+
+      .trend-period {
+        color: var(--text-muted);
+      }
+
+      .kpi-details {
+        display: flex;
+        gap: var(--spacing-xs);
+        margin-top: var(--spacing-sm);
+      }
+
+      .kpi-progress {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        margin-top: var(--spacing-sm);
+      }
+
+      .progress-bar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: shimmer 2s infinite;
+      }
+
+      @keyframes shimmer {
+        to {
+          left: 100%;
+        }
+      }
+
+
+
+      /* === 반응형 === */
+      @media (max-width: 1024px) {
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .kpi-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .header-content {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+
+    <!-- JavaScript -->
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("✅ 영업 대시보드 로드 완료");
+        // 여기에 페이지별 초기화 스크립트를 추가할 수 있습니다.
+        // 예: Chart.js를 사용한 차트 생성, 데이터 페칭 등
+      });
+    </script>
+  </body>
+</html>

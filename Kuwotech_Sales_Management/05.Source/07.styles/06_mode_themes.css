@@ -1,0 +1,575 @@
+/**
+ * ============================================
+ * KUWOTECH 영업관리 시스템 - 모드별 컴포넌트 스타일
+ * ============================================
+ * 파일: 06_mode_themes.css
+ * 업데이트: 2025-01-30
+ * 
+ * ⚠️ 중요: 이 파일은 컴포넌트 스타일만 정의합니다.
+ * ✅ 색상 변수는 07_theme_colors.css에서 관리됩니다.
+ * ✅ 중복 변수 선언 제거 완료
+ * 
+ * 참조: 14_최신_색상_규칙_및_글래스모피즘_가이드.md
+ * ============================================
+ */
+
+/* ============================================
+   [IMPORT] 테마 색상 시스템 로드
+   ============================================ */
+/* 색상 정의는 07_theme_colors.css를 사용합니다 */
+/* 이 파일은 해당 색상 변수를 활용한 컴포넌트 스타일만 정의합니다 */
+
+/* ============================================
+   관리자 모드 컴포넌트 스타일
+   ============================================ */
+
+/* 헤더 (Layer 1 적용) */
+.admin-mode .header,
+.theme-admin .header,
+body[data-mode="admin"] .header {
+    background: var(--gradient-primary);
+    color: var(--text-on-layer-1);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border);
+    transform: translateZ(80px);
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-3d-card);
+}
+
+/* 사이드바 (Layer 2 적용) */
+.admin-mode .sidebar,
+.theme-admin .sidebar,
+body[data-mode="admin"] .sidebar {
+    background: linear-gradient(180deg, var(--layer-2), var(--layer-1));
+    color: var(--text-on-layer-2);
+    border-right: 1px solid var(--glass-border);
+    transform: translateZ(60px);
+    transform-style: preserve-3d;
+}
+
+/* 메뉴 아이템 3D 효과 */
+.admin-mode .sidebar-menu-item,
+.theme-admin .sidebar-menu-item,
+body[data-mode="admin"] .sidebar-menu-item {
+    position: relative;
+    padding: 14px 20px;
+    margin: 8px 12px;
+    border-radius: 12px;
+    background: var(--glass-bg-light);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid var(--glass-border-light);
+    transform: translateZ(10px);
+    transition: all var(--transition-3d);
+}
+
+.admin-mode .sidebar-menu-item:hover,
+.theme-admin .sidebar-menu-item:hover,
+body[data-mode="admin"] .sidebar-menu-item:hover {
+    background: var(--glass-bg-medium);
+    transform: translateX(6px) translateZ(20px) scale(1.02);
+    border-color: var(--accent-color);
+    box-shadow: 
+        0 10px 30px -10px rgba(var(--accent-rgb), 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.admin-mode .sidebar-menu-item.active,
+.theme-admin .sidebar-menu-item.active,
+body[data-mode="admin"] .sidebar-menu-item.active {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+    color: var(--accent-text);
+    transform: translateX(8px) translateZ(25px);
+    box-shadow: 
+        0 15px 40px -10px rgba(var(--accent-rgb), 0.4),
+        inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+/* KPI 카드 (Enhanced 3D) */
+.admin-mode .kpi-card,
+.theme-admin .kpi-card,
+body[data-mode="admin"] .kpi-card {
+    background: var(--glass-bg-heavy);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
+    border: 2px solid var(--glass-border-heavy);
+    border-radius: 20px;
+    padding: 28px;
+    transform: translateZ(50px) rotateX(2deg) rotateY(-2deg);
+    transform-style: preserve-3d;
+    transition: all var(--transition-3d);
+    box-shadow: var(--shadow-3d-card);
+}
+
+.admin-mode .kpi-card:hover,
+.theme-admin .kpi-card:hover,
+body[data-mode="admin"] .kpi-card:hover {
+    transform: translateY(-8px) translateZ(70px) rotateX(3deg) rotateY(-3deg) scale(1.02);
+    box-shadow: var(--shadow-3d-modal);
+}
+
+/* 버튼 (Enhanced 3D) */
+.admin-mode .btn-primary,
+.theme-admin .btn-primary,
+body[data-mode="admin"] .btn-primary {
+    background: var(--glass-bg-medium);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    color: var(--text-on-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-weight: 600;
+    transform: translateZ(20px);
+    transform-style: preserve-3d;
+    transition: all var(--transition-3d);
+    box-shadow: var(--shadow-3d-button);
+}
+
+.admin-mode .btn-primary:hover,
+.theme-admin .btn-primary:hover,
+body[data-mode="admin"] .btn-primary:hover {
+    transform: translateY(-4px) translateZ(25px) rotateX(5deg);
+    background: var(--glass-bg-heavy);
+    box-shadow: 
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+.admin-mode .btn-primary:active,
+.theme-admin .btn-primary:active,
+body[data-mode="admin"] .btn-primary:active {
+    transform: translateY(-2px) translateZ(10px) scale(0.98);
+}
+
+/* 테이블 */
+.admin-mode .table,
+.theme-admin .table,
+body[data-mode="admin"] .table {
+    background: var(--glass-bg-light);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid var(--glass-border-light);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.admin-mode .table thead,
+.theme-admin .table thead,
+body[data-mode="admin"] .table thead {
+    background: var(--layer-3);
+    color: var(--text-on-layer-3);
+}
+
+.admin-mode .table tbody tr:hover,
+.theme-admin .table tbody tr:hover,
+body[data-mode="admin"] .table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateZ(5px);
+}
+
+/* ============================================
+   영업담당 모드 컴포넌트 스타일
+   ============================================ */
+
+/* 헤더 (Layer 1 적용) */
+.sales-mode .header,
+.theme-sales .header,
+body[data-mode="sales"] .header {
+    background: var(--gradient-primary);
+    color: var(--text-on-layer-1);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border);
+    transform: translateZ(80px);
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-3d-card);
+}
+
+/* 사이드바 (Layer 2 적용) */
+.sales-mode .sidebar,
+.theme-sales .sidebar,
+body[data-mode="sales"] .sidebar {
+    background: linear-gradient(180deg, var(--layer-2), var(--layer-1));
+    color: var(--text-on-layer-2);
+    border-right: 1px solid var(--glass-border);
+    transform: translateZ(60px);
+    transform-style: preserve-3d;
+}
+
+/* 메뉴 아이템 3D 효과 */
+.sales-mode .sidebar-menu-item,
+.theme-sales .sidebar-menu-item,
+body[data-mode="sales"] .sidebar-menu-item {
+    position: relative;
+    padding: 14px 20px;
+    margin: 8px 12px;
+    border-radius: 12px;
+    background: var(--glass-bg-light);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid var(--glass-border-light);
+    transform: translateZ(10px);
+    transition: all var(--transition-3d);
+}
+
+.sales-mode .sidebar-menu-item:hover,
+.theme-sales .sidebar-menu-item:hover,
+body[data-mode="sales"] .sidebar-menu-item:hover {
+    background: var(--glass-bg-medium);
+    transform: translateX(6px) translateZ(20px) scale(1.02);
+    border-color: var(--accent-color);
+    box-shadow: 
+        0 10px 30px -10px rgba(var(--accent-rgb), 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.sales-mode .sidebar-menu-item.active,
+.theme-sales .sidebar-menu-item.active,
+body[data-mode="sales"] .sidebar-menu-item.active {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+    color: var(--accent-text);
+    transform: translateX(8px) translateZ(25px);
+    box-shadow: 
+        0 15px 40px -10px rgba(var(--accent-rgb), 0.4),
+        inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+/* KPI 카드 (Enhanced 3D) */
+.sales-mode .kpi-card,
+.theme-sales .kpi-card,
+body[data-mode="sales"] .kpi-card {
+    background: var(--glass-bg-heavy);
+    backdrop-filter: var(--glass-blur-lg);
+    -webkit-backdrop-filter: var(--glass-blur-lg);
+    border: 2px solid var(--glass-border-heavy);
+    border-radius: 20px;
+    padding: 28px;
+    transform: translateZ(50px) rotateX(2deg) rotateY(-2deg);
+    transform-style: preserve-3d;
+    transition: all var(--transition-3d);
+    box-shadow: var(--shadow-3d-card);
+}
+
+.sales-mode .kpi-card:hover,
+.theme-sales .kpi-card:hover,
+body[data-mode="sales"] .kpi-card:hover {
+    transform: translateY(-8px) translateZ(70px) rotateX(3deg) rotateY(-3deg) scale(1.02);
+    box-shadow: var(--shadow-3d-modal);
+}
+
+/* 버튼 (Enhanced 3D) */
+.sales-mode .btn-primary,
+.theme-sales .btn-primary,
+body[data-mode="sales"] .btn-primary {
+    background: var(--glass-bg-medium);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    color: var(--text-on-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-weight: 600;
+    transform: translateZ(20px);
+    transform-style: preserve-3d;
+    transition: all var(--transition-3d);
+    box-shadow: var(--shadow-3d-button);
+}
+
+.sales-mode .btn-primary:hover,
+.theme-sales .btn-primary:hover,
+body[data-mode="sales"] .btn-primary:hover {
+    transform: translateY(-4px) translateZ(25px) rotateX(5deg);
+    background: var(--glass-bg-heavy);
+    box-shadow: 
+        0 30px 60px -15px rgba(0, 0, 0, 0.4),
+        0 15px 30px -10px rgba(0, 0, 0, 0.3),
+        inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+.sales-mode .btn-primary:active,
+.theme-sales .btn-primary:active,
+body[data-mode="sales"] .btn-primary:active {
+    transform: translateY(-2px) translateZ(10px) scale(0.98);
+}
+
+/* 테이블 */
+.sales-mode .table,
+.theme-sales .table,
+body[data-mode="sales"] .table {
+    background: var(--glass-bg-light);
+    backdrop-filter: var(--glass-blur-sm);
+    -webkit-backdrop-filter: var(--glass-blur-sm);
+    border: 1px solid var(--glass-border-light);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.sales-mode .table thead,
+.theme-sales .table thead,
+body[data-mode="sales"] .table thead {
+    background: var(--layer-3);
+    color: var(--text-on-layer-3);
+}
+
+.sales-mode .table tbody tr:hover,
+.theme-sales .table tbody tr:hover,
+body[data-mode="sales"] .table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateZ(5px);
+}
+
+/* ============================================
+   공통 유틸리티 클래스
+   ============================================ */
+
+/* 레이어 배경 클래스 */
+.bg-layer-1 { 
+    background-color: var(--layer-1) !important; 
+    color: var(--text-on-layer-1) !important; 
+}
+.bg-layer-2 { 
+    background-color: var(--layer-2) !important; 
+    color: var(--text-on-layer-2) !important; 
+}
+.bg-layer-3 { 
+    background-color: var(--layer-3) !important; 
+    color: var(--text-on-layer-3) !important; 
+}
+.bg-layer-4 { 
+    background-color: var(--layer-4) !important; 
+    color: var(--text-on-layer-4) !important; 
+}
+.bg-layer-5 { 
+    background-color: var(--layer-5) !important; 
+    color: var(--text-on-layer-5) !important; 
+}
+
+/* 그라데이션 배경 */
+.bg-gradient-primary { 
+    background: var(--gradient-primary) !important; 
+    color: var(--text-on-layer-1) !important;
+}
+.bg-gradient-accent { 
+    background: var(--gradient-accent) !important; 
+    color: var(--text-on-layer-3) !important;
+}
+.bg-gradient-highlight { 
+    background: var(--gradient-highlight) !important; 
+    color: var(--text-on-layer-4) !important;
+}
+
+/* 상태 배지 (색상은 07_theme_colors.css에서 가져옴) */
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    line-height: 1.2;
+}
+
+.badge-success {
+    background-color: var(--success-color);
+    color: var(--success-text);
+}
+
+.badge-warning {
+    background-color: var(--warning-color);
+    color: var(--warning-text);
+}
+
+.badge-danger {
+    background-color: var(--danger-color);
+    color: var(--danger-text);
+}
+
+.badge-info {
+    background-color: var(--info-color);
+    color: var(--info-text);
+}
+
+/* 그라데이션 텍스트 */
+.text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* ============================================
+   고급 글래스모피즘 효과
+   ============================================ */
+
+/* Frosted Glass 효과 */
+.glass-frosted {
+    background: var(--glass-bg-heavy);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 2px solid var(--glass-border-heavy);
+    transform: translateZ(60px);
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-3d-modal);
+}
+
+/* Holographic Glass 효과 */
+@keyframes holographic {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.glass-holographic {
+    background: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.3),
+        rgba(255, 200, 255, 0.2),
+        rgba(200, 255, 255, 0.2),
+        rgba(255, 255, 200, 0.2)
+    );
+    background-size: 400% 400%;
+    animation: holographic 10s ease infinite;
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transform: translateZ(60px) rotateY(-2deg);
+    transform-style: preserve-3d;
+}
+
+/* Shimmer 애니메이션 */
+@keyframes glass-shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.glass-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 60%
+    );
+    animation: glass-shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* ============================================
+   모드 전환 애니메이션
+   ============================================ */
+.mode-transition {
+    animation: modeSwitch 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modeSwitch {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateZ(0);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.98) translateZ(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateZ(0);
+    }
+}
+
+/* ============================================
+   반응형 디자인
+   ============================================ */
+
+/* 태블릿 (768px - 1023px) */
+@media (max-width: 1023px) {
+    .kpi-card {
+        transform: translateZ(30px) !important;
+        padding: 20px;
+    }
+    
+    .glass-card {
+        transform: translateZ(20px) !important;
+    }
+}
+
+/* 모바일 (639px 이하) */
+@media (max-width: 639px) {
+    /* 모바일에서는 3D 효과 축소 (성능 최적화) */
+    .kpi-card,
+    .glass-card {
+        transform: translateZ(10px) !important;
+    }
+    
+    .sidebar {
+        position: fixed;
+        left: -250px;
+        transform: translateZ(0);
+        transition: left 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .sidebar.active {
+        left: 0;
+    }
+    
+    /* 모바일에서 blur 효과 감소 (성능 최적화) */
+    :root {
+        --glass-blur: blur(10px) saturate(150%) !important;
+        --glass-blur-sm: blur(8px) saturate(130%) !important;
+        --glass-blur-lg: blur(15px) saturate(160%) !important;
+    }
+}
+
+/* ============================================
+   다크모드 지원 (선택적)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    /* 다크모드는 07_theme_colors.css에서 처리 */
+}
+
+/* ============================================
+   프린트 스타일
+   ============================================ */
+@media print {
+    /* 프린트 시 3D 효과 제거 */
+    * {
+        transform: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* ============================================
+   성능 최적화
+   ============================================ */
+* {
+    will-change: auto;
+}
+
+.animating {
+    will-change: transform, opacity;
+}
+
+/* GPU 가속 */
+.glass-card,
+.kpi-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* ============================================
+   [END OF FILE]
+   ============================================ */

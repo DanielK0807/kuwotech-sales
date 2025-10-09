@@ -1,0 +1,21 @@
+{
+  "name": "kuwotech-sales-management",
+  "version": "1.0.0",
+  "description": "KUWOTECH 영업관리 시스템",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "cd backend && npm run dev",
+    "install-backend": "cd backend && npm install"
+  },
+  "keywords": [
+    "sales",
+    "management",
+    "system"
+  ],
+  "author": "KUWOTECH",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}

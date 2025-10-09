@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실적보고서 확인 - KUWOTECH 영업관리 시스템</title>
+
+    <!-- ✅ 스타일시트 (순서 중요 - 변수 → 공통 → 글래스모피즘 → 테마 색상) -->
+    <link rel="stylesheet" href="../../07.styles/00_root.css">
+    <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/02_common.css">
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
+    <link rel="stylesheet" href="../../07.styles/04_components.css">
+    <link rel="stylesheet" href="../../07.styles/10_download_ui.css">
+
+    <!-- 시스템 로더 -->
+    <script type="module" src="../../01.common/17_system_loader.js"></script>
+
+    <!-- ✨ 글래스모피즘 자동 적용 -->
+    <script type="module" src="../../01.common/18_glassmorphism_auto_apply.js"></script>
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" href="../../../02.Fonts_Logos/logo.png">
+</head>
+<body class="theme-sales viewport-3d" data-page-type="report-check" data-mode="sales">
+
+<!-- ============================================
+     KUWOTECH 영업관리 시스템 - 실적보고서 확인
+     ============================================ -->
+
+<!-- ✅ UPDATED: report-confirm-container 구조 (실적보고서 작성과 동일한 헤더 패턴) -->
+<div class="report-confirm-container">
+
+    <!-- ============================================
+         페이지 헤더 (실적보고서 작성과 동일한 구조)
+         ============================================ -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">실적보고서 확인</h1>
+                <p class="subtitle text-on-layer-1">제출된 보고서를 확인하고 실적을 등록하세요</p>
+            </div>
+            <button
+                id="btnRefresh"
+                class="btn-refresh glass-button"
+                title="데이터 새로고침">
+                🔄 새로고침
+            </button>
+        </div>
+    </header>
+
+    <!-- ============================================
+         통계 요약 카드
+         ============================================ -->
+    <section class="summary-cards">
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">📊</div>
+            <div class="card-content">
+                <div class="card-value" id="totalCount">0</div>
+                <div class="card-label">전체</div>
+            </div>
+        </div>
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">✅</div>
+            <div class="card-content">
+                <div class="card-value success" id="completedCount">0</div>
+                <div class="card-label">완료</div>
+            </div>
+        </div>
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">🔄</div>
+            <div class="card-content">
+                <div class="card-value warning" id="partialCount">0</div>
+                <div class="card-label">일부완료</div>
+            </div>
+        </div>
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">❌</div>
+            <div class="card-content">
+                <div class="card-value error" id="incompleteCount">0</div>
+                <div class="card-label">미완료</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         검색 필터 (시작일/종료일 제거)
+         ============================================ -->
+    <section class="search-filters glass-card glass-3d-element">
+        <div class="filter-group">
+            <label>보고서 유형:</label>
+            <select id="filterType" class="glass-input">
+                <option value="">전체</option>
+                <option value="weekly">주간</option>
+                <option value="monthly">월간</option>
+                <option value="annual">연간</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>거래처명:</label>
+            <select id="filterCompany" class="glass-input">
+                <option value="">전체</option>
+                <!-- JavaScript로 동적 생성됨 -->
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>상태:</label>
+            <select id="filterStatus" class="glass-input">
+                <option value="">전체</option>
+                <option value="completed">완료</option>
+                <option value="partial">일부완료</option>
+                <option value="incomplete">미완료</option>
+            </select>
+        </div>
+        <button id="btnSearch" class="btn-search glass-button primary">
+            🔍 검색하기
+        </button>
+    </section>
+
+    <!-- ============================================
+         로딩 상태
+         ============================================ -->
+    <div id="loadingState" class="loading-state" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>보고서를 불러오는 중...</p>
+    </div>
+
+    <!-- ============================================
+         데이터 없음 상태
+         ============================================ -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">📊</div>
+        <p>표시할 보고서가 없습니다.</p>
+        <button class="glass-button primary" onclick="location.reload()">새로고침</button>
+    </div>
+
+    <!-- ============================================
+         보고서 목록 (1단계 + 2단계 아코디언)
+         ============================================ -->
+    <section class="report-list" id="reportList">
+        <!-- JavaScript로 동적 생성됨 -->
+    </section>
+
+</div>
+
+<!-- ============================================
+     보고서 항목 템플릿 (1단계 + 2단계 통합)
+     ============================================ -->
+<template id="report-item-template">
+    <!-- 보고서 항목 (아코디언) -->
+    <div class="report-item glass-card glass-3d-element" data-report-id="">
+
+        <!-- 1단계: 보고서 헤더 (항상 표시) -->
+        <div class="report-header">
+            <div class="report-basic-info">
+                <div class="info-row">
+                    <span class="info-label">보고서 ID:</span>
+                    <span class="info-value report-id"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">유형:</span>
+                    <span class="info-value report-type"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">거래처:</span>
+                    <span class="info-value report-company"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">제출일:</span>
+                    <span class="info-value submit-date"></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">완료일:</span>
+                    <div class="info-value complete-dates">
+                        <!-- 여러 완료일이 누적 표시됨 -->
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">상태:</span>
+                    <span class="info-value status-badge"></span>
+                </div>
+            </div>
+            <button class="btn-toggle-detail glass-button primary">
+                상세보기 <span class="toggle-icon">▼</span>
+            </button>
+        </div>
+
+        <!-- 2단계: 상세 확인 영역 (아코디언) -->
+        <div class="report-detail" style="display: none;">
+
+            <!-- 보고서 상세 정보 -->
+            <div class="detail-section glass-card">
+                <h3 class="section-title">📋 보고서 기본 정보</h3>
+                <div class="detail-content">
+                    <div class="detail-row">
+                        <span class="detail-label">보고서 ID:</span>
+                        <span class="detail-value detail-report-id"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">유형:</span>
+                        <span class="detail-value detail-report-type"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">거래처:</span>
+                        <span class="detail-value detail-company"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">작성자:</span>
+                        <span class="detail-value detail-employee"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📅 제출일:</span>
+                        <span class="detail-value detail-submit-date"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">✅ 확정일:</span>
+                        <div class="detail-value detail-complete-dates">
+                            <!-- 누적된 확정일들 표시 -->
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">현재 상태:</span>
+                        <span class="detail-value detail-status"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 목표수금금액 섹션 -->
+            <div class="detail-section glass-card collection-section" style="display: none;">
+                <h3 class="section-title collapsible-section-title" data-section="collection">
+                    <span class="section-title-text">💰 목표수금금액(<span class="collection-status-text"></span>)</span>
+                    <div class="section-title-actions">
+                        <button class="btn-confirm-collection glass-button success-sm">
+                            ✅ 확인
+                        </button>
+                        <span class="section-toggle-icon">▼</span>
+                    </div>
+                </h3>
+                <div class="section-content" style="display: none;">
+
+                <!-- 동적 그리드 구조 -->
+                <div class="section-grid-container">
+                    <!-- 헤더 -->
+                    <div class="grid-row grid-header">
+                        <div class="grid-col-left">📝 실적보고서:</div>
+                        <div class="grid-col-center">✏️ 실적입력:</div>
+                        <div class="grid-col-right">⚠️ 미이행</div>
+                    </div>
+
+                    <!-- 고정 첫 줄: 보고서 내용 / 첫 입력칸 / 미이행 -->
+                    <div class="grid-row grid-content-row">
+                        <div class="grid-col-left">
+                            <strong class="plan-collection-amount">0</strong> <span class="collection-currency-display">KRW</span>
+                        </div>
+                        <div class="grid-col-center">
+                            <input type="number" class="glass-input collection-amount-input" placeholder="금액" min="0" step="1">
+                            <input type="date" class="glass-input collection-date-input">
+                            <button class="btn-add-collection-row glass-button success-sm">➕ 추가</button>
+                        </div>
+                        <div class="grid-col-right">
+                            <strong class="collection-remaining-amount">0</strong> <span class="collection-currency-display">KRW</span>
+                        </div>
+                    </div>
+
+                    <!-- 동적 추가 입력줄들 -->
+                    <div class="dynamic-input-rows"></div>
+                </div>
+
+                </div><!-- section-content 끝 -->
+            </div><!-- collection-section 끝 -->
+
+            <!-- 목표매출액 섹션 -->
+            <div class="detail-section glass-card sales-section" style="display: none;">
+                <h3 class="section-title collapsible-section-title" data-section="sales">
+                    <span class="section-title-text">💵 목표매출액(<span class="sales-product-names-header"></span>)(<span class="sales-status-text"></span>)</span>
+                    <div class="section-title-actions">
+                        <button class="btn-confirm-sales glass-button success-sm">
+                            ✅ 확인
+                        </button>
+                        <span class="section-toggle-icon">▼</span>
+                    </div>
+                </h3>
+                <div class="section-content" style="display: none;">
+
+                <!-- 동적 그리드 구조 -->
+                <div class="section-grid-container">
+                    <!-- 헤더 -->
+                    <div class="grid-row grid-header">
+                        <div class="grid-col-left">📝 실적보고서:</div>
+                        <div class="grid-col-center">✏️ 실적입력:</div>
+                        <div class="grid-col-right">⚠️ 미이행</div>
+                    </div>
+
+                    <!-- 고정 첫 줄: 보고서 내용 / 첫 입력칸 / 미이행 -->
+                    <div class="grid-row grid-content-row">
+                        <div class="grid-col-left">
+                            <strong class="plan-sales-total">0</strong> <span class="sales-currency-display">KRW</span>
+                        </div>
+                        <div class="grid-col-center">
+                            <input type="number" class="glass-input sales-amount-input" placeholder="금액" min="0" step="1">
+                            <label class="vat-checkbox-inline">
+                                <input type="checkbox" class="vat-included"> VAT포함
+                            </label>
+                            <input type="date" class="glass-input sales-date-input">
+                            <button class="btn-add-sales-row glass-button success-sm">➕ 추가</button>
+                        </div>
+                        <div class="grid-col-right">
+                            <strong class="sales-remaining-amount">0</strong> <span class="sales-currency-display">KRW</span>
+                        </div>
+                    </div>
+
+                    <!-- 동적 추가 입력줄들 -->
+                    <div class="dynamic-input-rows"></div>
+                </div>
+
+                </div><!-- section-content 끝 -->
+            </div><!-- sales-section 끝 -->
+
+            <!-- 영업활동 섹션 -->
+            <div class="detail-section glass-card activity-section" style="display: none;">
+                <h3 class="section-title collapsible-section-title" data-section="activity">
+                    <span class="section-title-text">📝 영업활동(특이사항)(<span class="activity-status-text"></span>)</span>
+                    <div class="section-title-actions">
+                        <button class="btn-confirm-activity glass-button success-sm">
+                            ✅ 확인
+                        </button>
+                        <span class="section-toggle-icon">▼</span>
+                    </div>
+                </h3>
+                <div class="section-content" style="display: none;">
+
+                <!-- 작성 내용 표시 -->
+                <div class="written-content glass-card">
+                    <h4 class="content-subtitle">📝 보고서 작성 내용:</h4>
+                    <div class="activity-written-list activity-items">
+                        <!-- 활동별 작성 내용 동적 표시 -->
+                    </div>
+                </div>
+
+                <!-- 활동 실행 여부 확인 -->
+                <div class="actual-input glass-card">
+                    <h4 class="content-subtitle">✏️ 활동 실행 여부 확인:</h4>
+                    <div class="input-group activity-input-group" style="display: flex; flex-direction: column; align-items: center;">
+                        <div class="form-field" style="width: 100%; max-width: 900px;">
+                            <label>실행 내용: (15자 이상 필수)</label>
+                            <textarea class="glass-input execution-content" rows="4" placeholder="실행 내용을 입력하세요 (15자 이상)"></textarea>
+                            <div class="char-counter">
+                                현재 글자수: <span class="char-count">0</span>자
+                                <span class="char-status invalid">❌ (15자 이상 필요)</span>
+                            </div>
+                        </div>
+                        <div class="form-field" style="width: 100%; max-width: 900px; text-align: center;">
+                            <label>실행 여부:</label>
+                            <div class="radio-group" style="justify-content: center;">
+                                <label class="radio-label">
+                                    <input type="radio" name="activity-executed" value="yes"> 실행
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="activity-executed" value="no"> 미실행
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div><!-- section-content 끝 -->
+            </div><!-- activity-section 끝 -->
+
+            <!-- 액션 버튼 -->
+            <div class="detail-actions">
+                <button class="btn-save glass-button primary">
+                    💾 저장하기
+                </button>
+            </div>
+
+        </div>
+    </div>
+</template>
+
+<!-- ✅ 인라인 스타일 (영업담당 테마용 + 아코디언) -->
+<style>
+    /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
+    html {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: 100% !important;
+    }
+
+    /* === 레이아웃 === */
+    .report-confirm-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+    }
+
+    /* === 헤더 (실적보고서 작성과 동일) === */
+    .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(15, 42, 29, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+    }
+
+    .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+    }
+
+    /* === 통계 카드 === */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-2xl);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        transition: transform 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-icon {
+        font-size: 32px;
+        line-height: 1;
+    }
+
+    .card-content {
+        flex: 1;
+    }
+
+    .card-value {
+        font-size: var(--font-3xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .card-value.success {
+        color: var(--color-success);
+    }
+
+    .card-value.warning {
+        color: var(--color-warning);
+    }
+
+    .card-value.error {
+        color: var(--color-error);
+    }
+
+    .card-label {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    /* === 검색 필터 === */
+    .search-filters {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .filter-group label {
+        font-weight: var(--font-weight-medium);
+        color: #000000 !important; /* 검은색 글씨 */
+        white-space: nowrap;
+        font-size: 20px !important; /* 30% 줄임 */
+    }
+
+    .filter-group select {
+        min-width: 150px;
+        background-color: rgba(255, 255, 255, 0.95) !important; /* 하얀색 배경 */
+        color: #000000 !important; /* 검정색 글씨 */
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        padding: 10px 15px !important;
+        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .filter-group select option {
+        background-color: #FFFFFF !important; /* 하얀색 배경 */
+        color: #000000 !important; /* 검정색 글씨 */
+        font-size: 16px !important;
+        padding: 8px !important;
+    }
+
+    .btn-search {
+        margin-left: auto;
+        padding: var(--spacing-sm) var(--spacing-lg);
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: rgba(59, 130, 246, 0.95) !important; /* 파란색 배경 */
+        color: #FFFFFF !important; /* 하얀색 글씨 */
+        font-size: 18px !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .btn-search:hover {
+        background-color: rgba(37, 99, 235, 1) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* === 로딩 & 빈 상태 === */
+    .loading-state,
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-3xl);
+        min-height: 300px;
+        text-align: center;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: var(--spacing-md) 0;
+        color: var(--text-secondary);
+        font-size: var(--font-lg);
+    }
+
+    /* === 보고서 목록 === */
+    .report-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        width: 95%;
+        margin: 0 auto var(--spacing-2xl);
+    }
+
+    /* === 보고서 항목 (아코디언) === */
+    .report-item {
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .report-item:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    /* === 보고서 헤더 (1단계) === */
+    .report-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-md) var(--spacing-lg); /* ✅ 높이 줄임: xl → md */
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); /* ✅ 연한 보라-파랑 그라데이션 */
+        border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .report-basic-info {
+        display: flex;
+        flex-wrap: nowrap; /* ✅ 한 줄로 표시 */
+        gap: var(--spacing-xl); /* ✅ 간격 확대: md → xl */
+        flex: 1;
+        align-items: center;
+        justify-content: space-between; /* ✅ 양쪽 정렬로 균등 분배 */
+        padding-right: var(--spacing-md);
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        flex-shrink: 0; /* ✅ 축소 방지 */
+        white-space: nowrap;
+    }
+
+    .info-label {
+        font-weight: var(--font-weight-medium);
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
+    .info-value {
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+    }
+
+    /* ✅ 보고서 ID 스타일 - 연한 파란색 배경 */
+    .report-id {
+        background: rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-md);
+        font-family: 'Courier New', monospace;
+        font-size: var(--font-sm);
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    /* ✅ 보고서 유형 스타일 - 연한 보라색 배경 */
+    .report-type {
+        background: rgba(139, 92, 246, 0.15);
+        color: #7c3aed;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-md);
+        font-size: var(--font-sm);
+        display: inline-block;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    /* ✅ 거래처명 스타일 - 연한 녹색 배경 */
+    .report-company {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-md);
+        font-size: var(--font-sm);
+        font-weight: var(--font-weight-semibold);
+        display: inline-block;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* 완료일 누적 표시 */
+    .complete-dates {
+        display: flex;
+        flex-direction: row; /* ✅ 가로로 표시 */
+        gap: var(--spacing-xs);
+        flex-wrap: wrap;
+        max-width: 150px; /* 너무 길어지지 않도록 */
+    }
+
+    .complete-date-item {
+        font-size: var(--font-sm);
+        color: var(--text-primary);
+    }
+
+    /* 상태 뱃지 */
+    .status-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
+        border-radius: var(--radius-full);
+        font-size: var(--font-sm);
+        font-weight: var(--font-weight-bold);
+        display: inline-block;
+    }
+
+    .status-badge.completed {
+        background: rgba(16, 185, 129, 0.2);
+        color: #059669;
+    }
+
+    .status-badge.partial {
+        background: rgba(245, 158, 11, 0.2);
+        color: #d97706;
+    }
+
+    .status-badge.incomplete {
+        background: rgba(239, 68, 68, 0.2);
+        color: #dc2626;
+    }
+
+    /* 토글 버튼 */
+    .btn-toggle-detail {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md); /* ✅ 크기 축소: md/lg → sm/md */
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+
+        /* ✅ 녹색 계열로 변경 (검색하기와 차별화) */
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #FFFFFF !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        font-size: var(--font-sm);
+    }
+
+    .btn-toggle-detail:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .toggle-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-toggle-detail.expanded .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    /* === 상세 영역 (2단계 - 아코디언) === */
+    .report-detail {
+        padding: var(--spacing-xl);
+        background: rgba(248, 250, 252, 0.95);
+        animation: slideDown 0.4s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            max-height: 10000px;
+            transform: translateY(0);
+        }
+    }
+
+    /* 상세 섹션 */
+    .detail-section {
+        margin-bottom: var(--spacing-lg); /* ✅ 마진 축소 */
+        padding: var(--spacing-md); /* ✅ 패딩 축소 */
+        border-radius: var(--radius-lg);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+        font-size: var(--font-lg); /* ✅ 글씨 크기 축소 */
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm); /* ✅ 마진 축소 */
+        padding-bottom: var(--spacing-xs); /* ✅ 패딩 축소 */
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* ✅ NEW: 접을 수 있는 섹션 제목 */
+    .collapsible-section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.3s ease;
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin-bottom: 0;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-radius: var(--radius-lg);
+    }
+
+    .collapsible-section-title:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+        transform: translateX(4px);
+    }
+
+    .section-title-text {
+        flex: 1;
+    }
+
+    .section-toggle-icon {
+        font-size: var(--font-lg);
+        transition: transform 0.3s ease;
+        color: var(--primary-color);
+    }
+
+    .collapsible-section-title.expanded .section-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .section-content {
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .detail-content {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* ✅ 3열 그리드 */
+        gap: var(--spacing-sm) var(--spacing-lg); /* ✅ 간격 축소 */
+        padding: var(--spacing-sm); /* ✅ 패딩 축소 */
+    }
+
+    .detail-row {
+        display: flex;
+        flex-direction: column; /* ✅ 라벨과 값을 세로로 */
+        gap: 4px; /* ✅ 간격 최소화 */
+        font-size: var(--font-md);
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+        font-weight: var(--font-weight-medium);
+        font-size: 11px; /* ✅ 글씨 크기 축소 */
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .detail-value {
+        color: var(--text-primary);
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-sm); /* ✅ 글씨 크기 축소 */
+    }
+
+    /* ✅ 반응형: 화면이 작을 때는 2열 또는 1열로 */
+    @media (max-width: 1024px) {
+        .detail-content {
+            grid-template-columns: repeat(2, 1fr); /* 2열 */
+        }
+    }
+
+    @media (max-width: 640px) {
+        .detail-content {
+            grid-template-columns: 1fr; /* 1열 */
+        }
+    }
+
+    /* 작성 내용 표시 */
+    .written-content {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-lg);
+        background: rgba(59, 130, 246, 0.05);
+        border-left: 4px solid var(--color-primary);
+        border-radius: var(--radius-md);
+    }
+
+    .content-subtitle {
+        font-size: var(--font-lg);
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .content-info {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .info-item {
+        display: flex;
+        gap: var(--spacing-md);
+        font-size: var(--font-md);
+    }
+
+    .info-item span {
+        color: var(--text-secondary);
+    }
+
+    .info-item strong {
+        color: var(--text-primary);
+        font-weight: var(--font-weight-bold);
+    }
+
+    /* 실적 입력 영역 */
+    .actual-input {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-lg);
+        background: rgba(16, 185, 129, 0.05);
+        border-left: 4px solid var(--color-success);
+        border-radius: var(--radius-md);
+    }
+
+    .input-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-md);
+        align-items: end;
+    }
+
+    .activity-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .form-field label {
+        font-weight: var(--font-weight-medium);
+        color: var(--text-primary);
+        font-size: var(--font-sm);
+    }
+
+    .radio-group {
+        display: flex;
+        gap: var(--spacing-md);
+    }
+
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        cursor: pointer;
+    }
+
+    .vat-field small {
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    /* 추가 버튼 */
+    .btn-add-collection,
+    .btn-add-sales,
+
+    .glass-button.success {
+        background: var(--color-success);
+        color: white;
+    }
+
+    .glass-button.success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    /* 입력된 실적 표시 */
+    .actual-list {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-lg);
+        background: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius-md);
+    }
+
+    .actual-items {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .actual-item {
+        padding: var(--spacing-md);
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: var(--radius-md);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .confirmed-date {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .actual-summary {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding-top: var(--spacing-md);
+        border-top: 2px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: var(--font-md);
+    }
+
+    .summary-item strong {
+        color: var(--color-success);
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-lg);
+    }
+
+    /* 글자수 카운터 */
+    .char-counter {
+        margin-top: var(--spacing-xs);
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+    }
+
+    .char-count {
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+    }
+
+    .char-status {
+        margin-left: var(--spacing-sm);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .char-status.valid {
+        color: var(--color-success);
+    }
+
+    .char-status.invalid {
+        color: var(--color-error);
+    }
+
+    /* 섹션 상태 */
+    .section-status {
+        margin-top: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: rgba(248, 250, 252, 0.8);
+        border-radius: var(--radius-md);
+        font-weight: var(--font-weight-medium);
+        text-align: center;
+    }
+
+    /* 확인 요약 */
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md);
+        background: rgba(248, 250, 252, 0.5);
+        border-radius: var(--radius-md);
+    }
+
+    .summary-row.total {
+        background: rgba(59, 130, 246, 0.1);
+        border: 2px solid var(--color-primary);
+        font-size: var(--font-lg);
+    }
+
+    .summary-value {
+        font-weight: var(--font-weight-bold);
+    }
+
+    /* 액션 버튼 */
+    .detail-actions {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-xl);
+    }
+
+    .btn-save {
+        padding: 8px 20px;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-size: 21px;
+        font-weight: var(--font-weight-bold);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-save:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
+    }
+
+    .btn-save:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .glass-button.primary {
+        background: var(--color-primary);
+        color: white;
+    }
+
+    .glass-button.primary:hover {
+        background: var(--color-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    /* === 반응형 === */
+    @media (max-width: 1024px) {
+        .summary-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .search-filters {
+            flex-wrap: wrap;
+        }
+
+        .report-basic-info {
+            grid-template-columns: 1fr;
+        }
+
+        .input-group {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .search-filters {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .report-header {
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .btn-toggle-detail {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .input-group {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-actions {
+            flex-direction: column;
+        }
+
+        .btn-save {
+            width: 100%;
+        }
+    }
+
+    /* ✅ 입력 필드 글씨 색상 수정 */
+    .glass-input {
+        color: #1f2937 !important; /* 진한 회색 */
+        background: rgba(255, 255, 255, 0.9) !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: var(--radius-md);
+        font-size: var(--font-md);
+        transition: all 0.3s ease;
+    }
+
+    .glass-input:focus {
+        outline: none;
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        background: rgba(255, 255, 255, 1) !important;
+    }
+
+    .glass-input::placeholder {
+        color: #9ca3af !important; /* 연한 회색 */
+        opacity: 1;
+    }
+
+    /* 숫자 입력 필드 */
+    input[type="number"].glass-input {
+        color: #1f2937 !important;
+    }
+
+    /* 날짜 입력 필드 */
+    input[type="date"].glass-input {
+        color: #1f2937 !important;
+    }
+
+    /* 선택 필드 */
+    select.glass-input {
+        color: #1f2937 !important;
+    }
+
+    select.glass-input option {
+        color: #1f2937 !important;
+        background: #ffffff !important;
+    }
+
+    /* 텍스트 영역 */
+    textarea.glass-input {
+        color: #1f2937 !important;
+        resize: vertical;
+    }
+
+    /* ✅ 미이행 금액 표시 스타일 */
+    .remaining-amount-display {
+        margin-top: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+        border-left: 4px solid #ef4444;
+        border-radius: var(--radius-md);
+    }
+
+    .remaining-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: var(--font-lg);
+    }
+
+    .remaining-item span {
+        color: #991b1b;
+        font-weight: var(--font-weight-semibold);
+    }
+
+    .remaining-item strong {
+        color: #dc2626;
+        font-size: var(--font-xl);
+        font-weight: var(--font-weight-bold);
+    }
+
+    /* ✅ 섹션 제목 액션 버튼 */
+    .section-title-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .btn-confirm-collection,
+    .btn-confirm-sales,
+    .btn-confirm-activity {
+        padding: var(--spacing-xs) var(--spacing-md);
+        font-size: var(--font-sm);
+        font-weight: var(--font-weight-semibold);
+        border: none;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-confirm-collection:hover,
+    .btn-confirm-sales:hover,
+    .btn-confirm-activity:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-confirm-collection:active,
+    .btn-confirm-sales:active,
+    .btn-confirm-activity:active {
+        transform: translateY(0);
+    }
+
+    /* 섹션 제목 레이아웃 조정 */
+    .collapsible-section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-title-text {
+        flex: 1;
+    }
+
+    /* === 동적 그리드 레이아웃 === */
+    .section-grid-container {
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .grid-row {
+        display: grid;
+        grid-template-columns: 1fr 2.5fr 1fr;
+        gap: 15px;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .grid-row:last-child {
+        border-bottom: none;
+    }
+
+    /* 헤더 */
+    .grid-header {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-primary);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 컬럼 */
+    .grid-col-left {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 14px;
+    }
+
+    .grid-col-center {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .grid-col-right {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    /* 입력 필드 크기 */
+    .grid-col-center input[type="number"] {
+        width: 180px;  /* 금액 입력칸 확대 */
+    }
+
+    .grid-col-center input[type="date"] {
+        width: 150px;
+    }
+
+    .grid-col-center .glass-input {
+        padding: 8px 12px;
+    }
+
+    /* VAT 체크박스 */
+    .vat-checkbox-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .vat-checkbox-inline input[type="checkbox"] {
+        margin: 0;
+    }
+
+    /* + 버튼 줄 */
+    .grid-add-row {
+        border-bottom: none;
+        padding-top: 15px;
+    }
+
+    .grid-add-row .glass-button {
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* 동적 입력줄 컨테이너 */
+    .dynamic-input-rows {
+        display: contents;
+    }
+</style>
+
+<!-- JavaScript 모듈 -->
+<script type="module" src="./02_report_check.js"></script>
+
+</body>
+</html>

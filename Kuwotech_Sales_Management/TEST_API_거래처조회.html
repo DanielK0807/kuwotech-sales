@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>거래처 자동완성 테스트</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-box {
+            border: 2px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🔍 거래처 자동완성 API 테스트</h1>
+
+    <div class="test-box">
+        <h3>Step 1: 로그인 정보 확인</h3>
+        <p>현재 로그인된 사용자: <strong id="currentUser">확인 중...</strong></p>
+        <button onclick="checkLoginStatus()">🔄 로그인 상태 확인</button>
+    </div>
+
+    <div class="test-box">
+        <h3>Step 2: 거래처 목록 조회 테스트</h3>
+        <p>로그인한 사용자의 담당 거래처를 조회합니다.</p>
+        <button onclick="testGetCompanies()">📋 담당 거래처 조회</button>
+    </div>
+
+    <div class="test-box">
+        <h3>Step 3: 자동완성 기능 테스트</h3>
+        <input type="text" id="searchInput" placeholder="거래처명 입력..." style="width: 300px; padding: 10px; font-size: 16px;">
+        <div id="autocompleteResult" style="margin-top: 10px; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; display: none;">
+            <!-- 자동완성 결과 -->
+        </div>
+    </div>
+
+    <div id="result">
+        <p class="info">🔍 위의 버튼들을 클릭하여 API를 테스트하세요.</p>
+    </div>
+
+    <script type="module">
+        import Storage from './05.Source/01.common/15_storage_manager.js';
+        import ApiManager from './05.Source/01.common/13_api_manager.js';
+
+        const storage = new Storage();
+        const apiManager = new ApiManager();
+
+        // API Manager 초기화
+        await apiManager.init();
+
+        // 전역 함수로 등록
+        window.storage = storage;
+        window.apiManager = apiManager;
+        window.companies = [];
+
+        // 로그인 상태 확인
+        window.checkLoginStatus = function() {
+            const currentUser = storage.get('currentUser');
+            const resultDiv = document.getElementById('result');
+
+            if (currentUser) {
+                document.getElementById('currentUser').textContent = `${currentUser.name} (${currentUser.department})`;
+                resultDiv.innerHTML = `
+                    <p class="success">✅ 로그인 정보 확인 성공</p>
+                    <pre>${JSON.stringify(currentUser, null, 2)}</pre>
+                `;
+            } else {
+                document.getElementById('currentUser').textContent = '로그인 안 됨';
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 로그인 정보가 없습니다.</p>
+                    <p>먼저 로그인 페이지에서 로그인해주세요.</p>
+                `;
+            }
+        };
+
+        // 거래처 목록 조회
+        window.testGetCompanies = async function() {
+            const resultDiv = document.getElementById('result');
+            const currentUser = storage.get('currentUser');
+
+            if (!currentUser) {
+                resultDiv.innerHTML = '<p class="error">❌ 로그인이 필요합니다.</p>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<p class="info">🔄 거래처 목록 조회 중...</p>';
+
+            try {
+                console.log('[Test] API 호출 시작:', currentUser.name);
+
+                const response = await apiManager.getCompaniesByManager(currentUser.name);
+
+                console.log('[Test] API 응답:', response);
+
+                if (response.success) {
+                    window.companies = response.companies || [];
+
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 거래처 목록 조회 성공!</p>
+                        <p><strong>총 ${response.count}개의 거래처</strong></p>
+                        <hr>
+                        <h4>거래처 목록:</h4>
+                        <pre>${JSON.stringify(response.companies, null, 2)}</pre>
+                    `;
+
+                    // 자동완성 활성화
+                    enableAutocomplete();
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ API 응답 오류</p>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('[Test] API 호출 실패:', error);
+                resultDiv.innerHTML = `
+                    <p class="error">❌ API 호출 실패</p>
+                    <p>에러: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        };
+
+        // 자동완성 활성화
+        function enableAutocomplete() {
+            const searchInput = document.getElementById('searchInput');
+            const autocompleteResult = document.getElementById('autocompleteResult');
+
+            searchInput.addEventListener('input', function(e) {
+                const inputValue = e.target.value.trim().toLowerCase();
+
+                if (!inputValue) {
+                    autocompleteResult.style.display = 'none';
+                    return;
+                }
+
+                // 필터링
+                const filtered = window.companies.filter(company => {
+                    const companyName = (company.finalCompanyName || company.companyName || '').toLowerCase();
+                    return companyName.includes(inputValue);
+                });
+
+                // 결과 표시
+                if (filtered.length > 0) {
+                    autocompleteResult.innerHTML = filtered.slice(0, 10).map(company => {
+                        const companyName = company.finalCompanyName || company.companyName;
+                        return `<div style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;"
+                                     onmouseover="this.style.background='#f0f0f0'"
+                                     onmouseout="this.style.background='white'"
+                                     onclick="selectCompany('${companyName}')">
+                                    ${companyName}
+                                </div>`;
+                    }).join('');
+                    autocompleteResult.style.display = 'block';
+                } else {
+                    autocompleteResult.innerHTML = '<div style="padding: 10px; color: #999;">검색 결과가 없습니다</div>';
+                    autocompleteResult.style.display = 'block';
+                }
+            });
+        }
+
+        window.selectCompany = function(companyName) {
+            document.getElementById('searchInput').value = companyName;
+            document.getElementById('autocompleteResult').style.display = 'none';
+            document.getElementById('result').innerHTML = `
+                <p class="success">✅ 거래처 선택: <strong>${companyName}</strong></p>
+            `;
+        };
+
+        // 페이지 로드 시 로그인 상태 확인
+        checkLoginStatus();
+    </script>
+</body>
+</html>

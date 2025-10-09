@@ -1,0 +1,281 @@
+/* ============================================
+   CSS 변수 시스템 - UI 사양서 기반 동적 설계
+   파일: 07.styles/01_variables.css
+   작성일: 2025-01-27
+   설명: UI 사양서 기반 동적 레이아웃 시스템
+============================================ */
+
+/* ============================================
+   [1] 루트 변수 - 동적 시스템 (UI 사양서 준수)
+============================================ */
+:root {
+  /* ========== 색상 시스템 ========== */
+  /* ⚠️ 중요: 테마별 색상은 07_theme_colors.css에서 관리됩니다 */
+  /* ⚠️ 이 파일은 테마 중립적인 시스템 변수만 정의합니다 */
+  /* 참조: 14_최신_색상_규칙_및_글래스모피즘_가이드.md */
+  
+  /* ===== 시스템 상태 색상 (모든 테마 공통) ===== */
+  /* ✅ 최신 가이드 기준 (14_최신_색상_규칙_및_글래스모피즘_가이드.md) */
+  --color-success: #4CAF50;  /* 기존 #38a169 → 변경 */
+  --color-warning: #FF9800;  /* 기존 #d69e2e → 변경 */
+  --color-error: #F44336;    /* 기존 #e53e3e → 변경 */
+  --color-info: #2196F3;     /* 기존 #3182ce → 변경 */
+  --color-danger: #F44336;   /* error와 동일 */
+  
+  /* ===== 공통 배경 효과 (테마 독립적) ===== */
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  
+  /* ❌ 아래 변수들은 제거됨 - 07_theme_colors.css를 참조하세요 */
+  /* --bg-primary, --bg-secondary, --bg-tertiary, --bg-card */
+  /* --text-primary, --text-secondary, --text-muted, --text-disabled */
+  
+  /* 글래스모피즘 (UI 사양서 기준) */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-light: rgba(255, 255, 255, 0.08);
+  --glass-bg-heavy: rgba(255, 255, 255, 0.12);
+  --glass-bg-white: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-blur: blur(10px);
+  --glass-blur-light: blur(5px);
+  --glass-blur-heavy: blur(20px);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  --glass-inner-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+  --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  --glass-shine: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+  
+  /* ========== 간격 시스템 (8px 기반) - UI 사양서 ========== */
+  --spacing-unit: 8px;
+  --spacing-xs: calc(var(--spacing-unit) * 0.5);     /* 4px */
+  --spacing-sm: calc(var(--spacing-unit) * 1);       /* 8px */
+  --spacing-md: calc(var(--spacing-unit) * 2);       /* 16px */
+  --spacing-lg: calc(var(--spacing-unit) * 3);       /* 24px */
+  --spacing-xl: calc(var(--spacing-unit) * 4);       /* 32px */
+  --spacing-2xl: calc(var(--spacing-unit) * 6);      /* 48px */
+  --spacing-3xl: calc(var(--spacing-unit) * 8);      /* 64px */
+  
+  /* ========== 폰트 시스템 (UI 사양서 기반) ========== */
+  --font-family-primary: 'Paperlogy', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-secondary: 'Nanum Gothic', 'Malgun Gothic', sans-serif;
+  --font-family-mono: 'D2Coding', 'Consolas', 'Monaco', monospace;
+  
+  --font-scale: 1.25;
+  --font-base: clamp(14px, 2vw, 16px);
+  --font-xs: calc(var(--font-base) * 0.75);          /* 12px */
+  --font-sm: calc(var(--font-base) * 0.875);         /* 14px */
+  --font-md: var(--font-base);                       /* 16px */
+  --font-lg: calc(var(--font-base) * 1.125);         /* 18px */
+  --font-xl: calc(var(--font-base) * 1.25);          /* 20px */
+  --font-2xl: calc(var(--font-base) * 1.5);          /* 24px */
+  --font-3xl: calc(var(--font-base) * 2);            /* 32px */
+  --font-4xl: calc(var(--font-base) * 2.5);          /* 40px */
+  
+  /* 폰트 크기 별칭 (호환성) */
+  --font-size-base: var(--font-md);
+  --font-size-sm: var(--font-sm);
+  --font-size-lg: var(--font-lg);
+  --font-size-xl: var(--font-xl);
+  --font-size-2xl: var(--font-2xl);
+  --font-size-3xl: var(--font-3xl);
+  --font-size-4xl: var(--font-4xl);
+  
+  /* 폰트 굵기 */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* 줄 높이 */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* ========== 레이아웃 시스템 (UI 사양서) ========== */
+  --header-height: 96px;
+  --sidebar-width: 250px;
+  --sidebar-width-collapsed: 64px;
+  --sidebar-width-mobile: 0px;
+  --sidebar-translate: 0;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.05);
+  --sidebar-hover-translate: 6px;
+  --sidebar-active-bg-start: rgba(var(--accent-rgb), 0.1);
+  --sidebar-active-bg-end: transparent;
+  
+  --content-max-width: 1400px;
+  --content-padding: var(--spacing-xl);
+  --container-max-width: 1200px;
+  
+  /* KPI 그리드 설정 */
+  --kpi-min-width: 280px;
+  --card-min-width: 300px;
+  
+  /* 모달 크기 변수 */
+  --modal-width: 600px;
+  --modal-min-height: 300px;
+  --modal-max-height: 600px;
+  --backdrop-opacity: 0.6;
+  
+  /* ========== 테두리 반경 ========== */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-full: 9999px;
+  
+  /* 별칭 (호환성) */
+  --radius-sm: var(--border-radius-sm);
+  --radius-md: var(--border-radius-md);
+  --radius-lg: var(--border-radius-lg);
+  --radius-xl: var(--border-radius-xl);
+  --radius-full: var(--border-radius-full);
+  
+  /* ========== 테두리 두께 ========== */
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 3px;
+  
+  /* 테두리 색상 */
+  --color-border-light: rgba(255, 255, 255, 0.06);
+  --color-border-medium: rgba(255, 255, 255, 0.1);
+  --color-border-dark: rgba(255, 255, 255, 0.15);
+  
+  /* ========== 그림자 ========== */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  --shadow-xl: 0 19px 38px rgba(0, 0, 0, 0.30), 0 15px 12px rgba(0, 0, 0, 0.22);
+  --shadow-hover: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  --shadow-active: 0 3px 5px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.12);
+  
+  /* ========== 애니메이션 ========== */
+  --animation-duration: 300ms;
+  --animation-fast: 200ms;
+  --animation-slow: 500ms;
+  --animation-very-slow: 1000ms;
+  
+  /* 트랜지션 */
+  --transition-all: all var(--animation-duration) ease;
+  --transition-colors: color var(--animation-duration) ease, background-color var(--animation-duration) ease, border-color var(--animation-duration) ease;
+  --transition-smooth: all var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ========== Z-인덱스 ========== */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  
+  /* 별칭 (호환성) */
+  --z-header: var(--z-index-fixed);
+  --z-sidebar: var(--z-index-sticky);
+  
+  /* ========== 스크롤바 ========== */
+  --scroll-bar-width: 8px;
+  --scroll-bar-track: var(--bg-secondary);
+  --scroll-bar-thumb: #555555;
+  --scroll-bar-thumb-hover: #777777;
+  
+  /* ========== 알파 색상 (투명도) ========== */
+  /* ⚠️ 테마별로 재정의 필요 - 07_theme_colors.css 참조 */
+  --primary-alpha: rgba(5, 38, 89, 0.2);  /* 관리자 모드 기본값 */
+  --accent-alpha: rgba(0, 230, 118, 0.2); /* Neon Mint 기본값 */
+  --accent-rgb: 0, 230, 118;
+  --primary-rgb: 5, 38, 89;
+  
+  /* ========== 그라디언트 ========== */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  --gradient-secondary: linear-gradient(135deg, var(--color-secondary), var(--color-accent));
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+  
+  /* 테마별 글래스 효과 */
+  --theme-glass-border: rgba(255, 255, 255, 0.12);
+  --theme-glass-glow: 0 0 20px rgba(var(--primary-rgb), 0.5);
+}
+
+/* ============================================
+   [2] 브레이크포인트별 변수 조정
+============================================ */
+
+/* 초대형 데스크톱 (1536px 이상) */
+@media (min-width: 1536px) {
+  :root {
+    --sidebar-width: 280px;
+    --header-height: 105px;
+    --content-max-width: 1400px;
+    --font-base: 16px;
+  }
+}
+
+/* 대형 데스크톱 (1280px - 1535px) */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  :root {
+    --sidebar-width: 250px;
+    --header-height: 96px;
+    --content-max-width: 1200px;
+  }
+}
+
+/* 데스크톱 (1024px - 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --sidebar-width: 250px;
+    --header-height: 96px;
+    --content-max-width: 100%;
+  }
+}
+
+/* 태블릿 (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --sidebar-width: 200px;
+    --header-height: 90px;
+    --content-max-width: 100%;
+    --font-base: 15px;
+    --kpi-min-width: 240px;
+    --card-min-width: 280px;
+  }
+}
+
+/* 대형 모바일 (640px - 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  :root {
+    --sidebar-width: 0;
+    --header-height: 84px;
+    --content-max-width: 100%;
+    --font-base: 14px;
+    --kpi-min-width: 100%;
+    --card-min-width: 100%;
+    --content-padding: var(--spacing-lg);
+  }
+}
+
+/* 모바일 (639px 이하) */
+@media (max-width: 639px) {
+  :root {
+    --sidebar-width: 0;
+    --header-height: 84px;
+    --content-max-width: 100%;
+    --font-base: 14px;
+    --kpi-min-width: 100%;
+    --card-min-width: 100%;
+    --content-padding: var(--spacing-md);
+  }
+}
+
+/* ============================================
+   [3] 다크모드 변수 (자동 적용)
+============================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 다크모드에서는 기본값 유지 */
+  }
+}
+
+/* ⚠️ 라이트모드는 테마별로 07_theme_colors.css에서 관리됩니다 */
+/* @media (prefers-color-scheme: light) 제거됨 - 테마별 색상 사용 */

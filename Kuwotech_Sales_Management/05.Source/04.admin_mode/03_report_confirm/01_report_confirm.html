@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실적보고서 확인 (관리자) - KUWOTECH 영업관리 시스템</title>
+
+    <!-- ✅ 스타일시트 (순서 중요 - 변수 → 공통 → 글래스모피즘 → 테마 색상) -->
+    <link rel="stylesheet" href="../../07.styles/00_root.css">
+    <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/02_common.css">
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
+    <link rel="stylesheet" href="../../07.styles/04_components.css">
+
+    <!-- 시스템 로더 -->
+    <script type="module" src="../../01.common/17_system_loader.js"></script>
+
+    <!-- ✨ 글래스모피즘 자동 적용 -->
+    <script type="module" src="../../01.common/18_glassmorphism_auto_apply.js"></script>
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" href="../../../02.Fonts_Logos/logo.png">
+</head>
+<body class="theme-admin viewport-3d" data-page-type="report-confirm" data-mode="admin">
+
+<!-- ============================================
+     KUWOTECH 영업관리 시스템 - 실적보고서 확인 (관리자)
+     ============================================ -->
+
+<div class="report-confirm-container">
+
+    <!-- ============================================
+         페이지 헤더 (대시보드와 동일 구조)
+         ============================================ -->
+    <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="text-on-layer-1">실적보고서 확인 (관리자)</h1>
+                <p class="subtitle text-on-layer-1">영업담당자가 제출한 실적보고서를 확인하고 의견을 작성합니다</p>
+            </div>
+            <button
+                id="btnRefresh"
+                class="btn-refresh glass-button"
+                title="데이터 새로고침">
+                🔄 새로고침
+            </button>
+        </div>
+    </header>
+
+    <!-- 로딩 상태 -->
+    <div id="loadingState" class="loading-state" style="display: flex;">
+        <div class="loading-spinner"></div>
+        <p>보고서 데이터를 불러오는 중...</p>
+    </div>
+
+    <!-- 데이터 없음 상태 -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">📭</div>
+        <p>표시할 보고서가 없습니다.</p>
+        <button class="glass-button primary" onclick="location.reload()">새로고침</button>
+    </div>
+
+    <!-- ============================================
+         메인 컨테이너: 3단 레이아웃
+         ============================================ -->
+    <div class="main-layout" id="mainLayout" style="display: none;">
+
+        <!-- 1. 사이드바 (20%) -->
+        <aside class="sidebar glass-card glass-3d-element" id="sidebar">
+
+            <!-- 금주 제출현황 -->
+            <section class="sidebar-section">
+                <h3 class="sidebar-title">📊 금주 실적보고서 제출현황</h3>
+
+                <!-- 제출자 -->
+                <div class="submitters-section">
+                    <h4 class="section-subtitle">✅ 제출자 (<span id="submittersCount">0</span>명)</h4>
+                    <ul class="submitters-list" id="submittersList">
+                        <!-- JavaScript로 동적 생성 -->
+                    </ul>
+                </div>
+
+                <!-- 미제출자 -->
+                <div class="non-submitters-section">
+                    <h4 class="section-subtitle">❌ 미제출자 (<span id="nonSubmittersCount">0</span>명)</h4>
+                    <ul class="non-submitters-list" id="nonSubmittersList">
+                        <!-- JavaScript로 동적 생성 -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 보고서 상태 -->
+            <section class="sidebar-section">
+                <h3 class="sidebar-title">📌 보고서 상태</h3>
+                <ul class="status-filter-list">
+                    <li class="status-filter-item" data-status="incomplete">
+                        <button class="status-filter-btn">
+                            ❌ 미실행 (<span id="incompleteCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="status-filter-item" data-status="partial">
+                        <button class="status-filter-btn active">
+                            ⚠️ 일부완료 (<span id="partialCount">0</span>)
+                        </button>
+                    </li>
+                    <li class="status-filter-item" data-status="complete">
+                        <button class="status-filter-btn">
+                            ✅ 완료 (<span id="completeCount">0</span>)
+                        </button>
+                    </li>
+                </ul>
+            </section>
+
+        </aside>
+
+        <!-- 2. 보고서 리스트 (40%) -->
+        <main class="report-list-panel glass-card glass-3d-element" id="reportListPanel">
+
+            <!-- 금주 보고서 섹션 (우선 표시) -->
+            <section class="list-section">
+                <h3 class="list-section-title">▼ 금주 실적보고서</h3>
+                <div class="report-items-container" id="weeklyReportsContainer">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+            </section>
+
+            <!-- 구분선 -->
+            <hr class="section-divider">
+
+            <!-- 선택된 상태별 보고서 섹션 -->
+            <section class="list-section">
+                <h3 class="list-section-title" id="filteredSectionTitle">▼ 일부완료 보고서</h3>
+                <div class="report-items-container" id="filteredReportsContainer">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+                <p class="list-count" id="filteredReportsCount">(총 0건)</p>
+            </section>
+
+        </main>
+
+        <!-- 3. 상세 패널 (40%) - 읽기모드 -->
+        <aside class="detail-panel glass-card glass-3d-element" id="detailPanel">
+
+            <!-- 초기 상태 (플레이스홀더) -->
+            <div class="detail-placeholder" id="detailPlaceholder">
+                <div class="placeholder-icon">📋</div>
+                <p class="placeholder-text">보고서를 선택하면<br>상세 내용이 표시됩니다</p>
+            </div>
+
+            <!-- 보고서 상세 내용 (숨김 상태로 시작) -->
+            <div class="detail-content" id="detailContent" style="display: none;">
+
+                <!-- 보고서 기본 정보 -->
+                <section class="detail-section glass-card">
+                    <h3 class="detail-section-title">📝 보고서 기본 정보</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">보고서 ID:</span>
+                            <span class="info-value" id="detailReportId">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">보고서 유형:</span>
+                            <span class="info-value" id="detailReportType">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">작성자:</span>
+                            <span class="info-value" id="detailSubmitter">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">거래처:</span>
+                            <span class="info-value" id="detailCompany">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">제출일:</span>
+                            <span class="info-value" id="detailSubmitDate">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">상태:</span>
+                            <span class="info-value status-badge" id="detailStatus">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 목표수금금액 (읽기전용) -->
+                <section class="detail-section glass-card">
+                    <h3 class="detail-section-title">💰 목표수금금액</h3>
+                    <div class="readonly-content">
+                        <div class="readonly-item">
+                            <span class="readonly-label">목표:</span>
+                            <span class="readonly-value" id="detailCollectionGoal">-</span>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="readonly-label">실적:</span>
+                            <span class="readonly-value" id="detailCollectionActual">-</span>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="readonly-label">미이행:</span>
+                            <span class="readonly-value error" id="detailCollectionRemaining">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 목표매출액 (읽기전용) -->
+                <section class="detail-section glass-card">
+                    <h3 class="detail-section-title">💵 목표매출액(<span id="detailSalesProduct">-</span>)</h3>
+                    <div class="readonly-content">
+                        <div class="readonly-item">
+                            <span class="readonly-label">목표:</span>
+                            <span class="readonly-value" id="detailSalesGoal">-</span>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="readonly-label">실적:</span>
+                            <span class="readonly-value" id="detailSalesActual">-</span>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="readonly-label">미이행:</span>
+                            <span class="readonly-value error" id="detailSalesRemaining">-</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 영업활동 (읽기전용) -->
+                <section class="detail-section glass-card">
+                    <h3 class="detail-section-title">📝 영업활동(특이사항)</h3>
+                    <div class="activity-list" id="detailActivityList">
+                        <!-- JavaScript로 동적 생성 -->
+                    </div>
+                </section>
+
+                <!-- 관리자 의견 작성 -->
+                <section class="detail-section glass-card">
+                    <h3 class="detail-section-title">📝 관리자 의견</h3>
+                    <div class="comment-input-area">
+                        <textarea
+                            class="glass-input comment-textarea"
+                            id="adminComment"
+                            rows="6"
+                            placeholder="관리자 의견을 작성하세요..."></textarea>
+                        <div class="comment-actions">
+                            <button class="glass-button primary" id="saveCommentBtn">
+                                💾 저장
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</div>
+
+<!-- 인라인 스타일 -->
+<style>
+    /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
+    html {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: 100% !important;
+    }
+
+    /* === 레이아웃 === */
+    .report-confirm-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+    }
+
+    /* === 헤더 (대시보드와 동일) === */
+    .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(2, 16, 36, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+    }
+
+    .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+    }
+
+    /* === 로딩 & 빈 상태 === */
+    .loading-state,
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-3xl);
+        min-height: 300px;
+        text-align: center;
+        width: 95%;
+        margin: 0 auto;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: var(--spacing-md) 0;
+        color: var(--text-secondary);
+        font-size: var(--font-lg);
+    }
+
+    /* === 메인 레이아웃: 3단 구조 === */
+    .main-layout {
+        display: flex;
+        gap: var(--spacing-lg);
+        height: calc(100vh - 200px);
+        padding: 0 2.5%;
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    /* === 1. 사이드바 (25%) === */
+    .sidebar {
+        flex: 0 0 25%;
+        min-width: 260px;
+        max-width: 350px;
+        overflow-y: auto;
+        padding: var(--spacing-lg);
+    }
+
+    .sidebar-section {
+        margin-bottom: var(--spacing-xl);
+        padding-bottom: var(--spacing-lg);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-section:last-child {
+        border-bottom: none;
+    }
+
+    .sidebar-title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        margin: 0 0 var(--spacing-md) 0;
+        color: var(--text-primary);
+    }
+
+    .section-subtitle {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+        color: var(--text-secondary);
+    }
+
+    .submitters-section,
+    .non-submitters-section {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .submitters-list,
+    .non-submitters-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .submitters-list li,
+    .non-submitters-list li {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        margin-bottom: var(--spacing-xs);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-sm);
+        color: var(--text-primary);
+    }
+
+    .submitters-list li::before {
+        content: '• ';
+        color: var(--color-success);
+        font-weight: 700;
+    }
+
+    .non-submitters-list li::before {
+        content: '• ';
+        color: var(--color-error);
+        font-weight: 700;
+    }
+
+    .status-filter-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .status-filter-item {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .status-filter-btn {
+        width: 100%;
+        padding: var(--spacing-md);
+        text-align: left;
+        font-size: var(--font-md);
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .status-filter-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
+        border-color: var(--color-primary);
+    }
+
+    .status-filter-btn.active {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border-color: #3b82f6;
+    }
+
+    /* === 2. 보고서 리스트 (30%) === */
+    .report-list-panel {
+        flex: 0 0 30%;
+        overflow-y: auto;
+        padding: var(--spacing-lg);
+    }
+
+    .list-section {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .list-section-title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        margin: 0 0 var(--spacing-md) 0;
+        color: var(--text-primary);
+    }
+
+    .section-divider {
+        border: none;
+        border-top: 2px solid rgba(255, 255, 255, 0.1);
+        margin: var(--spacing-xl) 0;
+    }
+
+    .report-items-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .report-item {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .report-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(4px);
+        border-color: var(--color-primary);
+    }
+
+    .report-item.selected {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+        border-color: var(--color-primary);
+    }
+
+    .report-item-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .report-type-badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        background: rgba(139, 92, 246, 0.2);
+        color: #a78bfa;
+        border-radius: var(--radius-sm);
+        font-size: var(--font-xs);
+        font-weight: 600;
+    }
+
+    .report-submitter {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: var(--font-md);
+    }
+
+    .report-company {
+        color: var(--text-secondary);
+        font-size: var(--font-sm);
+    }
+
+    .report-item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: var(--font-xs);
+    }
+
+    .report-submit-date {
+        color: var(--text-secondary);
+    }
+
+    .report-status-badge {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-full);
+        font-weight: 600;
+        font-size: var(--font-xs);
+    }
+
+    .report-status-badge.incomplete {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+
+    .report-status-badge.partial {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+    }
+
+    .report-status-badge.complete {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+
+    .list-count {
+        margin-top: var(--spacing-md);
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        text-align: center;
+    }
+
+    /* === 3. 상세 패널 (45%) === */
+    .detail-panel {
+        flex: 0 0 45%;
+        overflow-y: auto;
+        padding: var(--spacing-lg);
+    }
+
+    .detail-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+    }
+
+    .placeholder-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.5;
+    }
+
+    .placeholder-text {
+        font-size: var(--font-lg);
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .detail-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg);
+    }
+
+    .detail-section {
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .detail-section-title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        margin: 0 0 var(--spacing-md) 0;
+        color: var(--text-primary);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .info-label {
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .info-value {
+        font-size: var(--font-md);
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .readonly-content {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .readonly-item {
+        display: flex;
+        justify-content: space-between;
+        padding: var(--spacing-sm);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: var(--radius-sm);
+    }
+
+    .readonly-label {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .readonly-value {
+        font-size: var(--font-md);
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    .readonly-value.error {
+        color: var(--color-error);
+    }
+
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .activity-item {
+        padding: var(--spacing-md);
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid var(--color-primary);
+        border-radius: var(--radius-sm);
+    }
+
+    .activity-item p {
+        margin: 0;
+        font-size: var(--font-sm);
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    .comment-input-area {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .comment-textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: var(--spacing-md);
+        font-size: var(--font-md);
+        line-height: 1.6;
+        border-radius: var(--radius-md);
+        resize: vertical;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+    }
+
+    .comment-textarea:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .comment-actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .glass-button {
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-size: var(--font-md);
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .glass-button.primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .glass-button.primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    /* === 반응형 === */
+    @media (max-width: 1200px) {
+        .main-layout {
+            flex-direction: column;
+            height: auto;
+        }
+
+        .sidebar,
+        .report-list-panel,
+        .detail-panel {
+            flex: 1 1 auto;
+            width: 100%;
+            min-width: unset;
+            max-width: unset;
+        }
+    }
+</style>
+
+<!-- JavaScript 모듈 -->
+<script type="module" src="./02_report_confirm.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!-- 페이지 타이틀 -->
+<header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+    <div class="header-content">
+        <div class="header-text">
+            <h1 class="text-on-layer-1">데이터 관리</h1>
+            <p class="subtitle text-on-layer-1">시스템 데이터를 관리하세요</p>
+        </div>
+        <button id="btnRefresh" class="btn-refresh glass-button" title="데이터 새로고침">
+            🔄 새로고침
+        </button>
+    </div>
+</header>
+
+<!-- 다운로드 섹션 -->
+<section class="download-section glass-card glass-3d-element">
+    <div class="download-grid">
+        <!-- 전체거래처관리 다운로드 -->
+        <div class="download-card glass-panel">
+            <div class="card-icon">🏢</div>
+            <h3 class="card-title">전체거래처 관리</h3>
+            <p class="card-description">모든 거래처 정보를 엑셀로 다운로드</p>
+            <div class="card-info">
+                <div class="info-item">
+                    <span class="info-label">총 거래처</span>
+                    <span class="info-value" id="totalCompanies">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">마지막 업데이트</span>
+                    <span class="info-value" id="companiesLastUpdate">-</span>
+                </div>
+            </div>
+            <button class="glass-button full-width" onclick="downloadAllCompanies()">
+                <span>📥</span> 다운로드
+            </button>
+        </div>
+
+        <!-- 영업담당 KPI 다운로드 -->
+        <div class="download-card glass-panel">
+            <div class="card-icon">👤</div>
+            <h3 class="card-title">영업담당 KPI</h3>
+            <p class="card-description">개별 담당자의 KPI 리포트</p>
+            <div class="card-info">
+                <div class="info-item">
+                    <label for="salesPersonSelect" class="info-label">담당자 선택</label>
+                    <select id="salesPersonSelect" class="glass-select">
+                        <option value="">담당자를 선택하세요</option>
+                    </select>
+                </div>
+            </div>
+            <button class="glass-button full-width" onclick="downloadSalesPersonKPI()">
+                <span>📥</span> 다운로드
+            </button>
+        </div>
+
+        <!-- 회사전체 KPI 다운로드 -->
+        <div class="download-card glass-panel">
+            <div class="card-icon">📊</div>
+            <h3 class="card-title">회사전체 KPI</h3>
+            <p class="card-description">전사 통합 KPI 리포트</p>
+            <div class="card-info">
+                <div class="info-item">
+                    <span class="info-label">총 영업담당자</span>
+                    <span class="info-value" id="totalSalesPeople">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">기준일</span>
+                    <span class="info-value" id="kpiDate">-</span>
+                </div>
+            </div>
+            <button class="glass-button full-width" onclick="downloadCompanyKPI()">
+                <span>📥</span> 다운로드
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- JavaScript 모듈 -->
+<script type="module" src="./02_data_management.js"></script>
+
+<style>
+    /* 헤더 스타일 (다른 페이지와 동일) */
+    .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-xl) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(2, 16, 36, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+    }
+
+    .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+    }
+
+    .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .btn-refresh:active {
+        transform: translateY(0);
+    }
+
+    /* Shimmer 효과 속도 조절 (10배 느리게) */
+    .glass-shimmer::before {
+        animation: glass-shimmer 30s ease-in-out infinite !important;
+    }
+
+    .download-section {
+        margin-top: 24px;
+        padding: 24px;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .download-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    .download-card {
+        padding: 30px;
+        text-align: center;
+        transition: transform 0.3s ease;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+    }
+
+    .download-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--primary-color);
+    }
+
+    .card-icon {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--primary-color);
+    }
+
+    .card-description {
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    .card-info {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        text-align: left;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 12px 0;
+    }
+
+    .info-item:first-child {
+        margin-top: 0;
+    }
+
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        font-weight: 500;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .glass-select {
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .glass-select:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: var(--primary-color);
+    }
+
+    .glass-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+    }
+
+    .glass-button {
+        padding: 14px 28px;
+        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 158, 255, 0.3);
+    }
+
+    .glass-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 158, 255, 0.4);
+    }
+
+    .glass-button:active {
+        transform: translateY(0);
+    }
+
+    .full-width {
+        width: 100%;
+    }
+</style>
