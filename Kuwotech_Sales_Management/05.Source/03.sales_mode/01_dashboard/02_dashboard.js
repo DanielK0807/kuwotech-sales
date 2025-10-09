@@ -30,6 +30,8 @@ import {
     formatCurrency,
     formatPercent,
     formatDate,
+    formatDateTime,
+    formatTime,
     showToast,
     showLoading,
     hideLoading,
@@ -70,17 +72,7 @@ let refreshTimer = null; // 자동 새로고침 타이머 ID
 // [SECTION: 유틸리티 함수]
 // ============================================
 
-function formatTime(date) {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatDateTime(date) {
-    if (!date) return '';
-    const d = new Date(date);
-    return d.toLocaleString('ko-KR');
-}
+// formatTime과 formatDateTime은 03_format.js에서 import하여 사용
 
 // ============================================
 // [SECTION: 초기화]
@@ -253,10 +245,10 @@ function displayKPICardsWithGlass() {
             title: '회사배정기준대비달성율',
             value: (() => {
                 const val = dashboardData.회사배정기준대비달성율 || 0;
-                const absVal = Math.abs(val).toFixed(2);
+                const formatted = formatPercent(Math.abs(val) / 100, 2, false);
                 return val >= 0
-                    ? `${absVal}% 초과배정`
-                    : `(${absVal})% 미달배정`;
+                    ? `${formatted} 초과배정`
+                    : `(${formatted}) 미달배정`;
             })(),
             unit: '',
             icon: '🎯',
@@ -271,10 +263,10 @@ function displayKPICardsWithGlass() {
             title: '주요고객처목표달성율',
             value: (() => {
                 const val = dashboardData.주요고객처목표달성율 || 0;
-                const absVal = Math.abs(val).toFixed(2);
+                const formatted = formatPercent(Math.abs(val) / 100, 2, false);
                 return val >= 0
-                    ? `${absVal}% 목표 초과`
-                    : `(${absVal})% 목표 미달`;
+                    ? `${formatted} 목표 초과`
+                    : `(${formatted}) 목표 미달`;
             })(),
             unit: '',
             icon: '🏆',
