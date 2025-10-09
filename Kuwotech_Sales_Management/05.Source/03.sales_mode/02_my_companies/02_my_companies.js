@@ -1190,19 +1190,19 @@ async function openCompanyDetailModal(keyValue) {
                         </div>
                         <div class="form-group">
                             <label>마지막총결재금액</label>
-                            <input type="text" class="form-control" value="${company.lastPaymentAmount ? company.lastPaymentAmount.toLocaleString() + '원' : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control" value="${company.lastPaymentAmount ? formatCurrency(company.lastPaymentAmount, true) : '-'}" readonly style="background-color: #f5f5f5;">
                         </div>
                         <div class="form-group">
                             <label>누적수금금액</label>
-                            <input type="text" class="form-control" value="${company.accumulatedCollection ? company.accumulatedCollection.toLocaleString() + '원' : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control" value="${company.accumulatedCollection ? formatCurrency(company.accumulatedCollection, true) : '-'}" readonly style="background-color: #f5f5f5;">
                         </div>
                         <div class="form-group">
                             <label>누적매출금액</label>
-                            <input type="text" class="form-control" value="${company.accumulatedSales ? company.accumulatedSales.toLocaleString() + '원' : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control" value="${company.accumulatedSales ? formatCurrency(company.accumulatedSales, true) : '-'}" readonly style="background-color: #f5f5f5;">
                         </div>
                         <div class="form-group">
                             <label>매출채권잔액</label>
-                            <input type="text" class="form-control" value="${company.accountsReceivable ? company.accountsReceivable.toLocaleString() + '원' : '-'}" readonly style="background-color: #f5f5f5;">
+                            <input type="text" class="form-control" value="${company.accountsReceivable ? formatCurrency(company.accountsReceivable, true) : '-'}" readonly style="background-color: #f5f5f5;">
                         </div>
                         <div class="form-group full-width">
                             <label>영업활동</label>
