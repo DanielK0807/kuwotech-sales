@@ -5,7 +5,7 @@
 // =====================================
 
 // 공통 모듈 import
-import { formatDate, formatPhone, formatDateKorean } from '../../01.common/03_format.js';
+import { formatDate, formatPhone, formatDateKorean, formatCurrency } from '../../01.common/03_format.js';
 import { themeManager } from '../../01.common/11_theme_manager.js';
 import Modal from '../../01.common/06_modal.js';
 import { showToast } from '../../01.common/14_toast.js';
@@ -960,7 +960,7 @@ window.showTransferCompanies = async function(employeeId) {
                                 <div style="margin-left: 10px; flex: 1;">
                                     <strong>${c.finalCompanyName}</strong>
                                     <span style="margin-left: 10px; font-size: 0.85rem; color: var(--text-secondary);">
-                                        ${c.businessStatus} | 매출: ${(c.accumulatedSales || 0).toLocaleString()}원
+                                        ${c.businessStatus} | 매출: ${formatCurrency(c.accumulatedSales || 0, true)}
                                     </span>
                                 </div>
                             </label>

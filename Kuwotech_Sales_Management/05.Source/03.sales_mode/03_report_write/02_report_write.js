@@ -6,7 +6,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
-import { formatCurrency } from '../../01.common/03_format.js';
+import { formatCurrency, formatPercent } from '../../01.common/03_format.js';
 
 // ============================================
 // API Manager 초기화
@@ -608,7 +608,7 @@ function updateGoalItem(prefix, data) {
     document.getElementById(`${prefix}Actual`).textContent = formatCurrency(actual);
 
     // 달성률 표시
-    document.getElementById(`${prefix}Rate`).textContent = `${rate.toFixed(1)}%`;
+    document.getElementById(`${prefix}Rate`).textContent = formatPercent(rate / 100, 1, true);
 
     // 프로그레스 바 애니메이션
     const progressBar = document.getElementById(`${prefix}Progress`);

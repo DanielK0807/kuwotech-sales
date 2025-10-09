@@ -6,7 +6,7 @@
 ============================================ */
 
 // 모듈 import
-import { formatCurrency, formatDate, formatDateKorean } from '../../01.common/03_format.js';
+import { formatCurrency, formatPercent, formatDate, formatDateKorean } from '../../01.common/03_format.js';
 import { showToast } from '../../01.common/14_toast.js';
 import { themeManager } from '../../01.common/11_theme_manager.js';
 import { calculateSalesKPI } from '../../01.common/21_kpi_calculator.js';
@@ -353,18 +353,18 @@ window.downloadSalesPersonKPI = async function() {
             '계산일': formatDateKorean(new Date()),
             '담당거래처': kpi.담당거래처,
             '활성거래처': kpi.활성거래처,
-            '활성화율': `${kpi.활성화율.toFixed(2)}%`,
+            '활성화율': formatPercent(kpi.활성화율 / 100, 2, true),
             '주요제품판매거래처': kpi.주요제품판매거래처,
-            '회사배정기준달성율': `${kpi.회사배정기준대비달성율.toFixed(2)}%`,
-            '주요고객처목표달성율': `${kpi.주요고객처목표달성율.toFixed(2)}%`,
+            '회사배정기준달성율': formatPercent(kpi.회사배정기준대비달성율 / 100, 2, true),
+            '주요고객처목표달성율': formatPercent(kpi.주요고객처목표달성율 / 100, 2, true),
             '누적매출금액': kpi.누적매출금액,
             '주요제품매출액': kpi.주요제품매출액,
-            '주요제품매출비율': `${kpi.주요제품매출비율.toFixed(2)}%`,
+            '주요제품매출비율': formatPercent(kpi.주요제품매출비율 / 100, 2, true),
             '매출집중도': Math.round(kpi.매출집중도),
             '누적수금금액': kpi.누적수금금액,
             '매출채권잔액': kpi.매출채권잔액,
-            '전체매출기여도': `${kpi.전체매출기여도.toFixed(2)}%`,
-            '주요매출기여도': `${kpi.주요제품매출기여도.toFixed(2)}%`
+            '전체매출기여도': formatPercent(kpi.전체매출기여도 / 100, 2, true),
+            '주요매출기여도': formatPercent(kpi.주요제품매출기여도 / 100, 2, true)
         }];
 
         // 워크북 생성
@@ -437,18 +437,18 @@ window.downloadCompanyKPI = async function() {
                     '담당자': person.name,
                     '담당거래처': kpi.담당거래처,
                     '활성거래처': kpi.활성거래처,
-                    '활성화율': `${kpi.활성화율.toFixed(2)}%`,
+                    '활성화율': formatPercent(kpi.활성화율 / 100, 2, true),
                     '주요제품판매거래처': kpi.주요제품판매거래처,
-                    '회사배정기준달성율': `${kpi.회사배정기준대비달성율.toFixed(2)}%`,
-                    '주요고객처목표달성율': `${kpi.주요고객처목표달성율.toFixed(2)}%`,
+                    '회사배정기준달성율': formatPercent(kpi.회사배정기준대비달성율 / 100, 2, true),
+                    '주요고객처목표달성율': formatPercent(kpi.주요고객처목표달성율 / 100, 2, true),
                     '누적매출금액': kpi.누적매출금액,
                     '주요제품매출액': kpi.주요제품매출액,
-                    '주요제품매출비율': `${kpi.주요제품매출비율.toFixed(2)}%`,
+                    '주요제품매출비율': formatPercent(kpi.주요제품매출비율 / 100, 2, true),
                     '매출집중도': Math.round(kpi.매출집중도),
                     '누적수금금액': kpi.누적수금금액,
                     '매출채권잔액': kpi.매출채권잔액,
-                    '전체매출기여도': `${kpi.전체매출기여도.toFixed(2)}%`,
-                    '주요매출기여도': `${kpi.주요제품매출기여도.toFixed(2)}%`
+                    '전체매출기여도': formatPercent(kpi.전체매출기여도 / 100, 2, true),
+                    '주요매출기여도': formatPercent(kpi.주요제품매출기여도 / 100, 2, true)
                 });
             }
         }
