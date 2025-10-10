@@ -883,6 +883,7 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
   if (isExpanded) {
     // 접기
     detailSection.style.display = 'none';
+    detailSection.classList.add('hidden');  // Add hidden class back for consistency
     btnToggle.innerHTML = '상세보기 <span class="toggle-icon">▼</span>';
     reportItem.classList.remove('expanded');
     state.expandedReportId = null;
@@ -902,12 +903,15 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
       const detail = item.querySelector('.report-detail');
       const btn = item.querySelector('.btn-toggle-detail');
       detail.style.display = 'none';
+      detail.classList.add('hidden');  // Add hidden class back
       btn.innerHTML = '상세보기 <span class="toggle-icon">▼</span>';
       item.classList.remove('expanded');
     });
 
     // 현재 아코디언 열기
-    detailSection.style.display = 'block';
+    // ✅ FIX: .hidden 클래스를 먼저 제거해야 display가 제대로 적용됨
+    detailSection.classList.remove('hidden');  // Remove hidden class FIRST
+    detailSection.style.display = 'block';     // Then set display
     btnToggle.innerHTML = '접기 <span class="toggle-icon">▲</span>';
     reportItem.classList.add('expanded');
     state.expandedReportId = report.reportId;
@@ -1047,11 +1051,14 @@ function loadReportDetails(reportItem, report) {
   const activitySection = reportItem.querySelector('.activity-section');
 
   if (collectionSection && report.collection && report.collection.planned > 0) {
+    // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
+    collectionSection.classList.remove('hidden');
     collectionSection.style.display = 'block';
     // 섹션 자동 펼치기
     const collectionSectionTitle = collectionSection.querySelector('.collapsible-section-title');
     const collectionSectionContent = collectionSectionTitle?.nextElementSibling;
     if (collectionSectionContent) {
+      collectionSectionContent.classList.remove('hidden');
       collectionSectionContent.style.display = 'block';
       collectionSectionTitle.classList.add('expanded');
       console.log('[Report Check] ✓ 수금 섹션 자동 펼침');
@@ -1059,11 +1066,14 @@ function loadReportDetails(reportItem, report) {
   }
 
   if (salesSection && report.sales && report.sales.planned > 0) {
+    // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
+    salesSection.classList.remove('hidden');
     salesSection.style.display = 'block';
     // 섹션 자동 펼치기
     const salesSectionTitle = salesSection.querySelector('.collapsible-section-title');
     const salesSectionContent = salesSectionTitle?.nextElementSibling;
     if (salesSectionContent) {
+      salesSectionContent.classList.remove('hidden');
       salesSectionContent.style.display = 'block';
       salesSectionTitle.classList.add('expanded');
       console.log('[Report Check] ✓ 매출 섹션 자동 펼침');
@@ -1071,11 +1081,14 @@ function loadReportDetails(reportItem, report) {
   }
 
   if (activitySection && report.activities && report.activities.length > 0) {
+    // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
+    activitySection.classList.remove('hidden');
     activitySection.style.display = 'block';
     // 활동 섹션도 자동 펼치기
     const activitySectionTitle = activitySection.querySelector('.collapsible-section-title');
     const activitySectionContent = activitySectionTitle?.nextElementSibling;
     if (activitySectionContent) {
+      activitySectionContent.classList.remove('hidden');
       activitySectionContent.style.display = 'block';
       activitySectionTitle.classList.add('expanded');
       console.log('[Report Check] ✓ 활동 섹션 자동 펼침');
@@ -1668,11 +1681,19 @@ async function saveReportData(report) {
     };
 
     // API 호출
+    // ✅ 누적 실적 금액도 함께 전송 (DB의 actualCollectionAmount, actualSalesAmount에 저장됨)
     const response = await apiManager.updateReportConfirmation(report.reportId, {
       status: report.status,
-      confirmation_data: JSON.stringify(confirmationData),
-      processed_by: state.currentUser.name,
-      processed_date: new Date().toISOString()
+
+      // 누적 금액 (집계용)
+      actualCollectionAmount: report.collection.actual,
+      actualSalesAmount: report.sales.actual,
+
+      // 상세 내역 (JSON)
+      confirmationData: JSON.stringify(confirmationData),
+
+      processedBy: state.currentUser.name,
+      processedDate: new Date().toISOString()
     });
 
     if (response.success) {

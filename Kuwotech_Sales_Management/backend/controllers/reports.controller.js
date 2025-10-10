@@ -33,6 +33,7 @@ export const getAllReports = async (req, res) => {
         r.actualCollectionAmount, r.actualSalesAmount,
         r.targetProducts, r.soldProducts, r.activityNotes, r.status, r.processedBy,
         r.processedDate, r.adminComment, r.createdAt, r.updatedAt,
+        c.finalCompanyName, c.erpCompanyName,
         c.finalCompanyName as companyName
       FROM reports r
       LEFT JOIN companies c ON r.companyId = c.keyValue
@@ -179,6 +180,7 @@ export const getReportById = async (req, res) => {
         r.actualCollectionAmount, r.actualSalesAmount,
         r.targetProducts, r.soldProducts, r.activityNotes, r.status, r.processedBy,
         r.processedDate, r.adminComment, r.createdAt, r.updatedAt,
+        c.finalCompanyName, c.erpCompanyName,
         c.finalCompanyName as companyName,
         c.internalManager as companyManager
       FROM reports r
@@ -223,6 +225,7 @@ export const getReportsByEmployee = async (req, res) => {
         r.actualCollectionAmount, r.actualSalesAmount,
         r.targetProducts, r.soldProducts,
         r.status, r.processedBy, r.processedDate, r.adminComment,
+        c.finalCompanyName, c.erpCompanyName,
         c.finalCompanyName as companyName
       FROM reports r
       LEFT JOIN companies c ON r.companyId = c.keyValue
@@ -343,11 +346,15 @@ export const updateReport = async (req, res) => {
       reportType,
       targetCollectionAmount,
       targetSalesAmount,
+      actualCollectionAmount,
+      actualSalesAmount,
       targetProducts,
       activityNotes,
       status,
       adminComment,
-      processedBy
+      processedBy,
+      confirmationData,  // ✅ 추가: 확인 데이터 (entries 상세 정보)
+      processedDate      // ✅ 추가: 처리 날짜
     } = req.body;
 
     const db = await getDB();
@@ -381,6 +388,14 @@ export const updateReport = async (req, res) => {
       updates.push('targetSalesAmount = ?');
       params.push(targetSalesAmount);
     }
+    if (actualCollectionAmount !== undefined) {
+      updates.push('actualCollectionAmount = ?');
+      params.push(actualCollectionAmount);
+    }
+    if (actualSalesAmount !== undefined) {
+      updates.push('actualSalesAmount = ?');
+      params.push(actualSalesAmount);
+    }
     if (targetProducts !== undefined) {
       updates.push('targetProducts = ?');
       params.push(targetProducts);
@@ -400,8 +415,18 @@ export const updateReport = async (req, res) => {
     if (processedBy !== undefined) {
       updates.push('processedBy = ?');
       params.push(processedBy);
-      // processedBy가 있으면 processedDate도 현재 시간으로 업데이트
-      updates.push('processedDate = NOW()');
+      // processedBy가 있고 processedDate가 없으면 현재 시간으로
+      if (processedDate === undefined) {
+        updates.push('processedDate = NOW()');
+      }
+    }
+    if (processedDate !== undefined) {
+      updates.push('processedDate = ?');
+      params.push(processedDate);
+    }
+    if (confirmationData !== undefined) {
+      updates.push('confirmationData = ?');
+      params.push(confirmationData);
     }
 
     if (updates.length === 0) {

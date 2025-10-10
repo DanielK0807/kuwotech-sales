@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 import { existsSync, readdirSync } from 'fs';
 import { connectDB } from './config/database.js';
 import { initializeDatabase } from './config/db-initializer.js';
+import { ensureAllSchemas } from './utils/ensure_db_schema.js';
 
 // 라우트 임포트
 import authRoutes from './routes/auth.routes.js';
@@ -614,6 +615,10 @@ const startServer = async () => {
     if (!dbInitialized) {
       console.warn('⚠️  데이터베이스 초기화 실패 - 서버는 계속 실행됩니다');
     }
+
+    // 스키마 자동 체크 및 업데이트
+    console.log('📋 데이터베이스 스키마 체크 시작...');
+    await ensureAllSchemas();
 
     // DB 연결
     await connectDB();
