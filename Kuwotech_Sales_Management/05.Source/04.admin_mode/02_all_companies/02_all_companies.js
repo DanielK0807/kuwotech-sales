@@ -35,7 +35,7 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let companyList = [];
 let currentFilter = {
-    employee: '',
+    employee: [],  // 배열로 변경 (다중 선택)
     department: '',
     status: '',
     product: '',
@@ -238,22 +238,57 @@ function populateDepartmentSelect(departments) {
 }
 
 /**
- * 직원 select 옵션 채우기
+ * 직원 체크박스 드롭다운 채우기
  */
 function populateEmployeeSelect(employees) {
-    const filterEmployeeSelect = document.getElementById('filter-employee');
-    if (!filterEmployeeSelect) return;
+    const dropdownMenu = document.getElementById('employee-dropdown-menu');
+    if (!dropdownMenu) return;
 
-    while (filterEmployeeSelect.options.length > 1) {
-        filterEmployeeSelect.remove(1);
-    }
+    // 기존 항목 제거
+    dropdownMenu.innerHTML = '';
 
     employees.forEach(emp => {
-        const option = document.createElement('option');
-        option.value = emp.name;
-        option.textContent = `${emp.name} (${emp.department || ''})`;
-        filterEmployeeSelect.appendChild(option);
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `emp-${emp.name}`;
+        checkbox.value = emp.name;
+        checkbox.addEventListener('change', updateEmployeeSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `emp-${emp.name}`;
+        label.textContent = `${emp.name} (${emp.department || ''})`;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
     });
+
+    console.log('[직원] 체크박스 드롭다운 로드 성공:', employees.length, '개');
+}
+
+/**
+ * 내부담당자 선택 업데이트
+ */
+function updateEmployeeSelection() {
+    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('employee-selected-text');
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}명`;
+    }
+
+    // currentFilter 업데이트
+    currentFilter.employee = selectedValues;
 }
 
 /**
@@ -333,9 +368,11 @@ async function loadCompanies() {
         // 필터 적용
         companyList = allCompanies;
 
-        // 내부담당자 필터
-        if (currentFilter.employee) {
-            companyList = companyList.filter(c => c.internalManager === currentFilter.employee);
+        // 내부담당자 필터 (OR 조건 - 다중 선택)
+        if (currentFilter.employee && currentFilter.employee.length > 0) {
+            companyList = companyList.filter(c =>
+                currentFilter.employee.includes(c.internalManager)
+            );
         }
 
         // 담당부서 필터
@@ -1552,11 +1589,11 @@ async function openCompanyDetailModal(keyValue) {
 
 function setupEventListeners() {
     console.log('[이벤트 리스너] 설정 시작');
-    
+
     // 거래처 추가 버튼
     const addCompanyBtn = document.getElementById('add-company-btn');
     console.log('[이벤트 리스너] add-company-btn 요소:', addCompanyBtn);
-    
+
     if (addCompanyBtn) {
         addCompanyBtn.addEventListener('click', () => {
             console.log('[거래처 추가] 버튼 클릭됨');
@@ -1565,6 +1602,26 @@ function setupEventListeners() {
         console.log('[거래처 추가 버튼] 이벤트 리스너 등록 완료');
     } else {
         console.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
+    }
+
+    // 내부담당자 커스텀 드롭다운 토글
+    const employeeDropdownButton = document.getElementById('employee-dropdown-button');
+    const employeeDropdownMenu = document.getElementById('employee-dropdown-menu');
+
+    if (employeeDropdownButton && employeeDropdownMenu) {
+        employeeDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            employeeDropdownButton.classList.toggle('active');
+            employeeDropdownMenu.classList.toggle('show');
+        });
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            if (!employeeDropdownButton.contains(e.target) && !employeeDropdownMenu.contains(e.target)) {
+                employeeDropdownButton.classList.remove('active');
+                employeeDropdownMenu.classList.remove('show');
+            }
+        });
     }
     
     // 필터 버튼
@@ -1647,15 +1704,13 @@ function searchCompanies(keyword) {
  * 필터 적용 (내부담당자, 담당부서 포함)
  */
 function applyFilter() {
-    // 필터 값 수집
-    currentFilter = {
-        employee: document.getElementById('filter-employee')?.value || '',
-        department: document.getElementById('filter-department')?.value || '',
-        name: document.getElementById('filter-name')?.value || '',
-        status: document.getElementById('filter-status')?.value || '',
-        product: document.getElementById('filter-product')?.value || '',
-        region: document.getElementById('filter-region')?.value || ''
-    };
+    // 내부담당자는 이미 updateEmployeeSelection()에서 업데이트됨
+    // 다른 필터 값 수집
+    currentFilter.department = document.getElementById('filter-department')?.value || '';
+    currentFilter.name = document.getElementById('filter-name')?.value || '';
+    currentFilter.status = document.getElementById('filter-status')?.value || '';
+    currentFilter.product = document.getElementById('filter-product')?.value || '';
+    currentFilter.region = document.getElementById('filter-region')?.value || '';
 
     console.log('[필터 적용]', currentFilter);
 
