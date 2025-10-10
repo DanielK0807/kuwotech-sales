@@ -2,7 +2,47 @@
    KUWOTECH 폰트 시스템 - Paperlogy
    파일 위치: 05.Source/07.styles/10_fonts.css
    작성일: 2025-01-27
+   업데이트: 2025-10-10 - 반응형 타이포그래피 시스템 추가
    ============================================ */
+
+/* ============================================
+   [0] 반응형 폰트 크기 시스템 (CSS Variables with clamp)
+   - 모바일 가독성 최적화: 최소값 13px 이상 (보조 정보 제외)
+   - vw 단위로 화면 크기에 따라 유동적 조절
+   - rem 단위 사용으로 접근성 향상
+   ============================================ */
+:root {
+    /* === Display Level (페이지 타이틀, H1) === */
+    --font-size-display: clamp(1.5rem, 4vw, 2rem);       /* 24px ~ 32px */
+
+    /* === Heading Levels === */
+    --font-size-h1: clamp(1.5rem, 4vw, 2rem);            /* 24px ~ 32px */
+    --font-size-h2: clamp(1.375rem, 3.5vw, 1.75rem);     /* 22px ~ 28px */
+    --font-size-h3: clamp(1.25rem, 3vw, 1.5rem);         /* 20px ~ 24px */
+    --font-size-h4: clamp(1.125rem, 2.5vw, 1.25rem);     /* 18px ~ 20px */
+    --font-size-h5: clamp(1rem, 2vw, 1.125rem);          /* 16px ~ 18px */
+    --font-size-h6: clamp(0.9375rem, 1.75vw, 1rem);      /* 15px ~ 16px */
+
+    /* === Content Levels === */
+    --font-size-body: clamp(0.875rem, 2.5vw, 1rem);      /* 14px ~ 16px */
+    --font-size-base: clamp(0.875rem, 2.5vw, 1rem);      /* 14px ~ 16px */
+
+    /* === Component Levels === */
+    --font-size-lg: clamp(1rem, 2.5vw, 1.125rem);        /* 16px ~ 18px */
+    --font-size-md: clamp(0.875rem, 2.5vw, 1rem);        /* 14px ~ 16px */
+    --font-size-sm: clamp(0.8125rem, 2vw, 0.875rem);     /* 13px ~ 14px */
+    --font-size-xs: clamp(0.75rem, 1.5vw, 0.8125rem);    /* 12px ~ 13px */
+
+    /* === Specialized Components === */
+    --font-size-logo: clamp(1.25rem, 3.5vw, 1.5rem);     /* 20px ~ 24px */
+    --font-size-kpi-value: clamp(1.375rem, 3vw, 1.5rem); /* 22px ~ 24px */
+    --font-size-kpi-title: clamp(0.8125rem, 2vw, 0.875rem); /* 13px ~ 14px */
+    --font-size-section-title: clamp(1.0625rem, 2.5vw, 1.125rem); /* 17px ~ 18px */
+    --font-size-page-title: clamp(1.375rem, 3vw, 1.5rem); /* 22px ~ 24px */
+    --font-size-button: clamp(0.875rem, 2.5vw, 1rem);    /* 14px ~ 16px */
+    --font-size-input: clamp(0.875rem, 2.5vw, 1rem);     /* 14px ~ 16px */
+    --font-size-label: clamp(0.8125rem, 2vw, 0.875rem);  /* 13px ~ 14px */
+}
 
 /* ============================================
    [1] 폰트 페이스 정의
@@ -61,10 +101,10 @@
    ============================================ */
 
 body {
-    font-family: 'Paperlogy', -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+    font-family: 'Paperlogy', -apple-system, BlinkMacSystemFont, 'Segoe UI',
                  'Noto Sans KR', 'Malgun Gothic', sans-serif;
     font-weight: 400;
-    font-size: 14px;
+    font-size: var(--font-size-body);
     line-height: 1.6;
 }
 
@@ -79,32 +119,32 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-    font-size: 32px;
+    font-size: var(--font-size-h1);
     font-weight: 800;
 }
 
 h2 {
-    font-size: 28px;
+    font-size: var(--font-size-h2);
     font-weight: 700;
 }
 
 h3 {
-    font-size: 24px;
+    font-size: var(--font-size-h3);
     font-weight: 600;
 }
 
 h4 {
-    font-size: 20px;
+    font-size: var(--font-size-h4);
     font-weight: 600;
 }
 
 h5 {
-    font-size: 18px;
+    font-size: var(--font-size-h5);
     font-weight: 500;
 }
 
 h6 {
-    font-size: 16px;
+    font-size: var(--font-size-h6);
     font-weight: 500;
 }
 
@@ -116,7 +156,7 @@ h6 {
 .logo-text {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 800;
-    font-size: 24px;
+    font-size: var(--font-size-logo);
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -127,14 +167,14 @@ h6 {
 .system-title {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 600;
-    font-size: 20px;
+    font-size: var(--font-size-h4);
 }
 
 /* 버튼 */
 .btn {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--font-size-button);
 }
 
 .btn-primary {
@@ -145,6 +185,7 @@ h6 {
 .menu-item {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 500;
+    font-size: var(--font-size-md);
 }
 
 .menu-item.active {
@@ -155,103 +196,68 @@ h6 {
 .kpi-title {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 500;
-    font-size: 14px;
+    font-size: var(--font-size-kpi-title);
 }
 
 .kpi-value {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 700;
-    font-size: 24px;
+    font-size: var(--font-size-kpi-value);
 }
 
 /* 테이블 */
 th {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 600;
+    font-size: var(--font-size-md);
 }
 
 td {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 400;
+    font-size: var(--font-size-md);
 }
 
 /* 입력 필드 */
 input, select, textarea {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 400;
-    font-size: 14px;
+    font-size: var(--font-size-input);
 }
 
 /* 라벨 */
 label {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 500;
-    font-size: 13px;
+    font-size: var(--font-size-label);
 }
 
 /* 섹션 타이틀 */
 .section-title {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 600;
-    font-size: 18px;
+    font-size: var(--font-size-section-title);
 }
 
 /* 페이지 타이틀 */
 .page-title {
     font-family: 'Paperlogy', sans-serif;
     font-weight: 700;
-    font-size: 24px;
+    font-size: var(--font-size-page-title);
 }
 
 /* ============================================
    [5] 반응형 폰트 크기
+   ✅ CSS 변수의 clamp()로 자동 반응형 처리
+   - 미디어쿼리 불필요: clamp()가 화면 크기에 따라 자동 조절
+   - 더 부드러운 반응형: 특정 브레이크포인트가 아닌 연속적 조절
    ============================================ */
 
-@media (max-width: 1024px) {
-    body {
-        font-size: 13px;
-    }
-    
-    h1 { font-size: 28px; }
-    h2 { font-size: 24px; }
-    h3 { font-size: 20px; }
-    h4 { font-size: 18px; }
-    h5 { font-size: 16px; }
-    h6 { font-size: 14px; }
-    
-    .page-title {
-        font-size: 20px;
-    }
-    
-    .section-title {
-        font-size: 16px;
-    }
-}
-
-@media (max-width: 768px) {
-    body {
-        font-size: 12px;
-    }
-    
-    h1 { font-size: 24px; }
-    h2 { font-size: 20px; }
-    h3 { font-size: 18px; }
-    h4 { font-size: 16px; }
-    h5 { font-size: 14px; }
-    h6 { font-size: 13px; }
-    
-    .logo-text {
-        font-size: 20px;
-    }
-    
-    .system-title {
-        font-size: 16px;
-    }
-    
-    .kpi-value {
-        font-size: 20px;
-    }
-}
+/*
+   기존 미디어쿼리 제거됨 (2025-10-10)
+   - 이유: clamp()로 자동 반응형 처리
+   - 이점: 더 유연하고 부드러운 폰트 크기 조절
+*/
 
 /* ============================================
    [6] 특수 효과
@@ -288,12 +294,12 @@ label {
 .font-extrabold { font-weight: 800 !important; }
 .font-black { font-weight: 900 !important; }
 
-.text-xs { font-size: 12px !important; }
-.text-sm { font-size: 13px !important; }
-.text-md { font-size: 14px !important; }
-.text-lg { font-size: 16px !important; }
-.text-xl { font-size: 18px !important; }
-.text-2xl { font-size: 20px !important; }
-.text-3xl { font-size: 24px !important; }
-.text-4xl { font-size: 28px !important; }
-.text-5xl { font-size: 32px !important; }
+.text-xs { font-size: var(--font-size-xs) !important; }
+.text-sm { font-size: var(--font-size-sm) !important; }
+.text-md { font-size: var(--font-size-md) !important; }
+.text-lg { font-size: var(--font-size-lg) !important; }
+.text-xl { font-size: var(--font-size-h5) !important; }
+.text-2xl { font-size: var(--font-size-h4) !important; }
+.text-3xl { font-size: var(--font-size-h3) !important; }
+.text-4xl { font-size: var(--font-size-h2) !important; }
+.text-5xl { font-size: var(--font-size-h1) !important; }
