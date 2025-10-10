@@ -246,7 +246,8 @@ export class DataTable extends BaseComponent {
                 
                 // 포맷 적용 (음수 규칙 적용)
                 if (column.format === 'number') {
-                    const result = formatNumber(value, true);
+                    // CRITICAL FIX: formatNumber(value, decimals, useParentheses) - 파라미터 순서 수정
+                    const result = formatNumber(value, 0, true);
                     if (typeof result === 'object') {
                         td.textContent = result.text;
                         if (result.isNegative) td.classList.add(result.className);

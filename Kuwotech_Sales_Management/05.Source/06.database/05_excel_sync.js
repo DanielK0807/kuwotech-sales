@@ -618,28 +618,7 @@ function mapCompanyToExcel(company) {
   };
 }
 
-/**
- * [기능: 보고서 → 엑셀 행 변환]
- */
-function mapReportToExcel(report) {
-  return {
-    '보고서ID': report.id,
-    'KEY VALUE': report.keyValue,
-    '거래처명': report.company ? getCompanyDisplayName(report.company) : (report.finalCompanyName || report.erpCompanyName || ''),
-    '방문일자': formatDate(report.visitDate),
-    '방문시간': report.visitTime,
-    '방문목적': report.visitPurpose,
-    '방문자': report.visitor,
-    '면담자': report.interviewee,
-    '면담내용': report.interviewContent,
-    '후속조치': report.followUpAction,
-    '예상매출': formatNumber(report.expectedSales),
-    '예상시기': formatDate(report.expectedDate),
-    '상태': report.status,
-    '작성일': formatDate(report.createdAt),
-    '작성자': report.createdBy
-  };
-}
+// NOTE: mapReportToExcel 함수는 아래에 정의됨 (중복 제거)
 
 /**
  * [기능: 모든 데이터 가져오기]

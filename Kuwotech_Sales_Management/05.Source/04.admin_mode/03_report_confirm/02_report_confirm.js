@@ -210,8 +210,9 @@ async function loadReports() {
         alert('보고서 데이터를 불러오는데 실패했습니다:\n' + error.message + '\n\n브라우저 콘솔(F12)에서 상세 정보를 확인하세요.');
         return false;
     } finally {
-        // 로딩 상태는 initializePage에서 관리하므로 여기서는 제거하지 않음
-        console.log('📊 loadReports 함수 완료');
+        // CRITICAL: 에러 발생 시에도 로딩 해제 보장
+        showLoading(false);
+        console.log('📊 loadReports 함수 완료 (로딩 해제)');
     }
 }
 

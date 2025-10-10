@@ -471,7 +471,8 @@ class FormatManager {
         }
 
         // 포맷 적용 (정수만)
-        const formatted = this.formatNumber(numValue, false);
+        // CRITICAL FIX: formatNumber(value, decimals, useParentheses) - 파라미터 순서 수정
+        const formatted = this.formatNumber(numValue, 0, false);
         const formattedText = typeof formatted === 'object' ? formatted.text : formatted;
         input.value = formattedText;
 

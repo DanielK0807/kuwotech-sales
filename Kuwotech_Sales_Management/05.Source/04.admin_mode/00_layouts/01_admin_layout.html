@@ -20,7 +20,16 @@
 
         document.documentElement.dataset.breakpoint = bp;
         document.documentElement.classList.add('breakpoint-' + bp);
-        document.body.classList.add('breakpoint-' + bp);
+
+        // CRITICAL: document.body null 가드 (head에서 실행되므로 body가 아직 파싱 안 됐을 수 있음)
+        if (document.body) {
+          document.body.classList.add('breakpoint-' + bp);
+        } else {
+          // body 파싱 후 실행
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('breakpoint-' + bp);
+          });
+        }
 
         console.log('[초기 브레이크포인트 설정]', bp, window.innerWidth + 'px');
       })();
