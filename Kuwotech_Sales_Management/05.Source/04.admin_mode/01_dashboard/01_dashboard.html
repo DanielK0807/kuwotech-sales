@@ -223,7 +223,9 @@
             display: block !important; /* 강제 표시 */
             visibility: visible !important;
             margin-bottom: var(--spacing-3xl, 64px);
-            width: 95%;
+            width: fit-content !important; /* ✅ 소제목 길이에 맞춤 */
+            max-width: 95% !important; /* 최대 95% */
+            min-width: min(300px, 95%) !important; /* 최소 너비 */
             margin-left: auto;
             margin-right: auto;
         }
@@ -245,11 +247,12 @@
               2px 2px 4px rgba(0, 0, 0, 0.8),
               0 0 10px rgba(255, 255, 255, 0.3) !important;
 
-            /* 레이아웃 - kpi-section의 100% (메인창 기준 95%) */
-            width: 100% !important;
+            /* 레이아웃 - 컨텐츠 너비만큼 */
+            width: fit-content !important; /* ✅ 텍스트 길이만큼 */
             padding: var(--spacing-md, 16px) var(--spacing-lg, 24px) !important;
             margin-bottom: var(--spacing-lg, 24px) !important;
             box-sizing: border-box !important;
+            white-space: nowrap !important; /* 줄바꿈 방지 */
 
             /* 강제 표시 */
             display: block !important;
@@ -407,11 +410,21 @@
             }
         }
 
-        /* 모바일: 세로 배치로 전환 */
+        /* 모바일: 자동 줄바꿈 (여러 줄 가로 배치) */
         @media (max-width: 640px) {
+            .kpi-section {
+                width: 95% !important; /* 모바일에서는 전체 너비 */
+            }
+
+            .section-title {
+                width: 100% !important; /* 모바일에서는 전체 너비 */
+                white-space: normal !important; /* 줄바꿈 허용 */
+            }
+
             #kpiSection1, #kpiSection2, #kpiSection3, #kpiSection4 {
-                grid-template-columns: 1fr !important; /* 한 열로 변경 */
-                grid-auto-flow: row !important; /* 세로 방향으로 변경 */
+                /* ✅ 자동 줄바꿈: 최소 120px, 공간이 있으면 균등 분할 */
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+                grid-auto-flow: row !important;
             }
 
             .kpi-grid {
