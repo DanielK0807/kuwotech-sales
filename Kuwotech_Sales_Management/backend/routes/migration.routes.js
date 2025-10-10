@@ -338,10 +338,36 @@ router.post('/update-regions', async (req, res) => {
         // Step 6: regions 테이블 삭제 및 재생성
         await db.execute('DELETE FROM regions');
 
+        // 시/도 정식 명칭 매핑
+        const regionNameMap = {
+            '서울': '서울특별시',
+            '부산': '부산광역시',
+            '대구': '대구광역시',
+            '인천': '인천광역시',
+            '광주': '광주광역시',
+            '대전': '대전광역시',
+            '울산': '울산광역시',
+            '세종': '세종특별자치시',
+            '경기': '경기도',
+            '강원': '강원특별자치도',
+            '충북': '충청북도',
+            '충남': '충청남도',
+            '전북': '전북특별자치도',
+            '전남': '전라남도',
+            '경북': '경상북도',
+            '경남': '경상남도',
+            '제주': '제주특별자치도'
+        };
+
         for (let i = 0; i < regions.length; i++) {
             const region = regions[i];
-            const regionName = region.customerRegion;
-            const regionCode = regionName.toUpperCase().replace(/\s+/g, '_');
+            const shortName = region.customerRegion;
+
+            // 정식 명칭 (한국 시/도는 매핑 테이블 사용, 해외는 그대로)
+            const regionName = regionNameMap[shortName] || shortName;
+
+            // 코드 (대문자 영문)
+            const regionCode = shortName.toUpperCase().replace(/\s+/g, '_');
 
             await db.execute(`
                 INSERT INTO regions (region_name, region_code, display_order, is_active)
@@ -352,22 +378,46 @@ router.post('/update-regions', async (req, res) => {
         // Step 7: companies 테이블의 region_id와 region_district 업데이트
         console.log('🔄 companies 테이블 region_id 및 region_district 업데이트 중...');
 
+        // 짧은 이름 → 정식 명칭 매핑 (검색용)
+        const shortToFullName = {
+            '서울': '서울특별시',
+            '부산': '부산광역시',
+            '대구': '대구광역시',
+            '인천': '인천광역시',
+            '광주': '광주광역시',
+            '대전': '대전광역시',
+            '울산': '울산광역시',
+            '세종': '세종특별자치시',
+            '경기': '경기도',
+            '강원': '강원특별자치도',
+            '충북': '충청북도',
+            '충남': '충청남도',
+            '전북': '전북특별자치도',
+            '전남': '전라남도',
+            '경북': '경상북도',
+            '경남': '경상남도',
+            '제주': '제주특별자치도'
+        };
+
         // 모든 회사의 region_id와 region_district를 업데이트
         for (const row of rawRegions) {
             const fullRegion = row.customerRegion;
             const parts = fullRegion.split(' ');
-            let mainRegion = parts[0].trim();
+            let shortRegion = parts[0].trim();
             const district = parts.length > 1 ? parts.slice(1).join(' ').trim() : null;
 
             // "광주광역" → "광주" 통합
-            if (mainRegion === '광주광역') {
-                mainRegion = '광주';
+            if (shortRegion === '광주광역') {
+                shortRegion = '광주';
             }
 
-            // region_id 찾기
+            // 정식 명칭으로 변환 (한국 시/도는 변환, 해외는 그대로)
+            const fullRegionName = shortToFullName[shortRegion] || shortRegion;
+
+            // region_id 찾기 (정식 명칭으로 검색)
             const [regionResult] = await db.execute(
                 'SELECT id FROM regions WHERE region_name = ?',
-                [mainRegion]
+                [fullRegionName]
             );
 
             if (regionResult.length > 0) {
