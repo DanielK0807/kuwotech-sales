@@ -120,10 +120,24 @@ async function loadMasterData() {
                 console.log('[제품] 로드 성공:', productsData.products.length, '개');
             }
         }
-        
-        // 2. 지역 목록은 실제 companies 데이터에서 추출하므로 여기서는 로드하지 않음
-        // populateRegionSelect는 loadCompanies에서 실제 데이터 기반으로 호출됨
-        
+
+        // 2. 지역 마스터 데이터 조회 (고객사지역 필터용)
+        const regionsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/regions`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+
+        if (regionsResponse.ok) {
+            const regionsData = await regionsResponse.json();
+            if (regionsData.success) {
+                populateRegionSelect(regionsData.regions);
+                console.log('[고객사지역] 로드 성공 (regions 테이블 기준):', regionsData.regions.length, '개');
+            }
+        }
+
         // 3. 담당부서 목록 로드
         const departmentsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/departments`, {
             method: 'GET',
@@ -222,48 +236,37 @@ function updateProductSelection() {
 }
 
 /**
- * 지역 체크박스 드롭다운 채우기 (실제 companies 데이터에서 추출)
- * customerRegion에서 첫 번째 공백 이전 값만 사용 (예: "서울 강남구" -> "서울")
+ * 고객사지역 checkbox dropdown 채우기 (regions 마스터 데이터 사용)
  */
-function populateRegionSelect(companies) {
+function populateRegionSelect(regions) {
     const dropdownMenu = document.getElementById('region-dropdown-menu');
     if (!dropdownMenu) return;
 
     dropdownMenu.innerHTML = '';
 
-    // companies 데이터에서 unique한 지역명 추출 (첫 번째 공백 이전 값만)
-    const uniqueRegions = new Set();
-    companies.forEach(company => {
-        if (company.customerRegion && company.customerRegion.trim()) {
-            // 첫 번째 공백 이전 값만 추출 (예: "서울 강남구" -> "서울")
-            const mainRegion = company.customerRegion.trim().split(' ')[0];
-            uniqueRegions.add(mainRegion);
-        }
-    });
+    // regions 배열을 display_order로 정렬
+    const sortedRegions = [...regions].sort((a, b) => a.display_order - b.display_order);
 
-    // 정렬된 지역 배열로 변환
-    const sortedRegions = Array.from(uniqueRegions).sort((a, b) => a.localeCompare(b, 'ko'));
-
-    sortedRegions.forEach(regionName => {
+    sortedRegions.forEach(region => {
         const item = document.createElement('div');
         item.className = 'custom-dropdown-item';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = `region-${regionName}`;
-        checkbox.value = regionName;
+        checkbox.id = `region-${region.region_code}`;
+        checkbox.value = region.region_code; // 필터링용 짧은 코드 (예: "서울")
         checkbox.addEventListener('change', updateRegionSelection);
 
         const label = document.createElement('label');
-        label.htmlFor = `region-${regionName}`;
-        label.textContent = regionName;
+        label.htmlFor = `region-${region.region_code}`;
+        label.textContent = region.region_name; // 표시용 정식 명칭 (예: "서울특별시")
 
         item.appendChild(checkbox);
         item.appendChild(label);
         dropdownMenu.appendChild(item);
     });
 
-    console.log('[고객사 지역] 체크박스 드롭다운 로드 성공 (실제 데이터 기반):', sortedRegions.length, '개');
+    console.log('[고객사지역] 체크박스 드롭다운 로드 성공 (regions 테이블 기준):', sortedRegions.length, '개');
 }
 
 /**
@@ -524,8 +527,7 @@ async function loadCompanies() {
         // 거래처명 필터 드롭다운 채우기 (필터 적용 전 전체 목록 사용)
         populateCompanyNameSelect(allCompanies);
 
-        // 고객사 지역 필터 드롭다운 채우기 (실제 데이터에서 추출)
-        populateRegionSelect(allCompanies);
+        // 주의: 지역 필터는 loadMasterData()에서 regions 테이블 기준으로 이미 처리됨
 
         // 필터 적용
         companyList = allCompanies;
