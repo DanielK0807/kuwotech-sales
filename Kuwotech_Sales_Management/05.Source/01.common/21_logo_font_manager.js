@@ -12,7 +12,7 @@
 // ============================================
 
 const LOGO_CONFIG = {
-    path: '/Kuwotech_Sales_Management/02.Fonts_Logos/logo.png',  // 절대 경로 사용
+    path: '/02.Fonts_Logos/logo.png',  // 서버 경로 수정 (정적 파일 서빙)
     defaultHeight: 40,
     defaultClassName: 'logo',
     filter: {

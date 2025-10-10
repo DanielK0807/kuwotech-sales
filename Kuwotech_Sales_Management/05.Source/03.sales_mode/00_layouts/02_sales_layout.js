@@ -209,7 +209,10 @@ async function initSalesMode() {
         // 6. 로그아웃 버튼 설정
         setupLogoutButton(handleLogout, showToast, user);
 
-        // 7. 글로벌 이벤트 설정
+        // 7. 햄버거 메뉴 토글 설정 (모바일)
+        setupMobileMenuToggle();
+
+        // 8. 글로벌 이벤트 설정
         setupGlobalEvents(loadPage, { value: isInitialized }, { isAdmin: false, user: user });
         
         // 8. 세션 모니터링 시작
@@ -234,6 +237,67 @@ async function initSalesMode() {
         console.error('[영업모드] 초기화 실패:', error);
         showToast('시스템 초기화 중 오류가 발생했습니다.', 'error');
     }
+}
+
+// ============================================
+// [SECTION: 햄버거 메뉴 토글 (모바일 전용)]
+// ============================================
+
+/**
+ * 모바일 햄버거 메뉴 토글 기능 설정
+ */
+function setupMobileMenuToggle() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (!mobileMenuBtn || !sidebar || !overlay) {
+        console.warn('[모바일 메뉴] 햄버거 메뉴 요소를 찾을 수 없습니다.');
+        return;
+    }
+
+    // 햄버거 버튼 클릭 이벤트
+    mobileMenuBtn.addEventListener('click', () => {
+        const isOpen = sidebar.classList.contains('open');
+
+        if (isOpen) {
+            // 사이드바 닫기
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            mobileMenuBtn.classList.remove('active');
+        } else {
+            // 사이드바 열기
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+            mobileMenuBtn.classList.add('active');
+        }
+
+        console.log(`[모바일 메뉴] 사이드바 ${isOpen ? '닫힘' : '열림'}`);
+    });
+
+    // 오버레이 클릭 시 사이드바 닫기
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        mobileMenuBtn.classList.remove('active');
+        console.log('[모바일 메뉴] 오버레이 클릭 - 사이드바 닫힘');
+    });
+
+    // 윈도우 리사이즈 시 데스크톱 뷰로 전환되면 사이드바/오버레이 자동 닫기
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (window.innerWidth > 768) {
+                // 데스크톱 뷰 - 모바일 메뉴 상태 초기화
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
+            }
+        }, 250);
+    });
+
+    console.log('✅ 모바일 햄버거 메뉴 토글 설정 완료');
 }
 
 // ============================================

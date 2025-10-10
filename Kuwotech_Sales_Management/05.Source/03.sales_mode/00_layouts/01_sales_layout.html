@@ -52,6 +52,13 @@
     <!-- [섹션: 헤더] -->
     <header id="main-header" class="sales-header glass-effect">
       <div class="header-left">
+        <!-- ✅ 햄버거 메뉴 버튼 (모바일 전용) -->
+        <button id="mobile-menu-toggle" class="mobile-menu-btn" aria-label="메뉴 열기">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+
         <div id="header-logo-container">
           <!-- 로고는 JavaScript 공통 함수(createLogoElement)로 동적 생성됨 -->
         </div>
@@ -69,6 +76,9 @@
 
     <!-- [섹션: 메인 컨테이너] -->
     <div class="main-container">
+      <!-- ✅ 사이드바 오버레이 (모바일 전용) -->
+      <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
       <!-- [섹션: 사이드바] -->
       <aside id="sidebar" class="sales-sidebar glass-effect">
         <nav class="sidebar-nav">

@@ -27,7 +27,9 @@
       "Bash(timeout:*)",
       "Bash(powershell:*)",
       "mcp__playwright__playwright_navigate",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Read(//c/Users/kingg/AppData/Local/ms-playwright//**)",
+      "Read(//c/Users/kingg/AppData/Local/ms-playwright/**)"
     ],
     "deny": [],
     "ask": []
