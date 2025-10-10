@@ -998,118 +998,6 @@ async function handleSaveComment() {
     }
 }
 
-/**
- * 보고서 승인 핸들러
- */
-async function handleApproveReport() {
-    if (!selectedReportId) {
-        alert('보고서를 선택해주세요.');
-        return;
-    }
-
-    const comment = document.getElementById('adminComment').value.trim();
-
-    // 현재 보고서에서 영업담당자가 확인한 실적 가져오기
-    const report = allReports.find(r => r.reportId === selectedReportId);
-    if (!report) {
-        alert('❌ 보고서를 찾을 수 없습니다.');
-        return;
-    }
-
-    const actualCollectionAmount = report.actualCollectionAmount || 0;
-    const actualSalesAmount = report.actualSalesAmount || 0;
-
-    // 확인 메시지
-    const confirmMessage = `다음 내용으로 보고서를 승인하시겠습니까?\n\n` +
-        `📊 확인된 수금금액: ${formatCurrency(actualCollectionAmount)}\n` +
-        `📊 확인된 매출금액: ${formatCurrency(actualSalesAmount)}\n` +
-        (comment ? `\n💬 관리자 의견: ${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}` : '');
-
-    if (!confirm(confirmMessage)) {
-        return;
-    }
-
-    // 현재 로그인한 관리자 정보 가져오기
-    const userJson = localStorage.getItem('user');
-    if (!userJson) {
-        alert('❌ 로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
-        return;
-    }
-
-    let processedBy;
-    try {
-        const user = JSON.parse(userJson);
-        processedBy = user.name;
-        if (!processedBy) {
-            alert('❌ 사용자 이름을 찾을 수 없습니다.');
-            return;
-        }
-    } catch (e) {
-        console.error('user 데이터 파싱 실패:', e);
-        alert('❌ 사용자 정보를 읽을 수 없습니다. 다시 로그인해주세요.');
-        return;
-    }
-
-    try {
-        const updateData = {
-            adminComment: comment,
-            processedBy: processedBy,
-            status: '승인'
-        };
-
-        // 거래처가 변경된 경우 companyId도 업데이트
-        if (selectedCompanyForReport) {
-            const report = allReports.find(r => r.reportId === selectedReportId);
-            if (report && report.companyId !== selectedCompanyForReport.keyValue) {
-                updateData.companyId = selectedCompanyForReport.keyValue;
-                console.log('🔄 거래처 변경 감지:', {
-                    before: report.companyId,
-                    after: selectedCompanyForReport.keyValue,
-                    companyName: getCompanyDisplayName(selectedCompanyForReport)
-                });
-            }
-        }
-
-        console.log('📤 승인 데이터 전송:', {
-            reportId: selectedReportId,
-            ...updateData
-        });
-
-        const response = await apiManager.updateReport(selectedReportId, updateData);
-
-        console.log('📥 승인 API 응답:', response);
-
-        if (response.success) {
-            const messages = ['✅ 보고서가 승인되었습니다.'];
-
-            // 로컬 데이터 업데이트
-            if (report) {
-                report.adminComment = comment;
-                report.processedBy = processedBy;
-                report.processedDate = new Date().toISOString();
-                report.status = '승인';
-
-                // 거래처가 변경된 경우
-                if (updateData.companyId) {
-                    report.companyId = updateData.companyId;
-                    report.finalCompanyName = selectedCompanyForReport.finalCompanyName;
-                    report.erpCompanyName = selectedCompanyForReport.erpCompanyName;
-                    messages.push('✅ 거래처 정보가 변경되었습니다.');
-                }
-            }
-
-            alert(messages.join('\n'));
-
-            // UI 새로고침
-            await initializePage();
-        } else {
-            throw new Error(response.message || '승인 실패');
-        }
-    } catch (error) {
-        console.error('❌ 보고서 승인 에러:', error);
-        alert('보고서 승인에 실패했습니다: ' + error.message);
-    }
-}
 
 /**
  * 새로고침 핸들러
@@ -1203,12 +1091,6 @@ function attachEventListeners() {
     const saveCommentBtn = document.getElementById('saveCommentBtn');
     if (saveCommentBtn) {
         saveCommentBtn.addEventListener('click', handleSaveComment);
-    }
-
-    // 보고서 승인 버튼
-    const approveReportBtn = document.getElementById('approveReportBtn');
-    if (approveReportBtn) {
-        approveReportBtn.addEventListener('click', handleApproveReport);
     }
 
     // 새로고침 버튼

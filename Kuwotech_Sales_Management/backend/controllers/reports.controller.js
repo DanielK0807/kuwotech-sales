@@ -466,7 +466,7 @@ export const deleteReport = async (req, res) => {
 
     // 보고서 존재 확인
     const [existing] = await db.execute(
-      'SELECT reportId, status FROM reports WHERE reportId = ?',
+      'SELECT reportId FROM reports WHERE reportId = ?',
       [reportId]
     );
 
@@ -474,14 +474,6 @@ export const deleteReport = async (req, res) => {
       return res.status(404).json({
         error: 'Not Found',
         message: '보고서를 찾을 수 없습니다.'
-      });
-    }
-
-    // 승인된 보고서는 삭제 불가
-    if (existing[0].status === '승인') {
-      return res.status(403).json({
-        error: 'Forbidden',
-        message: '승인된 보고서는 삭제할 수 없습니다.'
       });
     }
 
