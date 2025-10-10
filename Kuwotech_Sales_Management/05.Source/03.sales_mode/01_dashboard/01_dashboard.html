@@ -279,20 +279,17 @@
       /* === KPI 그리드 - 소제목별 한 줄 배치 === */
       .kpi-grid {
         display: grid;
-        /* 한 줄로 배치하되, 화면 크기에 따라 카드 크기 자동 조절 */
-        grid-auto-flow: column;
-        grid-auto-columns: 1fr; /* 모든 카드 동일 너비 */
-        gap: clamp(12px, 2vw, 24px); /* 간격도 반응형 */
+        gap: clamp(8px, 1.5vw, 20px); /* 간격도 반응형 */
         overflow-x: auto; /* 화면이 너무 작으면 스크롤 가능 */
         overflow-y: hidden;
         padding-bottom: 8px; /* 스크롤바 여백 */
       }
 
-      /* 섹션별 최소 카드 너비 설정 (화면 축소 시 카드가 줄어듦) */
-      #kpiSection1 { grid-auto-columns: minmax(clamp(180px, 20vw, 320px), 1fr); } /* 4개 카드 */
-      #kpiSection2 { grid-auto-columns: minmax(clamp(220px, 30vw, 450px), 1fr); } /* 2개 카드 */
-      #kpiSection3 { grid-auto-columns: minmax(clamp(200px, 25vw, 360px), 1fr); } /* 3개 카드 */
-      #kpiSection4 { grid-auto-columns: minmax(clamp(160px, 16vw, 280px), 1fr); } /* 5개 카드 */
+      /* 섹션별 카드 개수에 맞게 균등 분할 */
+      #kpiSection1 { grid-template-columns: repeat(4, 1fr); } /* 4개 카드 */
+      #kpiSection2 { grid-template-columns: repeat(2, 1fr); } /* 2개 카드 */
+      #kpiSection3 { grid-template-columns: repeat(3, 1fr); } /* 3개 카드 */
+      #kpiSection4 { grid-template-columns: repeat(5, 1fr); } /* 5개 카드 */
 
       /* 스크롤바 스타일 (선택적) */
       .kpi-grid::-webkit-scrollbar {
@@ -316,37 +313,53 @@
       .kpi-card {
         display: flex;
         align-items: flex-start;
-        gap: var(--spacing-md);
+        gap: clamp(8px, 1vw, 16px); /* 반응형 간격 */
+        min-width: 0; /* 콘텐츠가 카드 크기를 넘지 않도록 */
+
+        /* 높이 제한: 기본 높이에서 늘어나지 않음, 줄어드는 것만 가능 */
+        max-height: 180px; /* 최대 높이 제한 */
+        height: auto; /* 내용물에 맞춰 자동 조절 (줄어들기 가능) */
+
+        /* padding도 반응형으로 (내용물이 작아지면 padding도 줄어듦) */
+        padding: clamp(12px, 2vw, 28px);
+        box-sizing: border-box;
+
+        /* 내용이 넘치면 숨김 */
+        overflow: hidden;
       }
 
       .kpi-icon {
-        font-size: var(--font-3xl);
+        font-size: clamp(20px, 3vw, 32px); /* 반응형 아이콘 */
         line-height: 1;
+        flex-shrink: 0; /* 아이콘 크기 고정 */
       }
 
       .kpi-content {
         flex: 1;
+        min-width: 0; /* 텍스트 오버플로우 방지 */
       }
 
       .kpi-label {
-        font-size: var(--font-sm);
+        font-size: clamp(10px, 1.2vw, 14px); /* 반응형 라벨 */
         margin-bottom: var(--spacing-xs);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: var(--text-secondary);
+        white-space: nowrap; /* 라벨 줄바꿈 방지 */
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .kpi-value {
-        font-size: var(--font-2xl);
+        font-size: clamp(16px, 2.5vw, 28px); /* 반응형 값 */
         font-weight: var(--font-weight-bold);
         line-height: 1.2;
         word-break: keep-all;
         overflow-wrap: break-word;
-        /* color: var(--primary-dark); */ /* 테마별 색상으로 자동 적용 */
       }
 
       .kpi-unit {
-        font-size: var(--font-md);
+        font-size: clamp(12px, 1.5vw, 16px); /* 반응형 단위 */
         color: var(--text-secondary);
         display: inline-block;
         margin-left: var(--spacing-xs);
@@ -356,8 +369,8 @@
         display: flex;
         align-items: center;
         gap: var(--spacing-xs);
-        margin-top: var(--spacing-sm);
-        font-size: var(--font-sm);
+        margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
+        font-size: clamp(10px, 1.2vw, 14px); /* 반응형 폰트 */
       }
 
       .trend-up {
@@ -374,15 +387,16 @@
       .kpi-details {
         display: flex;
         gap: var(--spacing-xs);
-        margin-top: var(--spacing-sm);
+        margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
+        font-size: clamp(10px, 1.1vw, 13px); /* 반응형 폰트 */
       }
 
       .kpi-progress {
-        height: 8px;
+        height: clamp(4px, 0.8vw, 8px); /* 반응형 높이 */
         background: rgba(255, 255, 255, 0.1);
         border-radius: var(--radius-full);
         overflow: hidden;
-        margin-top: var(--spacing-sm);
+        margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
       }
 
       .progress-bar::after {
@@ -410,31 +424,40 @@
 
 
       /* === 반응형 === */
-      /* 타블릿: 카드 크기를 더 작게 조정 */
+      /* 타블릿: 콘텐츠 크기만 조정, 그리드는 그대로 */
       @media (max-width: 1024px) {
-        #kpiSection1 { grid-auto-columns: minmax(clamp(150px, 18vw, 260px), 1fr); }
-        #kpiSection2 { grid-auto-columns: minmax(clamp(180px, 28vw, 380px), 1fr); }
-        #kpiSection3 { grid-auto-columns: minmax(clamp(170px, 23vw, 300px), 1fr); }
-        #kpiSection4 { grid-auto-columns: minmax(clamp(130px, 14vw, 220px), 1fr); }
+        .kpi-card {
+          gap: clamp(6px, 0.8vw, 12px);
+        }
       }
 
-      /* 모바일: 세로 배치로 전환 (한 줄 유지가 어려운 경우) */
+      /* 모바일: 세로 배치로 전환 */
       @media (max-width: 640px) {
-        .kpi-grid {
-          grid-auto-flow: row; /* 세로 배치 */
-          grid-auto-columns: auto;
-          grid-template-columns: 1fr; /* 한 열 */
-          overflow-x: hidden;
+        #kpiSection1, #kpiSection2, #kpiSection3, #kpiSection4 {
+          grid-template-columns: 1fr; /* 한 열로 변경 */
         }
 
-        /* 모바일에서는 ID별 설정 무시 */
-        #kpiSection1, #kpiSection2, #kpiSection3, #kpiSection4 {
-          grid-auto-columns: auto;
+        .kpi-grid {
+          overflow-x: hidden;
         }
 
         .header-content {
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        /* 모바일에서는 콘텐츠를 더 크게 */
+        .kpi-label {
+          font-size: 12px;
+          white-space: normal; /* 줄바꿈 허용 */
+        }
+
+        .kpi-value {
+          font-size: 24px;
+        }
+
+        .kpi-icon {
+          font-size: 28px;
         }
       }
 
