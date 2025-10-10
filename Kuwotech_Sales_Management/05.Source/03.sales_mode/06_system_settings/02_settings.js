@@ -280,7 +280,7 @@ window.changePassword = async function() {
         }
 
         if (!validatePassword(newPassword)) {
-            showToast('비밀번호는 최소 8자, 영문/숫자를 포함해야 합니다', 'error');
+            showToast('비밀번호는 4자리 숫자 또는 최소 8자(영문/숫자 포함)여야 합니다', 'error');
             return;
         }
 
@@ -295,7 +295,7 @@ window.changePassword = async function() {
             content: `
                 <div class="settings-confirm-container">
                     <p>비밀번호를 변경하시겠습니까?</p>
-                    <p class="settings-note-text">
+                    <p class="settings-note-text" style="color: #fbbf24;">
                         보안을 위해 변경 후 다시 로그인해야 합니다.
                     </p>
                 </div>
@@ -440,9 +440,10 @@ function validatePhone(phone) {
 }
 
 function validatePassword(password) {
-    // 최소 8자, 영문과 숫자 포함
-    const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
-    return re.test(password);
+    // 4자리 숫자 또는 최소 8자(영문과 숫자 포함)
+    const fourDigits = /^\d{4}$/;  // 정확히 4자리 숫자
+    const standard = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;  // 최소 8자, 영문/숫자 포함
+    return fourDigits.test(password) || standard.test(password);
 }
 
 // ============================================
