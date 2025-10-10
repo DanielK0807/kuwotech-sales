@@ -314,7 +314,12 @@ router.post('/update-regions', async (req, res) => {
         const regionMap = new Map();
         rawRegions.forEach(row => {
             const fullRegion = row.customerRegion;
-            const mainRegion = fullRegion.split(' ')[0].trim();
+            let mainRegion = fullRegion.split(' ')[0].trim();
+
+            // "광주광역" → "광주" 통합
+            if (mainRegion === '광주광역') {
+                mainRegion = '광주';
+            }
 
             if (regionMap.has(mainRegion)) {
                 regionMap.set(mainRegion, regionMap.get(mainRegion) + row.count);
@@ -351,8 +356,13 @@ router.post('/update-regions', async (req, res) => {
         for (const row of rawRegions) {
             const fullRegion = row.customerRegion;
             const parts = fullRegion.split(' ');
-            const mainRegion = parts[0].trim();
+            let mainRegion = parts[0].trim();
             const district = parts.length > 1 ? parts.slice(1).join(' ').trim() : null;
+
+            // "광주광역" → "광주" 통합
+            if (mainRegion === '광주광역') {
+                mainRegion = '광주';
+            }
 
             // region_id 찾기
             const [regionResult] = await db.execute(
