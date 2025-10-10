@@ -20,7 +20,11 @@
 
         document.documentElement.dataset.breakpoint = bp;
         document.documentElement.classList.add('breakpoint-' + bp);
-        document.body.classList.add('breakpoint-' + bp);
+
+        // body가 존재할 때만 classList 추가 (head에서 실행 시 body는 아직 null일 수 있음)
+        if (document.body) {
+          document.body.classList.add('breakpoint-' + bp);
+        }
 
         console.log('[초기 브레이크포인트 설정]', bp, window.innerWidth + 'px');
       })();

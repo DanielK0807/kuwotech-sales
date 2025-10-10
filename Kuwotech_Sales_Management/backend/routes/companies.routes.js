@@ -9,7 +9,9 @@ import {
   getCompaniesByManager,
   createCompany,
   updateCompany,
-  deleteCompany
+  deleteCompany,
+  checkCompanyNameDuplicate,
+  checkBusinessNumberDuplicate
 } from '../controllers/companies.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
@@ -17,6 +19,12 @@ const router = express.Router();
 
 // GET /api/companies - 전체 거래처 조회 (필터링 지원)
 router.get('/', authenticate, getAllCompanies);
+
+// GET /api/companies/check-duplicate/name - 거래처명 중복 체크
+router.get('/check-duplicate/name', authenticate, checkCompanyNameDuplicate);
+
+// GET /api/companies/check-duplicate/business-number - 사업자등록번호 중복 체크
+router.get('/check-duplicate/business-number', authenticate, checkBusinessNumberDuplicate);
 
 // GET /api/companies/manager/:managerName - 담당자별 거래처 조회
 router.get('/manager/:managerName', authenticate, getCompaniesByManager);

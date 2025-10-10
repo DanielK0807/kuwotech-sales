@@ -27,6 +27,14 @@ import {
 
 import { initDownloadButton, exportExcel, importExcel } from './03_companies_download.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import {
+    validatePhoneNumber,
+    validateBusinessNumber,
+    checkCompanyNameDuplicate,
+    checkBusinessNumberDuplicate,
+    showDuplicateCompanyModal,
+    parseRegionFromAddress
+} from '../../01.common/18_validation_utils.js';
 
 // ============================================
 // [SECTION: 전역 변수]

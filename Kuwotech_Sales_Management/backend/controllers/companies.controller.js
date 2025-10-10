@@ -268,6 +268,97 @@ async function saveHistory(db, companyKey, action, changedBy, changedByRole, old
   }
 }
 
+// GET /api/companies/check-duplicate/name?name={name}&excludeKey={keyValue} - 거래처명 중복 체크
+export const checkCompanyNameDuplicate = async (req, res) => {
+  try {
+    const { name, excludeKey } = req.query;
+    const db = await getDB();
+
+    if (!name) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: '거래처명을 입력해주세요.'
+      });
+    }
+
+    // 중복 검사 (수정 시 본인 제외)
+    let query = 'SELECT keyValue, finalCompanyName, ceoOrDentist, detailedAddress, phoneNumber FROM companies WHERE finalCompanyName = ?';
+    const params = [name];
+
+    if (excludeKey) {
+      query += ' AND keyValue != ?';
+      params.push(excludeKey);
+    }
+
+    const [duplicates] = await db.execute(query, params);
+
+    res.json({
+      success: true,
+      isDuplicate: duplicates.length > 0,
+      count: duplicates.length,
+      companies: duplicates
+    });
+
+  } catch (error) {
+    console.error('거래처명 중복 체크 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '거래처명 중복 체크 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};
+
+// GET /api/companies/check-duplicate/business-number?number={number}&excludeKey={keyValue} - 사업자등록번호 중복 체크
+export const checkBusinessNumberDuplicate = async (req, res) => {
+  try {
+    const { number, excludeKey } = req.query;
+    const db = await getDB();
+
+    if (!number) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: '사업자등록번호를 입력해주세요.'
+      });
+    }
+
+    // 중복 검사 (수정 시 본인 제외)
+    let query = 'SELECT keyValue, finalCompanyName, businessRegistrationNumber FROM companies WHERE businessRegistrationNumber = ?';
+    const params = [number];
+
+    if (excludeKey) {
+      query += ' AND keyValue != ?';
+      params.push(excludeKey);
+    }
+
+    const [duplicates] = await db.execute(query, params);
+
+    res.json({
+      success: true,
+      isDuplicate: duplicates.length > 0,
+      count: duplicates.length,
+      companies: duplicates
+    });
+
+  } catch (error) {
+    console.error('사업자등록번호 중복 체크 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '사업자등록번호 중복 체크 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};
+
+// 숫자 필드 정규화 헬퍼 함수
+function normalizeNumericField(value) {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  const num = parseFloat(value);
+  return isNaN(num) ? null : num;
+}
+
 // POST /api/companies - 거래처 생성
 export const createCompany = async (req, res) => {
   try {
@@ -282,8 +373,43 @@ export const createCompany = async (req, res) => {
       });
     }
 
+    // 사업자등록번호 중복 체크
+    if (companyData.businessRegistrationNumber) {
+      const [existingBusiness] = await db.execute(
+        'SELECT keyValue, finalCompanyName FROM companies WHERE businessRegistrationNumber = ?',
+        [companyData.businessRegistrationNumber]
+      );
+
+      if (existingBusiness.length > 0) {
+        return res.status(400).json({
+          error: 'Duplicate Business Number',
+          message: `이미 등록된 사업자등록번호입니다. (${existingBusiness[0].finalCompanyName})`
+        });
+      }
+    }
+
+    // region_id 검증 (외래키 제약)
+    if (companyData.region_id) {
+      const [regionExists] = await db.execute(
+        'SELECT id FROM regions WHERE id = ?',
+        [companyData.region_id]
+      );
+
+      if (regionExists.length === 0) {
+        return res.status(400).json({
+          error: 'Invalid Region',
+          message: '유효하지 않은 지역입니다.'
+        });
+      }
+    }
+
     // keyValue 생성 (finalCompanyName 기반)
     const keyValue = companyData.keyValue || `COMPANY_${Date.now()}`;
+
+    // 숫자 필드 정규화
+    const jcwContribution = normalizeNumericField(companyData.jcwContribution);
+    const companyContribution = normalizeNumericField(companyData.companyContribution);
+    const accountsReceivable = normalizeNumericField(companyData.accountsReceivable) || 0;
 
     const [result] = await db.execute(`
       INSERT INTO companies (
@@ -303,9 +429,9 @@ export const createCompany = async (req, res) => {
       companyData.businessStatus || '활성',
       companyData.department || null,
       companyData.internalManager || req.user.name,
-      companyData.jcwContribution || null,
-      companyData.companyContribution || null,
-      companyData.accountsReceivable || 0,
+      jcwContribution,
+      companyContribution,
+      accountsReceivable,
       companyData.businessRegistrationNumber || null,
       companyData.detailedAddress || null,
       companyData.phoneNumber || null,
@@ -372,6 +498,48 @@ export const updateCompany = async (req, res) => {
       });
     }
 
+    // 사업자등록번호 중복 체크 (변경되는 경우만)
+    if (companyData.businessRegistrationNumber &&
+        companyData.businessRegistrationNumber !== oldData.businessRegistrationNumber) {
+      const [existingBusiness] = await db.execute(
+        'SELECT keyValue, finalCompanyName FROM companies WHERE businessRegistrationNumber = ? AND keyValue != ?',
+        [companyData.businessRegistrationNumber, keyValue]
+      );
+
+      if (existingBusiness.length > 0) {
+        return res.status(400).json({
+          error: 'Duplicate Business Number',
+          message: `이미 등록된 사업자등록번호입니다. (${existingBusiness[0].finalCompanyName})`
+        });
+      }
+    }
+
+    // region_id 검증 (변경되는 경우만)
+    if (companyData.region_id && companyData.region_id !== oldData.region_id) {
+      const [regionExists] = await db.execute(
+        'SELECT id FROM regions WHERE id = ?',
+        [companyData.region_id]
+      );
+
+      if (regionExists.length === 0) {
+        return res.status(400).json({
+          error: 'Invalid Region',
+          message: '유효하지 않은 지역입니다.'
+        });
+      }
+    }
+
+    // 숫자 필드 정규화
+    const jcwContribution = companyData.jcwContribution !== undefined
+      ? normalizeNumericField(companyData.jcwContribution)
+      : oldData.jcwContribution;
+    const companyContribution = companyData.companyContribution !== undefined
+      ? normalizeNumericField(companyData.companyContribution)
+      : oldData.companyContribution;
+    const accountsReceivable = companyData.accountsReceivable !== undefined
+      ? (normalizeNumericField(companyData.accountsReceivable) || 0)
+      : oldData.accountsReceivable;
+
     // 업데이트 쿼리
     const [result] = await db.execute(`
       UPDATE companies SET
@@ -400,9 +568,9 @@ export const updateCompany = async (req, res) => {
       companyData.businessStatus || oldData.businessStatus,
       companyData.department || oldData.department,
       companyData.internalManager || oldData.internalManager,
-      companyData.jcwContribution || oldData.jcwContribution,
-      companyData.companyContribution || oldData.companyContribution,
-      companyData.accountsReceivable !== undefined ? companyData.accountsReceivable : oldData.accountsReceivable,
+      jcwContribution,
+      companyContribution,
+      accountsReceivable,
       companyData.businessRegistrationNumber || oldData.businessRegistrationNumber,
       companyData.detailedAddress || oldData.detailedAddress,
       companyData.phoneNumber || oldData.phoneNumber,
