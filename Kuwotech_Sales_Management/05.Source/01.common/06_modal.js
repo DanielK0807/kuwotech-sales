@@ -184,7 +184,8 @@ class Modal {
             title.style.cssText = `
                 font-size: calc(var(--font-xl) * 1.5);
                 font-weight: var(--font-weight-semibold);
-                color: var(--text-primary);
+                color: #FFFFFF;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
                 margin: 0;
             `;
             header.appendChild(title);
