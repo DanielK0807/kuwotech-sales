@@ -23,6 +23,18 @@ let currentFilters = {
     employee: ''
 };
 
+// 비교보고 관련 변수
+let comparisonReports = [];    // 비교보고 데이터
+let comparisonFilters = {
+    period: 'weekly',
+    department: '',
+    employee: '',
+    startDate: '',
+    endDate: ''
+};
+let startDatePicker = null;    // 시작일 Flatpickr 인스턴스
+let endDatePicker = null;      // 종료일 Flatpickr 인스턴스
+
 // ============================================
 // 초기화
 // ============================================
@@ -34,6 +46,9 @@ async function init() {
 
     // 마스터 데이터 로드 (부서, 직원)
     await loadMasterData();
+
+    // 비교보고 Flatpickr 초기화
+    initComparisonDatePickers();
 
     // 초기 데이터 로드
     await loadReports();
@@ -136,20 +151,33 @@ async function loadMasterData() {
  */
 function populateDepartmentSelect(departments) {
     const departmentSelect = document.getElementById('departmentFilter');
-    if (!departmentSelect) return;
+    const comparisonDepartmentSelect = document.getElementById('comparisonDepartment');
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
-    while (departmentSelect.options.length > 1) {
-        departmentSelect.remove(1);
+    // 기존 보고서 발표용 select
+    if (departmentSelect) {
+        while (departmentSelect.options.length > 1) {
+            departmentSelect.remove(1);
+        }
+        departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.department_name;
+            option.textContent = dept.department_name;
+            departmentSelect.appendChild(option);
+        });
     }
 
-    // 부서 옵션 추가
-    departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept.department_name;
-        option.textContent = dept.department_name;
-        departmentSelect.appendChild(option);
-    });
+    // 비교보고용 select
+    if (comparisonDepartmentSelect) {
+        while (comparisonDepartmentSelect.options.length > 1) {
+            comparisonDepartmentSelect.remove(1);
+        }
+        departments.forEach(dept => {
+            const option = document.createElement('option');
+            option.value = dept.department_name;
+            option.textContent = dept.department_name;
+            comparisonDepartmentSelect.appendChild(option);
+        });
+    }
 }
 
 /**
@@ -157,7 +185,7 @@ function populateDepartmentSelect(departments) {
  */
 function populateEmployeeSelect(employees) {
     const employeeSelect = document.getElementById('employeeFilter');
-    if (!employeeSelect) return;
+    const comparisonEmployeeSelect = document.getElementById('comparisonEmployee');
 
     // 직원 맵 생성 (이름 → 부서 조회용)
     employeesMap = {};
@@ -169,30 +197,40 @@ function populateEmployeeSelect(employees) {
         };
     });
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
-    while (employeeSelect.options.length > 1) {
-        employeeSelect.remove(1);
-    }
-
     // 영업 관련 직원만 필터링
-    // 조건: role1 또는 role2가 "영업담당"인 직원 (관리자만 있는 직원 제외)
     const salesEmployees = employees.filter(emp => {
         const isRole1Sales = emp.role1 === '영업담당';
         const isRole2Sales = emp.role2 === '영업담당';
-        const hasSalesRole = isRole1Sales || isRole2Sales;
-
-        return hasSalesRole;
+        return isRole1Sales || isRole2Sales;
     });
 
     console.log(`📋 [직원 필터링] 전체: ${employees.length}명 → 영업담당: ${salesEmployees.length}명`);
 
-    // 직원 옵션 추가
-    salesEmployees.forEach(emp => {
-        const option = document.createElement('option');
-        option.value = emp.name;
-        option.textContent = `${emp.name} (${emp.department || ''})`;
-        employeeSelect.appendChild(option);
-    });
+    // 기존 보고서 발표용 select
+    if (employeeSelect) {
+        while (employeeSelect.options.length > 1) {
+            employeeSelect.remove(1);
+        }
+        salesEmployees.forEach(emp => {
+            const option = document.createElement('option');
+            option.value = emp.name;
+            option.textContent = `${emp.name} (${emp.department || ''})`;
+            employeeSelect.appendChild(option);
+        });
+    }
+
+    // 비교보고용 select
+    if (comparisonEmployeeSelect) {
+        while (comparisonEmployeeSelect.options.length > 1) {
+            comparisonEmployeeSelect.remove(1);
+        }
+        salesEmployees.forEach(emp => {
+            const option = document.createElement('option');
+            option.value = emp.name;
+            option.textContent = `${emp.name} (${emp.department || ''})`;
+            comparisonEmployeeSelect.appendChild(option);
+        });
+    }
 }
 
 /**
@@ -212,6 +250,24 @@ function setupEventListeners() {
     // 새로고침 버튼
     const btnRefresh = document.getElementById('btnRefresh');
     btnRefresh?.addEventListener('click', handleRefresh);
+
+    // 비교보고 이벤트 리스너
+    setupComparisonEventListeners();
+}
+
+/**
+ * 비교보고 이벤트 리스너 등록
+ */
+function setupComparisonEventListeners() {
+    // 비교보고 기간 유형 변경
+    const comparisonPeriodRadios = document.querySelectorAll('input[name="comparisonPeriod"]');
+    comparisonPeriodRadios.forEach(radio => {
+        radio.addEventListener('change', handleComparisonPeriodChange);
+    });
+
+    // 비교 조회 버튼
+    const btnComparisonSearch = document.getElementById('btnComparisonSearch');
+    btnComparisonSearch?.addEventListener('click', handleComparisonSearch);
 }
 
 // ============================================
@@ -940,6 +996,304 @@ function closeReportModal() {
 
 // 전역 함수로 등록 (HTML에서 사용)
 window.closeReportModal = closeReportModal;
+
+// ============================================
+// 비교보고 기능
+// ============================================
+
+/**
+ * Flatpickr 달력 초기화
+ */
+function initComparisonDatePickers() {
+    console.log('[비교보고] Flatpickr 초기화 시작');
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Flatpickr 라이브러리 확인
+    if (typeof flatpickr === 'undefined') {
+        console.error('[비교보고] ❌ Flatpickr 라이브러리를 찾을 수 없습니다');
+        return;
+    }
+
+    try {
+        // 기본 기간 설정 (금주)
+        const defaultRange = calculateDateRange('weekly');
+
+        // 시작일 달력
+        const startDateEl = document.getElementById('comparisonStartDate');
+        if (startDateEl) {
+            startDatePicker = flatpickr(startDateEl, {
+                locale: 'ko',
+                dateFormat: 'Y-m-d',
+                defaultDate: defaultRange.start,  // 기본값 설정
+                maxDate: today,
+                position: 'auto',
+                onChange: function(selectedDates, dateStr) {
+                    console.log('[비교보고] 시작일 선택:', dateStr);
+                    comparisonFilters.startDate = dateStr;
+                    updateComparisonPeriodDisplay();
+
+                    // 시작일이 종료일보다 늦으면 종료일도 업데이트
+                    if (comparisonFilters.endDate && dateStr > comparisonFilters.endDate) {
+                        endDatePicker?.setDate(dateStr);
+                    }
+                }
+            });
+            comparisonFilters.startDate = defaultRange.start;
+            console.log('[비교보고] ✅ 시작일 Flatpickr 초기화 완료');
+        }
+
+        // 종료일 달력
+        const endDateEl = document.getElementById('comparisonEndDate');
+        if (endDateEl) {
+            endDatePicker = flatpickr(endDateEl, {
+                locale: 'ko',
+                dateFormat: 'Y-m-d',
+                defaultDate: defaultRange.end,  // 기본값 설정
+                maxDate: today,
+                position: 'auto',
+                onChange: function(selectedDates, dateStr) {
+                    console.log('[비교보고] 종료일 선택:', dateStr);
+                    comparisonFilters.endDate = dateStr;
+                    updateComparisonPeriodDisplay();
+
+                    // 종료일이 시작일보다 이르면 시작일도 업데이트
+                    if (comparisonFilters.startDate && dateStr < comparisonFilters.startDate) {
+                        startDatePicker?.setDate(dateStr);
+                    }
+                }
+            });
+            comparisonFilters.endDate = defaultRange.end;
+            console.log('[비교보고] ✅ 종료일 Flatpickr 초기화 완료');
+        }
+
+        // 초기 기간 표시 업데이트
+        updateComparisonPeriodDisplay();
+
+    } catch (error) {
+        console.error('[비교보고] ❌ Flatpickr 초기화 오류:', error);
+    }
+}
+
+/**
+ * 비교보고 기간 유형 변경 핸들러
+ */
+function handleComparisonPeriodChange(event) {
+    comparisonFilters.period = event.target.value;
+    console.log('[비교보고] 기간 유형 변경:', comparisonFilters.period);
+
+    // 기간 유형에 따라 날짜 자동 설정
+    const dateRange = calculateDateRange(comparisonFilters.period);
+
+    if (startDatePicker) {
+        startDatePicker.setDate(dateRange.start);
+        comparisonFilters.startDate = dateRange.start;
+    }
+
+    if (endDatePicker) {
+        endDatePicker.setDate(dateRange.end);
+        comparisonFilters.endDate = dateRange.end;
+    }
+
+    updateComparisonPeriodDisplay();
+}
+
+/**
+ * 선택된 기간 표시 업데이트
+ */
+function updateComparisonPeriodDisplay() {
+    const periodRangeEl = document.getElementById('comparisonPeriodRange');
+    if (!periodRangeEl) return;
+
+    if (comparisonFilters.startDate && comparisonFilters.endDate) {
+        const periodText = formatDateRange(comparisonFilters.startDate, comparisonFilters.endDate);
+        periodRangeEl.textContent = periodText;
+    } else {
+        periodRangeEl.textContent = '날짜를 선택하세요';
+    }
+}
+
+/**
+ * 비교 조회 핸들러
+ */
+async function handleComparisonSearch() {
+    // 필터 값 가져오기
+    comparisonFilters.department = document.getElementById('comparisonDepartment')?.value || '';
+    comparisonFilters.employee = document.getElementById('comparisonEmployee')?.value || '';
+
+    // 날짜 검증
+    if (!comparisonFilters.startDate || !comparisonFilters.endDate) {
+        showToast('시작일과 종료일을 선택해주세요', 'warning');
+        return;
+    }
+
+    // 시작일이 종료일보다 늦을 경우
+    if (comparisonFilters.startDate > comparisonFilters.endDate) {
+        showToast('시작일은 종료일보다 늦을 수 없습니다', 'error');
+        return;
+    }
+
+    console.log('[비교보고] 조회 시작:', comparisonFilters);
+    showToast('비교보고 데이터를 조회합니다...', 'info');
+
+    try {
+        await loadComparisonReports();
+    } catch (error) {
+        console.error('[비교보고] ❌ 조회 실패:', error);
+        showToast('비교보고 조회 중 오류가 발생했습니다', 'error');
+    }
+}
+
+/**
+ * 비교보고 데이터 로드
+ */
+async function loadComparisonReports() {
+    try {
+        console.log('[비교보고] 데이터 로드 중...');
+        console.log(`[비교보고] 📅 조회 기간: ${comparisonFilters.startDate} ~ ${comparisonFilters.endDate}`);
+
+        // API 호출 파라미터 구성
+        const params = {
+            startDate: comparisonFilters.startDate,
+            endDate: comparisonFilters.endDate
+        };
+
+        // 부서 필터 추가
+        if (comparisonFilters.department) {
+            params.department = comparisonFilters.department;
+        }
+
+        // 담당자 필터 추가
+        if (comparisonFilters.employee) {
+            params.submittedBy = comparisonFilters.employee;
+        }
+
+        // API 호출
+        const response = await apiManager.getReports(params);
+
+        // 데이터 파싱
+        if (response && response.data && Array.isArray(response.data.reports)) {
+            comparisonReports = response.data.reports;
+        } else if (Array.isArray(response)) {
+            comparisonReports = response;
+        } else {
+            comparisonReports = [];
+        }
+
+        // 실제 실행된 실적만 필터링 (actualCollectionAmount 또는 actualSalesAmount가 0보다 큰 경우)
+        comparisonReports = comparisonReports.filter(report => {
+            const hasActualCollection = Number(report.actualCollectionAmount) > 0;
+            const hasActualSales = Number(report.actualSalesAmount) > 0;
+            return hasActualCollection || hasActualSales;
+        });
+
+        console.log(`[비교보고] ✅ ${comparisonReports.length}건 로드 완료`);
+
+        // UI 렌더링
+        renderComparisonTable();
+        renderComparisonSummary();
+
+        showToast(`비교보고 ${comparisonReports.length}건 조회 완료`, 'success');
+
+    } catch (error) {
+        console.error('[비교보고] ❌ 데이터 로드 실패:', error);
+        throw error;
+    }
+}
+
+/**
+ * 비교보고 테이블 렌더링
+ */
+function renderComparisonTable() {
+    const tbody = document.getElementById('comparisonTableBody');
+    const container = document.getElementById('comparisonTableContainer');
+    const emptyState = document.getElementById('comparisonEmptyState');
+
+    if (!tbody || !container || !emptyState) return;
+
+    // 빈 상태 체크
+    if (comparisonReports.length === 0) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = `
+            <div class="empty-icon">📭</div>
+            <p class="empty-text">조회된 실적 보고서가 없습니다</p>
+            <p class="empty-subtext">선택한 기간 동안 실제 실행된 실적이 없습니다</p>
+        `;
+        return;
+    }
+
+    // 테이블 표시
+    container.style.display = 'block';
+    emptyState.style.display = 'none';
+
+    // 테이블 행 생성
+    let html = '';
+    comparisonReports.forEach(report => {
+        html += renderComparisonRow(report);
+    });
+
+    tbody.innerHTML = html;
+}
+
+/**
+ * 비교보고 행 렌더링
+ */
+function renderComparisonRow(report) {
+    const collectionRate = calculateRate(report.actualCollectionAmount, report.targetCollectionAmount);
+    const salesRate = calculateRate(report.actualSalesAmount, report.targetSalesAmount);
+
+    // 직원 정보에서 부서 조회
+    const employeeInfo = employeesMap[report.submittedBy] || {};
+    const department = employeeInfo.department || '미분류';
+
+    return `
+        <tr class="report-row">
+            <td>${formatDate(report.submittedDate)}</td>
+            <td>${department}</td>
+            <td>${report.submittedBy || '-'}</td>
+            <td>${report.companyName || '-'}</td>
+            <td class="amount">${formatCurrencyLocal(report.actualCollectionAmount)}</td>
+            <td class="amount">${formatCurrencyLocal(report.actualSalesAmount)}</td>
+            <td class="rate ${getRateClass(collectionRate)}">${collectionRate}%</td>
+            <td class="rate ${getRateClass(salesRate)}">${salesRate}%</td>
+            <td class="activity" title="${getActivityText(report)}">${getActivityText(report)}</td>
+        </tr>
+    `;
+}
+
+/**
+ * 비교보고 요약 렌더링
+ */
+function renderComparisonSummary() {
+    const reportCount = comparisonReports.length;
+
+    let totalActualCollection = 0;
+    let totalActualSales = 0;
+    let totalCollectionRate = 0;
+    let totalSalesRate = 0;
+
+    comparisonReports.forEach(report => {
+        totalActualCollection += Number(report.actualCollectionAmount) || 0;
+        totalActualSales += Number(report.actualSalesAmount) || 0;
+
+        const collectionRate = parseFloat(calculateRate(report.actualCollectionAmount, report.targetCollectionAmount));
+        const salesRate = parseFloat(calculateRate(report.actualSalesAmount, report.targetSalesAmount));
+
+        totalCollectionRate += collectionRate;
+        totalSalesRate += salesRate;
+    });
+
+    const avgCollectionRate = reportCount > 0 ? (totalCollectionRate / reportCount).toFixed(2) : '0.00';
+    const avgSalesRate = reportCount > 0 ? (totalSalesRate / reportCount).toFixed(2) : '0.00';
+    const avgTotalRate = reportCount > 0 ? ((parseFloat(avgCollectionRate) + parseFloat(avgSalesRate)) / 2).toFixed(2) : '0.00';
+
+    // UI 업데이트
+    document.getElementById('comparisonTotalReports').textContent = `${reportCount}건`;
+    document.getElementById('comparisonActualCollection').textContent = formatCurrencyLocal(totalActualCollection);
+    document.getElementById('comparisonActualSales').textContent = formatCurrencyLocal(totalActualSales);
+    document.getElementById('comparisonAvgRate').textContent = `${avgTotalRate}%`;
+}
 
 // ============================================
 // 페이지 초기화
