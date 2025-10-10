@@ -12,7 +12,15 @@
 // ============================================
 
 const LOGO_CONFIG = {
-    path: '/02.Fonts_Logos/logo.png',  // 서버 경로 수정 (정적 파일 서빙)
+    // 환경별 로고 경로 자동 감지
+    path: (() => {
+        // 프로덕션 환경 (Railway) - Express 정적 파일 서빙
+        if (window.location.hostname.includes('railway.app')) {
+            return '/02.Fonts_Logos/logo.png';
+        }
+        // 로컬 개발 환경 - 상대 경로 사용
+        return '../../02.Fonts_Logos/logo.png';
+    })(),
     defaultHeight: 40,
     defaultClassName: 'logo',
     filter: {
