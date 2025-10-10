@@ -23,12 +23,12 @@ export const getAllCompanies = async (req, res) => {
     let query = `
       SELECT
         keyValue, finalCompanyName, isClosed, ceoOrDentist,
-        customerRegion, businessStatus, department, salesProduct,
+        customerRegion, region_id, region_district, businessStatus, department, salesProduct,
         internalManager, jcwContribution, companyContribution,
         lastPaymentDate, lastPaymentAmount, accountsReceivable,
         accumulatedCollection, accumulatedSales, activityNotes,
-        businessRegistrationNumber, detailedAddress, phoneNumber, 
-        referralSource, region_id, createdAt, updatedAt
+        businessRegistrationNumber, detailedAddress, phoneNumber,
+        referralSource, createdAt, updatedAt
       FROM companies
       WHERE 1=1
     `;
@@ -179,7 +179,7 @@ export const getCompaniesByManager = async (req, res) => {
     const [companies] = await db.execute(`
       SELECT
         keyValue, finalCompanyName, isClosed, ceoOrDentist,
-        customerRegion, region_id, businessStatus, department, salesProduct,
+        customerRegion, region_id, region_district, businessStatus, department, salesProduct,
         internalManager, jcwContribution, companyContribution,
         lastPaymentDate, lastPaymentAmount,
         accountsReceivable, accumulatedCollection, accumulatedSales,
