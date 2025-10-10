@@ -305,10 +305,13 @@ router.post('/update-regions', async (req, res) => {
             .map(([customerRegion, count]) => ({ customerRegion, count }))
             .sort((a, b) => a.customerRegion.localeCompare(b.customerRegion, 'ko'));
 
-        // 2. TRUNCATE regions 테이블
-        await db.execute('TRUNCATE TABLE regions');
+        // 2. Foreign key checks 비활성화
+        await db.execute('SET FOREIGN_KEY_CHECKS = 0');
 
-        // 3. 새로운 데이터 INSERT
+        // 3. regions 테이블 삭제
+        await db.execute('DELETE FROM regions');
+
+        // 4. 새로운 데이터 INSERT
         for (let i = 0; i < regions.length; i++) {
             const region = regions[i];
             const regionName = region.customerRegion;
@@ -319,6 +322,9 @@ router.post('/update-regions', async (req, res) => {
                 VALUES (?, ?, ?, TRUE)
             `, [regionName, regionCode, i + 1]);
         }
+
+        // 5. Foreign key checks 재활성화
+        await db.execute('SET FOREIGN_KEY_CHECKS = 1');
 
         res.json({
             success: true,
