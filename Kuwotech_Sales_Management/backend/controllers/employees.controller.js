@@ -5,7 +5,7 @@
 import bcrypt from 'bcrypt';
 import { getDB } from '../config/database.js';
 
-// GET /api/employees - 전체 직원 조회
+// GET /api/employees - 전체 직원 조회 (영업담당 역할이 있는 직원만)
 export const getAllEmployees = async (req, res) => {
   try {
     const db = await getDB();
@@ -16,6 +16,7 @@ export const getAllEmployees = async (req, res) => {
         phone, status, canUploadExcel, lastLogin
       FROM employees
       WHERE status = '재직'
+        AND (role1 = '영업담당' OR role2 = '영업담당')
       ORDER BY hireDate ASC
     `);
 
