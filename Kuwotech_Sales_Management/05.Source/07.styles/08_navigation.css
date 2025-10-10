@@ -408,57 +408,110 @@
 
 /* ============================================
    [SECTION: 모바일 반응형]
+   ✅ 모든 모바일 (가로/세로)에서 사이드바 항상 표시
+   ✅ 화면 크기에 비례해서 자동 축소 (vw 기반)
    ============================================ */
 
 @media screen and (max-width: 768px) {
     .sidebar-menu {
-        transform: translateX(-100%) translateZ(0);
-        width: 280px;
+        /* 항상 보이도록 설정 (숨기지 않음) */
+        transform: translateX(0) translateZ(0);
+        /* 화면 너비의 35%로 자동 조절 (최소 150px, 최대 220px) */
+        width: clamp(150px, 35vw, 220px);
         z-index: 1001;
     }
-    
+
     .sidebar-menu.open {
         transform: translateX(0) translateZ(0);
     }
-    
+
+    /* 사이드바 헤더 - 화면 크기에 비례 축소 */
+    .sidebar-header {
+        padding: clamp(12px, 3vw, 20px) clamp(8px, 2vw, 16px);
+    }
+
+    .user-name {
+        font-size: clamp(14px, 4vw, 22px);
+    }
+
+    .user-role {
+        font-size: clamp(10px, 2.5vw, 13px);
+        padding: clamp(2px, 0.5vw, 4px) clamp(6px, 1.5vw, 10px);
+    }
+
+    /* 메뉴 아이템 - 화면 크기에 비례 축소 */
+    .sidebar-menu-list {
+        padding: clamp(6px, 1.5vw, 12px);
+    }
+
+    .menu-link {
+        gap: clamp(6px, 1.5vw, 12px);
+        padding: clamp(8px, 2vw, 14px) clamp(8px, 2vw, 16px);
+        font-size: clamp(11px, 2.8vw, 15px);
+    }
+
+    .menu-icon {
+        font-size: clamp(16px, 4vw, 22px);
+        width: clamp(18px, 4.5vw, 28px);
+    }
+
+    .menu-title {
+        font-size: clamp(11px, 2.8vw, 15px);
+    }
+
     .top-navbar {
-        left: 0;
-        height: 84px;
+        /* 사이드바 너비만큼 자동으로 이동 */
+        left: clamp(150px, 35vw, 220px);
+        height: clamp(70px, 15vw, 90px);
+        padding: 0 clamp(12px, 3vw, 20px);
     }
-    
+
+    .navbar-title {
+        font-size: clamp(16px, 4.5vw, 28px);
+    }
+
+    .navbar-logo img {
+        height: clamp(40px, 10vw, 56px);
+    }
+
+    .navbar-logo span {
+        font-size: clamp(18px, 5vw, 26px);
+    }
+
+    .nav-btn {
+        width: clamp(36px, 9vw, 48px);
+        height: clamp(36px, 9vw, 48px);
+        font-size: clamp(16px, 4vw, 20px);
+    }
+
     .main-content {
-        margin-left: 0;
-        margin-top: 84px;
+        /* 사이드바 너비만큼 자동으로 margin */
+        margin-left: clamp(150px, 35vw, 220px);
+        margin-top: clamp(70px, 15vw, 90px);
+        padding: clamp(12px, 3vw, 20px);
     }
-    
+
     .breadcrumb {
-        margin-left: 0;
-        margin-top: 84px;
+        /* 사이드바 너비만큼 자동으로 margin */
+        margin-left: clamp(150px, 35vw, 220px);
+        margin-top: clamp(70px, 15vw, 90px);
+        padding: clamp(8px, 2vw, 16px) clamp(12px, 3vw, 20px);
     }
-    
-    /* 모바일 메뉴 토글 버튼 */
+
+    /* 로그아웃 버튼 - 화면 크기에 비례 축소 */
+    .sidebar-footer {
+        padding: clamp(10px, 2.5vw, 18px);
+    }
+
+    .logout-btn {
+        padding: clamp(8px, 2vw, 12px);
+        font-size: clamp(11px, 2.8vw, 14px);
+        gap: clamp(4px, 1vw, 8px);
+    }
+
+    /* 모바일 메뉴 토글 버튼 - 제거 (항상 보이므로 불필요) */
     .mobile-menu-toggle {
-        display: block;
-        position: fixed;
-        top: 18px;
-        left: 18px;
-        z-index: 1002;
-        width: 48px;
-        height: 48px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        color: var(--text-on-layer-1);
-        cursor: pointer;
-        font-size: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .mobile-menu-toggle:hover {
-        background: rgba(255, 255, 255, 0.3);
+        display: none;
     }
 }
 

@@ -373,7 +373,8 @@ body {
     max-height: 600px;
 }
 
-/* 홀로그래픽 반사 효과 */
+/* 홀로그래픽 반사 효과 - 비활성화 (scrollWidth 간섭 방지) */
+/*
 .table-container::before {
     content: '';
     position: absolute;
@@ -395,9 +396,13 @@ body {
     0% { transform: translateX(-100%) translateZ(1px); }
     100% { transform: translateX(100%) translateZ(1px); }
 }
+*/
+/* width: 200% 오버레이가 translateX 애니메이션으로 움직이면서
+   scrollWidth 계산에 간헐적으로 포함되어 스크롤바 thumb 길이 변동 발생 */
 
 .table-container:hover {
-    transform: translateY(-6px) translateZ(50px) rotateX(1.5deg) rotateY(-1.5deg) scale(1.01);
+    /* transform 제거 - 스크롤바 변동 방지를 위해 scale과 3D 효과 비활성화 */
+    /* scale(1.01)이 스크롤바 크기를 계속 변경시키는 문제 해결 */
     box-shadow:
         0 40px 80px -20px rgba(0, 0, 0, 0.5),
         0 25px 50px -15px rgba(0, 0, 0, 0.4),
@@ -408,7 +413,7 @@ body {
 }
 
 .companies-table {
-    width: 1530px !important; /* 고정 너비로 스크롤바 안정화 */
+    width: 1550px !important; /* 컬럼 너비 합계와 정확히 일치 (200+120+120+100+150+140+180+180+180+180) */
     border-collapse: collapse;
     table-layout: fixed; /* 고정 레이아웃으로 컬럼 정렬 */
 }
