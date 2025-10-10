@@ -10,7 +10,6 @@ import * as navigation from './01_navigation.js';
 
 // 새로운 동적 컴포넌트들
 import './02_dynamic_button.js';
-import './03_dynamic_modal.js';
 import './04_dynamic_table.js';
 import './05_kpi_card.js';
 import './07_accordion.js';
@@ -35,25 +34,20 @@ export async function initComponents(options = {}) {
         if (options.button !== false && window.DynamicButton) {
             console.log('[2/5] 동적 버튼 컴포넌트 로드 완료');
         }
-        
-        // 3. 모달 컴포넌트 초기화
-        if (options.modal !== false && window.DynamicModal) {
-            console.log('[3/5] 동적 모달 컴포넌트 로드 완료');
-        }
-        
-        // 4. 테이블 컴포넌트 초기화
+
+        // 3. 테이블 컴포넌트 초기화
         if (options.table !== false && window.DynamicDataTable) {
-            console.log('[4/5] 동적 테이블 컴포넌트 로드 완료');
+            console.log('[3/5] 동적 테이블 컴포넌트 로드 완료');
         }
-        
-        // 5. KPI 카드 컴포넌트 초기화
+
+        // 4. KPI 카드 컴포넌트 초기화
         if (options.kpi !== false && window.KPICard) {
-            console.log('[5/6] KPI 카드 컴포넌트 로드 완료');
+            console.log('[4/5] KPI 카드 컴포넌트 로드 완료');
         }
-        
-        // 6. 아코디언 컴포넌트 초기화
+
+        // 5. 아코디언 컴포넌트 초기화
         if (options.accordion !== false && window.Accordion) {
-            console.log('[6/6] 아코디언 컴포넌트 로드 완료');
+            console.log('[5/5] 아코디언 컴포넌트 로드 완료');
         }
         
         // 컴포넌트 스타일 적용
@@ -381,12 +375,11 @@ function getLoadedComponents() {
     return {
         navigation: !!navigation,
         dynamicButton: !!window.DynamicButton,
-        dynamicModal: !!window.DynamicModal,
         dynamicTable: !!window.DynamicDataTable,
         kpiCard: !!window.KPICard,
         buttonGroup: !!window.ButtonGroup,
         kpiGroup: !!window.KPIGroup,
-        modalManager: !!window.modalManager,
+        modal: !!window.Modal,
         accordion: !!window.Accordion
     };
 }
@@ -394,73 +387,26 @@ function getLoadedComponents() {
 /**
  * 컴포넌트 팩토리
  * 쉽게 컴포넌트를 생성할 수 있는 헬퍼 함수들
+ *
+ * 참고: 모달 관련 기능은 01.common/06_modal.js의
+ * showModal, alert, confirm, prompt를 사용하세요.
  */
 export const ComponentFactory = {
     // 버튼 생성
     button: (config) => new window.DynamicButton(config),
-    
+
     // 버튼 그룹 생성
     buttonGroup: (config) => new window.ButtonGroup(config),
-    
-    // 모달 생성 및 열기
-    modal: (config) => {
-        const modal = new window.DynamicModal(config);
-        modal.open();
-        return modal;
-    },
-    
-    // 알림 모달
-    alert: (message, title = '알림') => {
-        return ComponentFactory.modal({
-            title,
-            content: message,
-            size: 'sm',
-            buttons: [{
-                text: '확인',
-                variant: 'primary',
-                onClick: (e, modal) => modal.close()
-            }]
-        });
-    },
-    
-    // 확인 모달
-    confirm: (message, title = '확인') => {
-        return new Promise((resolve) => {
-            ComponentFactory.modal({
-                title,
-                content: message,
-                size: 'sm',
-                buttons: [
-                    {
-                        text: '취소',
-                        variant: 'secondary',
-                        onClick: (e, modal) => {
-                            modal.close();
-                            resolve(false);
-                        }
-                    },
-                    {
-                        text: '확인',
-                        variant: 'primary',
-                        onClick: (e, modal) => {
-                            modal.close();
-                            resolve(true);
-                        }
-                    }
-                ]
-            });
-        });
-    },
-    
+
     // 데이터 테이블 생성
     table: (config) => new window.DynamicDataTable(config),
-    
+
     // KPI 카드 생성
     kpiCard: (config) => new window.KPICard(config),
-    
+
     // KPI 그룹 생성
     kpiGroup: (config) => new window.KPIGroup(config),
-    
+
     // 아코디언 생성
     accordion: (config) => new window.Accordion(config)
 };
@@ -473,14 +419,13 @@ export default {
     initComponents,
     ComponentFactory,
     getLoadedComponents,
-    
+
     // 네비게이션 관련
     ...navigation,
-    
+
     // 컴포넌트 클래스들
     DynamicButton: window.DynamicButton,
     ButtonGroup: window.ButtonGroup,
-    DynamicModal: window.DynamicModal,
     DynamicDataTable: window.DynamicDataTable,
     KPICard: window.KPICard,
     KPIGroup: window.KPIGroup,

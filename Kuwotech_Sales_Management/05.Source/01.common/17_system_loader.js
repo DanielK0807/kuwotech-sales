@@ -136,19 +136,19 @@ class SystemLoader {
     
     /**
      * 컴포넌트 시스템 로드
+     * 참고: 모달은 01.common/06_modal.js에서 관리됩니다.
      */
     async loadComponents(options = {}) {
         const scripts = [
             `${this.componentsPath}/02_dynamic_button.js`,
-            `${this.componentsPath}/03_dynamic_modal.js`,
             `${this.componentsPath}/04_dynamic_table.js`,
             `${this.componentsPath}/05_kpi_card.js`
         ];
-        
+
         for (const script of scripts) {
             await this.loadScript(script);
         }
-        
+
         this.loaded.components = true;
     }
     
@@ -296,52 +296,11 @@ class SystemLoader {
     
     /**
      * 보고서 페이지 초기화
+     * 참고: 모달 관련 기능은 01.common/06_modal.js의 showModal을 사용하세요.
      */
     async initReportsPage() {
-        // 보고서 작성 모달
-        const newReportBtn = document.querySelector('#newReportBtn');
-        if (newReportBtn && window.DynamicModal) {
-            newReportBtn.addEventListener('click', () => {
-                const modal = new DynamicModal({
-                    title: '실적보고서 작성',
-                    size: 'lg',
-                    glass: true,
-                    content: `
-                        <form class="report-form">
-                            <div class="form-group">
-                                <label>보고서 제목</label>
-                                <input type="text" class="form-control glass-input" />
-                            </div>
-                            <div class="form-group">
-                                <label>보고 기간</label>
-                                <input type="date" class="form-control glass-input" />
-                            </div>
-                            <div class="form-group">
-                                <label>내용</label>
-                                <textarea class="form-control glass-input" rows="10"></textarea>
-                            </div>
-                        </form>
-                    `,
-                    buttons: [
-                        {
-                            text: '취소',
-                            variant: 'secondary',
-                            onClick: (e, modal) => modal.close()
-                        },
-                        {
-                            text: '저장',
-                            variant: 'primary',
-                            onClick: (e, modal) => {
-                                // 저장 로직
-                                modal.close();
-                            }
-                        }
-                    ]
-                });
-                
-                modal.open();
-            });
-        }
+        // 보고서 작성 버튼 - 실제 모달은 각 페이지에서 구현
+        console.log('[보고서 페이지] 초기화 완료');
     }
     
     /**
