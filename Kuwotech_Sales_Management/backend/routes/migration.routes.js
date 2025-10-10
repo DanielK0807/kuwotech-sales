@@ -407,4 +407,50 @@ router.post('/update-regions', async (req, res) => {
     }
 });
 
+// GET /api/migration/verify-districts - region_district 데이터 확인
+router.get('/verify-districts', async (req, res) => {
+    try {
+        const db = await getDB();
+
+        // region_district가 있는 회사들 샘플 조회
+        const [companies] = await db.execute(`
+            SELECT
+                companyName,
+                customerRegion,
+                r.region_name,
+                region_district
+            FROM companies c
+            LEFT JOIN regions r ON c.region_id = r.id
+            WHERE c.customerRegion IS NOT NULL
+              AND c.customerRegion != ''
+            ORDER BY c.customerRegion
+            LIMIT 30
+        `);
+
+        // 통계
+        const [[stats]] = await db.execute(`
+            SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN region_id IS NOT NULL THEN 1 ELSE 0 END) as has_region_id,
+                SUM(CASE WHEN region_district IS NOT NULL AND region_district != '' THEN 1 ELSE 0 END) as has_district
+            FROM companies
+            WHERE customerRegion IS NOT NULL AND customerRegion != ''
+        `);
+
+        res.json({
+            success: true,
+            stats: stats,
+            sampleCompanies: companies
+        });
+
+    } catch (error) {
+        console.error('검증 오류:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: '데이터 검증 중 오류가 발생했습니다.',
+            details: error.message
+        });
+    }
+});
+
 export default router;
