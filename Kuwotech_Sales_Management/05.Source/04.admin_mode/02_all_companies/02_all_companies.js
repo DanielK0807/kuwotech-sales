@@ -172,7 +172,7 @@ async function loadMasterData() {
                 console.log('[직원] 로드 성공:', employeesData.employees.length, '개');
             }
         }
-        
+
     } catch (error) {
         console.error('[마스터데이터] 로드 실패:', error);
         // 에러가 발생해도 계속 진행
@@ -186,12 +186,11 @@ function populateProductSelect(products) {
     const filterProductSelect = document.getElementById('filter-product');
     if (!filterProductSelect) return;
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
+    // Keep first "전체" option, remove rest
     while (filterProductSelect.options.length > 1) {
         filterProductSelect.remove(1);
     }
 
-    // 제품 옵션 추가
     products.forEach(product => {
         const option = document.createElement('option');
         option.value = product.productName;
@@ -207,12 +206,10 @@ function populateRegionSelect(regions) {
     const filterRegionSelect = document.getElementById('filter-region');
     if (!filterRegionSelect) return;
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
     while (filterRegionSelect.options.length > 1) {
         filterRegionSelect.remove(1);
     }
 
-    // 지역 옵션 추가
     regions.forEach(region => {
         const option = document.createElement('option');
         option.value = region.region_name;
@@ -228,12 +225,10 @@ function populateDepartmentSelect(departments) {
     const filterDepartmentSelect = document.getElementById('filter-department');
     if (!filterDepartmentSelect) return;
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
     while (filterDepartmentSelect.options.length > 1) {
         filterDepartmentSelect.remove(1);
     }
 
-    // 부서 옵션 추가
     departments.forEach(dept => {
         const option = document.createElement('option');
         option.value = dept.department_name;
@@ -249,53 +244,16 @@ function populateEmployeeSelect(employees) {
     const filterEmployeeSelect = document.getElementById('filter-employee');
     if (!filterEmployeeSelect) return;
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
     while (filterEmployeeSelect.options.length > 1) {
         filterEmployeeSelect.remove(1);
     }
 
-    // 직원 옵션 추가
     employees.forEach(emp => {
         const option = document.createElement('option');
         option.value = emp.name;
         option.textContent = `${emp.name} (${emp.department || ''})`;
         filterEmployeeSelect.appendChild(option);
     });
-}
-
-/**
- * 거래처명 select 옵션 채우기
- */
-function populateCompanyNameSelect(companies) {
-    const filterNameSelect = document.getElementById('filter-name');
-    if (!filterNameSelect) return;
-
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
-    while (filterNameSelect.options.length > 1) {
-        filterNameSelect.remove(1);
-    }
-
-    // 중복 제거를 위해 Set 사용
-    const uniqueNames = new Set();
-    companies.forEach(company => {
-        const displayName = getCompanyDisplayName(company);
-        if (displayName && displayName.trim()) {
-            uniqueNames.add(displayName);
-        }
-    });
-
-    // 정렬된 거래처명 배열로 변환
-    const sortedNames = Array.from(uniqueNames).sort((a, b) => a.localeCompare(b, 'ko'));
-
-    // 거래처명 옵션 추가
-    sortedNames.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        filterNameSelect.appendChild(option);
-    });
-
-    console.log('[거래처명] 로드 성공:', sortedNames.length, '개');
 }
 
 // ============================================
@@ -334,35 +292,38 @@ async function loadCompanies() {
         // 백엔드에서 받은 데이터
         const allCompanies = data.companies || [];
 
-        // 거래처명 필터 드롭다운 채우기 (필터 적용 전 전체 목록 사용)
-        populateCompanyNameSelect(allCompanies);
-
         // 필터 적용
         companyList = allCompanies;
 
+        // 내부담당자 필터
         if (currentFilter.employee) {
             companyList = companyList.filter(c => c.internalManager === currentFilter.employee);
         }
 
+        // 담당부서 필터
         if (currentFilter.department) {
             companyList = companyList.filter(c => c.department === currentFilter.department);
         }
 
+        // 거래상태 필터
         if (currentFilter.status) {
             companyList = companyList.filter(c => c.businessStatus === currentFilter.status);
         }
 
+        // 판매제품 필터
         if (currentFilter.product) {
             companyList = companyList.filter(c => c.salesProduct === currentFilter.product);
         }
 
+        // 고객사 지역 필터
         if (currentFilter.region) {
             companyList = companyList.filter(c => c.customerRegion === currentFilter.region);
         }
 
+        // 거래처명 필터 (텍스트 검색)
         if (currentFilter.name) {
             companyList = companyList.filter(c =>
-                getCompanyDisplayName(c) === currentFilter.name
+                getCompanyDisplayName(c).toLowerCase().includes(currentFilter.name.toLowerCase())
             );
         }
 
@@ -1659,9 +1620,9 @@ function applyFilter() {
         product: document.getElementById('filter-product')?.value || '',
         region: document.getElementById('filter-region')?.value || ''
     };
-    
+
     console.log('[필터 적용]', currentFilter);
-    
+
     // 거래처 목록 재로드
     loadCompanies();
 }
@@ -1673,7 +1634,7 @@ function applyFilter() {
 // HTML에서 사용할 함수들을 window 객체에 등록
 if (typeof window !== 'undefined') {
     console.log('[전역 함수] window 객체에 등록 시작');
-    
+
     window.openCompanyModal = openCompanyModal;
     window.openCompanyDetailModal = openCompanyDetailModal;
     window.viewCompany = viewCompany;
@@ -1683,7 +1644,7 @@ if (typeof window !== 'undefined') {
     window.searchCompanies = searchCompanies;
     window.exportExcel = exportExcel;  // 03_download.js에서 import
     window.importExcel = importExcel;  // 03_download.js에서 import
-    
+
     console.log('[전역 함수] 등록 완료 - openCompanyModal:', typeof window.openCompanyModal);
 }
 
@@ -1711,6 +1672,6 @@ if (typeof window !== 'undefined') {
         searchCompanies,
         applyFilter
     };
-    
+
     console.log('[전체거래처관리] 모듈 함수 전역 등록 완료');
 }
