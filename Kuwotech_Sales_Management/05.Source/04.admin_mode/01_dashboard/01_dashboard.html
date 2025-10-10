@@ -272,18 +272,16 @@
 
         /* === KPI 그리드 - 소제목별 한 줄 배치 === */
         .kpi-grid {
-            display: grid;
-            gap: clamp(8px, 1.5vw, 20px); /* 간격도 반응형 */
-            overflow-x: auto; /* 화면이 너무 작으면 스크롤 가능 */
-            overflow-y: hidden;
-            padding-bottom: 8px; /* 스크롤바 여백 */
+            display: grid !important;
+            gap: clamp(8px, 1.5vw, 20px) !important;
+            width: 100% !important;
         }
 
         /* 섹션별 카드 개수에 맞게 균등 분할 */
-        #kpiSection1 { grid-template-columns: repeat(4, 1fr); } /* 4개 카드 */
-        #kpiSection2 { grid-template-columns: repeat(2, 1fr); } /* 2개 카드 */
-        #kpiSection3 { grid-template-columns: repeat(5, 1fr); } /* 5개 카드 */
-        #kpiSection4 { grid-template-columns: repeat(3, 1fr); } /* 3개 카드 */
+        #kpiSection1 { grid-template-columns: repeat(4, 1fr) !important; } /* 4개 카드 */
+        #kpiSection2 { grid-template-columns: repeat(2, 1fr) !important; } /* 2개 카드 */
+        #kpiSection3 { grid-template-columns: repeat(5, 1fr) !important; } /* 5개 카드 */
+        #kpiSection4 { grid-template-columns: repeat(3, 1fr) !important; } /* 3개 카드 */
 
         /* 스크롤바 스타일 (선택적) */
         .kpi-grid::-webkit-scrollbar {
@@ -305,57 +303,45 @@
         }
         
         .kpi-card {
-            display: flex;
-            align-items: flex-start;
-            gap: clamp(8px, 1vw, 16px); /* 반응형 간격 */
-            min-width: 0; /* 콘텐츠가 카드 크기를 넘지 않도록 */
-
-            /* 높이 제한: 기본 높이에서 늘어나지 않음, 줄어드는 것만 가능 */
-            max-height: 180px; /* 최대 높이 제한 */
-            height: auto; /* 내용물에 맞춰 자동 조절 (줄어들기 가능) */
-
-            /* padding도 반응형으로 (내용물이 작아지면 padding도 줄어듦) */
-            padding: clamp(12px, 2vw, 28px);
-            box-sizing: border-box;
-
-            /* 내용이 넘치면 숨김 */
-            overflow: hidden;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: clamp(6px, 0.8vw, 10px) !important;
+            padding: clamp(10px, 1.5vw, 18px) !important;
+            box-sizing: border-box !important;
+            width: 100% !important;
+            min-width: 0 !important;
         }
 
         .kpi-icon {
-            font-size: clamp(20px, 3vw, 32px); /* 반응형 아이콘 */
-            line-height: 1;
-            flex-shrink: 0; /* 아이콘 크기 고정 */
+            font-size: clamp(18px, 2.5vw, 28px) !important;
+            line-height: 1 !important;
+            margin-bottom: 4px !important;
         }
 
         .kpi-content {
-            flex: 1;
-            min-width: 0; /* 텍스트 오버플로우 방지 */
+            width: 100% !important;
         }
 
         .kpi-label {
-            font-size: clamp(10px, 1.2vw, 14px); /* 반응형 라벨 */
-            margin-bottom: var(--spacing-xs);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap; /* 라벨 줄바꿈 방지 */
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: clamp(9px, 1vw, 12px) !important;
+            margin-bottom: 2px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.3px !important;
+            color: var(--text-secondary) !important;
+            line-height: 1.2 !important;
         }
 
         .kpi-value {
-            font-size: clamp(16px, 2.5vw, 28px); /* 반응형 값 */
-            font-weight: var(--font-weight-bold);
-            line-height: 1.2;
-            word-break: keep-all;
-            overflow-wrap: break-word;
+            font-size: clamp(14px, 2vw, 24px) !important;
+            font-weight: var(--font-weight-bold) !important;
+            line-height: 1.2 !important;
         }
 
         .kpi-unit {
-            font-size: clamp(12px, 1.5vw, 16px); /* 반응형 단위 */
-            color: var(--text-secondary);
-            display: inline-block;
-            margin-left: var(--spacing-xs);
+            font-size: clamp(10px, 1.3vw, 14px) !important;
+            color: var(--text-secondary) !important;
+            margin-left: 3px !important;
         }
         
         .kpi-trend {
