@@ -57,7 +57,10 @@
                 <div class="custom-dropdown">
                     <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
                         <span id="employee-selected-text">전체</span>
-                        <span class="dropdown-arrow">▼</span>
+                        <div class="dropdown-actions">
+                            <button type="button" class="clear-selection-btn" id="employee-clear-btn" title="선택취소">✕</button>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
                     </button>
                     <div class="custom-dropdown-menu" id="employee-dropdown-menu">
                         <!-- 동적으로 로드됨 -->
@@ -872,14 +875,50 @@
 .custom-dropdown-button {
     width: 100%;
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
     text-align: left;
 }
 
+.dropdown-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.clear-selection-btn {
+    padding: 2px 6px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 4px;
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: none;
+}
+
+.clear-selection-btn.visible {
+    display: block;
+}
+
+.clear-selection-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    transform: scale(1.1);
+}
+
+.clear-selection-btn:active {
+    transform: scale(0.95);
+}
+
 .dropdown-arrow {
-    margin-left: 8px;
+    margin-left: 4px;
     transition: transform 0.3s ease;
 }
 
