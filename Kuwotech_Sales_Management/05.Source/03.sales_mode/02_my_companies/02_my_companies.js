@@ -35,10 +35,10 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let companyList = [];
 let currentFilter = {
-    status: '',
-    product: '',
-    region: '',
-    name: ''
+    name: '',        // 거래처명은 단일 선택 (select)
+    status: [],      // 배열로 변경 (다중 선택)
+    product: [],     // 배열로 변경 (다중 선택)
+    region: []       // 배열로 변경 (다중 선택)
 };
 let currentSort = 'name';
 
@@ -100,8 +100,11 @@ function waitForDOMReady() {
 async function loadMasterData() {
     try {
         console.log('[마스터데이터] 로드 시작');
-        
-        // 1. 제품 목록 로드
+
+        // 1. 거래상태 populate (정적 데이터)
+        populateStatusSelect();
+
+        // 2. 제품 목록 로드
         const productsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/products`, {
             method: 'GET',
             headers: {
@@ -109,33 +112,34 @@ async function loadMasterData() {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
         });
-        
+
         if (productsResponse.ok) {
             const productsData = await productsResponse.json();
             if (productsData.success) {
+                window.masterProducts = productsData.products; // 전역 저장
                 populateProductSelect(productsData.products);
                 console.log('[제품] 로드 성공:', productsData.products.length, '개');
             }
         }
-        
-        // 2. 지역 목록 로드
-        const regionsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/regions`, {
+
+        // 3. 전체 거래처 조회 (고객사지역 필터용)
+        const allCompaniesResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/companies`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
         });
-        
-        if (regionsResponse.ok) {
-            const regionsData = await regionsResponse.json();
-            if (regionsData.success) {
-                populateRegionSelect(regionsData.regions);
-                console.log('[지역] 로드 성공:', regionsData.regions.length, '개');
+
+        if (allCompaniesResponse.ok) {
+            const allCompaniesData = await allCompaniesResponse.json();
+            if (allCompaniesData.success) {
+                populateRegionSelect(allCompaniesData.companies);
+                console.log('[고객사지역] 로드 성공 (전체 거래처 기준)');
             }
         }
-        
-        // 3. 담당부서 목록 로드
+
+        // 4. 담당부서 목록 로드
         const departmentsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/departments`, {
             method: 'GET',
             headers: {
@@ -143,7 +147,7 @@ async function loadMasterData() {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
         });
-        
+
         if (departmentsResponse.ok) {
             const departmentsData = await departmentsResponse.json();
             if (departmentsData.success) {
@@ -151,7 +155,7 @@ async function loadMasterData() {
                 console.log('[담당부서] 로드 성공:', departmentsData.departments.length, '개');
             }
         }
-        
+
     } catch (error) {
         console.error('[마스터데이터] 로드 실패:', error);
         // 에러가 발생해도 계속 진행
@@ -159,45 +163,201 @@ async function loadMasterData() {
 }
 
 /**
- * 제품 select 옵션 채우기
+ * 거래상태 checkbox dropdown 채우기
  */
-function populateProductSelect(products) {
-    const filterProductSelect = document.getElementById('filter-product');
-    if (!filterProductSelect) return;
+function populateStatusSelect() {
+    const dropdownMenu = document.getElementById('status-dropdown-menu');
+    if (!dropdownMenu) return;
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
-    while (filterProductSelect.options.length > 1) {
-        filterProductSelect.remove(1);
-    }
+    const statuses = ['활성', '비활성', '불용', '추가확인'];
+    dropdownMenu.innerHTML = '';
 
-    // 제품 옵션 추가
-    products.forEach(product => {
-        const option = document.createElement('option');
-        option.value = product.productName;
-        option.textContent = product.productName;
-        filterProductSelect.appendChild(option);
+    statuses.forEach(status => {
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `status-${status}`;
+        checkbox.value = status;
+        checkbox.addEventListener('change', updateStatusSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `status-${status}`;
+        label.textContent = status;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
     });
 }
 
 /**
- * 지역 select 옵션 채우기
+ * 판매제품 checkbox dropdown 채우기
  */
-function populateRegionSelect(regions) {
-    const filterRegionSelect = document.getElementById('filter-region');
-    if (!filterRegionSelect) return;
+function populateProductSelect(products) {
+    const dropdownMenu = document.getElementById('product-dropdown-menu');
+    if (!dropdownMenu) return;
 
-    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
-    while (filterRegionSelect.options.length > 1) {
-        filterRegionSelect.remove(1);
+    dropdownMenu.innerHTML = '';
+
+    products.forEach(product => {
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `product-${product.productName}`;
+        checkbox.value = product.productName;
+        checkbox.addEventListener('change', updateProductSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `product-${product.productName}`;
+        label.textContent = product.productName;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
+    });
+}
+
+/**
+ * 고객사지역 checkbox dropdown 채우기 (companies 데이터에서 추출)
+ */
+function populateRegionSelect(companies) {
+    const dropdownMenu = document.getElementById('region-dropdown-menu');
+    if (!dropdownMenu) return;
+
+    dropdownMenu.innerHTML = '';
+
+    // companies 데이터에서 unique한 지역명 추출 (첫 번째 공백 이전 값만)
+    const uniqueRegions = new Set();
+    companies.forEach(company => {
+        if (company.customerRegion && company.customerRegion.trim()) {
+            // 첫 번째 공백 이전 값만 추출 (예: "서울 강남구" -> "서울")
+            const mainRegion = company.customerRegion.trim().split(' ')[0];
+            uniqueRegions.add(mainRegion);
+        }
+    });
+
+    const sortedRegions = Array.from(uniqueRegions).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    sortedRegions.forEach(region => {
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `region-${region}`;
+        checkbox.value = region;
+        checkbox.addEventListener('change', updateRegionSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `region-${region}`;
+        label.textContent = region;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
+    });
+}
+
+/**
+ * 거래처명 select 옵션 채우기 (자신이 담당하는 거래처만)
+ */
+function populateCompanyNameSelect(companies) {
+    const filterNameSelect = document.getElementById('filter-name');
+    if (!filterNameSelect) return;
+
+    // 기존 옵션 제거 (전체는 유지)
+    while (filterNameSelect.options.length > 1) {
+        filterNameSelect.remove(1);
     }
 
-    // 지역 옵션 추가
-    regions.forEach(region => {
+    // 담당 거래처 추출 및 정렬
+    const myCompanies = companies
+        .filter(c => c.internalManager === user.name)
+        .sort((a, b) => getCompanyDisplayName(a).localeCompare(getCompanyDisplayName(b), 'ko'));
+
+    // 옵션 추가
+    myCompanies.forEach(company => {
         const option = document.createElement('option');
-        option.value = region.region_name;
-        option.textContent = region.region_name;
-        filterRegionSelect.appendChild(option);
+        option.value = company.keyValue;
+        option.textContent = getCompanyDisplayName(company);
+        filterNameSelect.appendChild(option);
     });
+}
+
+/**
+ * 거래상태 선택 업데이트
+ */
+function updateStatusSelection() {
+    const checkboxes = document.querySelectorAll('#status-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('status-selected-text');
+    if (!selectedText) return;
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    currentFilter.status = selectedValues;
+    loadCompanies();
+}
+
+/**
+ * 판매제품 선택 업데이트
+ */
+function updateProductSelection() {
+    const checkboxes = document.querySelectorAll('#product-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('product-selected-text');
+    if (!selectedText) return;
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    currentFilter.product = selectedValues;
+    loadCompanies();
+}
+
+/**
+ * 고객사지역 선택 업데이트
+ */
+function updateRegionSelection() {
+    const checkboxes = document.querySelectorAll('#region-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('region-selected-text');
+    if (!selectedText) return;
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    currentFilter.region = selectedValues;
+    loadCompanies();
 }
 
 // ============================================
@@ -207,12 +367,12 @@ function populateRegionSelect(regions) {
 async function loadCompanies() {
     try {
         showLoading('거래처 데이터를 불러오는 중...');
-        
+
         // 백엔드 API 엔드포인트
         const apiUrl = `${GlobalConfig.API_BASE_URL}/api/companies/manager/${encodeURIComponent(user.name)}`;
-        
+
         console.log('[API 호출]', apiUrl);
-        
+
         // 백엔드 API 호출
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -221,58 +381,70 @@ async function loadCompanies() {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
         });
-        
+
         if (!response.ok) {
             throw new Error(`API 오류: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (!data.success) {
             throw new Error(data.message || '데이터 조회 실패');
         }
-        
-        // 백엔드에서 받은 데이터
-        companyList = data.companies || [];
-        
-        // 필터 적용
-        if (currentFilter.status) {
-            companyList = companyList.filter(c => c.businessStatus === currentFilter.status);
-        }
-        
-        if (currentFilter.product) {
-            companyList = companyList.filter(c => c.salesProduct === currentFilter.product);
-        }
-        
-        if (currentFilter.region) {
-            companyList = companyList.filter(c => c.customerRegion === currentFilter.region);
-        }
-        
+
+        // 백엔드에서 받은 원본 데이터 저장
+        const allCompanies = data.companies || [];
+
+        // 거래처명 드롭다운 populate (담당 거래처만)
+        populateCompanyNameSelect(allCompanies);
+        // 주의: 지역 드롭다운은 loadMasterData()에서 전체 거래처 기준으로 이미 처리됨
+
+        // 필터 적용할 데이터
+        companyList = [...allCompanies];
+
+        // 거래처명 필터 (keyValue로 비교)
         if (currentFilter.name) {
-            const keyword = currentFilter.name.toLowerCase();
-            companyList = companyList.filter(c =>
-                getCompanyDisplayName(c).toLowerCase().includes(keyword)
-            );
+            companyList = companyList.filter(c => c.keyValue === currentFilter.name);
         }
-        
+
+        // 거래상태 필터 (OR 조건 - 다중 선택)
+        if (currentFilter.status && currentFilter.status.length > 0) {
+            companyList = companyList.filter(c => currentFilter.status.includes(c.businessStatus));
+        }
+
+        // 판매제품 필터 (OR 조건 - 다중 선택)
+        if (currentFilter.product && currentFilter.product.length > 0) {
+            companyList = companyList.filter(c => currentFilter.product.includes(c.salesProduct));
+        }
+
+        // 고객사 지역 필터 (OR 조건 - 다중 선택)
+        // customerRegion의 첫 번째 공백 이전 값으로 비교
+        if (currentFilter.region && currentFilter.region.length > 0) {
+            companyList = companyList.filter(c => {
+                if (!c.customerRegion) return false;
+                const mainRegion = c.customerRegion.trim().split(' ')[0];
+                return currentFilter.region.includes(mainRegion);
+            });
+        }
+
         // 정렬
         sortCompanies();
-        
+
         // 테이블 렌더링
         renderCompanyTable();
-        
+
         // 통계 업데이트
         updateStatistics();
-        
+
         hideLoading();
-        
+
         console.log('[거래처 로드 성공]', companyList.length, '개');
-        
+
     } catch (error) {
         console.error('[거래처 로드 실패]', error);
         hideLoading();
         showToast('거래처 데이터 로드 중 오류가 발생했습니다.', 'error');
-        
+
         // 오류 시 빈 배열로 초기화
         companyList = [];
         renderCompanyTable();
@@ -1372,11 +1544,11 @@ async function openCompanyDetailModal(keyValue) {
 
 function setupEventListeners() {
     console.log('[이벤트 리스너] 설정 시작');
-    
+
     // 거래처 추가 버튼
     const addCompanyBtn = document.getElementById('add-company-btn');
     console.log('[이벤트 리스너] add-company-btn 요소:', addCompanyBtn);
-    
+
     if (addCompanyBtn) {
         addCompanyBtn.addEventListener('click', () => {
             console.log('[거래처 추가] 버튼 클릭됨');
@@ -1386,19 +1558,79 @@ function setupEventListeners() {
     } else {
         console.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
     }
-    
+
+    // 거래처명 select 변경
+    const filterName = document.getElementById('filter-name');
+    if (filterName) {
+        filterName.addEventListener('change', (e) => {
+            currentFilter.name = e.target.value;
+            loadCompanies();
+        });
+    }
+
+    // 거래상태 dropdown 토글
+    const statusButton = document.getElementById('status-dropdown-button');
+    const statusMenu = document.getElementById('status-dropdown-menu');
+    if (statusButton && statusMenu) {
+        statusButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            statusMenu.classList.toggle('show');
+            // 다른 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                if (menu !== statusMenu) menu.classList.remove('show');
+            });
+        });
+    }
+
+    // 판매제품 dropdown 토글
+    const productButton = document.getElementById('product-dropdown-button');
+    const productMenu = document.getElementById('product-dropdown-menu');
+    if (productButton && productMenu) {
+        productButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            productMenu.classList.toggle('show');
+            // 다른 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                if (menu !== productMenu) menu.classList.remove('show');
+            });
+        });
+    }
+
+    // 고객사지역 dropdown 토글
+    const regionButton = document.getElementById('region-dropdown-button');
+    const regionMenu = document.getElementById('region-dropdown-menu');
+    if (regionButton && regionMenu) {
+        regionButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            regionMenu.classList.toggle('show');
+            // 다른 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                if (menu !== regionMenu) menu.classList.remove('show');
+            });
+        });
+    }
+
+    // 외부 클릭 시 드롭다운 닫기
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-dropdown')) {
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+
     // 필터 버튼
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             filterButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
             currentFilter = btn.dataset.filter || 'all';
             loadCompanies();
         });
     });
-    
+
     // 정렬 선택
     const sortSelect = document.getElementById('sort-select');
     if (sortSelect) {
@@ -1408,19 +1640,19 @@ function setupEventListeners() {
             renderCompanyTable();
         });
     }
-    
+
     // 검색 (debounce 함수 사용)
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
         const debouncedSearch = debounce((value) => {
             searchCompanies(value);
         }, 300);
-        
+
         searchInput.addEventListener('input', (e) => {
             debouncedSearch(e.target.value);
         });
     }
-    
+
     // 새로고침 버튼
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) {
@@ -1435,19 +1667,35 @@ function setupEventListeners() {
 // ============================================
 
 /**
- * 필터 적용
+ * 필터 적용 (레거시 - 개별 update 함수 사용 권장)
  */
 function applyFilter() {
-    // 필터 값 수집
-    currentFilter = {
-        name: document.getElementById('filter-name')?.value || '',
-        status: document.getElementById('filter-status')?.value || '',
-        product: document.getElementById('filter-product')?.value || '',
-        region: document.getElementById('filter-region')?.value || ''
-    };
-    
+    // 거래처명 필터
+    const filterName = document.getElementById('filter-name');
+    if (filterName) {
+        currentFilter.name = filterName.value || '';
+    }
+
+    // 거래상태 - checkbox 값 수집
+    const statusCheckboxes = document.querySelectorAll('#status-dropdown-menu input[type="checkbox"]');
+    currentFilter.status = Array.from(statusCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    // 판매제품 - checkbox 값 수집
+    const productCheckboxes = document.querySelectorAll('#product-dropdown-menu input[type="checkbox"]');
+    currentFilter.product = Array.from(productCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    // 고객사지역 - checkbox 값 수집
+    const regionCheckboxes = document.querySelectorAll('#region-dropdown-menu input[type="checkbox"]');
+    currentFilter.region = Array.from(regionCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
     console.log('[필터 적용]', currentFilter);
-    
+
     // 거래처 목록 재로드
     loadCompanies();
 }

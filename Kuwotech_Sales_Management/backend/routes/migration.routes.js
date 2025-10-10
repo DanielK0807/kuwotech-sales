@@ -193,4 +193,147 @@ router.get('/status', async (req, res) => {
   }
 });
 
+// GET /api/migration/check-regions - 실제 customerRegion 값 확인
+router.get('/check-regions', async (req, res) => {
+    try {
+        const db = await getDB();
+
+        // 1. 현재 사용 중인 customerRegion 값 조회 (앞 부분만 추출)
+        const [rawRegions] = await db.execute(`
+            SELECT customerRegion, COUNT(*) as count
+            FROM companies
+            WHERE customerRegion IS NOT NULL
+              AND customerRegion != ''
+            GROUP BY customerRegion
+            ORDER BY customerRegion
+        `);
+
+        // customerRegion에서 첫 번째 공백 이전 값만 추출 (예: "서울 강남구" -> "서울")
+        const regionMap = new Map();
+        rawRegions.forEach(row => {
+            const fullRegion = row.customerRegion;
+            const mainRegion = fullRegion.split(' ')[0].trim(); // 첫 번째 공백 이전 값
+
+            if (regionMap.has(mainRegion)) {
+                regionMap.set(mainRegion, regionMap.get(mainRegion) + row.count);
+            } else {
+                regionMap.set(mainRegion, row.count);
+            }
+        });
+
+        // Map을 배열로 변환하고 정렬
+        const regions = Array.from(regionMap.entries())
+            .map(([customerRegion, count]) => ({ customerRegion, count }))
+            .sort((a, b) => a.customerRegion.localeCompare(b.customerRegion, 'ko'));
+
+        // 2. regions 마스터 테이블 현재 데이터 조회
+        const [masterRegions] = await db.execute(`
+            SELECT id, region_name, region_code, display_order, is_active
+            FROM regions
+            ORDER BY display_order
+        `);
+
+        // 3. 불일치 확인
+        const actualRegionNames = new Set(regions.map(r => r.customerRegion));
+        const masterRegionNames = new Set(masterRegions.map(r => r.region_name));
+
+        const onlyInActual = [...actualRegionNames].filter(r => !masterRegionNames.has(r));
+        const onlyInMaster = [...masterRegionNames].filter(r => !actualRegionNames.has(r));
+
+        // 4. UPDATE SQL 생성
+        const insertValues = regions.map((row, i) => {
+            const regionName = row.customerRegion;
+            const regionCode = regionName.toUpperCase().replace(/\s+/g, '_');
+            return `('${regionName}', '${regionCode}', ${i + 1}, TRUE)`;
+        });
+
+        const updateSQL = `-- Step 1: 기존 데이터 삭제
+TRUNCATE TABLE regions;
+
+-- Step 2: 실제 데이터 기반으로 INSERT
+INSERT INTO regions (region_name, region_code, display_order, is_active) VALUES
+${insertValues.join(',\n')};`;
+
+        res.json({
+            success: true,
+            actualRegions: regions,
+            masterRegions: masterRegions,
+            onlyInActual: onlyInActual,
+            onlyInMaster: onlyInMaster,
+            updateSQL: updateSQL
+        });
+
+    } catch (error) {
+        console.error('지역 확인 오류:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: '지역 확인 중 오류가 발생했습니다.',
+            details: error.message
+        });
+    }
+});
+
+// POST /api/migration/update-regions - regions 테이블 업데이트 실행
+router.post('/update-regions', async (req, res) => {
+    try {
+        const db = await getDB();
+
+        // 1. 현재 사용 중인 customerRegion 값 조회
+        const [rawRegions] = await db.execute(`
+            SELECT customerRegion, COUNT(*) as count
+            FROM companies
+            WHERE customerRegion IS NOT NULL
+              AND customerRegion != ''
+            GROUP BY customerRegion
+            ORDER BY customerRegion
+        `);
+
+        // 첫 번째 공백 이전 값만 추출
+        const regionMap = new Map();
+        rawRegions.forEach(row => {
+            const fullRegion = row.customerRegion;
+            const mainRegion = fullRegion.split(' ')[0].trim();
+
+            if (regionMap.has(mainRegion)) {
+                regionMap.set(mainRegion, regionMap.get(mainRegion) + row.count);
+            } else {
+                regionMap.set(mainRegion, row.count);
+            }
+        });
+
+        const regions = Array.from(regionMap.entries())
+            .map(([customerRegion, count]) => ({ customerRegion, count }))
+            .sort((a, b) => a.customerRegion.localeCompare(b.customerRegion, 'ko'));
+
+        // 2. TRUNCATE regions 테이블
+        await db.execute('TRUNCATE TABLE regions');
+
+        // 3. 새로운 데이터 INSERT
+        for (let i = 0; i < regions.length; i++) {
+            const region = regions[i];
+            const regionName = region.customerRegion;
+            const regionCode = regionName.toUpperCase().replace(/\s+/g, '_');
+
+            await db.execute(`
+                INSERT INTO regions (region_name, region_code, display_order, is_active)
+                VALUES (?, ?, ?, TRUE)
+            `, [regionName, regionCode, i + 1]);
+        }
+
+        res.json({
+            success: true,
+            message: `${regions.length}개의 지역이 업데이트되었습니다.`,
+            regions: regions
+        });
+
+    } catch (error) {
+        console.error('지역 업데이트 오류:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: '지역 업데이트 중 오류가 발생했습니다.',
+            details: error.message
+        });
+    }
+});
+
 export default router;
