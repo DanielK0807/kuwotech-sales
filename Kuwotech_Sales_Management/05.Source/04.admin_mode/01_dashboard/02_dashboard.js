@@ -357,17 +357,18 @@ function renderKPISection(sectionId, kpiConfig) {
     }
 
     try {
+        // 섹션별 정확한 컬럼 수 설정 (한 줄 배치를 위해)
         const kpiGrid = new KPIGrid({
             cards: kpiConfig,
-            columns: 'auto-fit',
-            minWidth: '280px',
-            gap: 'var(--spacing-lg, 24px)',
-            responsive: true
+            columns: kpiConfig.length,  // ✅ 카드 개수만큼 컬럼 생성
+            minWidth: '0px',            // ✅ 최소 너비 제거 (균등 분할 우선)
+            gap: 'clamp(8px, 1.5vw, 20px)',
+            responsive: false            // ✅ 반응형 비활성화 (CSS가 제어)
         });
 
         container.innerHTML = '';
         container.appendChild(kpiGrid.render());
-        console.log(`[KPI 섹션] ${sectionId} 렌더링 완료 (${kpiConfig.length}개 카드)`);
+        console.log(`[KPI 섹션] ${sectionId} 렌더링 완료 (${kpiConfig.length}개 카드, ${kpiConfig.length}컬럼)`);
     } catch (error) {
         console.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
         container.innerHTML = '<p class="error-message">카드 렌더링 실패</p>';
