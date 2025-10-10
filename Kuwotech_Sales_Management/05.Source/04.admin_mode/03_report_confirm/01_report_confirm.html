@@ -167,9 +167,17 @@
                             <span class="info-label">작성자:</span>
                             <span class="info-value" id="detailSubmitter">-</span>
                         </div>
-                        <div class="info-item">
+                        <div class="info-item info-item-company">
                             <span class="info-label">거래처:</span>
-                            <span class="info-value" id="detailCompany">-</span>
+                            <div class="company-input-wrapper">
+                                <input
+                                    type="text"
+                                    id="detailCompanyInput"
+                                    class="glass-input company-autocomplete-input"
+                                    placeholder="거래처명 입력 (자동완성)"
+                                    autocomplete="off">
+                                <div id="detailCompanyAutocomplete" class="autocomplete-list hidden"></div>
+                            </div>
                         </div>
                         <div class="info-item">
                             <span class="info-label">제출일:</span>
@@ -182,7 +190,7 @@
                     </div>
                 </section>
 
-                <!-- 목표수금금액 (읽기전용) -->
+                <!-- 목표수금금액 -->
                 <section class="detail-section glass-card">
                     <h3 class="detail-section-title">💰 목표수금금액</h3>
                     <div class="readonly-content">
@@ -190,18 +198,20 @@
                             <span class="readonly-label">목표:</span>
                             <span class="readonly-value" id="detailCollectionGoal">-</span>
                         </div>
-                        <div class="readonly-item">
-                            <span class="readonly-label">실적:</span>
-                            <span class="readonly-value" id="detailCollectionActual">-</span>
-                        </div>
-                        <div class="readonly-item">
-                            <span class="readonly-label">미이행:</span>
-                            <span class="readonly-value error" id="detailCollectionRemaining">-</span>
-                        </div>
+                    </div>
+                    <div class="approval-input-section">
+                        <label class="approval-label">실제 수금금액 입력</label>
+                        <input
+                            type="text"
+                            id="actualCollectionAmountInput"
+                            class="glass-input approval-input"
+                            placeholder="0"
+                            inputmode="numeric">
+                        <small class="input-help">* 실제 수금한 금액을 입력하세요 (자동으로 쉼표가 추가됩니다)</small>
                     </div>
                 </section>
 
-                <!-- 목표매출액 (읽기전용) -->
+                <!-- 목표매출액 -->
                 <section class="detail-section glass-card">
                     <h3 class="detail-section-title">💵 목표매출액(<span id="detailSalesProduct">-</span>)</h3>
                     <div class="readonly-content">
@@ -209,14 +219,16 @@
                             <span class="readonly-label">목표:</span>
                             <span class="readonly-value" id="detailSalesGoal">-</span>
                         </div>
-                        <div class="readonly-item">
-                            <span class="readonly-label">실적:</span>
-                            <span class="readonly-value" id="detailSalesActual">-</span>
-                        </div>
-                        <div class="readonly-item">
-                            <span class="readonly-label">미이행:</span>
-                            <span class="readonly-value error" id="detailSalesRemaining">-</span>
-                        </div>
+                    </div>
+                    <div class="approval-input-section">
+                        <label class="approval-label">실제 매출금액 입력</label>
+                        <input
+                            type="text"
+                            id="actualSalesAmountInput"
+                            class="glass-input approval-input"
+                            placeholder="0"
+                            inputmode="numeric">
+                        <small class="input-help">* 실제 매출 금액을 입력하세요 (자동으로 쉼표가 추가됩니다)</small>
                     </div>
                 </section>
 
@@ -238,8 +250,11 @@
                             rows="6"
                             placeholder="관리자 의견을 작성하세요..."></textarea>
                         <div class="comment-actions">
-                            <button class="glass-button primary" id="saveCommentBtn">
-                                💾 저장
+                            <button class="glass-button secondary" id="saveCommentBtn">
+                                💾 의견만 저장
+                            </button>
+                            <button class="glass-button primary approve-btn" id="approveReportBtn">
+                                ✅ 보고서 승인
                             </button>
                         </div>
                     </div>
@@ -756,6 +771,7 @@
     .comment-actions {
         display: flex;
         justify-content: flex-end;
+        gap: var(--spacing-md);
     }
 
     .glass-button {
@@ -769,14 +785,184 @@
     }
 
     .glass-button.primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
     }
 
     .glass-button.primary:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .glass-button.secondary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .glass-button.secondary:hover {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    /* 승인 입력 섹션 스타일 */
+    .approval-input-section {
+        margin-top: var(--spacing-md);
+        padding-top: var(--spacing-md);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .approval-label {
+        display: block;
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .approval-input {
+        width: 100%;
+        padding: var(--spacing-md);
+        font-size: var(--font-md);
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .approval-input:focus {
+        outline: none;
+        border-color: rgba(16, 185, 129, 0.6);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .input-help {
+        display: block;
+        margin-top: var(--spacing-xs);
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .approve-btn {
+        font-weight: 700;
+        padding: var(--spacing-md) calc(var(--spacing-xl) * 1.5);
+    }
+
+    /* === 거래처 자동완성 스타일 === */
+    .info-item-company {
+        grid-column: 1 / -1; /* 전체 너비 차지 */
+    }
+
+    .company-input-wrapper {
+        position: relative;
+        display: flex;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
+
+    .company-autocomplete-input {
+        flex: 1;
+        padding: var(--spacing-md);
+        font-size: var(--font-md);
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .company-autocomplete-input:focus {
+        outline: none;
+        border-color: rgba(59, 130, 246, 0.6);
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .company-autocomplete-input.verified {
+        border-color: rgba(16, 185, 129, 0.6);
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .btn-verify-company {
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-verify-company:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-verify-company.verified {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .btn-verify-company.verified:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(2, 16, 36, 0.98);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        border-radius: var(--radius-md);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        margin-top: var(--spacing-xs);
+    }
+
+    .autocomplete-item {
+        padding: var(--spacing-md);
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: var(--font-md);
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+
+    .autocomplete-item:hover {
+        background: rgba(59, 130, 246, 0.2);
+    }
+
+    .autocomplete-item strong {
+        color: var(--color-primary);
+        font-weight: 700;
+    }
+
+    .autocomplete-no-results {
+        color: var(--text-secondary);
+        font-style: italic;
+        cursor: default;
+    }
+
+    .autocomplete-no-results:hover {
+        background: transparent;
     }
 
     /* === 반응형 === */
