@@ -270,18 +270,45 @@
               0 0 15px rgba(255, 255, 255, 0.5);
         }
 
-        /* === KPI 그리드 - 소제목별 한 줄 배치 === */
+        /* === CSS 변수 정의 === */
+        :root {
+            --kpi-gap: clamp(8px, 1.5vw, 20px);
+        }
+
+        /* === KPI 그리드 - Flexbox + calc() 방식으로 카드 너비 명시적 계산 === */
         .kpi-grid {
-            display: grid !important;
-            gap: clamp(8px, 1.5vw, 20px) !important;
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: var(--kpi-gap) !important;
             width: 100% !important;
         }
 
-        /* 섹션별 카드 개수에 맞게 균등 분할 */
-        #kpiSection1 { grid-template-columns: repeat(4, 1fr) !important; } /* 4개 카드 */
-        #kpiSection2 { grid-template-columns: repeat(2, 1fr) !important; } /* 2개 카드 */
-        #kpiSection3 { grid-template-columns: repeat(6, 1fr) !important; } /* ✅ 6개 카드 */
-        #kpiSection4 { grid-template-columns: repeat(2, 1fr) !important; } /* ✅ 2개 카드 */
+        /* 섹션별 카드 개수에 맞게 너비 계산 */
+        /* 공식: width = (100% - (N-1) × gap) / N */
+
+        #kpiSection1 .kpi-card {
+            /* 4개 카드: (100% - 3 × gap) / 4 */
+            width: calc((100% - 3 * var(--kpi-gap)) / 4) !important;
+            flex-shrink: 0 !important;
+        }
+
+        #kpiSection2 .kpi-card {
+            /* 2개 카드: (100% - 1 × gap) / 2 */
+            width: calc((100% - 1 * var(--kpi-gap)) / 2) !important;
+            flex-shrink: 0 !important;
+        }
+
+        #kpiSection3 .kpi-card {
+            /* 6개 카드: (100% - 5 × gap) / 6 */
+            width: calc((100% - 5 * var(--kpi-gap)) / 6) !important;
+            flex-shrink: 0 !important;
+        }
+
+        #kpiSection4 .kpi-card {
+            /* 2개 카드: (100% - 1 × gap) / 2 */
+            width: calc((100% - 1 * var(--kpi-gap)) / 2) !important;
+            flex-shrink: 0 !important;
+        }
 
         /* 스크롤바 스타일 (선택적) */
         .kpi-grid::-webkit-scrollbar {
@@ -418,14 +445,19 @@
                 white-space: normal !important; /* 줄바꿈 허용 */
             }
 
-            #kpiSection1, #kpiSection2, #kpiSection3, #kpiSection4 {
-                /* ✅ 자동 줄바꿈: 최소 120px, 공간이 있으면 균등 분할 */
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
-                grid-auto-flow: row !important;
+            .kpi-grid {
+                flex-wrap: wrap !important; /* 줄바꿈 허용 */
+                overflow-x: hidden !important;
             }
 
-            .kpi-grid {
-                overflow-x: hidden !important;
+            /* 모바일에서는 모든 카드가 동일한 너비 (최소 120px) */
+            #kpiSection1 .kpi-card,
+            #kpiSection2 .kpi-card,
+            #kpiSection3 .kpi-card,
+            #kpiSection4 .kpi-card {
+                width: calc((100% - var(--kpi-gap)) / 2) !important; /* 2열 배치 */
+                min-width: 120px !important;
+                flex-grow: 1 !important;
             }
 
             .header-content {
