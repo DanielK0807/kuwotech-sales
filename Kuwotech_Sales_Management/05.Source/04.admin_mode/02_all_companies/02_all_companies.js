@@ -256,6 +256,41 @@ function populateEmployeeSelect(employees) {
     });
 }
 
+/**
+ * 거래처명 select 옵션 채우기
+ */
+function populateCompanyNameSelect(companies) {
+    const filterNameSelect = document.getElementById('filter-name');
+    if (!filterNameSelect) return;
+
+    // Keep first "전체" option, remove rest
+    while (filterNameSelect.options.length > 1) {
+        filterNameSelect.remove(1);
+    }
+
+    // 중복 제거를 위해 Set 사용
+    const uniqueNames = new Set();
+    companies.forEach(company => {
+        const displayName = getCompanyDisplayName(company);
+        if (displayName && displayName.trim()) {
+            uniqueNames.add(displayName);
+        }
+    });
+
+    // 정렬된 거래처명 배열로 변환
+    const sortedNames = Array.from(uniqueNames).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    // 거래처명 옵션 추가
+    sortedNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        filterNameSelect.appendChild(option);
+    });
+
+    console.log('[거래처명] 로드 성공:', sortedNames.length, '개');
+}
+
 // ============================================
 // [SECTION: 거래처 데이터 로드]
 // ============================================
@@ -292,6 +327,9 @@ async function loadCompanies() {
         // 백엔드에서 받은 데이터
         const allCompanies = data.companies || [];
 
+        // 거래처명 필터 드롭다운 채우기 (필터 적용 전 전체 목록 사용)
+        populateCompanyNameSelect(allCompanies);
+
         // 필터 적용
         companyList = allCompanies;
 
@@ -320,11 +358,9 @@ async function loadCompanies() {
             companyList = companyList.filter(c => c.customerRegion === currentFilter.region);
         }
 
-        // 거래처명 필터 (텍스트 검색)
+        // 거래처명 필터
         if (currentFilter.name) {
-            companyList = companyList.filter(c =>
-                getCompanyDisplayName(c).toLowerCase().includes(currentFilter.name.toLowerCase())
-            );
+            companyList = companyList.filter(c => getCompanyDisplayName(c) === currentFilter.name);
         }
 
         // 정렬
