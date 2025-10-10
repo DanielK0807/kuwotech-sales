@@ -250,9 +250,9 @@ body[data-mode="admin"] {
 .system-title {
     font-size: var(--font-2xl, 30px);  /* UI 사양서: 변수 사용 (1.5배) */
     font-weight: 600;  /* UI 사양서 기준 */
-    color: #FFFFFF;
+    color: #FFFFFF !important;  /* 명확한 흰색 강제 적용 */
     margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);  /* 강화된 텍스트 그림자로 가독성 개선 */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
