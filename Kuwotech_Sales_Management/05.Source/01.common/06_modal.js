@@ -228,6 +228,7 @@ class Modal {
             max-height: calc(100vh - 400px);
             font-size: calc(var(--font-md) * 1.5);
             line-height: 1.6;
+            color: #FFFFFF;
         `;
         
         if (typeof this.content === 'string') {
