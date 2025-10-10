@@ -29,7 +29,9 @@
       "mcp__playwright__playwright_navigate",
       "Bash(sort:*)",
       "Read(//c/Users/kingg/AppData/Local/ms-playwright//**)",
-      "Read(//c/Users/kingg/AppData/Local/ms-playwright/**)"
+      "Read(//c/Users/kingg/AppData/Local/ms-playwright/**)",
+      "Bash(npx playwright install:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모달 테스트</title>
+    <link rel="stylesheet" href="./05.Source/07.styles/01_base.css">
+    <link rel="stylesheet" href="./05.Source/07.styles/02_colors.css">
+    <link rel="stylesheet" href="./05.Source/07.styles/03_layout.css">
+    <link rel="stylesheet" href="./05.Source/07.styles/04_components.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .test-button {
+            padding: 20px 40px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="btn btn-primary test-button" onclick="openTestModal()">
+        모달 열기 테스트
+    </button>
+
+    <script type="module">
+        import { showModal } from './05.Source/01.common/06_modal.js';
+
+        window.openTestModal = async function() {
+            const modalContent = `
+                <div class="company-form">
+                    <div class="form-section">
+                        <h4>📝 기본 정보</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="required">최종거래처명</label>
+                                <input type="text" id="modal-final-company-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>사업자등록번호</label>
+                                <input type="text" id="modal-business-registration-number" class="form-control" placeholder="000-00-00000">
+                            </div>
+                            <div class="form-group">
+                                <label class="required">대표이사/치과의사</label>
+                                <input type="text" id="modal-ceo-or-dentist" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>전화번호</label>
+                                <input type="tel" id="modal-phone-number" class="form-control" placeholder="02-0000-0000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>🏢 거래 정보</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>폐업여부</label>
+                                <select id="modal-is-closed" class="form-control">
+                                    <option value="N">N (정상)</option>
+                                    <option value="Y">Y (폐업)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>거래상태</label>
+                                <select id="modal-business-status" class="form-control">
+                                    <option value="활성">✅ 활성</option>
+                                    <option value="비활성">⏸️ 비활성</option>
+                                    <option value="불용">❌ 불용</option>
+                                    <option value="추가확인">🔍 추가확인</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>💼 내부 정보</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="required">내부담당자</label>
+                                <input type="text" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>정철웅기여</label>
+                                <select class="form-control">
+                                    <option value="">선택하세요</option>
+                                    <option value="상">상</option>
+                                    <option value="중">중</option>
+                                    <option value="하">하</option>
+                                    <option value="관계없음">관계없음</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>📍 상세 정보</h4>
+                        <div class="form-group full-width">
+                            <label>상세주소</label>
+                            <input type="text" class="form-control" placeholder="상세 주소를 입력하세요">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>소개경로</label>
+                            <input type="text" class="form-control" placeholder="거래처 소개 경로를 입력하세요">
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                .company-form {
+                    padding: 20px;
+                    width: 100%;
+                    max-width: 1400px;
+                    margin: 0 auto;
+                }
+                .form-section {
+                    margin-bottom: 35px;
+                }
+                .form-section h4 {
+                    margin-bottom: 15px;
+                    color: var(--primary-color);
+                    font-size: 16px;
+                }
+                .form-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 22px;
+                }
+                .form-group {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .form-group.full-width {
+                    grid-column: span 2;
+                }
+                .form-group label {
+                    margin-bottom: 8px;
+                    font-size: 15px;
+                    color: #2c3e50;
+                    font-weight: 600;
+                }
+                .form-group label.required::after {
+                    content: ' *';
+                    color: var(--danger-color);
+                }
+                .form-control {
+                    padding: 12px 16px;
+                    border: 1px solid var(--glass-border);
+                    border-radius: 6px;
+                    background: var(--glass-bg-white);
+                    font-size: 16px;
+                    color: #2c3e50;
+                    transition: all 0.3s ease;
+                }
+                .form-control:focus {
+                    outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+                }
+                .form-control::placeholder {
+                    color: #95a5a6;
+                }
+                </style>
+            `;
+
+            const result = await showModal({
+                title: '🆕 새 거래처 등록',
+                content: modalContent,
+                size: 'xl',
+                buttons: [
+                    {
+                        text: '취소',
+                        type: 'secondary',
+                        onClick: () => false
+                    },
+                    {
+                        text: '저장',
+                        type: 'primary',
+                        onClick: async () => {
+                            alert('저장 버튼 클릭됨');
+                            return true;
+                        }
+                    }
+                ]
+            });
+        }
+    </script>
+</body>
+</html>

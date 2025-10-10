@@ -54,10 +54,17 @@
         <div class="filter-row">
             <div class="filter-item">
                 <label>거래처명</label>
-                <select id="filter-name" class="glass-input">
-                    <option value="">전체</option>
-                    <!-- 동적으로 로드됨 (자신이 담당하는 거래처만) -->
-                </select>
+                <div class="autocomplete-wrapper">
+                    <input
+                        type="text"
+                        id="filter-name"
+                        class="glass-input"
+                        placeholder="거래처명을 입력하세요"
+                        autocomplete="off">
+                    <div id="company-autocomplete-list" class="autocomplete-list hidden">
+                        <!-- 자동완성 목록이 여기 표시됨 -->
+                    </div>
+                </div>
             </div>
             <div class="filter-item">
                 <label>거래상태</label>
@@ -479,6 +486,26 @@ body {
 .companies-table td:nth-child(1) {
     width: 200px;
     text-align: left;
+}
+
+/* ✅ 거래처명 내부 div 오버플로우 처리 */
+.company-name {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.company-name .badge {
+    margin-left: 6px;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(74, 158, 255, 0.2);
+    color: var(--primary-color);
+    white-space: nowrap;
 }
 
 /* 대표이사 - 텍스트 좌측 정렬 */
@@ -957,6 +984,61 @@ body {
     box-shadow:
         0 10px 20px -6px rgba(55, 85, 52, 0.5),
         0 6px 12px -4px rgba(55, 85, 52, 0.3);
+}
+
+/* ============================================
+   자동완성 스타일
+   ============================================ */
+
+/* 자동완성 래퍼 */
+.autocomplete-wrapper {
+    position: relative;
+    flex: 1;
+    overflow: visible !important;
+}
+
+/* 자동완성 목록 */
+.autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: rgba(255, 255, 255, 0.98);
+    border: 2px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    margin-top: 5px;
+    z-index: 9999 !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.autocomplete-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 15px;
+    color: #2c3e50;
+}
+
+.autocomplete-item:hover {
+    background-color: rgba(55, 85, 52, 0.1);
+}
+
+.autocomplete-item strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.autocomplete-no-results {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
 }
 </style>
 

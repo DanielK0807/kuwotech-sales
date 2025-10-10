@@ -214,26 +214,29 @@ async function initializePage() {
 function attachEventListeners() {
     // 거래처 입력 시 자동완성
     elements.companySelect.addEventListener('input', handleCompanyInput);
-    
+
     // 거래처 포커스 시 자동완성 표시
     elements.companySelect.addEventListener('focus', handleCompanyFocus);
-    
+
     // 거래처 선택 변경 시 확인 상태 초기화
     elements.companySelect.addEventListener('input', resetVerificationStatus);
 
     // 거래처 확인 버튼
     elements.verifyCompanyBtn.addEventListener('click', handleVerifyCompany);
-    
+
     // 문서 클릭 시 자동완성 목록 닫기
     document.addEventListener('click', function(e) {
-        if (!elements.companySelect.contains(e.target) && 
+        if (!elements.companySelect.contains(e.target) &&
             !elements.companyAutocompleteList.contains(e.target)) {
-            elements.companyAutocompleteList.style.display = 'none';
+            elements.companyAutocompleteList.classList.add('hidden');
         }
     });
 
     // 접기/펼치기 섹션 토글
     setupCollapsibleSections();
+
+    // 목표수금금액 입력 필드에 포맷팅 적용
+    bindAmountFormatting(elements.targetCollectionAmount);
 
     // 제품 추가 버튼
     elements.addProductBtn.addEventListener('click', addProductRow);
@@ -302,15 +305,16 @@ async function loadUserCompanies() {
 
         if (response.success) {
             state.companies = response.companies || [];
-            console.log('[Report Write] 거래처 목록 로드 성공:', state.companies.length, '개');
+            console.log('[Report Write] ✅ 거래처 목록 로드 성공:', state.companies.length, '개');
+            console.log('[Report Write] 거래처 목록 샘플:', state.companies.slice(0, 3));
         } else {
-            console.warn('[Report Write] 거래처 목록 로드 실패:', response.message);
+            console.warn('[Report Write] ⚠️ 거래처 목록 로드 실패:', response.message);
             if (window.Toast) {
                 window.Toast.warning(`거래처 목록을 불러오지 못했습니다: ${response.message}`);
             }
         }
     } catch (error) {
-        console.error('[Report Write] 거래처 목록 로드 에러:', error);
+        console.error('[Report Write] ❌ 거래처 목록 로드 에러:', error);
         if (window.Toast) {
             window.Toast.error('거래처 목록을 불러올 수 없습니다');
         }
@@ -322,18 +326,24 @@ async function loadUserCompanies() {
  */
 function handleCompanyInput(event) {
     const inputValue = event.target.value.trim().toLowerCase();
+    console.log('[Report Write] 거래처 입력:', inputValue);
 
     // 입력값이 비어있으면 목록 숨기기
     if (!inputValue) {
-        elements.companyAutocompleteList.style.display = 'none';
+        elements.companyAutocompleteList.classList.add('hidden');
         return;
     }
+
+    // 전체 거래처 수 확인
+    console.log('[Report Write] 전체 거래처 수:', state.companies.length);
 
     // 일치하는 거래처 필터링
     const filteredCompanies = state.companies.filter(company => {
         const companyName = getCompanyDisplayName(company).toLowerCase();
         return companyName.includes(inputValue);
     });
+
+    console.log('[Report Write] 필터링된 거래처 수:', filteredCompanies.length);
 
     // 결과 표시
     displayAutocompleteResults(filteredCompanies, inputValue);
@@ -360,12 +370,16 @@ function handleCompanyFocus() {
 function displayAutocompleteResults(companies, searchTerm) {
     const list = elements.companyAutocompleteList;
 
+    console.log('[Report Write] 자동완성 목록 표시 시작');
+    console.log('[Report Write] 결과 개수:', companies.length);
+
     // 목록 초기화
     list.innerHTML = '';
 
     if (companies.length === 0) {
         list.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
-        list.style.display = 'block';
+        list.classList.remove('hidden');
+        console.log('[Report Write] 검색 결과 없음 메시지 표시');
         return;
     }
 
@@ -389,7 +403,8 @@ function displayAutocompleteResults(companies, searchTerm) {
         list.appendChild(item);
     });
 
-    list.style.display = 'block';
+    list.classList.remove('hidden');
+    console.log('[Report Write] ✅ 자동완성 목록 표시 완료');
 }
 
 /**
@@ -399,14 +414,14 @@ function selectCompanyFromAutocomplete(company) {
     const companyName = getCompanyDisplayName(company);
     elements.companySelect.value = companyName;
     state.selectedCompany = company;
-    
+
     // 자동완성 목록 닫기
-    elements.companyAutocompleteList.style.display = 'none';
-    
+    elements.companyAutocompleteList.classList.add('hidden');
+
     // 확인 상태 초기화
     resetVerificationStatus();
-    
-    console.log('[Report Write] 거래처 선택:', companyName);
+
+    console.log('[Report Write] ✅ 거래처 선택:', companyName);
 }
 
 /**
@@ -618,6 +633,65 @@ function updateGoalItem(prefix, data) {
 }
 
 // ============================================
+// 금액 포맷팅 유틸리티
+// ============================================
+
+/**
+ * 숫자를 3자리마다 쉼표가 있는 형식으로 변환
+ * @param {string|number} value - 포맷팅할 값
+ * @returns {string} - 포맷팅된 문자열
+ */
+function formatNumberWithCommas(value) {
+    // 숫자가 아닌 문자 제거 (쉼표, 공백 등)
+    const numericValue = String(value).replace(/[^\d]/g, '');
+
+    if (!numericValue) return '';
+
+    // 3자리마다 쉼표 추가
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * 쉼표가 포함된 문자열을 숫자로 변환
+ * @param {string} value - 변환할 문자열
+ * @returns {number} - 숫자 값
+ */
+function parseFormattedNumber(value) {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(/,/g, '')) || 0;
+}
+
+/**
+ * 금액 입력 필드에 포맷팅 이벤트 바인딩
+ * @param {HTMLInputElement} inputElement - 입력 필드 요소
+ */
+function bindAmountFormatting(inputElement) {
+    if (!inputElement) return;
+
+    inputElement.addEventListener('input', (e) => {
+        const cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        const oldLength = oldValue.length;
+
+        // 포맷팅 적용
+        const formattedValue = formatNumberWithCommas(oldValue);
+        e.target.value = formattedValue;
+
+        // 커서 위치 조정 (쉼표 추가/제거 시 커서 위치 유지)
+        const newLength = formattedValue.length;
+        const diff = newLength - oldLength;
+        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+    });
+
+    // 포커스 시 기존 값 포맷팅
+    inputElement.addEventListener('focus', (e) => {
+        if (e.target.value) {
+            e.target.value = formatNumberWithCommas(e.target.value);
+        }
+    });
+}
+
+// ============================================
 // 접기/펼치기 섹션
 // ============================================
 
@@ -633,30 +707,32 @@ function setupCollapsibleSections() {
         const targetId = header.dataset.target;
         const content = document.getElementById(targetId);
 
-        if (!checkbox) return;
+        if (!checkbox || !content) return;
 
-        // 체크박스 변경 이벤트만 사용
+        // 체크박스 변경 이벤트
         checkbox.addEventListener('change', () => {
             handleSectionCheckbox(header, checkbox.checked);
         });
 
         // 토글 버튼 클릭
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            e.preventDefault();
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
 
-            const isCurrentlyOpen = content.style.display !== 'none';
+                const isCurrentlyOpen = !content.classList.contains('hidden');
 
-            if (isCurrentlyOpen) {
-                content.style.display = 'none';
-                toggleBtn.classList.remove('open');
-                toggleBtn.textContent = '▼';
-            } else {
-                content.style.display = 'block';
-                toggleBtn.classList.add('open');
-                toggleBtn.textContent = '▲';
-            }
-        });
+                if (isCurrentlyOpen) {
+                    content.classList.add('hidden');
+                    toggleBtn.classList.remove('open');
+                    toggleBtn.textContent = '▼';
+                } else {
+                    content.classList.remove('hidden');
+                    toggleBtn.classList.add('open');
+                    toggleBtn.textContent = '▲';
+                }
+            });
+        }
     });
 }
 
@@ -668,16 +744,22 @@ function handleSectionCheckbox(header, isChecked) {
     const content = document.getElementById(targetId);
     const toggleIcon = header.querySelector('.toggle-icon');
 
+    if (!content) return;
+
     if (isChecked) {
         // 체크 시 섹션 펼치기
-        content.style.display = 'block';
-        toggleIcon.classList.add('open');
-        toggleIcon.textContent = '▲';
+        content.classList.remove('hidden');
+        if (toggleIcon) {
+            toggleIcon.classList.add('open');
+            toggleIcon.textContent = '▲';
+        }
     } else {
         // 체크 해제 시 섹션 접기
-        content.style.display = 'none';
-        toggleIcon.classList.remove('open');
-        toggleIcon.textContent = '▼';
+        content.classList.add('hidden');
+        if (toggleIcon) {
+            toggleIcon.classList.remove('open');
+            toggleIcon.textContent = '▼';
+        }
     }
 }
 
@@ -702,7 +784,7 @@ function addProductRow() {
         </div>
         <div class="form-field">
             <label class="field-label">금액 *</label>
-            <input type="number" class="glass-input product-amount" min="0" step="1000" placeholder="0" required>
+            <input type="text" class="glass-input product-amount" placeholder="0" inputmode="numeric" required>
         </div>
         <div class="form-field">
             <label class="field-label">통화</label>
@@ -739,6 +821,10 @@ function addProductRow() {
             autocompleteList.style.display = 'none';
         }
     });
+
+    // 금액 입력 필드에 포맷팅 적용
+    const amountInput = productItem.querySelector('.product-amount');
+    bindAmountFormatting(amountInput);
 }
 
 /**
@@ -858,7 +944,7 @@ function openActivityModal() {
     elements.activityFormContainer.innerHTML = '';
 
     // 모달 표시
-    elements.activityModal.style.display = 'flex';
+    elements.activityModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
 }
 
@@ -866,7 +952,7 @@ function openActivityModal() {
  * 활동 모달 닫기
  */
 function closeActivityModal() {
-    elements.activityModal.style.display = 'none';
+    elements.activityModal.classList.add('hidden');
     document.body.style.overflow = ''; // 배경 스크롤 복원
 
     // 폼 초기화
@@ -918,9 +1004,9 @@ function bindExecutorRadioEvents(activityType) {
     radios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.value === 'proxy') {
-                proxyFields.style.display = 'block';
+                proxyFields.classList.remove('hidden');
             } else {
-                proxyFields.style.display = 'none';
+                proxyFields.classList.add('hidden');
             }
         });
     });
@@ -1277,7 +1363,7 @@ function validateForm() {
 
     // 목표수금금액 검증
     if (hasTargetCollection) {
-        const amount = parseFloat(elements.targetCollectionAmount.value);
+        const amount = parseFormattedNumber(elements.targetCollectionAmount.value);
         if (!amount || amount <= 0) {
             if (window.Toast) {
                 window.Toast.warning('목표수금금액을 입력해주세요');
@@ -1300,7 +1386,7 @@ function validateForm() {
         // 각 제품의 필수 필드 검증
         for (const product of products) {
             const name = product.querySelector('.product-name').value.trim();
-            const amount = parseFloat(product.querySelector('.product-amount').value);
+            const amount = parseFormattedNumber(product.querySelector('.product-amount').value);
 
             if (!name) {
                 if (window.Toast) {
@@ -1390,7 +1476,7 @@ async function collectFormData() {
     // 목표수금금액
     if (elements.enableTargetCollection.checked) {
         data.targetCollection = {
-            amount: parseFloat(elements.targetCollectionAmount.value),
+            amount: parseFormattedNumber(elements.targetCollectionAmount.value),
             currency: elements.targetCollectionCurrency.value
         };
     }
@@ -1407,7 +1493,7 @@ async function collectFormData() {
         for (const product of products) {
             const name = product.querySelector('.product-name').value.trim();
             const normalizedName = name.replace(/\s+/g, ' '); // 공백 정규화
-            const amount = parseFloat(product.querySelector('.product-amount').value);
+            const amount = parseFormattedNumber(product.querySelector('.product-amount').value);
             const currency = product.querySelector('.product-currency').value;
             const vatIncluded = product.querySelector('.product-vat-included').checked;
 
@@ -1487,12 +1573,13 @@ function handleReset(skipConfirm = false) {
     elements.enableTargetSales.checked = false;
     elements.enableActivity.checked = false;
 
-    elements.targetCollectionContent.style.display = 'none';
-    elements.targetSalesContent.style.display = 'none';
-    elements.activityContent.style.display = 'none';
+    elements.targetCollectionContent.classList.add('hidden');
+    elements.targetSalesContent.classList.add('hidden');
+    elements.activityContent.classList.add('hidden');
 
     document.querySelectorAll('.toggle-icon').forEach(icon => {
         icon.classList.remove('open');
+        icon.textContent = '▼';
     });
 
     // 제품 목록 초기화

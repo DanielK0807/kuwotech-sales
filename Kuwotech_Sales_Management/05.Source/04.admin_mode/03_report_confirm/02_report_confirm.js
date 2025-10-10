@@ -15,6 +15,7 @@
 import ApiManager from '../../01.common/13_api_manager.js';
 import { USER_ROLES, STATUS_MAP, REPORT_TYPE_MAP } from '../../01.common/05_constants.js';
 import { formatCurrency, formatDate } from '../../01.common/03_format.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 
 // ============================================
 // 전역 변수 및 상수
@@ -23,10 +24,60 @@ const apiManager = new ApiManager();
 
 let allReports = [];           // 전체 보고서 데이터
 let allEmployees = [];         // 전체 직원 데이터
+let allCompanies = [];         // 전체 거래처 데이터
 let currentFilter = 'incomplete'; // 현재 선택된 필터 (기본: 미실행)
 let selectedReportId = null;   // 현재 선택된 보고서 ID
+let selectedCompanyForReport = null;  // 현재 선택된 거래처
+let isCompanyVerified = false; // 거래처 확인 여부
 let isInitialized = false;     // 초기화 완료 플래그 (중복 방지)
 let isInitializing = false;    // 초기화 진행 중 플래그 (중복 방지)
+
+// ============================================
+// 금액 포맷팅 유틸리티
+// ============================================
+
+/**
+ * 숫자를 3자리마다 쉼표가 있는 형식으로 변환
+ */
+function formatNumberWithCommas(value) {
+    const numericValue = String(value).replace(/[^\d]/g, '');
+    if (!numericValue) return '';
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * 쉼표가 포함된 문자열을 숫자로 변환
+ */
+function parseFormattedNumber(value) {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(/,/g, '')) || 0;
+}
+
+/**
+ * 금액 입력 필드에 포맷팅 이벤트 바인딩
+ */
+function bindAmountFormatting(inputElement) {
+    if (!inputElement) return;
+
+    inputElement.addEventListener('input', (e) => {
+        const cursorPosition = e.target.selectionStart;
+        const oldValue = e.target.value;
+        const oldLength = oldValue.length;
+
+        const formattedValue = formatNumberWithCommas(oldValue);
+        e.target.value = formattedValue;
+
+        const newLength = formattedValue.length;
+        const diff = newLength - oldLength;
+        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+    });
+
+    inputElement.addEventListener('focus', (e) => {
+        if (e.target.value) {
+            e.target.value = formatNumberWithCommas(e.target.value);
+        }
+    });
+}
 
 // ============================================
 // 유틸리티 함수
@@ -267,6 +318,162 @@ function extractEmployeesFromReports() {
     console.log(`📋 보고서에서 추출된 직원: ${allEmployees.length}명 (${USER_ROLES.SALES}으로 설정)`);
 }
 
+/**
+ * 전체 거래처 데이터 로드
+ */
+async function loadCompanies() {
+    try {
+        console.log('🏢 거래처 데이터 로드 시작...');
+        const response = await apiManager.getCompanies();
+        console.log('거래처 API 응답:', response);
+
+        if (response.success && response.companies && Array.isArray(response.companies)) {
+            allCompanies = response.companies;
+            console.log(`✅ 거래처: ${allCompanies.length}개`);
+
+            if (allCompanies.length > 0) {
+                console.log('거래처 데이터 샘플:', allCompanies[0]);
+            }
+        } else {
+            console.warn('⚠️ 거래처 데이터 형식 오류');
+            allCompanies = [];
+        }
+
+        return true;
+    } catch (error) {
+        console.error('❌ 거래처 로드 에러:', error);
+        allCompanies = [];
+        return true;
+    }
+}
+
+// ============================================
+// 거래처 자동완성 함수
+// ============================================
+
+/**
+ * 거래처 입력 시 자동완성 표시
+ */
+function handleCompanyInputInDetail(event) {
+    const inputElement = event.target;
+    const inputValue = inputElement.value.trim().toLowerCase();
+    console.log('[Report Confirm] 거래처 입력:', inputValue);
+
+    // 입력 시 verified 상태 초기화
+    inputElement.classList.remove('verified');
+    isCompanyVerified = false;
+    selectedCompanyForReport = null;
+
+    const autocompleteList = document.getElementById('detailCompanyAutocomplete');
+    if (!autocompleteList) return;
+
+    // 입력값이 비어있으면 목록 숨기기
+    if (!inputValue) {
+        autocompleteList.classList.add('hidden');
+        return;
+    }
+
+    // 일치하는 거래처 필터링
+    const filteredCompanies = allCompanies.filter(company => {
+        const companyName = getCompanyDisplayName(company).toLowerCase();
+        return companyName.includes(inputValue);
+    });
+
+    console.log('[Report Confirm] 필터링된 거래처 수:', filteredCompanies.length);
+
+    // 결과 표시
+    displayCompanyAutocompleteInDetail(filteredCompanies, inputValue);
+}
+
+/**
+ * 거래처 포커스 시 전체 목록 표시
+ */
+function handleCompanyFocusInDetail() {
+    const inputElement = document.getElementById('detailCompanyInput');
+    if (!inputElement) return;
+
+    const inputValue = inputElement.value.trim();
+
+    if (inputValue) {
+        // 입력값이 있으면 필터링된 목록 표시
+        handleCompanyInputInDetail({ target: inputElement });
+    } else {
+        // 비어있으면 전체 목록 표시
+        displayCompanyAutocompleteInDetail(allCompanies, '');
+    }
+}
+
+/**
+ * 자동완성 결과 표시
+ */
+function displayCompanyAutocompleteInDetail(companies, searchTerm) {
+    const list = document.getElementById('detailCompanyAutocomplete');
+    if (!list) return;
+
+    console.log('[Report Confirm] 자동완성 목록 표시 시작');
+    console.log('[Report Confirm] 결과 개수:', companies.length);
+
+    // 목록 초기화
+    list.innerHTML = '';
+
+    if (companies.length === 0) {
+        list.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
+        list.classList.remove('hidden');
+        console.log('[Report Confirm] 검색 결과 없음 메시지 표시');
+        return;
+    }
+
+    // 결과 항목 추가 (최대 10개)
+    companies.slice(0, 10).forEach(company => {
+        const companyName = getCompanyDisplayName(company);
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+
+        // 검색어 하이라이팅
+        if (searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            item.innerHTML = companyName.replace(regex, '<strong>$1</strong>');
+        } else {
+            item.textContent = companyName;
+        }
+
+        // 클릭 이벤트
+        item.addEventListener('click', () => selectCompanyFromAutocompleteInDetail(company));
+
+        list.appendChild(item);
+    });
+
+    list.classList.remove('hidden');
+    console.log('[Report Confirm] ✅ 자동완성 목록 표시 완료');
+}
+
+/**
+ * 자동완성에서 거래처 선택 (담당거래처관리 방식 - 선택 즉시 적용)
+ */
+function selectCompanyFromAutocompleteInDetail(company) {
+    const inputElement = document.getElementById('detailCompanyInput');
+    const autocompleteList = document.getElementById('detailCompanyAutocomplete');
+
+    if (!inputElement) return;
+
+    const companyName = getCompanyDisplayName(company);
+    inputElement.value = companyName;
+
+    // 선택 즉시 확정 (담당거래처관리 방식)
+    selectedCompanyForReport = company;
+    isCompanyVerified = true;
+
+    // UI 업데이트 - 선택 완료 표시
+    inputElement.classList.add('verified');
+
+    // 자동완성 목록 닫기
+    if (autocompleteList) {
+        autocompleteList.classList.add('hidden');
+    }
+
+    console.log('[Report Confirm] ✅ 거래처 선택 및 확정:', companyName);
+}
+
 // ============================================
 // UI 렌더링 함수
 // ============================================
@@ -400,6 +607,9 @@ function renderFilteredReports() {
 function createReportItemHTML(report) {
     const isSelected = report.reportId === selectedReportId;
 
+    // 거래처 표시명 가져오기 (finalCompanyName 우선, 없으면 erpCompanyName)
+    const companyDisplayName = getCompanyDisplayName(report) || report.companyName || '회사명 없음';
+
     return `
         <div class="report-item ${isSelected ? 'selected' : ''}"
              data-report-id="${report.reportId}"
@@ -409,7 +619,7 @@ function createReportItemHTML(report) {
                 ${getStatusBadgeHTML(report.calculatedStatus)}
             </div>
             <div class="report-item-body">
-                <div class="report-company">${report.companyName || '회사명 없음'}</div>
+                <div class="report-company">${companyDisplayName}</div>
                 <div class="report-meta">
                     <span class="report-author">👤 ${report.submittedBy}</span>
                     <span class="report-date">📅 ${formatDate(report.submittedDate)}</span>
@@ -423,9 +633,14 @@ function createReportItemHTML(report) {
  * 보고서 상세 패널 렌더링
  */
 function renderReportDetail(reportId) {
+    console.log('📋 [Report Confirm] renderReportDetail 시작');
+    console.log('  - reportId:', reportId);
+
     const report = allReports.find(r => r.reportId === reportId);
+    console.log('  - 보고서 찾기 결과:', report ? '성공' : '실패');
 
     if (!report) {
+        console.log('  - 보고서를 찾을 수 없어 placeholder 표시');
         showDetailPlaceholder();
         return;
     }
@@ -434,25 +649,87 @@ function renderReportDetail(reportId) {
     const placeholder = document.getElementById('detailPlaceholder');
     const content = document.getElementById('detailContent');
 
-    placeholder.style.display = 'none';
-    placeholder.classList.add('hidden');
+    console.log('  - placeholder 요소:', placeholder ? '있음' : '없음');
+    console.log('  - content 요소:', content ? '있음' : '없음');
 
-    content.style.display = 'block';
-    content.classList.remove('hidden'); // CRITICAL: Remove hidden class to show content
+    // CRITICAL: hidden 클래스를 먼저 제거 (CSS에 !important가 있어 inline style보다 우선함)
+    placeholder.classList.add('hidden');
+    placeholder.style.display = 'none';
+    console.log('  - placeholder 숨김 완료');
+
+    // hidden 클래스 제거 후 display 설정 (CSS에 display: flex 정의되어 있음)
+    content.classList.remove('hidden');
+    content.style.display = 'flex';
+    console.log('  - content 표시 완료');
+    console.log('  - content.classList:', content.classList.toString());
+    console.log('  - content.style.display:', content.style.display);
 
     // 기본 정보
     document.getElementById('detailReportId').textContent = report.reportId || '-';
     document.getElementById('detailReportType').textContent = REPORT_TYPE_MAP[report.reportType] || report.reportType;
-    document.getElementById('detailCompany').textContent = report.companyName || '-';
+
+    // 거래처 표시명 가져오기 (finalCompanyName 우선, 없으면 erpCompanyName)
+    const companyDisplayName = getCompanyDisplayName(report) || report.companyName || '-';
+
+    // 거래처 입력 필드에 설정 및 이벤트 바인딩 (담당거래처관리 방식)
+    const companyInput = document.getElementById('detailCompanyInput');
+    if (companyInput) {
+        companyInput.value = companyDisplayName;
+
+        // 거래처 객체 찾기
+        const matchingCompany = allCompanies.find(c =>
+            getCompanyDisplayName(c) === companyDisplayName
+        );
+
+        if (matchingCompany) {
+            // 선택 즉시 확정 (담당거래처관리 방식)
+            selectedCompanyForReport = matchingCompany;
+            isCompanyVerified = true;
+            companyInput.classList.add('verified');
+        } else {
+            selectedCompanyForReport = null;
+            isCompanyVerified = false;
+            companyInput.classList.remove('verified');
+        }
+
+        // 이벤트 리스너 재등록 (기존 이벤트 제거)
+        const newCompanyInput = companyInput.cloneNode(true);
+        companyInput.parentNode.replaceChild(newCompanyInput, companyInput);
+
+        // 자동완성 이벤트 바인딩
+        newCompanyInput.addEventListener('input', handleCompanyInputInDetail);
+        newCompanyInput.addEventListener('focus', handleCompanyFocusInDetail);
+
+        // 문서 클릭 시 자동완성 목록 닫기
+        document.addEventListener('click', function closeAutocompleteOnClickOutside(e) {
+            const autocompleteList = document.getElementById('detailCompanyAutocomplete');
+            if (!newCompanyInput.contains(e.target) && autocompleteList && !autocompleteList.contains(e.target)) {
+                autocompleteList.classList.add('hidden');
+            }
+        });
+    }
+
     document.getElementById('detailSubmitter').textContent = report.submittedBy || '-';
     document.getElementById('detailSubmitDate').textContent = formatDate(report.submittedDate);
     document.getElementById('detailStatus').innerHTML = getStatusBadgeHTML(report.calculatedStatus);
 
-    // 목표수금금액
-    document.getElementById('detailCollectionGoal').textContent = formatCurrency(report.targetCollectionAmount);
+    // 수금금액 (읽기 전용)
+    const targetCollection = report.targetCollectionAmount || 0;
+    const actualCollection = report.actualCollectionAmount || 0;
+    const remainingCollection = targetCollection - actualCollection;
 
-    // 목표매출금액
-    document.getElementById('detailSalesGoal').textContent = formatCurrency(report.targetSalesAmount);
+    document.getElementById('detailCollectionGoal').textContent = formatCurrency(targetCollection);
+    document.getElementById('detailCollectionActual').textContent = formatCurrency(actualCollection);
+    document.getElementById('detailCollectionRemaining').textContent = formatCurrency(remainingCollection);
+
+    // 매출액 (읽기 전용)
+    const targetSales = report.targetSalesAmount || 0;
+    const actualSales = report.actualSalesAmount || 0;
+    const remainingSales = targetSales - actualSales;
+
+    document.getElementById('detailSalesGoal').textContent = formatCurrency(targetSales);
+    document.getElementById('detailSalesActual').textContent = formatCurrency(actualSales);
+    document.getElementById('detailSalesRemaining').textContent = formatCurrency(remainingSales);
 
     // 목표상품 (목표매출액 헤더에 표시)
     try {
@@ -506,14 +783,23 @@ function renderReportDetail(reportId) {
  * 상세 패널 플레이스홀더 표시
  */
 function showDetailPlaceholder() {
+    console.log('📋 [Report Confirm] showDetailPlaceholder 호출');
+
     const placeholder = document.getElementById('detailPlaceholder');
     const content = document.getElementById('detailContent');
 
-    placeholder.style.display = 'flex';
-    placeholder.classList.remove('hidden');
+    console.log('  - placeholder 요소:', placeholder ? '있음' : '없음');
+    console.log('  - content 요소:', content ? '있음' : '없음');
 
+    // hidden 클래스 제거 후 display 설정 (CSS !important 대응)
+    placeholder.classList.remove('hidden');
+    placeholder.style.display = 'flex';
+    console.log('  - placeholder 표시 완료');
+
+    // content 숨기기
+    content.classList.add('hidden');
     content.style.display = 'none';
-    content.classList.add('hidden'); // Add hidden class to ensure content is hidden
+    console.log('  - content 숨김 완료');
 }
 
 /**
@@ -566,6 +852,10 @@ function showLoading(show) {
  * 보고서 아이템 클릭 핸들러
  */
 window.handleReportClick = function(reportId) {
+    console.log('🖱️ [Report Confirm] 보고서 클릭 이벤트 발생');
+    console.log('  - reportId:', reportId);
+    console.log('  - 전체 보고서 수:', allReports.length);
+
     selectedReportId = reportId;
 
     // 모든 아이템에서 selected 클래스 제거
@@ -575,12 +865,16 @@ window.handleReportClick = function(reportId) {
 
     // 클릭된 아이템에 selected 클래스 추가
     const clickedItem = document.querySelector(`[data-report-id="${reportId}"]`);
+    console.log('  - 클릭된 아이템 DOM:', clickedItem ? '찾음' : '못 찾음');
     if (clickedItem) {
         clickedItem.classList.add('selected');
+        console.log('  - selected 클래스 추가 완료');
     }
 
     // 상세 패널 렌더링
+    console.log('  - renderReportDetail 호출 시작');
     renderReportDetail(reportId);
+    console.log('  - renderReportDetail 호출 완료');
 };
 
 /**
@@ -647,22 +941,36 @@ async function handleSaveComment() {
     }
 
     try {
+        const updateData = {
+            adminComment: comment,
+            processedBy: processedBy
+        };
+
+        // 거래처가 변경된 경우 companyId도 업데이트
+        if (selectedCompanyForReport) {
+            const report = allReports.find(r => r.reportId === selectedReportId);
+            if (report && report.companyId !== selectedCompanyForReport.keyValue) {
+                updateData.companyId = selectedCompanyForReport.keyValue;
+                console.log('🔄 거래처 변경 감지:', {
+                    before: report.companyId,
+                    after: selectedCompanyForReport.keyValue,
+                    companyName: getCompanyDisplayName(selectedCompanyForReport)
+                });
+            }
+        }
+
         console.log('📤 전송 데이터:', {
             reportId: selectedReportId,
-            adminComment: comment,
-            processedBy: processedBy,
+            ...updateData,
             commentLength: comment.length
         });
 
-        const response = await apiManager.updateReport(selectedReportId, {
-            adminComment: comment,
-            processedBy: processedBy
-        });
+        const response = await apiManager.updateReport(selectedReportId, updateData);
 
         console.log('📥 API 응답:', response);
 
         if (response.success) {
-            alert('✅ 관리자 의견이 저장되었습니다.');
+            const messages = ['✅ 관리자 의견이 저장되었습니다.'];
 
             // 로컬 데이터 업데이트
             const report = allReports.find(r => r.reportId === selectedReportId);
@@ -670,13 +978,136 @@ async function handleSaveComment() {
                 report.adminComment = comment;
                 report.processedBy = processedBy;
                 report.processedDate = new Date().toISOString();
+
+                // 거래처가 변경된 경우
+                if (updateData.companyId) {
+                    report.companyId = updateData.companyId;
+                    report.finalCompanyName = selectedCompanyForReport.finalCompanyName;
+                    report.erpCompanyName = selectedCompanyForReport.erpCompanyName;
+                    messages.push('✅ 거래처 정보가 변경되었습니다.');
+                }
             }
+
+            alert(messages.join('\n'));
         } else {
             throw new Error(response.message || '저장 실패');
         }
     } catch (error) {
         console.error('❌ 의견 저장 에러:', error);
         alert('의견 저장에 실패했습니다: ' + error.message);
+    }
+}
+
+/**
+ * 보고서 승인 핸들러
+ */
+async function handleApproveReport() {
+    if (!selectedReportId) {
+        alert('보고서를 선택해주세요.');
+        return;
+    }
+
+    const comment = document.getElementById('adminComment').value.trim();
+
+    // 현재 보고서에서 영업담당자가 확인한 실적 가져오기
+    const report = allReports.find(r => r.reportId === selectedReportId);
+    if (!report) {
+        alert('❌ 보고서를 찾을 수 없습니다.');
+        return;
+    }
+
+    const actualCollectionAmount = report.actualCollectionAmount || 0;
+    const actualSalesAmount = report.actualSalesAmount || 0;
+
+    // 확인 메시지
+    const confirmMessage = `다음 내용으로 보고서를 승인하시겠습니까?\n\n` +
+        `📊 확인된 수금금액: ${formatCurrency(actualCollectionAmount)}\n` +
+        `📊 확인된 매출금액: ${formatCurrency(actualSalesAmount)}\n` +
+        (comment ? `\n💬 관리자 의견: ${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}` : '');
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    // 현재 로그인한 관리자 정보 가져오기
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+        alert('❌ 로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        return;
+    }
+
+    let processedBy;
+    try {
+        const user = JSON.parse(userJson);
+        processedBy = user.name;
+        if (!processedBy) {
+            alert('❌ 사용자 이름을 찾을 수 없습니다.');
+            return;
+        }
+    } catch (e) {
+        console.error('user 데이터 파싱 실패:', e);
+        alert('❌ 사용자 정보를 읽을 수 없습니다. 다시 로그인해주세요.');
+        return;
+    }
+
+    try {
+        const updateData = {
+            adminComment: comment,
+            processedBy: processedBy,
+            status: '승인'
+        };
+
+        // 거래처가 변경된 경우 companyId도 업데이트
+        if (selectedCompanyForReport) {
+            const report = allReports.find(r => r.reportId === selectedReportId);
+            if (report && report.companyId !== selectedCompanyForReport.keyValue) {
+                updateData.companyId = selectedCompanyForReport.keyValue;
+                console.log('🔄 거래처 변경 감지:', {
+                    before: report.companyId,
+                    after: selectedCompanyForReport.keyValue,
+                    companyName: getCompanyDisplayName(selectedCompanyForReport)
+                });
+            }
+        }
+
+        console.log('📤 승인 데이터 전송:', {
+            reportId: selectedReportId,
+            ...updateData
+        });
+
+        const response = await apiManager.updateReport(selectedReportId, updateData);
+
+        console.log('📥 승인 API 응답:', response);
+
+        if (response.success) {
+            const messages = ['✅ 보고서가 승인되었습니다.'];
+
+            // 로컬 데이터 업데이트
+            if (report) {
+                report.adminComment = comment;
+                report.processedBy = processedBy;
+                report.processedDate = new Date().toISOString();
+                report.status = '승인';
+
+                // 거래처가 변경된 경우
+                if (updateData.companyId) {
+                    report.companyId = updateData.companyId;
+                    report.finalCompanyName = selectedCompanyForReport.finalCompanyName;
+                    report.erpCompanyName = selectedCompanyForReport.erpCompanyName;
+                    messages.push('✅ 거래처 정보가 변경되었습니다.');
+                }
+            }
+
+            alert(messages.join('\n'));
+
+            // UI 새로고침
+            await initializePage();
+        } else {
+            throw new Error(response.message || '승인 실패');
+        }
+    } catch (error) {
+        console.error('❌ 보고서 승인 에러:', error);
+        alert('보고서 승인에 실패했습니다: ' + error.message);
     }
 }
 
@@ -703,8 +1134,9 @@ async function initializePage() {
         // 데이터 로드
         const reportsLoaded = await loadReports();
 
-        // 보고서 로드 실패시에도 직원은 로드 시도
+        // 보고서 로드 실패시에도 직원과 거래처는 로드 시도
         await loadEmployees();
+        await loadCompanies();
 
         // 보고서가 없어도 UI는 표시
         if (!reportsLoaded || allReports.length === 0) {
@@ -771,6 +1203,12 @@ function attachEventListeners() {
     const saveCommentBtn = document.getElementById('saveCommentBtn');
     if (saveCommentBtn) {
         saveCommentBtn.addEventListener('click', handleSaveComment);
+    }
+
+    // 보고서 승인 버튼
+    const approveReportBtn = document.getElementById('approveReportBtn');
+    if (approveReportBtn) {
+        approveReportBtn.addEventListener('click', handleApproveReport);
     }
 
     // 새로고침 버튼

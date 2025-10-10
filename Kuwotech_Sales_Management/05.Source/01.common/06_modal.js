@@ -221,10 +221,11 @@ class Modal {
         const body = document.createElement('div');
         body.className = 'modal-body';
         body.style.cssText = `
-            flex: 1;
+            flex: 1 1 auto;
             padding: calc(var(--spacing-xl) * 1.5);
             overflow-y: auto;
-            min-height: calc(var(--modal-min-height, 300px) * 1.5);
+            overflow-x: hidden;
+            max-height: calc(100vh - 400px);
             font-size: calc(var(--font-md) * 1.5);
             line-height: 1.6;
         `;
@@ -267,9 +268,12 @@ class Modal {
             const button = document.createElement('button');
             button.className = `btn ${btnConfig.className || 'btn-secondary'}`;
             button.textContent = btnConfig.text;
-            button.style.fontSize = 'calc(var(--font-md) * 1.5)';
-            button.style.padding = 'calc(var(--spacing-sm) * 1.5) calc(var(--spacing-lg) * 1.5)';
-            
+            // ✅ 버튼 크기 및 폰트 크기 증가 (사용자 요청)
+            button.style.fontSize = '18px';  /* 기존 var(--font-md)보다 크게 */
+            button.style.padding = '14px 32px';  /* 기존보다 크게 */
+            button.style.minWidth = '120px';  /* 최소 너비 보장 */
+            button.style.fontWeight = '600';  /* 폰트 강조 */
+
             if (btnConfig.onClick) {
                 button.onclick = () => {
                     const result = btnConfig.onClick(this);
@@ -278,7 +282,7 @@ class Modal {
                     }
                 };
             }
-            
+
             footer.appendChild(button);
         });
         
@@ -287,8 +291,8 @@ class Modal {
             const closeBtn = document.createElement('button');
             closeBtn.className = 'btn btn-primary';
             closeBtn.textContent = '확인';
-            closeBtn.style.fontSize = 'calc(var(--font-md) * 1.5)';
-            closeBtn.style.padding = 'calc(var(--spacing-sm) * 1.5) calc(var(--spacing-lg) * 1.5)';
+            closeBtn.style.fontSize = 'var(--font-md)';  /* 폰트 크기 정상화 */
+            closeBtn.style.padding = 'var(--spacing-sm) var(--spacing-lg)';  /* 패딩 정상화 */
             closeBtn.onclick = () => this.close();
             footer.appendChild(closeBtn);
         }

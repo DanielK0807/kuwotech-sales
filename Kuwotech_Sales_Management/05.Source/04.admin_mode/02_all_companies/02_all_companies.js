@@ -42,13 +42,14 @@ import {
 
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let companyList = [];
+let allCompaniesForAutocomplete = []; // 자동완성용 전체 거래처 목록
 let currentFilter = {
     employee: [],    // 배열 (다중 선택)
     department: [],  // 배열로 변경 (다중 선택)
     status: [],      // 배열로 변경 (다중 선택)
     product: [],     // 배열로 변경 (다중 선택)
     region: [],      // 배열로 변경 (다중 선택)
-    name: ''         // 거래처명만 단일 선택
+    name: ''         // 거래처명만 단일 선택 (자동완성 keyValue 저장)
 };
 let currentSort = 'name';
 
@@ -532,8 +533,8 @@ async function loadCompanies() {
         // 백엔드에서 받은 데이터
         const allCompanies = data.companies || [];
 
-        // 거래처명 필터 드롭다운 채우기 (필터 적용 전 전체 목록 사용)
-        populateCompanyNameSelect(allCompanies);
+        // 자동완성용 전체 거래처 목록 저장
+        allCompaniesForAutocomplete = [...allCompanies];
 
         // 주의: 지역 필터는 loadMasterData()에서 regions 테이블 기준으로 이미 처리됨
 
@@ -725,6 +726,93 @@ function sortCompanies() {
                 return 0;
         }
     });
+}
+
+// ============================================
+// [SECTION: 자동완성 기능]
+// ============================================
+
+/**
+ * 거래처명 입력 시 자동완성 처리
+ */
+function handleCompanyInput(event) {
+    const inputValue = event.target.value.trim().toLowerCase();
+    console.log('[전체거래처] 거래처명 입력:', inputValue);
+
+    const autocompleteList = document.getElementById('company-autocomplete-list');
+    if (!autocompleteList) return;
+
+    if (!inputValue) {
+        autocompleteList.classList.add('hidden');
+        return;
+    }
+
+    // 자동완성용 전체 거래처 목록에서 필터링
+    const filteredCompanies = allCompaniesForAutocomplete.filter(company => {
+        const companyName = getCompanyDisplayName(company).toLowerCase();
+        return companyName.includes(inputValue);
+    });
+
+    displayAutocompleteResults(filteredCompanies, inputValue);
+}
+
+/**
+ * 자동완성 결과 표시
+ */
+function displayAutocompleteResults(companies, searchTerm) {
+    const autocompleteList = document.getElementById('company-autocomplete-list');
+    if (!autocompleteList) return;
+
+    autocompleteList.innerHTML = '';
+
+    if (companies.length === 0) {
+        autocompleteList.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
+        autocompleteList.classList.remove('hidden');
+        return;
+    }
+
+    // 최대 10개까지만 표시
+    companies.slice(0, 10).forEach(company => {
+        const companyName = getCompanyDisplayName(company);
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+
+        // 검색어 강조
+        if (searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            item.innerHTML = companyName.replace(regex, '<strong>$1</strong>');
+        } else {
+            item.textContent = companyName;
+        }
+
+        item.addEventListener('click', () => selectCompanyFromAutocomplete(company));
+        autocompleteList.appendChild(item);
+    });
+
+    autocompleteList.classList.remove('hidden');
+}
+
+/**
+ * 자동완성에서 거래처 선택
+ */
+function selectCompanyFromAutocomplete(company) {
+    const filterNameInput = document.getElementById('filter-name');
+    const autocompleteList = document.getElementById('company-autocomplete-list');
+
+    if (filterNameInput) {
+        const companyName = getCompanyDisplayName(company);
+        filterNameInput.value = companyName;
+
+        // keyValue가 아닌 거래처명으로 필터 설정
+        currentFilter.name = companyName;
+
+        // 목록 새로고침
+        loadCompanies();
+    }
+
+    if (autocompleteList) {
+        autocompleteList.classList.add('hidden');
+    }
 }
 
 // ============================================
@@ -1486,26 +1574,32 @@ async function openCompanyDetailModal(keyValue) {
 
         hideLoading();
 
+        // 사용자 권한 체크
+        const isAdmin = user.role === '관리자';
+        const readonlyAttr = isAdmin ? '' : 'readonly';
+        const disabledAttr = isAdmin ? '' : 'disabled';
+
         const modalContent = `
             <div class="company-form">
+                ${!isAdmin ? '<div class="permission-warning">⚠️ 읽기 전용 모드입니다. 수정 권한이 없습니다.</div>' : ''}
                 <div class="form-section">
                     <h4>📝 기본 정보</h4>
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="required">최종거래처명</label>
-                            <input type="text" id="modal-final-company-name" class="form-control" value="${company.finalCompanyName || ''}">
+                            <input type="text" id="modal-final-company-name" class="form-control" value="${company.finalCompanyName || ''}" ${readonlyAttr}>
                         </div>
                         <div class="form-group">
                             <label>사업자등록번호</label>
-                            <input type="text" id="modal-business-registration-number" class="form-control" value="${company.businessRegistrationNumber || ''}" placeholder="000-00-00000">
+                            <input type="text" id="modal-business-registration-number" class="form-control" value="${company.businessRegistrationNumber || ''}" placeholder="000-00-00000" ${readonlyAttr}>
                         </div>
                         <div class="form-group">
                             <label class="required">대표이사/치과의사</label>
-                            <input type="text" id="modal-ceo-or-dentist" class="form-control" value="${company.ceoOrDentist || ''}" required>
+                            <input type="text" id="modal-ceo-or-dentist" class="form-control" value="${company.ceoOrDentist || ''}" required ${readonlyAttr}>
                         </div>
                         <div class="form-group">
                             <label>전화번호</label>
-                            <input type="tel" id="modal-phone-number" class="form-control" value="${company.phoneNumber || ''}" placeholder="02-0000-0000">
+                            <input type="tel" id="modal-phone-number" class="form-control" value="${company.phoneNumber || ''}" placeholder="02-0000-0000" ${readonlyAttr}>
                         </div>
                     </div>
                 </div>
@@ -1515,20 +1609,20 @@ async function openCompanyDetailModal(keyValue) {
                     <div class="form-grid">
                         <div class="form-group">
                             <label>폐업여부</label>
-                            <select id="modal-is-closed" class="form-control">
+                            <select id="modal-is-closed" class="form-control" ${disabledAttr}>
                                 <option value="N" ${company.isClosed === 'N' ? 'selected' : ''}>N (정상)</option>
                                 <option value="Y" ${company.isClosed === 'Y' ? 'selected' : ''}>Y (폐업)</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>고객사 지역</label>
-                            <select id="modal-region-id" class="form-control">
+                            <select id="modal-region-id" class="form-control" ${disabledAttr}>
                                 ${regionsHtml}
                             </select>
                         </div>
                         <div class="form-group">
                             <label>거래상태</label>
-                            <select id="modal-business-status" class="form-control">
+                            <select id="modal-business-status" class="form-control" ${disabledAttr}>
                                 <option value="활성" ${company.businessStatus === '활성' ? 'selected' : ''}>✅ 활성</option>
                                 <option value="비활성" ${company.businessStatus === '비활성' ? 'selected' : ''}>⏸️ 비활성</option>
                                 <option value="불용" ${company.businessStatus === '불용' ? 'selected' : ''}>❌ 불용</option>
@@ -1537,7 +1631,7 @@ async function openCompanyDetailModal(keyValue) {
                         </div>
                         <div class="form-group">
                             <label>담당부서</label>
-                            <select id="modal-department" class="form-control">
+                            <select id="modal-department" class="form-control" ${disabledAttr}>
                                 ${departmentsHtml}
                             </select>
                         </div>
@@ -1549,13 +1643,13 @@ async function openCompanyDetailModal(keyValue) {
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="required">내부담당자</label>
-                            <select id="modal-internal-manager" class="form-control" required>
+                            <select id="modal-internal-manager" class="form-control" required ${disabledAttr}>
                                 ${employeesHtml}
                             </select>
                         </div>
                         <div class="form-group">
                             <label>정철웅기여</label>
-                            <select id="modal-jcw-contribution" class="form-control">
+                            <select id="modal-jcw-contribution" class="form-control" ${disabledAttr}>
                                 <option value="">선택하세요</option>
                                 <option value="상" ${company.jcwContribution === '상' ? 'selected' : ''}>상</option>
                                 <option value="중" ${company.jcwContribution === '중' ? 'selected' : ''}>중</option>
@@ -1565,7 +1659,7 @@ async function openCompanyDetailModal(keyValue) {
                         </div>
                         <div class="form-group">
                             <label>회사기여도</label>
-                            <select id="modal-company-contribution" class="form-control">
+                            <select id="modal-company-contribution" class="form-control" ${disabledAttr}>
                                 <option value="">선택하세요</option>
                                 <option value="상" ${company.companyContribution === '상' ? 'selected' : ''}>상</option>
                                 <option value="중" ${company.companyContribution === '중' ? 'selected' : ''}>중</option>
@@ -1614,24 +1708,36 @@ async function openCompanyDetailModal(keyValue) {
                     <h4>📍 상세 정보</h4>
                     <div class="form-group full-width">
                         <label>상세주소</label>
-                        <input type="text" id="modal-detailed-address" class="form-control" value="${company.detailedAddress || ''}" placeholder="상세 주소를 입력하세요">
+                        <input type="text" id="modal-detailed-address" class="form-control" value="${company.detailedAddress || ''}" placeholder="상세 주소를 입력하세요" ${readonlyAttr}>
                     </div>
                     <div class="form-group full-width">
                         <label>소개경로</label>
-                        <input type="text" id="modal-referral-source" class="form-control" value="${company.referralSource || ''}" placeholder="거래처 소개 경로를 입력하세요">
+                        <input type="text" id="modal-referral-source" class="form-control" value="${company.referralSource || ''}" placeholder="거래처 소개 경로를 입력하세요" ${readonlyAttr}>
                     </div>
                 </div>
             </div>
 
             <style>
-            .company-form { 
-                padding: 20px; 
+            .company-form {
+                padding: 20px;
                 width: 100%;
                 max-width: 1400px;
                 margin: 0 auto;
             }
-            .form-section { 
-                margin-bottom: 35px; 
+            .permission-warning {
+                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+                border: 2px solid #ffc107;
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                color: #856404;
+                font-weight: 600;
+                text-align: center;
+                font-size: 15px;
+                box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+            }
+            .form-section {
+                margin-bottom: 35px;
             }
             .form-section h4 {
                 margin-bottom: 15px;
@@ -1677,6 +1783,18 @@ async function openCompanyDetailModal(keyValue) {
             .form-control::placeholder {
                 color: #95a5a6;
             }
+            .form-control[readonly] {
+                background-color: #f8f9fa;
+                color: #6c757d;
+                cursor: not-allowed;
+                border-color: #dee2e6;
+            }
+            .form-control[disabled] {
+                background-color: #e9ecef;
+                color: #6c757d;
+                cursor: not-allowed;
+                border-color: #dee2e6;
+            }
             </style>
         `;
 
@@ -1684,11 +1802,69 @@ async function openCompanyDetailModal(keyValue) {
             title: '📋 거래처 상세정보',
             content: modalContent,
             size: 'xl',
-            buttons: [
+            buttons: isAdmin ? [
                 {
                     text: '취소',
                     type: 'secondary',
                     onClick: () => false
+                },
+                {
+                    text: '삭제',
+                    type: 'danger',
+                    onClick: async () => {
+                        // 삭제 확인 모달
+                        const confirmed = await showModal({
+                            title: '⚠️ 거래처 삭제',
+                            content: `
+                                <div style="padding: 20px; text-align: center;">
+                                    <p style="font-size: 16px; margin-bottom: 15px;">
+                                        <strong>${company.finalCompanyName}</strong> 거래처를 삭제하시겠습니까?
+                                    </p>
+                                    <p style="color: #dc3545; font-weight: 600;">
+                                        ⚠️ 이 작업은 취소할 수 없습니다!
+                                    </p>
+                                </div>
+                            `,
+                            buttons: [
+                                { text: '취소', type: 'secondary', onClick: () => false },
+                                { text: '삭제', type: 'danger', onClick: () => true }
+                            ]
+                        });
+
+                        if (!confirmed) return null; // 삭제 취소 시 상세 모달 유지
+
+                        try {
+                            showLoading('거래처 삭제 중...');
+
+                            const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/companies/${keyValue}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                                }
+                            });
+
+                            hideLoading();
+
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.message || '거래처 삭제에 실패했습니다.');
+                            }
+
+                            showToast('거래처가 성공적으로 삭제되었습니다.', 'success');
+
+                            // 목록 새로고침
+                            await loadCompanies();
+
+                            return true; // 모달 닫기
+
+                        } catch (error) {
+                            hideLoading();
+                            console.error('[거래처 삭제 실패]', error);
+                            showToast(error.message || '거래처 삭제 중 오류가 발생했습니다.', 'error');
+                            return null; // 모달 유지
+                        }
+                    }
                 },
                 {
                     text: '저장',
@@ -1755,6 +1931,12 @@ async function openCompanyDetailModal(keyValue) {
                             return null; // 모달 유지
                         }
                     }
+                }
+            ] : [
+                {
+                    text: '닫기',
+                    type: 'secondary',
+                    onClick: () => true
                 }
             ]
         });
@@ -1883,11 +2065,31 @@ function setupEventListeners() {
         });
     }
 
-    // 거래처명 select 변경 시 필터 적용
-    const filterNameSelect = document.getElementById('filter-name');
-    if (filterNameSelect) {
-        filterNameSelect.addEventListener('change', applyFilter);
+    // 거래처명 자동완성 입력
+    const filterName = document.getElementById('filter-name');
+    if (filterName) {
+        filterName.addEventListener('input', handleCompanyInput);
+
+        // 포커스 시 전체 목록 표시 (입력값이 있는 경우)
+        filterName.addEventListener('focus', (e) => {
+            if (e.target.value.trim()) {
+                handleCompanyInput(e);
+            }
+        });
     }
+
+    // 자동완성 외부 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+        const autocompleteList = document.getElementById('company-autocomplete-list');
+        const filterNameInput = document.getElementById('filter-name');
+
+        if (autocompleteList && filterNameInput) {
+            // 클릭한 곳이 입력 필드도 아니고 자동완성 목록도 아니면 닫기
+            if (!filterNameInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+                autocompleteList.classList.add('hidden');
+            }
+        }
+    });
 
     // 필터 버튼
     const filterButtons = document.querySelectorAll('.filter-btn');

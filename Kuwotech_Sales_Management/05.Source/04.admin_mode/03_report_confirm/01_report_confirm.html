@@ -192,43 +192,39 @@
 
                 <!-- 목표수금금액 -->
                 <section class="detail-section glass-card">
-                    <h3 class="detail-section-title">💰 목표수금금액</h3>
+                    <h3 class="detail-section-title">💰 수금금액</h3>
                     <div class="readonly-content">
                         <div class="readonly-item">
                             <span class="readonly-label">목표:</span>
                             <span class="readonly-value" id="detailCollectionGoal">-</span>
                         </div>
-                    </div>
-                    <div class="approval-input-section">
-                        <label class="approval-label">실제 수금금액 입력</label>
-                        <input
-                            type="text"
-                            id="actualCollectionAmountInput"
-                            class="glass-input approval-input"
-                            placeholder="0"
-                            inputmode="numeric">
-                        <small class="input-help">* 실제 수금한 금액을 입력하세요 (자동으로 쉼표가 추가됩니다)</small>
+                        <div class="readonly-item">
+                            <span class="readonly-label">확인된 실적:</span>
+                            <span class="readonly-value" id="detailCollectionActual">-</span>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="readonly-label">미이행:</span>
+                            <span class="readonly-value error" id="detailCollectionRemaining">-</span>
+                        </div>
                     </div>
                 </section>
 
                 <!-- 목표매출액 -->
                 <section class="detail-section glass-card">
-                    <h3 class="detail-section-title">💵 목표매출액(<span id="detailSalesProduct">-</span>)</h3>
+                    <h3 class="detail-section-title">💵 매출액(<span id="detailSalesProduct">-</span>)</h3>
                     <div class="readonly-content">
                         <div class="readonly-item">
                             <span class="readonly-label">목표:</span>
                             <span class="readonly-value" id="detailSalesGoal">-</span>
                         </div>
-                    </div>
-                    <div class="approval-input-section">
-                        <label class="approval-label">실제 매출금액 입력</label>
-                        <input
-                            type="text"
-                            id="actualSalesAmountInput"
-                            class="glass-input approval-input"
-                            placeholder="0"
-                            inputmode="numeric">
-                        <small class="input-help">* 실제 매출 금액을 입력하세요 (자동으로 쉼표가 추가됩니다)</small>
+                        <div class="readonly-item">
+                            <span class="readonly-label">확인된 실적:</span>
+                            <span class="readonly-value" id="detailSalesActual">-</span>
+                        </div>
+                        <div class="readonly-item">
+                            <span class="readonly-label">미이행:</span>
+                            <span class="readonly-value error" id="detailSalesRemaining">-</span>
+                        </div>
                     </div>
                 </section>
 

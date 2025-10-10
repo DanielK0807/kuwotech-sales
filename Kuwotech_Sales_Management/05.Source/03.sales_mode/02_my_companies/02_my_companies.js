@@ -34,8 +34,9 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let companyList = [];
+let allCompaniesForAutocomplete = []; // 자동완성용 전체 거래처 목록
 let currentFilter = {
-    name: '',        // 거래처명은 단일 선택 (select)
+    name: '',        // 거래처명은 단일 선택 (autocomplete)
     status: [],      // 배열로 변경 (다중 선택)
     product: [],     // 배열로 변경 (다중 선택)
     region: []       // 배열로 변경 (다중 선택)
@@ -386,8 +387,9 @@ async function loadCompanies() {
         // 백엔드에서 받은 원본 데이터 저장
         const allCompanies = data.companies || [];
 
-        // 거래처명 드롭다운 populate (담당 거래처만)
-        populateCompanyNameSelect(allCompanies);
+        // 자동완성용 전체 거래처 목록 저장
+        allCompaniesForAutocomplete = [...allCompanies];
+
         // 주의: 지역 드롭다운은 loadMasterData()에서 전체 거래처 기준으로 이미 처리됨
 
         // 필터 적용할 데이터
@@ -557,6 +559,93 @@ function sortCompanies() {
                 return 0;
         }
     });
+}
+
+// ============================================
+// [SECTION: 자동완성 기능]
+// ============================================
+
+/**
+ * 거래처명 입력 시 자동완성 처리
+ */
+function handleCompanyInput(event) {
+    const inputValue = event.target.value.trim().toLowerCase();
+    console.log('[담당거래처] 거래처명 입력:', inputValue);
+
+    const autocompleteList = document.getElementById('company-autocomplete-list');
+    if (!autocompleteList) return;
+
+    if (!inputValue) {
+        autocompleteList.classList.add('hidden');
+        return;
+    }
+
+    // 자동완성용 전체 거래처 목록에서 필터링
+    const filteredCompanies = allCompaniesForAutocomplete.filter(company => {
+        const companyName = getCompanyDisplayName(company).toLowerCase();
+        return companyName.includes(inputValue);
+    });
+
+    displayAutocompleteResults(filteredCompanies, inputValue);
+}
+
+/**
+ * 자동완성 결과 표시
+ */
+function displayAutocompleteResults(companies, searchTerm) {
+    const autocompleteList = document.getElementById('company-autocomplete-list');
+    if (!autocompleteList) return;
+
+    autocompleteList.innerHTML = '';
+
+    if (companies.length === 0) {
+        autocompleteList.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
+        autocompleteList.classList.remove('hidden');
+        return;
+    }
+
+    // 최대 10개까지만 표시
+    companies.slice(0, 10).forEach(company => {
+        const companyName = getCompanyDisplayName(company);
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+
+        // 검색어 강조
+        if (searchTerm) {
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            item.innerHTML = companyName.replace(regex, '<strong>$1</strong>');
+        } else {
+            item.textContent = companyName;
+        }
+
+        item.addEventListener('click', () => selectCompanyFromAutocomplete(company));
+        autocompleteList.appendChild(item);
+    });
+
+    autocompleteList.classList.remove('hidden');
+}
+
+/**
+ * 자동완성에서 거래처 선택
+ */
+function selectCompanyFromAutocomplete(company) {
+    const filterNameInput = document.getElementById('filter-name');
+    const autocompleteList = document.getElementById('company-autocomplete-list');
+
+    if (filterNameInput) {
+        const companyName = getCompanyDisplayName(company);
+        filterNameInput.value = companyName;
+
+        // keyValue로 필터 설정
+        currentFilter.name = company.keyValue;
+
+        // 목록 새로고침
+        loadCompanies();
+    }
+
+    if (autocompleteList) {
+        autocompleteList.classList.add('hidden');
+    }
 }
 
 // ============================================
@@ -1550,14 +1639,31 @@ function setupEventListeners() {
         console.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
     }
 
-    // 거래처명 select 변경
+    // 거래처명 자동완성 입력
     const filterName = document.getElementById('filter-name');
     if (filterName) {
-        filterName.addEventListener('change', (e) => {
-            currentFilter.name = e.target.value;
-            loadCompanies();
+        filterName.addEventListener('input', handleCompanyInput);
+
+        // 포커스 시 전체 목록 표시 (입력값이 있는 경우)
+        filterName.addEventListener('focus', (e) => {
+            if (e.target.value.trim()) {
+                handleCompanyInput(e);
+            }
         });
     }
+
+    // 자동완성 외부 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+        const autocompleteList = document.getElementById('company-autocomplete-list');
+        const filterNameInput = document.getElementById('filter-name');
+
+        if (autocompleteList && filterNameInput) {
+            // 클릭한 곳이 입력 필드도 아니고 자동완성 목록도 아니면 닫기
+            if (!filterNameInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+                autocompleteList.classList.add('hidden');
+            }
+        }
+    });
 
     // 거래상태 dropdown 토글
     const statusButton = document.getElementById('status-dropdown-button');
