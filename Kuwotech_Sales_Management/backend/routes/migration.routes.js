@@ -273,12 +273,34 @@ ${insertValues.join(',\n')};`;
     }
 });
 
-// POST /api/migration/update-regions - regions 테이블 업데이트 실행
+// POST /api/migration/update-regions - regions 테이블 업데이트 및 구/군 분리
 router.post('/update-regions', async (req, res) => {
     try {
         const db = await getDB();
 
-        // 1. 현재 사용 중인 customerRegion 값 조회
+        // Step 1: region_district 컬럼 추가 (있으면 스킵)
+        try {
+            await db.execute(`
+                ALTER TABLE companies
+                ADD COLUMN region_district VARCHAR(50) NULL COMMENT '구/군 정보 (예: 강남구, 수원시)' AFTER region_id
+            `);
+            console.log('✅ region_district 컬럼 추가 완료');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log('ℹ️ region_district 컬럼이 이미 존재합니다');
+            } else {
+                throw err;
+            }
+        }
+
+        // Step 2: 인덱스 추가 (있으면 스킵)
+        try {
+            await db.execute(`ALTER TABLE companies ADD INDEX idx_region_district (region_district)`);
+        } catch (err) {
+            if (err.code !== 'ER_DUP_KEYNAME') throw err;
+        }
+
+        // Step 3: 현재 사용 중인 customerRegion 값 조회
         const [rawRegions] = await db.execute(`
             SELECT customerRegion, COUNT(*) as count
             FROM companies
@@ -288,7 +310,7 @@ router.post('/update-regions', async (req, res) => {
             ORDER BY customerRegion
         `);
 
-        // 첫 번째 공백 이전 값만 추출
+        // Step 4: 시/도만 추출 (첫 번째 공백 이전)
         const regionMap = new Map();
         rawRegions.forEach(row => {
             const fullRegion = row.customerRegion;
@@ -305,13 +327,12 @@ router.post('/update-regions', async (req, res) => {
             .map(([customerRegion, count]) => ({ customerRegion, count }))
             .sort((a, b) => a.customerRegion.localeCompare(b.customerRegion, 'ko'));
 
-        // 2. Foreign key checks 비활성화
+        // Step 5: Foreign key checks 비활성화
         await db.execute('SET FOREIGN_KEY_CHECKS = 0');
 
-        // 3. regions 테이블 삭제
+        // Step 6: regions 테이블 삭제 및 재생성
         await db.execute('DELETE FROM regions');
 
-        // 4. 새로운 데이터 INSERT
         for (let i = 0; i < regions.length; i++) {
             const region = regions[i];
             const regionName = region.customerRegion;
@@ -323,13 +344,57 @@ router.post('/update-regions', async (req, res) => {
             `, [regionName, regionCode, i + 1]);
         }
 
-        // 5. Foreign key checks 재활성화
+        // Step 7: companies 테이블의 region_id와 region_district 업데이트
+        console.log('🔄 companies 테이블 region_id 및 region_district 업데이트 중...');
+
+        // 모든 회사의 region_id와 region_district를 업데이트
+        for (const row of rawRegions) {
+            const fullRegion = row.customerRegion;
+            const parts = fullRegion.split(' ');
+            const mainRegion = parts[0].trim();
+            const district = parts.length > 1 ? parts.slice(1).join(' ').trim() : null;
+
+            // region_id 찾기
+            const [regionResult] = await db.execute(
+                'SELECT id FROM regions WHERE region_name = ?',
+                [mainRegion]
+            );
+
+            if (regionResult.length > 0) {
+                const regionId = regionResult[0].id;
+
+                // region_id와 region_district 업데이트
+                await db.execute(`
+                    UPDATE companies
+                    SET region_id = ?, region_district = ?
+                    WHERE customerRegion = ?
+                `, [regionId, district, fullRegion]);
+            }
+        }
+
+        // Step 8: Foreign key checks 재활성화
         await db.execute('SET FOREIGN_KEY_CHECKS = 1');
+
+        // Step 9: 결과 확인
+        const [verifyResults] = await db.execute(`
+            SELECT
+                customerRegion,
+                r.region_name,
+                region_district,
+                COUNT(*) as count
+            FROM companies c
+            LEFT JOIN regions r ON c.region_id = r.id
+            WHERE c.customerRegion IS NOT NULL AND c.customerRegion != ''
+            GROUP BY customerRegion, r.region_name, region_district
+            ORDER BY customerRegion
+            LIMIT 20
+        `);
 
         res.json({
             success: true,
-            message: `${regions.length}개의 지역이 업데이트되었습니다.`,
-            regions: regions
+            message: `✅ ${regions.length}개의 시/도 지역이 업데이트되었습니다.`,
+            regions: regions,
+            sampleMappings: verifyResults
         });
 
     } catch (error) {

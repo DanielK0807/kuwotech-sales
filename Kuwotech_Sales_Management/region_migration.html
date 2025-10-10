@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지역 데이터 마이그레이션</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .step h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .info {
+            color: #17a2b8;
+        }
+
+        .region-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .region-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ 지역 데이터 마이그레이션</h1>
+        <p class="subtitle">customerRegion 데이터를 기반으로 regions 테이블을 업데이트합니다</p>
+
+        <!-- Step 1: 데이터 확인 -->
+        <div class="step">
+            <h2>Step 1: 현재 데이터 확인</h2>
+            <p>companies 테이블의 customerRegion 값과 regions 테이블을 비교합니다.</p>
+            <button onclick="checkRegions()" id="checkBtn">데이터 확인</button>
+            <div id="checkResult"></div>
+        </div>
+
+        <!-- Step 2: 업데이트 실행 -->
+        <div class="step">
+            <h2>Step 2: regions 테이블 업데이트</h2>
+            <p>실제 데이터를 기반으로 regions 테이블을 재구성합니다.</p>
+            <button onclick="updateRegions()" id="updateBtn" disabled>업데이트 실행</button>
+            <div id="updateResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://kuwotech-sales-production-aa64.up.railway.app/api';
+
+        function getAuthToken() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('로그인이 필요합니다. 먼저 https://kuwotech-sales-production-aa64.up.railway.app 에 로그인하세요.');
+                window.open('https://kuwotech-sales-production-aa64.up.railway.app', '_blank');
+                return null;
+            }
+            return token;
+        }
+
+        async function checkRegions() {
+            const token = getAuthToken();
+            if (!token) return;
+
+            const checkBtn = document.getElementById('checkBtn');
+            const resultDiv = document.getElementById('checkResult');
+
+            checkBtn.disabled = true;
+            checkBtn.textContent = '확인 중...';
+            resultDiv.innerHTML = '<p class="info">데이터를 조회하는 중입니다...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE}/migration/check-regions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                let html = '<div class="result">';
+                html += `<p class="success">✅ 데이터 조회 완료</p><br>`;
+
+                // 실제 데이터
+                html += `<p class="info"><strong>📊 실제 companies 테이블에서 사용 중인 지역 (${data.actualRegions.length}개):</strong></p>`;
+                html += '<div class="region-list">';
+                data.actualRegions.forEach(r => {
+                    html += `<div class="region-item"><strong>${r.customerRegion}</strong>: ${r.count}개 거래처</div>`;
+                });
+                html += '</div><br>';
+
+                // 마스터 테이블
+                html += `<p class="info"><strong>📋 현재 regions 마스터 테이블 (${data.masterRegions.length}개):</strong></p>`;
+                html += '<div class="region-list">';
+                data.masterRegions.forEach(r => {
+                    html += `<div class="region-item">${r.region_name} (${r.region_code})</div>`;
+                });
+                html += '</div><br>';
+
+                // 불일치 확인
+                if (data.onlyInActual.length > 0) {
+                    html += `<p class="warning">⚠️ 실제 데이터에는 있지만 마스터에는 없는 지역:</p>`;
+                    html += `<p>${data.onlyInActual.join(', ')}</p><br>`;
+                }
+
+                if (data.onlyInMaster.length > 0) {
+                    html += `<p class="warning">⚠️ 마스터에는 있지만 실제 데이터에는 없는 지역:</p>`;
+                    html += `<p>${data.onlyInMaster.join(', ')}</p><br>`;
+                }
+
+                if (data.onlyInActual.length === 0 && data.onlyInMaster.length === 0) {
+                    html += `<p class="success">✅ 마스터 테이블과 실제 데이터가 일치합니다!</p><br>`;
+                }
+
+                // SQL 미리보기
+                html += '<p class="info"><strong>📝 실행될 SQL:</strong></p>';
+                html += `<pre>${data.updateSQL}</pre>`;
+
+                html += '</div>';
+                resultDiv.innerHTML = html;
+
+                // Step 2 버튼 활성화
+                document.getElementById('updateBtn').disabled = false;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<div class="result"><p class="error">❌ 오류 발생: ${error.message}</p></div>`;
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = '데이터 확인';
+            }
+        }
+
+        async function updateRegions() {
+            const token = getAuthToken();
+            if (!token) return;
+
+            if (!confirm('regions 테이블을 업데이트하시겠습니까? 기존 데이터는 삭제됩니다.')) {
+                return;
+            }
+
+            const updateBtn = document.getElementById('updateBtn');
+            const resultDiv = document.getElementById('updateResult');
+
+            updateBtn.disabled = true;
+            updateBtn.textContent = '업데이트 중...';
+            resultDiv.innerHTML = '<p class="info">regions 테이블을 업데이트하는 중입니다...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE}/migration/update-regions`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                let html = '<div class="result">';
+                html += `<p class="success">✅ ${data.message}</p><br>`;
+
+                html += '<p class="info"><strong>업데이트된 지역 목록:</strong></p>';
+                html += '<div class="region-list">';
+                data.regions.forEach(r => {
+                    html += `<div class="region-item"><strong>${r.customerRegion}</strong>: ${r.count}개 거래처</div>`;
+                });
+                html += '</div>';
+
+                html += '<br><p class="success">🎉 마이그레이션이 완료되었습니다! 페이지를 새로고침하면 새로운 지역 필터가 적용됩니다.</p>';
+                html += '</div>';
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<div class="result"><p class="error">❌ 오류 발생: ${error.message}</p></div>`;
+            } finally {
+                updateBtn.disabled = false;
+                updateBtn.textContent = '업데이트 실행';
+            }
+        }
+
+        // 페이지 로드 시 토큰 확인
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('⚠️ authToken이 없습니다.\n\n먼저 https://kuwotech-sales-production-aa64.up.railway.app 에 로그인하세요.\n로그인 후 이 페이지를 새로고침하세요.');
+            }
+        });
+    </script>
+</body>
+</html>
