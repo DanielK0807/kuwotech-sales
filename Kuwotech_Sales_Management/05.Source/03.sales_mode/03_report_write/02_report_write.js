@@ -106,12 +106,49 @@ function cacheElements() {
     elements.reportType = document.getElementById('reportType');
     elements.reportDate = document.getElementById('reportDate');
 
-    // 현재 날짜 즉시 설정 (DOM 로드 직후)
+    // ✅ Flatpickr 달력 초기화
     if (elements.reportDate) {
         const today = new Date().toISOString().split('T')[0];
-        elements.reportDate.value = today;
-        elements.reportDate.setAttribute('readonly', true);
-        console.log('[Report Write] 작성일 자동 설정:', today);
+
+        // Flatpickr 로딩 확인
+        if (typeof flatpickr !== 'undefined') {
+            console.log('[Report Write] ✅ Flatpickr 라이브러리 감지됨');
+
+            try {
+                const fpInstance = flatpickr(elements.reportDate, {
+                    locale: 'ko',                    // 한국어
+                    dateFormat: 'Y-m-d',             // 날짜 형식 (YYYY-MM-DD)
+                    defaultDate: today,              // 기본값: 오늘
+                    allowInput: false,               // 직접 입력 비활성화 (달력만 사용)
+                    clickOpens: true,                // 클릭 시 달력 열기
+                    enableTime: false,               // 시간 선택 비활성화
+                    maxDate: today,                  // 오늘 이후 선택 불가
+                    position: 'auto',                // 자동 위치 조정
+                    onReady: function(selectedDates, dateStr, instance) {
+                        console.log('[Report Write] 📅 Flatpickr 초기화 완료:', dateStr);
+                    },
+                    onChange: function(selectedDates, dateStr, instance) {
+                        console.log('[Report Write] 📅 날짜 선택:', dateStr);
+                    }
+                });
+
+                console.log('[Report Write] ✅ Flatpickr 달력 적용 완료', fpInstance);
+            } catch (error) {
+                console.error('[Report Write] ❌ Flatpickr 초기화 오류:', error);
+                // 오류 시 폴백
+                elements.reportDate.value = today;
+                elements.reportDate.setAttribute('type', 'date');
+                elements.reportDate.removeAttribute('readonly');
+            }
+        } else {
+            // Flatpickr 라이브러리가 없으면 기본 date input 방식으로 폴백
+            console.warn('[Report Write] ⚠️ Flatpickr 라이브러리를 찾을 수 없습니다 - 기본 date input 사용');
+            elements.reportDate.value = today;
+            elements.reportDate.setAttribute('type', 'date');
+            elements.reportDate.removeAttribute('readonly');
+        }
+    } else {
+        console.error('[Report Write] ❌ reportDate 요소를 찾을 수 없습니다');
     }
     elements.companySelect = document.getElementById('companySelect');
     elements.verifyCompanyBtn = document.getElementById('verifyCompanyBtn');
