@@ -134,6 +134,15 @@ if (existsSync(frontendPath)) {
 
 app.use(express.static(frontendPath));
 
+// 폰트/로고 파일 서빙 (02.Fonts_Logos)
+const fontsLogosPath = path.join(__dirname, '..', '02.Fonts_Logos');
+app.use('/02.Fonts_Logos', express.static(fontsLogosPath));
+if (existsSync(fontsLogosPath)) {
+  console.log(`✅ 폰트/로고 디렉토리 설정 완료: /02.Fonts_Logos`);
+} else {
+  console.warn(`⚠️  폰트/로고 디렉토리 없음: ${fontsLogosPath}`);
+}
+
 console.log(`📁 프론트엔드 경로: ${frontendPath}`);
 
 // ============================================

@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="../07.styles/00_root.css" />
     <link rel="stylesheet" href="../07.styles/01_variables.css" />
     <link rel="stylesheet" href="../07.styles/09_fonts.css" />
+    <link rel="stylesheet" href="../07.styles/07_theme_colors.css" />
     <link rel="stylesheet" href="../07.styles/02_common.css" />
     <link rel="stylesheet" href="../07.styles/03_glassmorphism.css" />
     <link rel="stylesheet" href="../07.styles/04_components.css" />
@@ -111,7 +112,8 @@
       }
 
       .login-title {
-        font-size: var(--font-xl);
+        /* 모바일: 18px, 유동: 4vw, 최대: 24px */
+        font-size: clamp(18px, 4vw, 24px);
         font-weight: 600;
         color: rgba(255, 255, 255, 0.95);
         margin-bottom: var(--spacing-md);
@@ -119,7 +121,8 @@
       }
 
       .login-subtitle {
-        font-size: var(--font-md);
+        /* 모바일: 14px, 유동: 3vw, 최대: 16px */
+        font-size: clamp(14px, 3vw, 16px);
         color: rgba(255, 255, 255, 0.85);
         margin-bottom: var(--spacing-md);
       }
@@ -129,7 +132,8 @@
         backdrop-filter: blur(10px);
         padding: var(--spacing-sm) var(--spacing-md);
         border-radius: var(--border-radius-md);
-        font-size: var(--font-xs);
+        /* 모바일: 11px, 유동: 2vw, 최대: 12px */
+        font-size: clamp(11px, 2vw, 12px);
         color: rgba(255, 255, 255, 0.9);
         border: 1px solid rgba(255, 255, 255, 0.2);
       }
@@ -157,7 +161,8 @@
 
       .form-label {
         display: block;
-        font-size: var(--font-md);
+        /* 모바일: 14px, 유동: 3vw, 최대: 16px */
+        font-size: clamp(14px, 3vw, 16px);
         font-weight: 600;
         color: rgba(255, 255, 255, 0.95);
         margin-bottom: var(--spacing-sm);
@@ -223,7 +228,8 @@
       .form-select {
         width: 100%;
         padding: var(--spacing-md);
-        font-size: var(--font-md);
+        /* 모바일: 14px, 유동: 3vw, 최대: 16px */
+        font-size: clamp(14px, 3vw, 16px);
         border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: var(--border-radius-md);
         background: rgba(255, 255, 255, 0.12);
@@ -259,7 +265,8 @@
       .form-input {
         width: 100%;
         padding: var(--spacing-md);
-        font-size: var(--font-md);
+        /* 모바일: 14px, 유동: 3vw, 최대: 16px */
+        font-size: clamp(14px, 3vw, 16px);
         border: 2px solid rgba(255, 255, 255, 0.25);
         border-radius: var(--border-radius-md);
         background: rgba(255, 255, 255, 0.12);
@@ -281,8 +288,10 @@
       /* 로그인 버튼 */
       .login-button {
         width: 100%;
+        /* 모바일 터치 타깃: 최소 44px */
         padding: var(--spacing-lg);
-        font-size: var(--font-lg);
+        /* 모바일: 16px, 유동: 3.5vw, 최대: 18px */
+        font-size: clamp(16px, 3.5vw, 18px);
         font-weight: 600;
         color: #1a237e;
         background: linear-gradient(135deg, rgba(255, 193, 7, 0.95), rgba(255, 160, 0, 0.95));
@@ -293,6 +302,8 @@
         transition: all 0.3s ease;
         margin-top: var(--spacing-xl);
         box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+        /* 터치 타깃 최소 높이 보장 */
+        min-height: 48px;
       }
 
       .login-button:hover:not(:disabled) {
@@ -327,7 +338,7 @@
         color: rgba(33, 150, 243, 0.9);
       }
 
-      /* 반응형 */
+      /* 반응형 - 모바일 최적화 */
       @media (max-width: 640px) {
         .login-container {
           padding: var(--spacing-md);
@@ -336,11 +347,70 @@
 
         .login-card {
           padding: var(--spacing-xl);
+          /* 모바일 성능 최적화: blur 축소 */
+          backdrop-filter: blur(15px) saturate(180%);
+          -webkit-backdrop-filter: blur(15px) saturate(180%);
+          /* 그림자 단순화 */
+          box-shadow:
+            0 20px 40px rgba(0, 0, 0, 0.25),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+          /* 3D transform 제거 */
+          transform: none;
         }
 
         .radio-group {
           flex-direction: column;
           gap: var(--spacing-md);
+        }
+
+        /* 모바일에서 입력 필드 blur 축소 */
+        .form-select,
+        .form-input {
+          backdrop-filter: blur(8px);
+        }
+
+        /* 로그인 버튼 그림자 단순화 */
+        .login-button {
+          box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25);
+        }
+
+        .login-button:hover:not(:disabled) {
+          box-shadow: 0 6px 16px rgba(255, 193, 7, 0.35);
+        }
+
+        /* 안내 메시지 backdrop 축소 */
+        .info-message {
+          backdrop-filter: blur(5px);
+        }
+      }
+
+      /* 추가 모바일 최적화 (480px 이하) */
+      @media (max-width: 480px) {
+        .login-card {
+          padding: var(--spacing-lg);
+          /* 더 작은 화면에서 blur 더 축소 */
+          backdrop-filter: blur(10px) saturate(150%);
+          -webkit-backdrop-filter: blur(10px) saturate(150%);
+        }
+
+        .login-title {
+          font-size: 18px;
+        }
+
+        .login-subtitle {
+          font-size: 14px;
+        }
+
+        .radio-label {
+          padding: var(--spacing-sm);
+          font-size: 14px;
+        }
+
+        /* 터치 타깃 높이 확보 */
+        .radio-label,
+        .form-select,
+        .form-input {
+          min-height: 44px;
         }
       }
     </style>
