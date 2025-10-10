@@ -754,6 +754,15 @@ function createReportElement(report) {
     });
   }
 
+  // 삭제 버튼
+  const btnDelete = reportItem.querySelector('.btn-delete-report');
+  if (btnDelete) {
+    btnDelete.addEventListener('click', (e) => {
+      e.stopPropagation(); // 상세보기 토글 방지
+      handleDeleteReport(reportItem, report);
+    });
+  }
+
   // 수금 실적 추가 버튼 (선택적 - 템플릿에 있을 수도 없을 수도 있음)
   const btnAddCollection = reportItem.querySelector('.btn-add-collection');
   if (btnAddCollection) {
@@ -1708,6 +1717,70 @@ async function saveReportData(report) {
       window.Toast.error('저장에 실패했습니다: ' + error.message);
     }
     return false;
+  }
+}
+
+// =====================================================
+// 보고서 삭제 처리
+// =====================================================
+async function handleDeleteReport(reportItem, report) {
+  try {
+    console.log('[Report Check] 보고서 삭제 요청:', report.reportId);
+
+    // 삭제 확인 메시지
+    const confirmMsg = `정말로 이 보고서를 삭제하시겠습니까?\n\n` +
+      `보고서 ID: ${report.reportId}\n` +
+      `거래처: ${report.companyName || '미지정'}\n` +
+      `제출일: ${report.submitDate}\n\n` +
+      `⚠️ 삭제된 보고서는 복구할 수 없습니다.`;
+
+    if (!confirm(confirmMsg)) {
+      console.log('[Report Check] 삭제 취소됨');
+      return;
+    }
+
+    console.log('[Report Check] 삭제 확인 완료. API 호출 중...');
+
+    // API 호출로 보고서 삭제
+    const response = await apiManager.deleteReport(report.reportId);
+
+    if (response.success) {
+      console.log('[Report Check] 보고서 삭제 성공');
+
+      // UI에서 보고서 제거
+      reportItem.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => {
+        reportItem.remove();
+      }, 300);
+
+      // 상태 데이터에서 제거
+      state.reportsData = state.reportsData.filter(r => r.reportId !== report.reportId);
+      state.filteredReports = state.filteredReports.filter(r => r.reportId !== report.reportId);
+
+      // 통계 카드 업데이트
+      updateSummaryCards();
+
+      // 리스트가 비었으면 빈 상태 표시
+      if (state.filteredReports.length === 0) {
+        showEmptyState(true);
+      }
+
+      // 성공 피드백
+      if (window.Toast) {
+        window.Toast.success('✅ 보고서가 삭제되었습니다.');
+      } else {
+        alert('✅ 보고서가 삭제되었습니다.');
+      }
+    } else {
+      throw new Error(response.message || '삭제 실패');
+    }
+  } catch (error) {
+    console.error('[Report Check] 보고서 삭제 에러:', error);
+    if (window.Toast) {
+      window.Toast.error('삭제에 실패했습니다: ' + error.message);
+    } else {
+      alert('❌ 삭제에 실패했습니다: ' + error.message);
+    }
   }
 }
 
