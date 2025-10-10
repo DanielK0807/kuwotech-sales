@@ -410,11 +410,12 @@
         /* 모바일: 세로 배치로 전환 */
         @media (max-width: 640px) {
             #kpiSection1, #kpiSection2, #kpiSection3, #kpiSection4 {
-                grid-template-columns: 1fr; /* 한 열로 변경 */
+                grid-template-columns: 1fr !important; /* 한 열로 변경 */
+                grid-auto-flow: row !important; /* 세로 방향으로 변경 */
             }
 
             .kpi-grid {
-                overflow-x: hidden;
+                overflow-x: hidden !important;
             }
 
             .header-content {
