@@ -415,10 +415,10 @@ router.get('/verify-districts', async (req, res) => {
         // region_district가 있는 회사들 샘플 조회
         const [companies] = await db.execute(`
             SELECT
-                companyName,
-                customerRegion,
+                c.finalCompanyName,
+                c.customerRegion,
                 r.region_name,
-                region_district
+                c.region_district
             FROM companies c
             LEFT JOIN regions r ON c.region_id = r.id
             WHERE c.customerRegion IS NOT NULL
