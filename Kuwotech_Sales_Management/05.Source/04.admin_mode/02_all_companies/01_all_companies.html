@@ -348,7 +348,8 @@
     padding: 0;
     width: 100%;
     border-radius: 20px;
-    overflow: hidden;
+    overflow-x: auto; /* 가로 스크롤 추가 */
+    overflow-y: hidden;
     background: linear-gradient(
         145deg,
         rgba(255, 255, 255, 0.3),
@@ -408,6 +409,7 @@
 
 .companies-table {
     width: 100%;
+    min-width: 1600px; /* 최소 너비 설정으로 가로 스크롤 활성화 (12개 컬럼) */
     border-collapse: collapse;
     display: block;
     overflow-y: auto;
@@ -426,7 +428,7 @@
     z-index: 10;
     display: table;
     width: 100%;
-    table-layout: fixed;
+    min-width: 1600px; /* thead도 동일한 최소 너비 */
 }
 
 .companies-table th {
@@ -442,6 +444,8 @@
         rgba(5, 38, 89, 0.12)
     );
     backdrop-filter: blur(10px);
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    min-width: 120px; /* 각 컬럼 최소 너비 */
 }
 
 .companies-table tbody {
@@ -454,7 +458,7 @@
 .companies-table tbody tr {
     display: table;
     width: 100%;
-    table-layout: fixed;
+    min-width: 1600px; /* tbody tr도 동일한 최소 너비 */
 }
 
 .companies-table td {
@@ -462,6 +466,8 @@
     font-size: 16px;
     color: var(--text-secondary);
     border-bottom: 1px solid var(--glass-border);
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    min-width: 120px; /* 각 셀 최소 너비 */
 }
 
 /* 관리자모드 호버 색상 (블루 계열) */

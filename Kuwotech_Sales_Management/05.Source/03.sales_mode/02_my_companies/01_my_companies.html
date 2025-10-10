@@ -350,7 +350,8 @@ body {
     padding: 0;
     width: 100%;
     border-radius: 20px;
-    overflow: hidden;
+    overflow-x: auto; /* 가로 스크롤 추가 */
+    overflow-y: hidden;
     background: linear-gradient(
         145deg,
         rgba(255, 255, 255, 0.3),
@@ -410,6 +411,7 @@ body {
 
 .companies-table {
     width: 100%;
+    min-width: 1400px; /* 최소 너비 설정으로 가로 스크롤 활성화 */
     border-collapse: collapse;
     display: block;
     overflow-y: auto;
@@ -427,7 +429,7 @@ body {
     z-index: 10;
     display: table;
     width: 100%;
-    table-layout: fixed;
+    min-width: 1400px; /* thead도 동일한 최소 너비 */
 }
 
 .companies-table th {
@@ -443,6 +445,8 @@ body {
         rgba(107, 144, 113, 0.12)
     );
     backdrop-filter: blur(10px);
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    min-width: 120px; /* 각 컬럼 최소 너비 */
 }
 
 .companies-table tbody {
@@ -455,7 +459,7 @@ body {
 .companies-table tbody tr {
     display: table;
     width: 100%;
-    table-layout: fixed;
+    min-width: 1400px; /* tbody tr도 동일한 최소 너비 */
 }
 
 .companies-table td {
@@ -463,6 +467,8 @@ body {
     font-size: 16px;
     color: var(--text-secondary);
     border-bottom: 1px solid var(--glass-border);
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    min-width: 120px; /* 각 셀 최소 너비 */
 }
 
 
