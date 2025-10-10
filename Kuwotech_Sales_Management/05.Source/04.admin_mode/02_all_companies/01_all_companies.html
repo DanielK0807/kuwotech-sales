@@ -406,8 +406,7 @@
 }
 
 .companies-table {
-    width: 100%;
-    min-width: 1600px; /* 최소 너비 설정으로 가로 스크롤 활성화 (12개 컬럼) */
+    width: 1700px; /* 고정 너비로 스크롤바 안정화 (12개 컬럼) */
     border-collapse: collapse;
     table-layout: fixed; /* 고정 레이아웃으로 컬럼 정렬 */
 }
@@ -445,6 +444,43 @@
     backdrop-filter: blur(10px);
     white-space: nowrap; /* 텍스트 줄바꿈 방지 */
 }
+
+/* 각 컬럼별 명시적 너비 설정 */
+.companies-table th:nth-child(1),
+.companies-table td:nth-child(1) { width: 120px; } /* 내부담당자 */
+
+.companies-table th:nth-child(2),
+.companies-table td:nth-child(2) { width: 120px; } /* 담당부서 */
+
+.companies-table th:nth-child(3),
+.companies-table td:nth-child(3) { width: 180px; } /* 거래처명 */
+
+.companies-table th:nth-child(4),
+.companies-table td:nth-child(4) { width: 110px; } /* 대표이사 */
+
+.companies-table th:nth-child(5),
+.companies-table td:nth-child(5) { width: 110px; } /* 고객사 지역 */
+
+.companies-table th:nth-child(6),
+.companies-table td:nth-child(6) { width: 100px; } /* 거래상태 */
+
+.companies-table th:nth-child(7),
+.companies-table td:nth-child(7) { width: 140px; } /* 판매제품 */
+
+.companies-table th:nth-child(8),
+.companies-table td:nth-child(8) { width: 130px; } /* 마지막결제일 */
+
+.companies-table th:nth-child(9),
+.companies-table td:nth-child(9) { width: 170px; } /* 마지막총결재금액 */
+
+.companies-table th:nth-child(10),
+.companies-table td:nth-child(10) { width: 170px; } /* 누적매출금액 */
+
+.companies-table th:nth-child(11),
+.companies-table td:nth-child(11) { width: 170px; } /* 누적수금금액 */
+
+.companies-table th:nth-child(12),
+.companies-table td:nth-child(12) { width: 170px; } /* 매출채권잔액 */
 
 .companies-table tbody tr {
     display: table;
