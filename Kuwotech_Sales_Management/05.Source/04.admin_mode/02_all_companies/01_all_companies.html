@@ -406,7 +406,7 @@
 }
 
 .companies-table {
-    width: 1700px; /* 고정 너비로 스크롤바 안정화 (12개 컬럼) */
+    width: 1700px !important; /* 고정 너비로 스크롤바 안정화 (12개 컬럼) */
     border-collapse: collapse;
     table-layout: fixed; /* 고정 레이아웃으로 컬럼 정렬 */
 }
@@ -423,15 +423,8 @@
     z-index: 10;
 }
 
-.companies-table thead tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
 .companies-table th {
     padding: 15px;
-    text-align: left;
     font-weight: 600;
     font-size: 16px;
     color: var(--text-primary);
@@ -445,49 +438,6 @@
     white-space: nowrap; /* 텍스트 줄바꿈 방지 */
 }
 
-/* 각 컬럼별 명시적 너비 설정 */
-.companies-table th:nth-child(1),
-.companies-table td:nth-child(1) { width: 120px; } /* 내부담당자 */
-
-.companies-table th:nth-child(2),
-.companies-table td:nth-child(2) { width: 120px; } /* 담당부서 */
-
-.companies-table th:nth-child(3),
-.companies-table td:nth-child(3) { width: 180px; } /* 거래처명 */
-
-.companies-table th:nth-child(4),
-.companies-table td:nth-child(4) { width: 110px; } /* 대표이사 */
-
-.companies-table th:nth-child(5),
-.companies-table td:nth-child(5) { width: 110px; } /* 고객사 지역 */
-
-.companies-table th:nth-child(6),
-.companies-table td:nth-child(6) { width: 100px; } /* 거래상태 */
-
-.companies-table th:nth-child(7),
-.companies-table td:nth-child(7) { width: 140px; } /* 판매제품 */
-
-.companies-table th:nth-child(8),
-.companies-table td:nth-child(8) { width: 130px; } /* 마지막결제일 */
-
-.companies-table th:nth-child(9),
-.companies-table td:nth-child(9) { width: 170px; } /* 마지막총결재금액 */
-
-.companies-table th:nth-child(10),
-.companies-table td:nth-child(10) { width: 170px; } /* 누적매출금액 */
-
-.companies-table th:nth-child(11),
-.companies-table td:nth-child(11) { width: 170px; } /* 누적수금금액 */
-
-.companies-table th:nth-child(12),
-.companies-table td:nth-child(12) { width: 170px; } /* 매출채권잔액 */
-
-.companies-table tbody tr {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
-
 .companies-table td {
     padding: 12px 15px;
     font-size: 16px;
@@ -496,6 +446,91 @@
     white-space: nowrap; /* 텍스트 줄바꿈 방지 */
     overflow: hidden;
     text-overflow: ellipsis; /* 긴 텍스트는 ... 처리 */
+}
+
+/* 각 컬럼별 명시적 너비 및 정렬 설정 */
+/* 내부담당자 - 텍스트 좌측 정렬 */
+.companies-table th:nth-child(1),
+.companies-table td:nth-child(1) {
+    width: 120px;
+    text-align: left;
+}
+
+/* 담당부서 - 텍스트 좌측 정렬 */
+.companies-table th:nth-child(2),
+.companies-table td:nth-child(2) {
+    width: 120px;
+    text-align: left;
+}
+
+/* 거래처명 - 텍스트 좌측 정렬 */
+.companies-table th:nth-child(3),
+.companies-table td:nth-child(3) {
+    width: 180px;
+    text-align: left;
+}
+
+/* 대표이사 - 텍스트 좌측 정렬 */
+.companies-table th:nth-child(4),
+.companies-table td:nth-child(4) {
+    width: 110px;
+    text-align: left;
+}
+
+/* 고객사 지역 - 텍스트 좌측 정렬 */
+.companies-table th:nth-child(5),
+.companies-table td:nth-child(5) {
+    width: 110px;
+    text-align: left;
+}
+
+/* 거래상태 - 가운데 정렬 */
+.companies-table th:nth-child(6),
+.companies-table td:nth-child(6) {
+    width: 100px;
+    text-align: center;
+}
+
+/* 판매제품 - 텍스트 좌측 정렬 */
+.companies-table th:nth-child(7),
+.companies-table td:nth-child(7) {
+    width: 140px;
+    text-align: left;
+}
+
+/* 마지막결제일 - 가운데 정렬 */
+.companies-table th:nth-child(8),
+.companies-table td:nth-child(8) {
+    width: 130px;
+    text-align: center;
+}
+
+/* 마지막총결재금액 - 숫자 우측 정렬 */
+.companies-table th:nth-child(9),
+.companies-table td:nth-child(9) {
+    width: 170px;
+    text-align: right;
+}
+
+/* 누적매출금액 - 숫자 우측 정렬 */
+.companies-table th:nth-child(10),
+.companies-table td:nth-child(10) {
+    width: 170px;
+    text-align: right;
+}
+
+/* 누적수금금액 - 숫자 우측 정렬 */
+.companies-table th:nth-child(11),
+.companies-table td:nth-child(11) {
+    width: 170px;
+    text-align: right;
+}
+
+/* 매출채권잔액 - 숫자 우측 정렬 */
+.companies-table th:nth-child(12),
+.companies-table td:nth-child(12) {
+    width: 170px;
+    text-align: right;
 }
 
 /* 관리자모드 호버 색상 (블루 계열) */
