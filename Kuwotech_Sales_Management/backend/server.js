@@ -205,7 +205,9 @@ app.get('/', (req, res) => {
       employees: '/api/employees',
       goals: '/api/goals',
       kpi: '/api/kpi',
-      upload: '/api/upload'
+      upload: '/api/upload',
+      migration: '/api/migration',
+      master: '/api/master'
     },
     note: '프론트엔드는 로컬에서 실행하세요 (Live Server)'
   });
@@ -226,7 +228,9 @@ app.get('/api', (req, res) => {
       employees: '/api/employees',
       goals: '/api/goals',
       kpi: '/api/kpi',
-      upload: '/api/upload'
+      upload: '/api/upload',
+      migration: '/api/migration',
+      master: '/api/master'
     }
   });
 });
