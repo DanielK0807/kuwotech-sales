@@ -1445,7 +1445,7 @@ async function openCompanyDetailModal(keyValue) {
         `;
 
         const result = await showModal({
-            title: `📋 거래처 상세정보 - ${company.finalCompanyName}`,
+            title: '📋 거래처 상세정보',
             content: modalContent,
             size: 'xl',
             buttons: [
