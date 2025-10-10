@@ -463,4 +463,49 @@ router.get('/verify-districts', async (req, res) => {
     }
 });
 
+// GET /api/migration/check-gwangju - 광주 데이터 확인
+router.get('/check-gwangju', async (req, res) => {
+    try {
+        const db = await getDB();
+
+        // 광주/광주광역으로 시작하는 customerRegion 조회
+        const [companies] = await db.execute(`
+            SELECT
+                c.finalCompanyName,
+                c.customerRegion,
+                r.region_name,
+                c.region_district,
+                c.region_id
+            FROM companies c
+            LEFT JOIN regions r ON c.region_id = r.id
+            WHERE c.customerRegion LIKE '광주%'
+            ORDER BY c.customerRegion
+            LIMIT 50
+        `);
+
+        // regions 테이블에서 광주 관련 데이터 조회
+        const [regions] = await db.execute(`
+            SELECT id, region_name, region_code, display_order
+            FROM regions
+            WHERE region_name LIKE '%광주%'
+            ORDER BY region_name
+        `);
+
+        res.json({
+            success: true,
+            companies: companies,
+            regions: regions,
+            count: companies.length
+        });
+
+    } catch (error) {
+        console.error('광주 데이터 확인 오류:', error);
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: '광주 데이터 확인 중 오류가 발생했습니다.',
+            details: error.message
+        });
+    }
+});
+
 export default router;
