@@ -342,9 +342,16 @@
             width: 100% !important;
         }
 
-        /* === 섹션별 카드 내용물 크기 (카드 너비 비율에 맞춤) === */
+        /* === 섹션별 카드 내용물 크기 === */
+        /* 일관성 규칙: 4개 이하 = 100%, 5개 = 85%, 6개 = 70% (1장당 15% 감소) */
 
-        /* Section 1: 4개 카드 (25% 너비) - 중간 크기 */
+        /* 기본 크기 (100%) - 1~4개 카드용 */
+        .kpi-card-base {
+            gap: clamp(6px, 1.2vw, 10px) !important;
+            padding: clamp(10px, 2.5vw, 16px) !important;
+        }
+
+        /* Section 1: 4개 카드 → 100% 기본 크기 */
         #kpiSection1 .kpi-card {
             gap: clamp(6px, 1.2vw, 10px) !important;
             padding: clamp(10px, 2.5vw, 16px) !important;
@@ -373,18 +380,18 @@
             margin-left: 3px !important;
         }
 
-        /* Section 2: 2개 카드 (50% 너비) - 가장 큰 크기 */
+        /* Section 2: 2개 카드 → 100% 기본 크기 */
         #kpiSection2 .kpi-card {
-            gap: clamp(8px, 1.5vw, 12px) !important;
-            padding: clamp(12px, 3vw, 20px) !important;
+            gap: clamp(6px, 1.2vw, 10px) !important;
+            padding: clamp(10px, 2.5vw, 16px) !important;
         }
         #kpiSection2 .kpi-icon {
-            font-size: clamp(20px, 4.5vw, 32px) !important;
+            font-size: clamp(16px, 3.5vw, 24px) !important;
             line-height: 1 !important;
             margin-bottom: 4px !important;
         }
         #kpiSection2 .kpi-label {
-            font-size: clamp(10px, 2vw, 14px) !important;
+            font-size: clamp(9px, 1.5vw, 11px) !important;
             margin-bottom: 2px !important;
             text-transform: uppercase !important;
             letter-spacing: 0.3px !important;
@@ -392,28 +399,28 @@
             line-height: 1.2 !important;
         }
         #kpiSection2 .kpi-value {
-            font-size: clamp(16px, 3.8vw, 28px) !important;
+            font-size: clamp(14px, 3vw, 22px) !important;
             font-weight: var(--font-weight-bold) !important;
             line-height: 1.2 !important;
         }
         #kpiSection2 .kpi-unit {
-            font-size: clamp(11px, 2.3vw, 16px) !important;
+            font-size: clamp(10px, 1.8vw, 13px) !important;
             color: var(--text-secondary) !important;
             margin-left: 3px !important;
         }
 
-        /* Section 3: 6개 카드 (16.67% 너비) - 가장 작은 크기 */
+        /* Section 3: 6개 카드 → 70% 크기 (30% 감소) */
         #kpiSection3 .kpi-card {
-            gap: clamp(5px, 1vw, 8px) !important;
-            padding: clamp(8px, 2vw, 14px) !important;
+            gap: clamp(4px, 0.84vw, 7px) !important;
+            padding: clamp(7px, 1.75vw, 11px) !important;
         }
         #kpiSection3 .kpi-icon {
-            font-size: clamp(14px, 3vw, 20px) !important;
+            font-size: clamp(11px, 2.45vw, 17px) !important;
             line-height: 1 !important;
             margin-bottom: 3px !important;
         }
         #kpiSection3 .kpi-label {
-            font-size: clamp(8px, 1.3vw, 10px) !important;
+            font-size: clamp(6px, 1.05vw, 8px) !important;
             margin-bottom: 2px !important;
             text-transform: uppercase !important;
             letter-spacing: 0.2px !important;
@@ -421,28 +428,28 @@
             line-height: 1.2 !important;
         }
         #kpiSection3 .kpi-value {
-            font-size: clamp(12px, 2.5vw, 18px) !important;
+            font-size: clamp(10px, 2.1vw, 15px) !important;
             font-weight: var(--font-weight-bold) !important;
             line-height: 1.2 !important;
         }
         #kpiSection3 .kpi-unit {
-            font-size: clamp(9px, 1.5vw, 12px) !important;
+            font-size: clamp(7px, 1.26vw, 9px) !important;
             color: var(--text-secondary) !important;
             margin-left: 2px !important;
         }
 
-        /* Section 4: 2개 카드 (50% 너비) - 가장 큰 크기 */
+        /* Section 4: 2개 카드 → 100% 기본 크기 */
         #kpiSection4 .kpi-card {
-            gap: clamp(8px, 1.5vw, 12px) !important;
-            padding: clamp(12px, 3vw, 20px) !important;
+            gap: clamp(6px, 1.2vw, 10px) !important;
+            padding: clamp(10px, 2.5vw, 16px) !important;
         }
         #kpiSection4 .kpi-icon {
-            font-size: clamp(20px, 4.5vw, 32px) !important;
+            font-size: clamp(16px, 3.5vw, 24px) !important;
             line-height: 1 !important;
             margin-bottom: 4px !important;
         }
         #kpiSection4 .kpi-label {
-            font-size: clamp(10px, 2vw, 14px) !important;
+            font-size: clamp(9px, 1.5vw, 11px) !important;
             margin-bottom: 2px !important;
             text-transform: uppercase !important;
             letter-spacing: 0.3px !important;
@@ -450,12 +457,12 @@
             line-height: 1.2 !important;
         }
         #kpiSection4 .kpi-value {
-            font-size: clamp(16px, 3.8vw, 28px) !important;
+            font-size: clamp(14px, 3vw, 22px) !important;
             font-weight: var(--font-weight-bold) !important;
             line-height: 1.2 !important;
         }
         #kpiSection4 .kpi-unit {
-            font-size: clamp(11px, 2.3vw, 16px) !important;
+            font-size: clamp(10px, 1.8vw, 13px) !important;
             color: var(--text-secondary) !important;
             margin-left: 3px !important;
         }
