@@ -263,6 +263,41 @@ function populateEmployeeSelect(employees) {
     });
 }
 
+/**
+ * 거래처명 select 옵션 채우기
+ */
+function populateCompanyNameSelect(companies) {
+    const filterNameSelect = document.getElementById('filter-name');
+    if (!filterNameSelect) return;
+
+    // "전체" 옵션을 제외하고 기존 옵션 모두 제거
+    while (filterNameSelect.options.length > 1) {
+        filterNameSelect.remove(1);
+    }
+
+    // 중복 제거를 위해 Set 사용
+    const uniqueNames = new Set();
+    companies.forEach(company => {
+        const displayName = getCompanyDisplayName(company);
+        if (displayName && displayName.trim()) {
+            uniqueNames.add(displayName);
+        }
+    });
+
+    // 정렬된 거래처명 배열로 변환
+    const sortedNames = Array.from(uniqueNames).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    // 거래처명 옵션 추가
+    sortedNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        filterNameSelect.appendChild(option);
+    });
+
+    console.log('[거래처명] 로드 성공:', sortedNames.length, '개');
+}
+
 // ============================================
 // [SECTION: 거래처 데이터 로드]
 // ============================================
@@ -297,47 +332,51 @@ async function loadCompanies() {
         }
         
         // 백엔드에서 받은 데이터
-        companyList = data.companies || [];
-        
+        const allCompanies = data.companies || [];
+
+        // 거래처명 필터 드롭다운 채우기 (필터 적용 전 전체 목록 사용)
+        populateCompanyNameSelect(allCompanies);
+
         // 필터 적용
+        companyList = allCompanies;
+
         if (currentFilter.employee) {
             companyList = companyList.filter(c => c.internalManager === currentFilter.employee);
         }
-        
+
         if (currentFilter.department) {
             companyList = companyList.filter(c => c.department === currentFilter.department);
         }
-        
+
         if (currentFilter.status) {
             companyList = companyList.filter(c => c.businessStatus === currentFilter.status);
         }
-        
+
         if (currentFilter.product) {
             companyList = companyList.filter(c => c.salesProduct === currentFilter.product);
         }
-        
+
         if (currentFilter.region) {
             companyList = companyList.filter(c => c.customerRegion === currentFilter.region);
         }
-        
+
         if (currentFilter.name) {
-            const keyword = currentFilter.name.toLowerCase();
             companyList = companyList.filter(c =>
-                getCompanyDisplayName(c).toLowerCase().includes(keyword)
+                getCompanyDisplayName(c) === currentFilter.name
             );
         }
-        
+
         // 정렬
         sortCompanies();
-        
+
         // 테이블 렌더링
         renderCompanyTable();
-        
+
         // 통계 업데이트
         updateStatistics();
-        
+
         hideLoading();
-        
+
         console.log('[거래처 로드 성공]', companyList.length, '개');
         
     } catch (error) {
