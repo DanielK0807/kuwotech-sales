@@ -35,12 +35,12 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let companyList = [];
 let currentFilter = {
-    employee: [],  // 배열로 변경 (다중 선택)
-    department: '',
-    status: '',
-    product: '',
-    region: '',
-    name: ''
+    employee: [],    // 배열 (다중 선택)
+    department: [],  // 배열로 변경 (다중 선택)
+    status: [],      // 배열로 변경 (다중 선택)
+    product: [],     // 배열로 변경 (다중 선택)
+    region: [],      // 배열로 변경 (다중 선택)
+    name: ''         // 거래처명만 단일 선택
 };
 let currentSort = 'name';
 
@@ -121,22 +121,8 @@ async function loadMasterData() {
             }
         }
         
-        // 2. 지역 목록 로드
-        const regionsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/regions`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-            }
-        });
-        
-        if (regionsResponse.ok) {
-            const regionsData = await regionsResponse.json();
-            if (regionsData.success) {
-                populateRegionSelect(regionsData.regions);
-                console.log('[지역] 로드 성공:', regionsData.regions.length, '개');
-            }
-        }
+        // 2. 지역 목록은 실제 companies 데이터에서 추출하므로 여기서는 로드하지 않음
+        // populateRegionSelect는 loadCompanies에서 실제 데이터 기반으로 호출됨
         
         // 3. 담당부서 목록 로드
         const departmentsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/departments`, {
@@ -164,7 +150,7 @@ async function loadMasterData() {
                 'Authorization': `Bearer ${localStorage.getItem('authToken')}`
             }
         });
-        
+
         if (employeesResponse.ok) {
             const employeesData = await employeesResponse.json();
             if (employeesData.success) {
@@ -173,6 +159,9 @@ async function loadMasterData() {
             }
         }
 
+        // 5. 거래상태 정적 옵션 로드
+        populateStatusSelect();
+
     } catch (error) {
         console.error('[마스터데이터] 로드 실패:', error);
         // 에러가 발생해도 계속 진행
@@ -180,61 +169,230 @@ async function loadMasterData() {
 }
 
 /**
- * 제품 select 옵션 채우기
+ * 제품 체크박스 드롭다운 채우기
  */
 function populateProductSelect(products) {
-    const filterProductSelect = document.getElementById('filter-product');
-    if (!filterProductSelect) return;
+    const dropdownMenu = document.getElementById('product-dropdown-menu');
+    if (!dropdownMenu) return;
 
-    // Keep first "전체" option, remove rest
-    while (filterProductSelect.options.length > 1) {
-        filterProductSelect.remove(1);
-    }
+    dropdownMenu.innerHTML = '';
 
     products.forEach(product => {
-        const option = document.createElement('option');
-        option.value = product.productName;
-        option.textContent = product.productName;
-        filterProductSelect.appendChild(option);
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `product-${product.productName}`;
+        checkbox.value = product.productName;
+        checkbox.addEventListener('change', updateProductSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `product-${product.productName}`;
+        label.textContent = product.productName;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
     });
+
+    console.log('[판매제품] 체크박스 드롭다운 로드 성공:', products.length, '개');
 }
 
 /**
- * 지역 select 옵션 채우기
+ * 판매제품 선택 업데이트
  */
-function populateRegionSelect(regions) {
-    const filterRegionSelect = document.getElementById('filter-region');
-    if (!filterRegionSelect) return;
+function updateProductSelection() {
+    const checkboxes = document.querySelectorAll('#product-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
 
-    while (filterRegionSelect.options.length > 1) {
-        filterRegionSelect.remove(1);
+    const selectedText = document.getElementById('product-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
     }
 
-    regions.forEach(region => {
-        const option = document.createElement('option');
-        option.value = region.region_name;
-        option.textContent = region.region_name;
-        filterRegionSelect.appendChild(option);
-    });
+    currentFilter.product = selectedValues;
 }
 
 /**
- * 담당부서 select 옵션 채우기
+ * 지역 체크박스 드롭다운 채우기 (실제 companies 데이터에서 추출)
+ * customerRegion에서 첫 번째 공백 이전 값만 사용 (예: "서울 강남구" -> "서울")
+ */
+function populateRegionSelect(companies) {
+    const dropdownMenu = document.getElementById('region-dropdown-menu');
+    if (!dropdownMenu) return;
+
+    dropdownMenu.innerHTML = '';
+
+    // companies 데이터에서 unique한 지역명 추출 (첫 번째 공백 이전 값만)
+    const uniqueRegions = new Set();
+    companies.forEach(company => {
+        if (company.customerRegion && company.customerRegion.trim()) {
+            // 첫 번째 공백 이전 값만 추출 (예: "서울 강남구" -> "서울")
+            const mainRegion = company.customerRegion.trim().split(' ')[0];
+            uniqueRegions.add(mainRegion);
+        }
+    });
+
+    // 정렬된 지역 배열로 변환
+    const sortedRegions = Array.from(uniqueRegions).sort((a, b) => a.localeCompare(b, 'ko'));
+
+    sortedRegions.forEach(regionName => {
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `region-${regionName}`;
+        checkbox.value = regionName;
+        checkbox.addEventListener('change', updateRegionSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `region-${regionName}`;
+        label.textContent = regionName;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
+    });
+
+    console.log('[고객사 지역] 체크박스 드롭다운 로드 성공 (실제 데이터 기반):', sortedRegions.length, '개');
+}
+
+/**
+ * 고객사 지역 선택 업데이트
+ */
+function updateRegionSelection() {
+    const checkboxes = document.querySelectorAll('#region-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('region-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    currentFilter.region = selectedValues;
+}
+
+/**
+ * 담당부서 체크박스 드롭다운 채우기
  */
 function populateDepartmentSelect(departments) {
-    const filterDepartmentSelect = document.getElementById('filter-department');
-    if (!filterDepartmentSelect) return;
+    const dropdownMenu = document.getElementById('department-dropdown-menu');
+    if (!dropdownMenu) return;
 
-    while (filterDepartmentSelect.options.length > 1) {
-        filterDepartmentSelect.remove(1);
-    }
+    dropdownMenu.innerHTML = '';
 
     departments.forEach(dept => {
-        const option = document.createElement('option');
-        option.value = dept.department_name;
-        option.textContent = dept.department_name;
-        filterDepartmentSelect.appendChild(option);
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `dept-${dept.department_name}`;
+        checkbox.value = dept.department_name;
+        checkbox.addEventListener('change', updateDepartmentSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `dept-${dept.department_name}`;
+        label.textContent = dept.department_name;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
     });
+
+    console.log('[담당부서] 체크박스 드롭다운 로드 성공:', departments.length, '개');
+}
+
+/**
+ * 담당부서 선택 업데이트
+ */
+function updateDepartmentSelection() {
+    const checkboxes = document.querySelectorAll('#department-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('department-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    currentFilter.department = selectedValues;
+}
+
+/**
+ * 거래상태 체크박스 드롭다운 채우기 (정적 옵션)
+ */
+function populateStatusSelect() {
+    const dropdownMenu = document.getElementById('status-dropdown-menu');
+    if (!dropdownMenu) return;
+
+    const statuses = ['활성', '비활성', '불용', '추가확인'];
+    dropdownMenu.innerHTML = '';
+
+    statuses.forEach(status => {
+        const item = document.createElement('div');
+        item.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `status-${status}`;
+        checkbox.value = status;
+        checkbox.addEventListener('change', updateStatusSelection);
+
+        const label = document.createElement('label');
+        label.htmlFor = `status-${status}`;
+        label.textContent = status;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        dropdownMenu.appendChild(item);
+    });
+
+    console.log('[거래상태] 체크박스 드롭다운 로드 성공:', statuses.length, '개');
+}
+
+/**
+ * 거래상태 선택 업데이트
+ */
+function updateStatusSelection() {
+    const checkboxes = document.querySelectorAll('#status-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('status-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    currentFilter.status = selectedValues;
 }
 
 /**
@@ -279,6 +437,7 @@ function updateEmployeeSelection() {
         .map(cb => cb.value);
 
     const selectedText = document.getElementById('employee-selected-text');
+
     if (selectedValues.length === 0) {
         selectedText.textContent = '전체';
     } else if (selectedValues.length === 1) {
@@ -365,6 +524,9 @@ async function loadCompanies() {
         // 거래처명 필터 드롭다운 채우기 (필터 적용 전 전체 목록 사용)
         populateCompanyNameSelect(allCompanies);
 
+        // 고객사 지역 필터 드롭다운 채우기 (실제 데이터에서 추출)
+        populateRegionSelect(allCompanies);
+
         // 필터 적용
         companyList = allCompanies;
 
@@ -375,27 +537,38 @@ async function loadCompanies() {
             );
         }
 
-        // 담당부서 필터
-        if (currentFilter.department) {
-            companyList = companyList.filter(c => c.department === currentFilter.department);
+        // 담당부서 필터 (OR 조건 - 다중 선택)
+        if (currentFilter.department && currentFilter.department.length > 0) {
+            companyList = companyList.filter(c =>
+                currentFilter.department.includes(c.department)
+            );
         }
 
-        // 거래상태 필터
-        if (currentFilter.status) {
-            companyList = companyList.filter(c => c.businessStatus === currentFilter.status);
+        // 거래상태 필터 (OR 조건 - 다중 선택)
+        if (currentFilter.status && currentFilter.status.length > 0) {
+            companyList = companyList.filter(c =>
+                currentFilter.status.includes(c.businessStatus)
+            );
         }
 
-        // 판매제품 필터
-        if (currentFilter.product) {
-            companyList = companyList.filter(c => c.salesProduct === currentFilter.product);
+        // 판매제품 필터 (OR 조건 - 다중 선택)
+        if (currentFilter.product && currentFilter.product.length > 0) {
+            companyList = companyList.filter(c =>
+                currentFilter.product.includes(c.salesProduct)
+            );
         }
 
-        // 고객사 지역 필터
-        if (currentFilter.region) {
-            companyList = companyList.filter(c => c.customerRegion === currentFilter.region);
+        // 고객사 지역 필터 (OR 조건 - 다중 선택)
+        // customerRegion의 첫 번째 공백 이전 값으로 비교 (예: "서울 강남구" -> "서울")
+        if (currentFilter.region && currentFilter.region.length > 0) {
+            companyList = companyList.filter(c => {
+                if (!c.customerRegion) return false;
+                const mainRegion = c.customerRegion.trim().split(' ')[0];
+                return currentFilter.region.includes(mainRegion);
+            });
         }
 
-        // 거래처명 필터
+        // 거래처명 필터 (단일 선택)
         if (currentFilter.name) {
             companyList = companyList.filter(c => getCompanyDisplayName(c) === currentFilter.name);
         }
@@ -1623,7 +1796,89 @@ function setupEventListeners() {
             }
         });
     }
-    
+
+    // 담당부서 커스텀 드롭다운 토글
+    const departmentDropdownButton = document.getElementById('department-dropdown-button');
+    const departmentDropdownMenu = document.getElementById('department-dropdown-menu');
+
+    if (departmentDropdownButton && departmentDropdownMenu) {
+        departmentDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            departmentDropdownButton.classList.toggle('active');
+            departmentDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!departmentDropdownButton.contains(e.target) && !departmentDropdownMenu.contains(e.target)) {
+                departmentDropdownButton.classList.remove('active');
+                departmentDropdownMenu.classList.remove('show');
+            }
+        });
+    }
+
+    // 거래상태 커스텀 드롭다운 토글
+    const statusDropdownButton = document.getElementById('status-dropdown-button');
+    const statusDropdownMenu = document.getElementById('status-dropdown-menu');
+
+    if (statusDropdownButton && statusDropdownMenu) {
+        statusDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            statusDropdownButton.classList.toggle('active');
+            statusDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!statusDropdownButton.contains(e.target) && !statusDropdownMenu.contains(e.target)) {
+                statusDropdownButton.classList.remove('active');
+                statusDropdownMenu.classList.remove('show');
+            }
+        });
+    }
+
+    // 판매제품 커스텀 드롭다운 토글
+    const productDropdownButton = document.getElementById('product-dropdown-button');
+    const productDropdownMenu = document.getElementById('product-dropdown-menu');
+
+    if (productDropdownButton && productDropdownMenu) {
+        productDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            productDropdownButton.classList.toggle('active');
+            productDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!productDropdownButton.contains(e.target) && !productDropdownMenu.contains(e.target)) {
+                productDropdownButton.classList.remove('active');
+                productDropdownMenu.classList.remove('show');
+            }
+        });
+    }
+
+    // 고객사 지역 커스텀 드롭다운 토글
+    const regionDropdownButton = document.getElementById('region-dropdown-button');
+    const regionDropdownMenu = document.getElementById('region-dropdown-menu');
+
+    if (regionDropdownButton && regionDropdownMenu) {
+        regionDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            regionDropdownButton.classList.toggle('active');
+            regionDropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!regionDropdownButton.contains(e.target) && !regionDropdownMenu.contains(e.target)) {
+                regionDropdownButton.classList.remove('active');
+                regionDropdownMenu.classList.remove('show');
+            }
+        });
+    }
+
+    // 거래처명 select 변경 시 필터 적용
+    const filterNameSelect = document.getElementById('filter-name');
+    if (filterNameSelect) {
+        filterNameSelect.addEventListener('change', applyFilter);
+    }
+
     // 필터 버튼
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {
@@ -1701,16 +1956,18 @@ function searchCompanies(keyword) {
 // ============================================
 
 /**
- * 필터 적용 (내부담당자, 담당부서 포함)
+ * 필터 적용 (내부담당자, 담당부서, 거래상태, 판매제품, 고객사지역, 거래처명)
  */
 function applyFilter() {
-    // 내부담당자는 이미 updateEmployeeSelection()에서 업데이트됨
-    // 다른 필터 값 수집
-    currentFilter.department = document.getElementById('filter-department')?.value || '';
+    // 배열 필터들은 이미 각 update 함수에서 업데이트됨:
+    // - currentFilter.employee (updateEmployeeSelection)
+    // - currentFilter.department (updateDepartmentSelection)
+    // - currentFilter.status (updateStatusSelection)
+    // - currentFilter.product (updateProductSelection)
+    // - currentFilter.region (updateRegionSelection)
+
+    // 거래처명만 단일 선택이므로 여기서 업데이트
     currentFilter.name = document.getElementById('filter-name')?.value || '';
-    currentFilter.status = document.getElementById('filter-status')?.value || '';
-    currentFilter.product = document.getElementById('filter-product')?.value || '';
-    currentFilter.region = document.getElementById('filter-region')?.value || '';
 
     console.log('[필터 적용]', currentFilter);
 

@@ -57,10 +57,7 @@
                 <div class="custom-dropdown">
                     <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
                         <span id="employee-selected-text">전체</span>
-                        <div class="dropdown-actions">
-                            <button type="button" class="clear-selection-btn" id="employee-clear-btn" title="선택취소">✕</button>
-                            <span class="dropdown-arrow">▼</span>
-                        </div>
+                        <span class="dropdown-arrow">▼</span>
                     </button>
                     <div class="custom-dropdown-menu" id="employee-dropdown-menu">
                         <!-- 동적으로 로드됨 -->
@@ -69,10 +66,15 @@
             </div>
             <div class="filter-item">
                 <label>담당부서</label>
-                <select id="filter-department" class="glass-input">
-                    <option value="">전체</option>
-                    <!-- 동적으로 로드됨 -->
-                </select>
+                <div class="custom-dropdown">
+                    <button type="button" class="custom-dropdown-button glass-input" id="department-dropdown-button">
+                        <span id="department-selected-text">전체</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="custom-dropdown-menu" id="department-dropdown-menu">
+                        <!-- 동적으로 로드됨 -->
+                    </div>
+                </div>
             </div>
             <div class="filter-item">
                 <label>거래처명</label>
@@ -83,27 +85,39 @@
             </div>
             <div class="filter-item">
                 <label>거래상태</label>
-                <select id="filter-status" class="glass-input">
-                    <option value="">전체</option>
-                    <option value="활성">활성</option>
-                    <option value="비활성">비활성</option>
-                    <option value="불용">불용</option>
-                    <option value="추가확인">추가확인</option>
-                </select>
+                <div class="custom-dropdown">
+                    <button type="button" class="custom-dropdown-button glass-input" id="status-dropdown-button">
+                        <span id="status-selected-text">전체</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="custom-dropdown-menu" id="status-dropdown-menu">
+                        <!-- 동적으로 로드됨 -->
+                    </div>
+                </div>
             </div>
             <div class="filter-item">
                 <label>판매제품</label>
-                <select id="filter-product" class="glass-input">
-                    <option value="">전체</option>
-                    <!-- 동적으로 로드됨 -->
-                </select>
+                <div class="custom-dropdown">
+                    <button type="button" class="custom-dropdown-button glass-input" id="product-dropdown-button">
+                        <span id="product-selected-text">전체</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="custom-dropdown-menu" id="product-dropdown-menu">
+                        <!-- 동적으로 로드됨 -->
+                    </div>
+                </div>
             </div>
             <div class="filter-item">
                 <label>고객사 지역</label>
-                <select id="filter-region" class="glass-input">
-                    <option value="">전체</option>
-                    <!-- 동적으로 로드됨 -->
-                </select>
+                <div class="custom-dropdown">
+                    <button type="button" class="custom-dropdown-button glass-input" id="region-dropdown-button">
+                        <span id="region-selected-text">전체</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="custom-dropdown-menu" id="region-dropdown-menu">
+                        <!-- 동적으로 로드됨 -->
+                    </div>
+                </div>
             </div>
             <button class="glass-button primary" onclick="applyFilter()">
                 🔍 검색
@@ -265,6 +279,7 @@
         0 8px 16px -4px rgba(0, 0, 0, 0.15),
         inset 0 2px 6px rgba(255, 255, 255, 0.3),
         inset 0 -2px 6px rgba(0, 0, 0, 0.1);
+    overflow: visible;
 }
 
 .filter-section:hover {
@@ -282,6 +297,7 @@
     align-items: flex-end;
     gap: 15px;
     flex-wrap: wrap;
+    overflow: visible;
 }
 
 .filter-item {
@@ -873,46 +889,10 @@
 .custom-dropdown-button {
     width: 100%;
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
     text-align: left;
-}
-
-.dropdown-actions {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.clear-selection-btn {
-    padding: 2px 6px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 4px;
-    color: #ef4444;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: none;
-}
-
-.clear-selection-btn.visible {
-    display: block;
-}
-
-.clear-selection-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.5);
-    transform: scale(1.1);
-}
-
-.clear-selection-btn:active {
-    transform: scale(0.95);
 }
 
 .dropdown-arrow {
@@ -974,7 +954,7 @@
 .custom-dropdown-item label {
     flex: 1;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
     margin: 0;
     color: #2c3e50;
     white-space: nowrap;
