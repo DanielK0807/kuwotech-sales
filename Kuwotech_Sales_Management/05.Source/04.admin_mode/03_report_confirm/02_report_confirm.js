@@ -16,6 +16,7 @@ import ApiManager from '../../01.common/13_api_manager.js';
 import { USER_ROLES, STATUS_MAP, REPORT_TYPE_MAP } from '../../01.common/05_constants.js';
 import { formatCurrency, formatDate } from '../../01.common/03_format.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
 
 // ============================================
 // 전역 변수 및 상수
@@ -31,43 +32,6 @@ let selectedCompanyForReport = null;  // 현재 선택된 거래처
 let isCompanyVerified = false; // 거래처 확인 여부
 let isInitialized = false;     // 초기화 완료 플래그 (중복 방지)
 let isInitializing = false;    // 초기화 진행 중 플래그 (중복 방지)
-
-// ============================================
-// 금액 포맷팅 유틸리티
-// ============================================
-
-/**
- * 금액 입력 필드에 포맷팅 이벤트 바인딩
- */
-function bindAmountFormatting(inputElement) {
-    if (!inputElement) return;
-
-    // 숫자 포맷팅 헬퍼
-    const formatWithCommas = (value) => {
-        const numericValue = String(value).replace(/[^\d]/g, '');
-        if (!numericValue) return '';
-        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
-
-    inputElement.addEventListener('input', (e) => {
-        const cursorPosition = e.target.selectionStart;
-        const oldValue = e.target.value;
-        const oldLength = oldValue.length;
-
-        const formattedValue = formatWithCommas(oldValue);
-        e.target.value = formattedValue;
-
-        const newLength = formattedValue.length;
-        const diff = newLength - oldLength;
-        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-    });
-
-    inputElement.addEventListener('focus', (e) => {
-        if (e.target.value) {
-            e.target.value = formatWithCommas(e.target.value);
-        }
-    });
-}
 
 // ============================================
 // 유틸리티 함수

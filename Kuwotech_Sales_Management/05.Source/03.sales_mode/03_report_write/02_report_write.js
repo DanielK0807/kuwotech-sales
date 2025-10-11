@@ -7,6 +7,7 @@
 import ApiManager from '../../01.common/13_api_manager.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import { formatCurrency, formatPercent, formatNumber } from '../../01.common/03_format.js';
+import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
 
 // ============================================
 // API Manager 초기화
@@ -580,47 +581,6 @@ function updateGoalItem(prefix, data) {
     setTimeout(() => {
         progressBar.style.width = `${Math.min(rate, 100)}%`;
     }, 100);
-}
-
-// ============================================
-// 금액 포맷팅 유틸리티
-// ============================================
-
-/**
- * 금액 입력 필드에 포맷팅 이벤트 바인딩
- * @param {HTMLInputElement} inputElement - 입력 필드 요소
- */
-function bindAmountFormatting(inputElement) {
-    if (!inputElement) return;
-
-    // 숫자 포맷팅 헬퍼
-    const formatWithCommas = (value) => {
-        const numericValue = String(value).replace(/[^\d]/g, '');
-        if (!numericValue) return '';
-        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
-
-    inputElement.addEventListener('input', (e) => {
-        const cursorPosition = e.target.selectionStart;
-        const oldValue = e.target.value;
-        const oldLength = oldValue.length;
-
-        // 포맷팅 적용
-        const formattedValue = formatWithCommas(oldValue);
-        e.target.value = formattedValue;
-
-        // 커서 위치 조정 (쉼표 추가/제거 시 커서 위치 유지)
-        const newLength = formattedValue.length;
-        const diff = newLength - oldLength;
-        e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-    });
-
-    // 포커스 시 기존 값 포맷팅
-    inputElement.addEventListener('focus', (e) => {
-        if (e.target.value) {
-            e.target.value = formatWithCommas(e.target.value);
-        }
-    });
 }
 
 // ============================================
