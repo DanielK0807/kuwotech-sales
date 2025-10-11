@@ -257,7 +257,7 @@ class KPICache {
                 dataSize: JSON.stringify(value.data).length
             });
         }
-        console.table(items);
+        logger.debug('[캐시 덤프]', items);
         return items;
     }
 }

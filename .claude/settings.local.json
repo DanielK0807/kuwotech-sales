@@ -49,7 +49,10 @@
       "Bash(scripts/run-region-migration.js:*)",
       "Bash(scripts/set-upload-permission.js:*)",
       "Bash(scripts/update-all-passwords.js:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(for file in \"00_layouts/02_admin_layout.js\" \"01_dashboard/02_dashboard.js\" \"01_dashboard/03_download_kpi.js\" \"02_all_companies/03_companies_download.js\" \"03_report_confirm/03_reports_download.js\" \"05_data_management/03_backup_download.js\" \"06_employee_management/03_employee_download.js\" \"07_system_settings/02_settings.js\" \"07_system_settings/03_settings_download.js\" \"08_excel_upload/02_excel_upload.js\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
