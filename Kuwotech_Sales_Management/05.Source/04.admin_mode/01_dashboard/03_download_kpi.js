@@ -27,6 +27,7 @@ import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_m
 import { showToast } from '../../01.common/14_toast.js';
 import Modal from '../../01.common/06_modal.js';
 import { formatDate } from '../../01.common/03_format.js';
+import { setQuickPeriod } from '../../01.common/02_utils.js';
 
 // ============================================
 // [섹션 2: 다운로드 버튼 초기화]
@@ -245,71 +246,20 @@ function setupModalEventListeners(modal) {
     quickButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const period = e.currentTarget.dataset.period;
-            setQuickPeriod(period);
+            setQuickPeriod(period, 'start-date', 'end-date');
+            showToast('기간이 설정되었습니다', 'info');
         });
     });
-    
+
     // 취소 버튼
     document.getElementById('btn-cancel').addEventListener('click', () => {
         modal.close();
     });
-    
+
     // 다운로드 버튼
     document.getElementById('btn-download').addEventListener('click', () => {
         handleCustomDownload(modal);
     });
-}
-
-/**
- * [함수: 빠른 기간 설정]
- */
-function setQuickPeriod(period) {
-    const now = new Date();
-    const startInput = document.getElementById('start-date');
-    const endInput = document.getElementById('end-date');
-    
-    let start, end;
-    
-    switch (period) {
-        case 'this-month':
-            start = new Date(now.getFullYear(), now.getMonth(), 1);
-            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-            break;
-            
-        case 'last-month':
-            start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            end = new Date(now.getFullYear(), now.getMonth(), 0);
-            break;
-            
-        case 'this-quarter':
-            const quarter = Math.floor(now.getMonth() / 3);
-            start = new Date(now.getFullYear(), quarter * 3, 1);
-            end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
-            break;
-            
-        case 'this-year':
-            start = new Date(now.getFullYear(), 0, 1);
-            end = new Date(now.getFullYear(), 11, 31);
-            break;
-    }
-    
-    startInput.value = formatDate(start);
-    endInput.value = formatDate(end);
-    
-    showToast(`${getPeriodName(period)}로 설정되었습니다`, 'info');
-}
-
-/**
- * [함수: 기간명 가져오기]
- */
-function getPeriodName(period) {
-    const names = {
-        'this-month': '이번 달',
-        'last-month': '지난 달',
-        'this-quarter': '이번 분기',
-        'this-year': '올해'
-    };
-    return names[period] || period;
 }
 
 /**
