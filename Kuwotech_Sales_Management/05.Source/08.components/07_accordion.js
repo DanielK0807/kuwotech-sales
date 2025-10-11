@@ -6,6 +6,7 @@
 ============================================ */
 
 import BaseComponent from '../01.common/02_base_component.js';
+import logger from '../01.common/23_logger.js';
 
 /**
  * 아코디언 컴포넌트
@@ -486,21 +487,21 @@ class Accordion extends BaseComponent {
             `;
             
             item.actions.forEach(action => {
-                console.log('[아코디언] 버튼 생성:', action.label, 'for index:', index);
+                logger.debug('[아코디언] 버튼 생성:', action.label, 'for index:', index);
                 const button = document.createElement('button');
                 button.className = `glass-button ${action.className || ''}`;
                 button.textContent = action.label;
                 button.onclick = () => {
-                    console.log('[아코디언] 버튼 클릭됨:', action.label, 'index:', index);
+                    logger.debug('[아코디언] 버튼 클릭됨:', action.label, 'index:', index);
                     if (action.onClick) {
-                        console.log('[아코디언] onClick 실행');
+                        logger.debug('[아코디언] onClick 실행');
                         action.onClick(index, item);
                     } else {
-                        console.log('[아코디언] onClick이 없음');
+                        logger.debug('[아코디언] onClick이 없음');
                     }
                 };
                 actionsContainer.appendChild(button);
-                console.log('[아코디언] 버튼 DOM에 추가됨:', button);
+                logger.debug('[아코디언] 버튼 DOM에 추가됨:', button);
             });
             
             contentWrapper.appendChild(actionsContainer);
@@ -541,26 +542,26 @@ class Accordion extends BaseComponent {
      * @param {number} index - 아이템 인덱스
      */
     openItem(index) {
-        console.log('[아코디언] openItem 호출됨, index:', index);
-        console.log('[아코디언] allowNavigation:', this.config.options.allowNavigation);
-        console.log('[아코디언] 현재 단계:', this.state.currentStep);
+        logger.debug('[아코디언] openItem 호출됨, index:', index);
+        logger.debug('[아코디언] allowNavigation:', this.config.options.allowNavigation);
+        logger.debug('[아코디언] 현재 단계:', this.state.currentStep);
 
         if (!this.config.options.allowNavigation && index !== this.state.currentStep) {
-            console.log('[아코디언] 네비게이션 비활성화로 인해 이동 불가');
+            logger.debug('[아코디언] 네비게이션 비활성화로 인해 이동 불가');
             return; // 네비게이션 비활성화시 현재 단계만 열기 가능
         }
 
-        console.log('[아코디언] 아이템 열기 진행');
+        logger.debug('[아코디언] 아이템 열기 진행');
         this.state.activeItems.add(index);
         this.state.currentStep = index;
-        console.log('[아코디언] currentStep 업데이트됨:', this.state.currentStep);
+        logger.debug('[아코디언] currentStep 업데이트됨:', this.state.currentStep);
 
         // DOM 업데이트
-        console.log('[아코디언] DOM 업데이트 시작, index:', index);
+        logger.debug('[아코디언] DOM 업데이트 시작, index:', index);
         const item = this.element.querySelector(`.accordion-item[data-index="${index}"]`);
-        console.log('[아코디언] 찾은 아이템:', item);
+        logger.debug('[아코디언] 찾은 아이템:', item);
         if (item) {
-            console.log('[아코디언] 아이템 DOM 조작 시작');
+            logger.debug('[아코디언] 아이템 DOM 조작 시작');
             item.classList.add('active');
             
             // 헤더 화살표 회전
@@ -758,24 +759,24 @@ class Accordion extends BaseComponent {
      * @param {number} index - 이동할 단계
      */
     goToStep(index) {
-        console.log('[아코디언] goToStep 호출됨, index:', index);
-        console.log('[아코디언] 전체 아이템 수:', this.config.items.length);
-        console.log('[아코디언] 현재 단계:', this.state.currentStep);
+        logger.debug('[아코디언] goToStep 호출됨, index:', index);
+        logger.debug('[아코디언] 전체 아이템 수:', this.config.items.length);
+        logger.debug('[아코디언] 현재 단계:', this.state.currentStep);
 
         if (index < 0 || index >= this.config.items.length) {
-            console.log('[아코디언] 유효하지 않은 인덱스:', index);
+            logger.debug('[아코디언] 유효하지 않은 인덱스:', index);
             return;
         }
 
         // 모든 아이템 닫기
-        console.log('[아코디언] 모든 아이템 닫기 시작');
+        logger.debug('[아코디언] 모든 아이템 닫기 시작');
         this.state.activeItems.forEach(activeIndex => {
-            console.log('[아코디언] 아이템 닫기:', activeIndex);
+            logger.debug('[아코디언] 아이템 닫기:', activeIndex);
             this.closeItem(activeIndex);
         });
 
         // 해당 아이템 열기
-        console.log('[아코디언] 아이템 열기 시도:', index);
+        logger.debug('[아코디언] 아이템 열기 시도:', index);
         this.openItem(index);
     }
     
