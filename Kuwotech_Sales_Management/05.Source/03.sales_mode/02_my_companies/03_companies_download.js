@@ -360,10 +360,11 @@ export async function exportExcel() {
 /**
  * [함수: 레거시 엑셀 가져오기]
  * 기존 코드와의 호환성을 위해 유지
+ *
+ * @note 향후 구현 예정: 엑셀 파일 업로드 → 파싱 → 거래처 일괄 등록
  */
 export async function importExcel() {
     showToast('엑셀 가져오기 기능은 준비 중입니다.', 'info');
-    // TODO: 엑셀 가져오기 기능 구현
 }
 
 // ============================================

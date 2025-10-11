@@ -1037,10 +1037,11 @@ class DownloadManager {
     
     /**
      * [메서드: PPT 생성]
+     *
+     * @note 향후 구현 예정: PptxGenJS 라이브러리를 사용한 발표자료 자동 생성
      */
     async generatePPT(data, userName) {
         showToast('PPT 생성 기능은 준비 중입니다', 'info');
-        // TODO: PptxGenJS 라이브러리를 사용한 PPT 생성 구현
     }
     
     /**

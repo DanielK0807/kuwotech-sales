@@ -441,10 +441,11 @@ async function saveBackupHistory(backupInfo) {
 
 /**
  * [함수: 시스템 설정 복원 옵션 모달]
+ *
+ * @note 향후 구현 예정: 백업 파일 업로드 → 파싱 → 시스템 설정 복원
  */
 async function showRestoreOptions() {
     showToast('설정 복원 기능은 준비 중입니다', 'info');
-    // TODO: 복원 기능 구현
     
     /*
     const modalContent = `

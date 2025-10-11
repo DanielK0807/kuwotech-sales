@@ -687,10 +687,11 @@ function getIncludeSheets(options) {
 
 /**
  * [함수: 백업 예약 옵션 모달]
+ *
+ * @note 향후 구현 예정: 자동 백업 스케줄 설정 (일일/주간/월간)
  */
 async function showScheduleBackupOptions() {
     showToast('백업 예약 기능은 준비 중입니다', 'info');
-    // TODO: 자동 백업 스케줄링 기능 구현
 }
 
 // ============================================
