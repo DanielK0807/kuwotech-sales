@@ -1139,6 +1139,7 @@ class DownloadManager {
      * REST API를 사용하여 다운로드 이력 저장 (추후 구현)
      */
     async saveDownloadHistory(downloadType, userName) {
+        logger.info('[다운로드 이력]', {
             downloadType,
             userName,
             downloadedAt: new Date().toISOString(),
