@@ -37,34 +37,24 @@ let isInitializing = false;    // 초기화 진행 중 플래그 (중복 방지)
 // ============================================
 
 /**
- * 숫자를 3자리마다 쉼표가 있는 형식으로 변환
- */
-function formatNumberWithCommas(value) {
-    const numericValue = String(value).replace(/[^\d]/g, '');
-    if (!numericValue) return '';
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-/**
- * 쉼표가 포함된 문자열을 숫자로 변환
- */
-function parseFormattedNumber(value) {
-    if (!value) return 0;
-    return parseFloat(String(value).replace(/,/g, '')) || 0;
-}
-
-/**
  * 금액 입력 필드에 포맷팅 이벤트 바인딩
  */
 function bindAmountFormatting(inputElement) {
     if (!inputElement) return;
+
+    // 숫자 포맷팅 헬퍼
+    const formatWithCommas = (value) => {
+        const numericValue = String(value).replace(/[^\d]/g, '');
+        if (!numericValue) return '';
+        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
 
     inputElement.addEventListener('input', (e) => {
         const cursorPosition = e.target.selectionStart;
         const oldValue = e.target.value;
         const oldLength = oldValue.length;
 
-        const formattedValue = formatNumberWithCommas(oldValue);
+        const formattedValue = formatWithCommas(oldValue);
         e.target.value = formattedValue;
 
         const newLength = formattedValue.length;
@@ -74,7 +64,7 @@ function bindAmountFormatting(inputElement) {
 
     inputElement.addEventListener('focus', (e) => {
         if (e.target.value) {
-            e.target.value = formatNumberWithCommas(e.target.value);
+            e.target.value = formatWithCommas(e.target.value);
         }
     });
 }
