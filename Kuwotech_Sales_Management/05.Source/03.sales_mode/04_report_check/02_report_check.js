@@ -848,8 +848,6 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
     reportItem.classList.remove('expanded');
     state.expandedReportId = null;
   } else {
-    // ✅ DEBUG: 상세보기 클릭 시 전체 보고서 데이터 로깅
-
     // 다른 모든 아코디언 닫기
     document.querySelectorAll('.report-item.expanded').forEach(item => {
       const detail = item.querySelector('.report-detail');
@@ -1038,7 +1036,6 @@ function loadReportDetails(reportItem, report) {
     }
   }
 
-  // ✅ DEBUG: 수금 섹션 로딩
   const planCollectionEl = reportItem.querySelector('.plan-collection-amount');
   if (planCollectionEl) {
     const formattedValue = formatNumber(report.collection.planned);
@@ -1065,7 +1062,6 @@ function loadReportDetails(reportItem, report) {
     renderActualItems(collectionItemsEl, report.collection.entries, 'collection', report);
   }
 
-  // ✅ DEBUG: 매출 섹션 로딩
   const planSalesEl = reportItem.querySelector('.plan-sales-total');
   if (planSalesEl) {
     const formattedValue = formatNumber(report.sales.planned);
@@ -1098,7 +1094,6 @@ function loadReportDetails(reportItem, report) {
     renderActualItems(salesItemsEl, report.sales.entries, 'sales', report);
   }
 
-  // ✅ DEBUG: 활동 섹션 로딩
   const activityItems = reportItem.querySelector('.activity-items');
   if (activityItems) {
     activityItems.innerHTML = '';

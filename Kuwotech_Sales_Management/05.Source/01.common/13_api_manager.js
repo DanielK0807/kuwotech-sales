@@ -469,8 +469,6 @@ class ApiManager {
         // 요청 전처리
         const finalConfig = await this.beforeRequest(config);
 
-        // 🔍 DEBUG: 요청 헤더 로그
-
         let lastError;
         for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
             try {
