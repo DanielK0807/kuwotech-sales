@@ -635,6 +635,351 @@ class DownloadHelper {
             modal.open();
         });
     }
+
+    /**
+     * 사용자 정보 가져오기 (인증 포함)
+     * @returns {Object|null} { userName, userRole } or null (실패 시)
+     */
+    getUserInfo() {
+        const userName = sessionStorage.getItem('userName');
+        const userRole = sessionStorage.getItem('userRole');
+
+        if (!userName || !userRole) {
+            showToast('로그인 정보를 확인할 수 없습니다', 'error');
+            return null;
+        }
+
+        return { userName, userRole };
+    }
+
+    /**
+     * 날짜 범위 선택기 HTML 생성
+     * @param {Object} options - 옵션
+     * @returns {string} HTML
+     */
+    createDateRangeSelector(options = {}) {
+        const {
+            startId = 'start-date',
+            endId = 'end-date',
+            defaultStartDate = this.getDefaultStartDate(),
+            defaultEndDate = this.getDefaultEndDate(),
+            title = '📅 기간 선택'
+        } = options;
+
+        return `
+            <div class="option-group glass-card">
+                <h3>${title}</h3>
+                <div class="date-range-selector">
+                    <div class="date-input-group">
+                        <label for="${startId}">시작일</label>
+                        <input type="date" id="${startId}" class="glass-input" value="${defaultStartDate}">
+                    </div>
+                    <div class="date-input-group">
+                        <label for="${endId}">종료일</label>
+                        <input type="date" id="${endId}" class="glass-input" value="${defaultEndDate}">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * 빠른 기간 선택 버튼 HTML 생성
+     * @param {Array} periods - 기간 배열
+     * @returns {string} HTML
+     */
+    createQuickPeriodButtons(periods = ['this-month', 'last-month', 'this-quarter', 'this-year']) {
+        const periodLabels = {
+            'this-month': '이번 달',
+            'last-month': '지난 달',
+            'this-quarter': '이번 분기',
+            'this-year': '올해',
+            'last-year': '작년',
+            'this-week': '이번 주',
+            'last-week': '지난 주'
+        };
+
+        const buttons = periods.map(period =>
+            `<button class="glass-button small" data-period="${period}">${periodLabels[period] || period}</button>`
+        ).join('\n                    ');
+
+        return `
+            <div class="quick-select-buttons">
+                ${buttons}
+            </div>
+        `;
+    }
+
+    /**
+     * 체크박스 시트 선택기 HTML 생성
+     * @param {Array} sheets - 시트 정보 배열
+     * @returns {string} HTML
+     */
+    createSheetSelector(sheets = [], title = '📊 포함 데이터') {
+        const checkboxes = sheets.map(sheet => `
+            <label class="checkbox-label">
+                <input type="checkbox"
+                       id="${sheet.id}"
+                       ${sheet.checked ? 'checked' : ''}
+                       ${sheet.disabled ? 'disabled' : ''}>
+                <span class="checkbox-text">
+                    <strong>${sheet.label}</strong>
+                    ${sheet.description ? `<small>${sheet.description}</small>` : ''}
+                </span>
+            </label>
+        `).join('\n                ');
+
+        return `
+            <div class="option-group glass-card">
+                <h3>${title}</h3>
+                <div class="sheet-selection">
+                    ${checkboxes}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * 날짜 범위 유효성 검사
+     * @param {string} startId - 시작일 input ID
+     * @param {string} endId - 종료일 input ID
+     * @returns {Object|null} { start, end } or null (실패 시)
+     */
+    validateDateRange(startId = 'start-date', endId = 'end-date') {
+        const startDate = document.getElementById(startId)?.value;
+        const endDate = document.getElementById(endId)?.value;
+
+        if (!startDate || !endDate) {
+            showToast('날짜 범위를 선택해주세요', 'warning');
+            return null;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            showToast('시작일이 종료일보다 늦습니다', 'error');
+            return null;
+        }
+
+        return { start: startDate, end: endDate };
+    }
+
+    /**
+     * 빠른 기간 이벤트 리스너 설정
+     * @param {string} buttonSelector - 버튼 셀렉터
+     * @param {string} startId - 시작일 input ID
+     * @param {string} endId - 종료일 input ID
+     */
+    setupQuickPeriodButtons(buttonSelector = '.quick-select-buttons button', startId = 'start-date', endId = 'end-date') {
+        const quickButtons = document.querySelectorAll(buttonSelector);
+        quickButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const period = e.currentTarget.dataset.period;
+                this.setQuickPeriod(period, startId, endId);
+                showToast('기간이 설정되었습니다', 'info');
+            });
+        });
+    }
+
+    /**
+     * 빠른 기간 설정 (내부 함수)
+     * @param {string} period - 기간 타입
+     * @param {string} startId - 시작일 input ID
+     * @param {string} endId - 종료일 input ID
+     */
+    setQuickPeriod(period, startId, endId) {
+        const now = new Date();
+        let startDate, endDate;
+
+        switch (period) {
+            case 'this-month':
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                break;
+            case 'last-month':
+                startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+                break;
+            case 'this-quarter':
+                const quarter = Math.floor(now.getMonth() / 3);
+                startDate = new Date(now.getFullYear(), quarter * 3, 1);
+                endDate = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+                break;
+            case 'this-year':
+                startDate = new Date(now.getFullYear(), 0, 1);
+                endDate = new Date(now.getFullYear(), 11, 31);
+                break;
+            case 'last-year':
+                startDate = new Date(now.getFullYear() - 1, 0, 1);
+                endDate = new Date(now.getFullYear() - 1, 11, 31);
+                break;
+            case 'this-week':
+                const day = now.getDay();
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - day);
+                endDate = new Date(now);
+                endDate.setDate(now.getDate() + (6 - day));
+                break;
+            case 'last-week':
+                const lastWeekDay = now.getDay();
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - lastWeekDay - 7);
+                endDate = new Date(now);
+                endDate.setDate(now.getDate() - lastWeekDay - 1);
+                break;
+            default:
+                return;
+        }
+
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        document.getElementById(startId).value = formatDate(startDate);
+        document.getElementById(endId).value = formatDate(endDate);
+    }
+
+    /**
+     * 기본 시작일 계산 (올해 1월 1일 또는 이번 달 1일)
+     * @param {boolean} currentMonth - true면 이번 달 1일, false면 올해 1월 1일
+     * @returns {string} YYYY-MM-DD
+     */
+    getDefaultStartDate(currentMonth = true) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = currentMonth ? String(now.getMonth() + 1).padStart(2, '0') : '01';
+        return `${year}-${month}-01`;
+    }
+
+    /**
+     * 기본 종료일 계산 (오늘 또는 이번 달 마지막 날)
+     * @param {boolean} currentMonth - true면 이번 달 마지막 날, false면 오늘
+     * @returns {string} YYYY-MM-DD
+     */
+    getDefaultEndDate(currentMonth = true) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = currentMonth
+            ? String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')
+            : String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    /**
+     * 통합 다운로드 옵션 Modal 생성
+     * @param {Object} config - Modal 설정
+     * @returns {Promise<Object|null>} 선택된 옵션 or null (취소 시)
+     */
+    async createDownloadOptionsModal(config = {}) {
+        const {
+            title = '📥 다운로드 옵션',
+            icon = '📥',
+            showDateRange = true,
+            showQuickPeriod = true,
+            sheets = [],
+            additionalContent = '',
+            defaultStartDate = this.getDefaultStartDate(),
+            defaultEndDate = this.getDefaultEndDate()
+        } = config;
+
+        return new Promise((resolve) => {
+            let modalContent = `
+                <div class="download-options-container">
+                    <h2 class="modal-title">
+                        <i class="icon">${icon}</i> ${title}
+                    </h2>
+            `;
+
+            // 날짜 범위 선택
+            if (showDateRange) {
+                modalContent += this.createDateRangeSelector({
+                    defaultStartDate,
+                    defaultEndDate
+                });
+
+                // 빠른 기간 선택 버튼
+                if (showQuickPeriod) {
+                    modalContent += this.createQuickPeriodButtons();
+                }
+            }
+
+            // 시트 선택
+            if (sheets && sheets.length > 0) {
+                modalContent += this.createSheetSelector(sheets);
+            }
+
+            // 추가 컨텐츠
+            if (additionalContent) {
+                modalContent += additionalContent;
+            }
+
+            modalContent += `
+                    <div class="modal-actions">
+                        <button class="glass-button" id="btn-cancel">취소</button>
+                        <button class="glass-button primary" id="btn-download">다운로드</button>
+                    </div>
+                </div>
+            `;
+
+            const modal = new Modal({
+                size: 'md',
+                content: modalContent,
+                showClose: true
+            });
+
+            modal.open();
+
+            // 빠른 기간 버튼 이벤트 설정
+            if (showDateRange && showQuickPeriod) {
+                this.setupQuickPeriodButtons();
+            }
+
+            // 취소 버튼
+            document.getElementById('btn-cancel').addEventListener('click', () => {
+                modal.close();
+                resolve(null);
+            });
+
+            // 다운로드 버튼
+            document.getElementById('btn-download').addEventListener('click', () => {
+                // 사용자 정보 가져오기
+                const userInfo = this.getUserInfo();
+                if (!userInfo) {
+                    resolve(null);
+                    return;
+                }
+
+                // 날짜 범위 유효성 검사
+                let dateRange = null;
+                if (showDateRange) {
+                    dateRange = this.validateDateRange();
+                    if (!dateRange) {
+                        return; // 유효성 검사 실패 시 Modal 닫지 않음
+                    }
+                }
+
+                // 선택된 시트 수집
+                const selectedSheets = [];
+                sheets.forEach(sheet => {
+                    const checkbox = document.getElementById(sheet.id);
+                    if (checkbox && checkbox.checked) {
+                        selectedSheets.push(sheet.label);
+                    }
+                });
+
+                modal.close();
+
+                resolve({
+                    userName: userInfo.userName,
+                    userRole: userInfo.userRole,
+                    dateRange: dateRange,
+                    selectedSheets: selectedSheets
+                });
+            });
+        });
+    }
 }
 
 // 싱글톤 인스턴스
