@@ -213,52 +213,64 @@ async function calculateCompanyCounts() {
 }
 
 // ===================
-// 통계 업데이트
+// 통계 업데이트 (데이터베이스에서 가져오기)
 // ===================
-function updateStatistics() {
-    console.log('[통계 업데이트] 시작 - 전체 직원 수:', employees.length);
+async function updateStatistics() {
+    try {
+        const token = localStorage.getItem('authToken');
+        console.log('[통계 업데이트] API 호출 시작');
 
-    // 샘플 직원 데이터 출력 (처음 3명)
-    if (employees.length > 0) {
-        console.log('[통계 업데이트] 샘플 직원 데이터:', employees.slice(0, 3).map(emp => ({
-            name: emp.name,
-            role1: emp.role1,
-            role2: emp.role2,
-            department: emp.department,
-            status: emp.status
-        })));
+        const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/statistics`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('통계 조회 실패');
+        }
+
+        const data = await response.json();
+        console.log('[통계 업데이트] 응답:', data);
+
+        const { totalEmployees, salesEmployees, adminEmployees, activeEmployees } = data.statistics;
+
+        console.log('[통계 업데이트] 결과:', {
+            totalEmployees,
+            salesEmployees,
+            adminEmployees,
+            activeEmployees
+        });
+
+        // 애니메이션으로 값 업데이트
+        animateValue('totalEmployees', 0, totalEmployees, 500);
+        animateValue('salesEmployees', 0, salesEmployees, 500);
+        animateValue('adminEmployees', 0, adminEmployees, 500);
+        animateValue('activeEmployees', 0, activeEmployees, 500);
+
+    } catch (error) {
+        console.error('[통계 업데이트] 실패:', error);
+        // 실패 시 로컬 데이터로 폴백
+        const totalEmployees = employees.length;
+        const salesEmployees = employees.filter(emp =>
+            (emp.role1 && emp.role1.includes('영업')) ||
+            (emp.role2 && emp.role2.includes('영업')) ||
+            (emp.department && emp.department.includes('영업'))
+        ).length;
+        const adminEmployees = employees.filter(emp =>
+            emp.role1 === '관리자' ||
+            emp.role2 === '관리자' ||
+            (emp.department && (emp.department.includes('관리') || emp.department === '경영지원팀'))
+        ).length;
+        const activeEmployees = employees.filter(emp => emp.status === 'active').length;
+
+        animateValue('totalEmployees', 0, totalEmployees, 500);
+        animateValue('salesEmployees', 0, salesEmployees, 500);
+        animateValue('adminEmployees', 0, adminEmployees, 500);
+        animateValue('activeEmployees', 0, activeEmployees, 500);
     }
-
-    const totalEmployees = employees.length;
-
-    // role1 또는 role2에 '영업' 포함 여부 확인
-    const salesEmployees = employees.filter(emp =>
-        (emp.role1 && emp.role1.includes('영업')) ||
-        (emp.role2 && emp.role2.includes('영업')) ||
-        (emp.department && emp.department.includes('영업'))
-    ).length;
-
-    // role1 또는 role2가 '관리자'이거나 department에 '관리' 포함
-    const adminEmployees = employees.filter(emp =>
-        emp.role1 === '관리자' ||
-        emp.role2 === '관리자' ||
-        (emp.department && (emp.department.includes('관리') || emp.department === '경영지원팀'))
-    ).length;
-
-    const activeEmployees = employees.filter(emp => emp.status === 'active').length;
-
-    console.log('[통계 업데이트] 결과:', {
-        totalEmployees,
-        salesEmployees,
-        adminEmployees,
-        activeEmployees
-    });
-
-    // 애니메이션으로 값 업데이트
-    animateValue('totalEmployees', 0, totalEmployees, 500);
-    animateValue('salesEmployees', 0, salesEmployees, 500);
-    animateValue('adminEmployees', 0, adminEmployees, 500);
-    animateValue('activeEmployees', 0, activeEmployees, 500);
 }
 
 // ===================

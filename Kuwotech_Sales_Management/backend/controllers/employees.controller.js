@@ -372,3 +372,64 @@ export const deleteEmployee = async (req, res) => {
     });
   }
 };
+
+// GET /api/employees/statistics - 직원 통계 조회
+export const getEmployeeStatistics = async (req, res) => {
+  try {
+    const db = await getDB();
+
+    console.log('[직원 통계] 조회 시작');
+
+    // 전체 직원 수
+    const [totalResult] = await db.execute(
+      'SELECT COUNT(*) as count FROM employees'
+    );
+    const totalEmployees = totalResult[0].count;
+
+    // 영업담당 수 (role1 또는 role2에 '영업' 포함)
+    const [salesResult] = await db.execute(`
+      SELECT COUNT(*) as count FROM employees
+      WHERE role1 LIKE '%영업%' OR role2 LIKE '%영업%' OR department LIKE '%영업%'
+    `);
+    const salesEmployees = salesResult[0].count;
+
+    // 관리자 수 (role1 또는 role2가 '관리자')
+    const [adminResult] = await db.execute(`
+      SELECT COUNT(*) as count FROM employees
+      WHERE role1 = '관리자' OR role2 = '관리자'
+         OR department LIKE '%관리%' OR department = '경영지원팀'
+    `);
+    const adminEmployees = adminResult[0].count;
+
+    // 재직 중인 직원 수
+    const [activeResult] = await db.execute(`
+      SELECT COUNT(*) as count FROM employees
+      WHERE status = '재직' OR status = 'active'
+    `);
+    const activeEmployees = activeResult[0].count;
+
+    console.log('[직원 통계] 조회 완료:', {
+      totalEmployees,
+      salesEmployees,
+      adminEmployees,
+      activeEmployees
+    });
+
+    res.json({
+      success: true,
+      statistics: {
+        totalEmployees,
+        salesEmployees,
+        adminEmployees,
+        activeEmployees
+      }
+    });
+
+  } catch (error) {
+    console.error('[직원 통계] 조회 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '직원 통계 조회 중 오류가 발생했습니다.'
+    });
+  }
+};
