@@ -285,120 +285,54 @@ async function loadCompanies() {
 }
 
 // ============================================
-// 거래처 자동완성 함수
+// 거래처 자동완성 관리
 // ============================================
+let companyAutocompleteManagerInDetail = null;
 
 /**
- * 거래처 입력 시 자동완성 표시
+ * 거래처 자동완성 초기화 (AutocompleteManager 사용)
  */
-function handleCompanyInputInDetail(event) {
-    const inputElement = event.target;
-    const inputValue = inputElement.value.trim().toLowerCase();
-
-    // 입력 시 verified 상태 초기화
-    inputElement.classList.remove('verified');
-    isCompanyVerified = false;
-    selectedCompanyForReport = null;
-
-    const autocompleteList = document.getElementById('detailCompanyAutocomplete');
-    if (!autocompleteList) return;
-
-    // 입력값이 비어있으면 목록 숨기기
-    if (!inputValue) {
-        autocompleteList.classList.add('hidden');
+function initCompanyAutocompleteInDetail(inputElement, autocompleteList) {
+    if (!inputElement || !autocompleteList) {
+        console.warn('[Report Confirm] 자동완성 요소를 찾을 수 없습니다');
         return;
     }
 
-    // 일치하는 거래처 필터링
-    const filteredCompanies = allCompanies.filter(company => {
-        const companyName = getCompanyDisplayName(company).toLowerCase();
-        return companyName.includes(inputValue);
+    // 기존 인스턴스 정리
+    if (companyAutocompleteManagerInDetail) {
+        companyAutocompleteManagerInDetail.destroy();
+    }
+
+    // AutocompleteManager 생성
+    companyAutocompleteManagerInDetail = new window.AutocompleteManager({
+        inputElement,
+        listElement: autocompleteList,
+        dataSource: allCompanies,
+        getDisplayText: (company) => getCompanyDisplayName(company),
+        onSelect: (company) => {
+            const companyName = getCompanyDisplayName(company);
+            inputElement.value = companyName;
+
+            // 선택 즉시 확정 (담당거래처관리 방식)
+            selectedCompanyForReport = company;
+            isCompanyVerified = true;
+
+            // UI 업데이트 - 선택 완료 표시
+            inputElement.classList.add('verified');
+        },
+        maxResults: 10,
+        placeholder: '검색 결과가 없습니다',
+        highlightSearch: true
     });
 
-    // 결과 표시
-    displayCompanyAutocompleteInDetail(filteredCompanies, inputValue);
-}
-
-/**
- * 거래처 포커스 시 전체 목록 표시
- */
-function handleCompanyFocusInDetail() {
-    const inputElement = document.getElementById('detailCompanyInput');
-    if (!inputElement) return;
-
-    const inputValue = inputElement.value.trim();
-
-    if (inputValue) {
-        // 입력값이 있으면 필터링된 목록 표시
-        handleCompanyInputInDetail({ target: inputElement });
-    } else {
-        // 비어있으면 전체 목록 표시
-        displayCompanyAutocompleteInDetail(allCompanies, '');
-    }
-}
-
-/**
- * 자동완성 결과 표시
- */
-function displayCompanyAutocompleteInDetail(companies, searchTerm) {
-    const list = document.getElementById('detailCompanyAutocomplete');
-    if (!list) return;
-
-    // 목록 초기화
-    list.innerHTML = '';
-
-    if (companies.length === 0) {
-        list.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
-        list.classList.remove('hidden');
-        return;
-    }
-
-    // 결과 항목 추가 (최대 10개)
-    companies.slice(0, 10).forEach(company => {
-        const companyName = getCompanyDisplayName(company);
-        const item = document.createElement('div');
-        item.className = 'autocomplete-item';
-
-        // 검색어 하이라이팅
-        if (searchTerm) {
-            const regex = new RegExp(`(${searchTerm})`, 'gi');
-            item.innerHTML = companyName.replace(regex, '<strong>$1</strong>');
-        } else {
-            item.textContent = companyName;
+    // 입력 변경 시 verified 상태 초기화 (AutocompleteManager의 이벤트 외 추가 처리)
+    inputElement.addEventListener('input', () => {
+        if (inputElement.classList.contains('verified')) {
+            inputElement.classList.remove('verified');
+            isCompanyVerified = false;
+            selectedCompanyForReport = null;
         }
-
-        // 클릭 이벤트
-        item.addEventListener('click', () => selectCompanyFromAutocompleteInDetail(company));
-
-        list.appendChild(item);
     });
-
-    list.classList.remove('hidden');
-}
-
-/**
- * 자동완성에서 거래처 선택 (담당거래처관리 방식 - 선택 즉시 적용)
- */
-function selectCompanyFromAutocompleteInDetail(company) {
-    const inputElement = document.getElementById('detailCompanyInput');
-    const autocompleteList = document.getElementById('detailCompanyAutocomplete');
-
-    if (!inputElement) return;
-
-    const companyName = getCompanyDisplayName(company);
-    inputElement.value = companyName;
-
-    // 선택 즉시 확정 (담당거래처관리 방식)
-    selectedCompanyForReport = company;
-    isCompanyVerified = true;
-
-    // UI 업데이트 - 선택 완료 표시
-    inputElement.classList.add('verified');
-
-    // 자동완성 목록 닫기
-    if (autocompleteList) {
-        autocompleteList.classList.add('hidden');
-    }
 }
 
 // ============================================
@@ -594,21 +528,9 @@ function renderReportDetail(reportId) {
             companyInput.classList.remove('verified');
         }
 
-        // 이벤트 리스너 재등록 (기존 이벤트 제거)
-        const newCompanyInput = companyInput.cloneNode(true);
-        companyInput.parentNode.replaceChild(newCompanyInput, companyInput);
-
-        // 자동완성 이벤트 바인딩
-        newCompanyInput.addEventListener('input', handleCompanyInputInDetail);
-        newCompanyInput.addEventListener('focus', handleCompanyFocusInDetail);
-
-        // 문서 클릭 시 자동완성 목록 닫기
-        document.addEventListener('click', function closeAutocompleteOnClickOutside(e) {
-            const autocompleteList = document.getElementById('detailCompanyAutocomplete');
-            if (!newCompanyInput.contains(e.target) && autocompleteList && !autocompleteList.contains(e.target)) {
-                autocompleteList.classList.add('hidden');
-            }
-        });
+        // 자동완성 초기화 (AutocompleteManager 사용)
+        const autocompleteList = document.getElementById('detailCompanyAutocomplete');
+        initCompanyAutocompleteInDetail(companyInput, autocompleteList);
     }
 
     document.getElementById('detailSubmitter').textContent = report.submittedBy || '-';
