@@ -11,6 +11,7 @@ import { showToast } from '../../01.common/14_toast.js';
 import { themeManager } from '../../01.common/11_theme_manager.js';
 import { calculateSalesKPI } from '../../01.common/21_kpi_calculator.js';
 import { GlobalConfig } from '../../01.common/01_global_config.js';
+import logger from '../../01.common/23_logger.js';
 
 // [전역 변수]
 let allCompanies = [];
@@ -26,7 +27,7 @@ async function init() {
         const missingElements = elementsToCheck.filter(id => !document.getElementById(id));
 
         if (missingElements.length > 0) {
-            console.warn('[데이터 관리] 다음 요소들을 찾을 수 없습니다:', missingElements);
+            logger.warn('[데이터 관리] 다음 요소들을 찾을 수 없습니다:', missingElements);
             setTimeout(init, 500);
             return;
         }
@@ -54,7 +55,7 @@ async function init() {
         }
 
     } catch (error) {
-        console.error('[데이터 관리] 초기화 실패:', error);
+        logger.error('[데이터 관리] 초기화 실패:', error);
         showToast('데이터 로드 중 오류가 발생했습니다', 'error');
     }
 }
@@ -64,7 +65,7 @@ async function loadData() {
     try {
         const authToken = localStorage.getItem('authToken');
         if (!authToken) {
-            console.error('❌ [데이터 관리] 인증 토큰이 없습니다');
+            logger.error('❌ [데이터 관리] 인증 토큰이 없습니다');
             showToast('로그인이 필요합니다', 'error');
             return;
         }
@@ -99,11 +100,11 @@ async function loadData() {
                     거래처명: c.finalCompanyName || c.erpCompanyName
                 }));
             } else {
-                console.error('❌ [거래처] 응답 형식 오류:', companiesData);
+                logger.error('❌ [거래처] 응답 형식 오류:', companiesData);
             }
         } else {
             const errorData = await companiesResponse.json().catch(() => ({}));
-            console.error('❌ [거래처] 로드 실패:', companiesResponse.status, errorData);
+            logger.error('❌ [거래처] 로드 실패:', companiesResponse.status, errorData);
         }
 
         // 직원 데이터 로드
@@ -138,18 +139,18 @@ async function loadData() {
 
 
                 if (salesPeople.length === 0) {
-                    console.warn('⚠️ [직원] 영업담당 직원이 없습니다. role1:', role1Values, 'role2:', role2Values);
+                    logger.warn('⚠️ [직원] 영업담당 직원이 없습니다. role1:', role1Values, 'role2:', role2Values);
                 }
             } else {
-                console.error('❌ [직원] 응답 형식 오류:', employeesData);
+                logger.error('❌ [직원] 응답 형식 오류:', employeesData);
             }
         } else {
             const errorData = await employeesResponse.json().catch(() => ({}));
-            console.error('❌ [직원] 로드 실패:', employeesResponse.status, errorData);
+            logger.error('❌ [직원] 로드 실패:', employeesResponse.status, errorData);
         }
 
     } catch (error) {
-        console.error('[데이터 로드] 실패:', error);
+        logger.error('[데이터 로드] 실패:', error);
         showToast('데이터 로드 중 오류가 발생했습니다', 'error');
         throw error;
     }
@@ -166,13 +167,13 @@ function updateStatistics() {
     if (totalCompaniesEl) {
         totalCompaniesEl.textContent = `${activeCompanies.length}개`;
     } else {
-        console.error('[통계 업데이트] totalCompanies 요소를 찾을 수 없습니다');
+        logger.error('[통계 업데이트] totalCompanies 요소를 찾을 수 없습니다');
     }
 
     if (companiesLastUpdateEl) {
         companiesLastUpdateEl.textContent = formatDateKorean(new Date());
     } else {
-        console.error('[통계 업데이트] companiesLastUpdate 요소를 찾을 수 없습니다');
+        logger.error('[통계 업데이트] companiesLastUpdate 요소를 찾을 수 없습니다');
     }
 
     // 영업담당자 통계
@@ -182,13 +183,13 @@ function updateStatistics() {
     if (totalSalesPeopleEl) {
         totalSalesPeopleEl.textContent = `${salesPeople.length}명`;
     } else {
-        console.error('[통계 업데이트] totalSalesPeople 요소를 찾을 수 없습니다');
+        logger.error('[통계 업데이트] totalSalesPeople 요소를 찾을 수 없습니다');
     }
 
     if (kpiDateEl) {
         kpiDateEl.textContent = formatDateKorean(new Date());
     } else {
-        console.error('[통계 업데이트] kpiDate 요소를 찾을 수 없습니다');
+        logger.error('[통계 업데이트] kpiDate 요소를 찾을 수 없습니다');
     }
 
 }
@@ -198,7 +199,7 @@ function initSalesPersonSelect() {
     const select = document.getElementById('salesPersonSelect');
 
     if (!select) {
-        console.error('[영업담당자 셀렉트] salesPersonSelect 요소를 찾을 수 없습니다');
+        logger.error('[영업담당자 셀렉트] salesPersonSelect 요소를 찾을 수 없습니다');
         return;
     }
 
@@ -274,7 +275,7 @@ window.downloadAllCompanies = async function() {
         showToast(`${activeCompanies.length}개 거래처 다운로드 완료`, 'success');
 
     } catch (error) {
-        console.error('[전체거래처 다운로드] 실패:', error);
+        logger.error('[전체거래처 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 };
@@ -371,7 +372,7 @@ window.downloadSalesPersonKPI = async function() {
         showToast(`${selectedName} 담당자 KPI 다운로드 완료`, 'success');
 
     } catch (error) {
-        console.error('[영업담당 KPI 다운로드] 실패:', error);
+        logger.error('[영업담당 KPI 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 };
@@ -494,7 +495,7 @@ window.downloadCompanyKPI = async function() {
         showToast('회사전체 KPI 다운로드 완료', 'success');
 
     } catch (error) {
-        console.error('[회사전체 KPI 다운로드] 실패:', error);
+        logger.error('[회사전체 KPI 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 };

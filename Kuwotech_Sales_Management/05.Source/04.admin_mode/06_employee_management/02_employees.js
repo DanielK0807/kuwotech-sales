@@ -13,6 +13,7 @@ import { initGlassmorphism } from '../../01.common/07_design.js';
 import { FIELD_LABELS } from '../../01.common/04_terms.js';
 import { GlobalConfig } from '../../01.common/10_index.js';
 import { initEmployeeDownloadButton, quickDownloadEmployees } from './03_employee_download.js';
+import logger from '../../01.common/23_logger.js';
 
 // ===================
 // 전역 변수
@@ -51,7 +52,7 @@ async function initializePage() {
         showToast('직원 관리 페이지가 로드되었습니다', 'success');
 
     } catch (error) {
-        console.error('[직원 관리] 초기화 오류:', error);
+        logger.error('[직원 관리] 초기화 오류:', error);
         showToast('페이지 초기화 중 오류가 발생했습니다', 'error');
     }
 }
@@ -71,7 +72,7 @@ async function loadDepartments() {
         });
 
         if (!response.ok) {
-            console.warn('[부서 목록] API 응답 실패:', response.status, response.statusText);
+            logger.warn('[부서 목록] API 응답 실패:', response.status, response.statusText);
             departments = []; // 빈 배열로 초기화하고 계속 진행
             return;
         }
@@ -80,7 +81,7 @@ async function loadDepartments() {
         departments = data.departments || [];
 
     } catch (error) {
-        console.error('[부서 목록] 로드 오류:', error);
+        logger.error('[부서 목록] 로드 오류:', error);
         departments = []; // 빈 배열로 초기화하고 계속 진행
         // 에러를 throw하지 않고 계속 진행
     }
@@ -153,7 +154,7 @@ async function loadEmployeeData() {
         }
 
     } catch (error) {
-        console.error('[직원 데이터 로드] 실패:', error);
+        logger.error('[직원 데이터 로드] 실패:', error);
         showToast('직원 데이터를 불러오지 못했습니다', 'error');
 
         // 빈 배열로 초기화
@@ -194,7 +195,7 @@ async function calculateCompanyCounts() {
 
 
     } catch (error) {
-        console.error('[담당 거래처 계산] 실패:', error);
+        logger.error('[담당 거래처 계산] 실패:', error);
         // 실패해도 계속 진행 (companyCount = 0 유지)
     }
 }
@@ -235,7 +236,7 @@ async function updateStatistics() {
         animateValue('activeEmployees', 0, activeEmployees, 500);
 
     } catch (error) {
-        console.error('[통계 업데이트] 실패:', error);
+        logger.error('[통계 업데이트] 실패:', error);
         // 실패 시 로컬 데이터로 폴백
         const totalEmployees = employees.length;
         const salesEmployees = employees.filter(emp =>
@@ -265,7 +266,7 @@ function animateValue(elementId, start, end, duration) {
 
     // 엘리먼트가 없으면 조용히 종료
     if (!element) {
-        console.warn(`[애니메이션] 엘리먼트를 찾을 수 없습니다: ${elementId}`);
+        logger.warn(`[애니메이션] 엘리먼트를 찾을 수 없습니다: ${elementId}`);
         return;
     }
 
@@ -1164,7 +1165,7 @@ async function loadEmployeeCompanies(employeeName) {
         );
 
     } catch (error) {
-        console.error('[거래처 로드] 실패:', error);
+        logger.error('[거래처 로드] 실패:', error);
         return [];
     }
 }
@@ -1190,14 +1191,14 @@ async function transferCompaniesAPI(companyKeys, targetName) {
             });
 
             if (!response.ok) {
-                console.error(`[거래처 이관] 실패: ${keyValue}`);
+                logger.error(`[거래처 이관] 실패: ${keyValue}`);
             }
         }
 
         return true;
 
     } catch (error) {
-        console.error('[거래처 이관 API] 실패:', error);
+        logger.error('[거래처 이관 API] 실패:', error);
         showToast('거래처 이관 중 오류가 발생했습니다', 'error');
         return false;
     }
@@ -1318,7 +1319,7 @@ async function addEmployeeToDatabase(employeeData) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('[직원 추가] API 응답 실패:', response.status, errorData);
+            logger.error('[직원 추가] API 응답 실패:', response.status, errorData);
             throw new Error(errorData.message || '직원 추가 실패');
         }
 
@@ -1326,7 +1327,7 @@ async function addEmployeeToDatabase(employeeData) {
         return true;
 
     } catch (error) {
-        console.error('[직원 추가] 실패:', error);
+        logger.error('[직원 추가] 실패:', error);
         return false;
     }
 }
@@ -1349,7 +1350,7 @@ async function updateEmployeeInDatabase(employeeId, updatedData) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('[직원 수정] API 응답 실패:', response.status, errorData);
+            logger.error('[직원 수정] API 응답 실패:', response.status, errorData);
             throw new Error(errorData.message || '직원 수정 실패');
         }
 
@@ -1357,7 +1358,7 @@ async function updateEmployeeInDatabase(employeeId, updatedData) {
         return true;
 
     } catch (error) {
-        console.error('[직원 수정] 실패:', error);
+        logger.error('[직원 수정] 실패:', error);
         return false;
     }
 }
@@ -1379,7 +1380,7 @@ async function deleteEmployeeFromDatabase(employeeId) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('[직원 삭제] API 응답 실패:', response.status, errorData);
+            logger.error('[직원 삭제] API 응답 실패:', response.status, errorData);
             throw new Error(errorData.message || '직원 삭제 실패');
         }
 
@@ -1387,7 +1388,7 @@ async function deleteEmployeeFromDatabase(employeeId) {
         return true;
 
     } catch (error) {
-        console.error('[직원 삭제] 실패:', error);
+        logger.error('[직원 삭제] 실패:', error);
         return false;
     }
 }
@@ -1415,7 +1416,7 @@ async function updateEmployeeStatus(employeeId, status) {
         return true;
 
     } catch (error) {
-        console.error('[직원 상태 업데이트] 실패:', error);
+        logger.error('[직원 상태 업데이트] 실패:', error);
         showToast('상태 업데이트 중 오류가 발생했습니다', 'error');
         return false;
     }
