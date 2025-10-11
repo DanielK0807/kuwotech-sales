@@ -397,35 +397,35 @@ window.showAddEmployee = function() {
                         <input type="text" id="newName" class="glass-input" placeholder="직원 이름">
                     </div>
                     <div class="form-group">
-                        <label>이메일 *</label>
+                        <label>이메일</label>
                         <input type="email" id="newEmail" class="glass-input" placeholder="email@kuwotech.com">
                     </div>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label>역할 *</label>
-                        <select id="newRole" class="glass-input">
+                        <label>역할 * <span id="roleLabelNote"></span></label>
+                        <select id="newRole" class="glass-input" onchange="updateHireDateRequirement()">
                             <option value="">선택하세요</option>
                             <option value="관리자">관리자</option>
                             <option value="영업담당">영업담당</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>부서 *</label>
+                        <label>부서</label>
                         <select id="newDepartment" class="glass-input">
                             ${generateDepartmentOptions()}
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label>전화번호 *</label>
+                        <label>전화번호</label>
                         <input type="tel" id="newPhone" class="glass-input" placeholder="010-0000-0000">
                     </div>
                     <div class="form-group">
-                        <label>입사일</label>
+                        <label id="hireDateLabel">입사일</label>
                         <input type="date" id="newJoinDate" class="glass-input">
                     </div>
                 </div>
@@ -435,29 +435,53 @@ window.showAddEmployee = function() {
             {
                 text: '추가',
                 className: 'glass-button primary',
-                onClick: () => {
-                    const newEmployee = {
-                        id: 'EMP' + String(employees.length + 1).padStart(3, '0'),
-                        name: document.getElementById('newName').value,
-                        email: document.getElementById('newEmail').value,
-                        role: document.getElementById('newRole').value,
-                        department: document.getElementById('newDepartment').value,
-                        phone: document.getElementById('newPhone').value.replace(/-/g, ''),
-                        hireDate: document.getElementById('newJoinDate').value || new Date().toISOString().split('T')[0],
-                        status: 'active'
-                    };
-                    
-                    if (!newEmployee.name || !newEmployee.email || !newEmployee.role || !newEmployee.department) {
-                        showToast('필수 항목을 모두 입력해주세요', 'warning');
+                onClick: async () => {
+                    const name = document.getElementById('newName').value.trim();
+                    const role = document.getElementById('newRole').value;
+                    const hireDate = document.getElementById('newJoinDate').value;
+
+                    // 필수 검증: 이름, 역할
+                    if (!name) {
+                        showToast('이름을 입력해주세요', 'warning');
                         return false;
                     }
-                    
-                    employees.push(newEmployee);
-                    filteredEmployees = [...employees];
-                    updateStatistics();
-                    renderEmployeeTable();
-                    showToast('직원이 추가되었습니다', 'success');
-                    return true;
+
+                    if (!role) {
+                        showToast('역할을 선택해주세요', 'warning');
+                        return false;
+                    }
+
+                    // 조건부 필수: 영업담당이면 입사일 필수
+                    if (role === '영업담당' && !hireDate) {
+                        showToast('영업담당은 입사일이 필수입니다', 'warning');
+                        return false;
+                    }
+
+                    const newEmployee = {
+                        name: name,
+                        email: document.getElementById('newEmail').value.trim() || null,
+                        role1: role,
+                        role2: null,
+                        department: document.getElementById('newDepartment').value || null,
+                        phone: document.getElementById('newPhone').value.replace(/-/g, '') || null,
+                        hireDate: hireDate || new Date().toISOString().split('T')[0],
+                        status: 'active'
+                    };
+
+                    // 데이터베이스에 저장
+                    const success = await addEmployeeToDatabase(newEmployee);
+
+                    if (success) {
+                        // 목록 새로고침
+                        await loadEmployeeData();
+                        updateStatistics();
+                        renderEmployeeTable();
+                        showToast('직원이 추가되었습니다', 'success');
+                        return true;
+                    } else {
+                        showToast('직원 추가에 실패했습니다', 'error');
+                        return false;
+                    }
                 }
             },
             {
@@ -466,8 +490,20 @@ window.showAddEmployee = function() {
             }
         ]
     });
-    
+
     modal.open();
+
+    // 모달이 열린 후 역할 변경 이벤트 리스너 전역 함수로 등록
+    window.updateHireDateRequirement = function() {
+        const role = document.getElementById('newRole').value;
+        const hireDateLabel = document.getElementById('hireDateLabel');
+
+        if (role === '영업담당') {
+            hireDateLabel.innerHTML = '입사일 *';
+        } else {
+            hireDateLabel.innerHTML = '입사일';
+        }
+    };
 };
 
 // ===================
@@ -582,18 +618,30 @@ window.editEmployee = function(id) {
             {
                 text: '저장',
                 className: 'glass-button primary',
-                onClick: () => {
-                    employee.name = document.getElementById('editName').value;
-                    employee.email = document.getElementById('editEmail').value;
-                    employee.role = document.getElementById('editRole').value;
-                    employee.department = document.getElementById('editDepartment').value;
-                    employee.phone = document.getElementById('editPhone').value.replace(/-/g, '');
-                    employee.status = document.getElementById('editStatus').value;
-                    
-                    updateStatistics();
-                    renderEmployeeTable();
-                    showToast('직원 정보가 수정되었습니다', 'success');
-                    return true;
+                onClick: async () => {
+                    const updatedData = {
+                        name: document.getElementById('editName').value,
+                        email: document.getElementById('editEmail').value || null,
+                        role1: document.getElementById('editRole').value,
+                        department: document.getElementById('editDepartment').value || null,
+                        phone: document.getElementById('editPhone').value.replace(/-/g, '') || null,
+                        status: document.getElementById('editStatus').value
+                    };
+
+                    // 데이터베이스에 저장
+                    const success = await updateEmployeeInDatabase(employee.id, updatedData);
+
+                    if (success) {
+                        // 목록 새로고침
+                        await loadEmployeeData();
+                        updateStatistics();
+                        renderEmployeeTable();
+                        showToast('직원 정보가 수정되었습니다', 'success');
+                        return true;
+                    } else {
+                        showToast('직원 정보 수정에 실패했습니다', 'error');
+                        return false;
+                    }
                 }
             },
             {
@@ -630,16 +678,21 @@ window.deleteEmployee = function(id) {
             {
                 text: '삭제',
                 className: 'glass-button danger',
-                onClick: () => {
-                    const index = employees.findIndex(emp => emp.id === id);
-                    if (index > -1) {
-                        employees.splice(index, 1);
-                        filteredEmployees = [...employees];
+                onClick: async () => {
+                    // 데이터베이스에서 삭제
+                    const success = await deleteEmployeeFromDatabase(id);
+
+                    if (success) {
+                        // 목록 새로고침
+                        await loadEmployeeData();
                         updateStatistics();
                         renderEmployeeTable();
                         showToast(`${employee.name} 직원이 삭제되었습니다`, 'success');
+                        return true;
+                    } else {
+                        showToast('직원 삭제에 실패했습니다', 'error');
+                        return false;
                     }
-                    return true;
                 }
             },
             {
@@ -1253,6 +1306,104 @@ function confirmRetirement(employee) {
     });
 
     modal.open();
+}
+
+// ===================
+// 직원 추가 API
+// ===================
+async function addEmployeeToDatabase(employeeData) {
+    try {
+        const token = localStorage.getItem('authToken');
+        console.log('[직원 추가] API 호출 시작:', employeeData);
+
+        const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(employeeData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('[직원 추가] API 응답 실패:', response.status, errorData);
+            throw new Error(errorData.message || '직원 추가 실패');
+        }
+
+        const result = await response.json();
+        console.log('[직원 추가] API 응답 성공:', result);
+        return true;
+
+    } catch (error) {
+        console.error('[직원 추가] 실패:', error);
+        return false;
+    }
+}
+
+// ===================
+// 직원 수정 API
+// ===================
+async function updateEmployeeInDatabase(employeeId, updatedData) {
+    try {
+        const token = localStorage.getItem('authToken');
+        console.log('[직원 수정] API 호출 시작:', employeeId, updatedData);
+
+        const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/${employeeId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('[직원 수정] API 응답 실패:', response.status, errorData);
+            throw new Error(errorData.message || '직원 수정 실패');
+        }
+
+        const result = await response.json();
+        console.log('[직원 수정] API 응답 성공:', result);
+        return true;
+
+    } catch (error) {
+        console.error('[직원 수정] 실패:', error);
+        return false;
+    }
+}
+
+// ===================
+// 직원 삭제 API
+// ===================
+async function deleteEmployeeFromDatabase(employeeId) {
+    try {
+        const token = localStorage.getItem('authToken');
+        console.log('[직원 삭제] API 호출 시작:', employeeId);
+
+        const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/${employeeId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('[직원 삭제] API 응답 실패:', response.status, errorData);
+            throw new Error(errorData.message || '직원 삭제 실패');
+        }
+
+        const result = await response.json();
+        console.log('[직원 삭제] API 응답 성공:', result);
+        return true;
+
+    } catch (error) {
+        console.error('[직원 삭제] 실패:', error);
+        return false;
+    }
 }
 
 // ===================
