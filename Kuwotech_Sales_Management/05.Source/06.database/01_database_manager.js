@@ -8,6 +8,7 @@
 
 // GlobalConfig에서 중앙 환경 감지 함수 import
 import { getApiBaseUrl } from '../01.common/01_global_config.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: API 설정]
@@ -78,7 +79,7 @@ export class DatabaseManager {
                 throw new Error(response.message || response.error?.message || '로그인 실패');
             }
         } catch (error) {
-            console.error('Login error:', error);
+            logger.error('Login error:', error);
             throw error;
         }
     }
@@ -101,7 +102,7 @@ export class DatabaseManager {
                 skipRetry: true // 401 에러 재시도 방지
             });
         } catch (error) {
-            console.error('Logout error:', error);
+            logger.error('Logout error:', error);
             // 에러가 발생해도 로컬 세션은 정리
         } finally {
             this.token = null;
@@ -166,7 +167,7 @@ export class DatabaseManager {
 
             throw new Error('Token refresh failed');
         } catch (error) {
-            console.error('Token refresh error:', error);
+            logger.error('Token refresh error:', error);
             this.isRefreshing = false;
 
             // 로그아웃 중이 아닐 때만 로그아웃 호출
@@ -191,10 +192,10 @@ export class DatabaseManager {
                 return response.data.employees;
             }
 
-            console.warn('⚠️ 예상과 다른 응답 구조:', response);
+            logger.warn('⚠️ 예상과 다른 응답 구조:', response);
             return [];
         } catch (error) {
-            console.error('Error fetching employees by role:', error);
+            logger.error('Error fetching employees by role:', error);
             return [];
         }
     }
@@ -231,7 +232,7 @@ export class DatabaseManager {
             // 백엔드는 { success: true, employee: {...} } 형태로 반환
             return response;
         } catch (error) {
-            console.error('Error fetching employee by name:', error);
+            logger.error('Error fetching employee by name:', error);
             throw error;
         }
     }
@@ -432,7 +433,7 @@ export class DatabaseManager {
      */
     async getMyKPI() {
         if (!this.user || !this.user.name) {
-            console.error('❌ 로그인된 사용자 정보 없음');
+            logger.error('❌ 로그인된 사용자 정보 없음');
             return null;
         }
 
@@ -538,7 +539,7 @@ export class DatabaseManager {
      * [기능: 스토어 비우기 - 하위 호환성]
      */
     async clear(storeName) {
-        console.warn('clear() is not supported in API mode');
+        logger.warn('clear() is not supported in API mode');
         return true;
     }
 
@@ -602,7 +603,7 @@ export class DatabaseManager {
 
             return userData;
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            logger.error('Error fetching user data:', error);
             return userData;
         }
     }
@@ -746,7 +747,7 @@ export class DatabaseManager {
             if (error.name === 'AbortError') {
                 throw new Error('요청 시간 초과');
             }
-            console.error('API Request Error:', error);
+            logger.error('API Request Error:', error);
             throw error;
         }
     }

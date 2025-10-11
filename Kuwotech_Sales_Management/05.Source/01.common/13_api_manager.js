@@ -7,6 +7,7 @@
 
 import Storage from './15_storage_manager.js';
 import { detectEnvironment, getApiBaseUrl } from './01_global_config.js';
+import logger from './23_logger.js';
 
 // ============================================
 // API 설정
@@ -127,7 +128,7 @@ class ApiManager {
         if (isConnected) {
             this.startMonitoring();
         } else {
-            console.error('❌ [API Manager] 백엔드 서버 연결 실패');
+            logger.error('❌ [API Manager] 백엔드 서버 연결 실패');
             this.showConnectionError();
             this.startReconnection();
         }
@@ -172,11 +173,11 @@ class ApiManager {
         } catch (error) {
             this.serverStatus.isOnline = false;
             this.serverStatus.lastCheck = new Date();
-            
+
             if (!silent) {
-                console.error('❌ [API Manager] 서버 연결 실패:', error.message);
+                logger.error('❌ [API Manager] 서버 연결 실패:', error.message);
             }
-            
+
             return false;
         }
     }
@@ -192,9 +193,9 @@ class ApiManager {
         
         this.monitoringInterval = setInterval(async () => {
             const isOnline = await this.checkServerConnection(true);
-            
+
             if (!isOnline && this.serverStatus.isOnline) {
-                console.warn('⚠️ [API Manager] 서버 연결 끊김 감지');
+                logger.warn('⚠️ [API Manager] 서버 연결 끊김 감지');
                 this.showConnectionError();
                 this.startReconnection();
             }
@@ -209,7 +210,7 @@ class ApiManager {
         const reconnectInterval = setInterval(async () => {
             if (this.serverStatus.reconnectAttempts >= this.serverStatus.maxReconnectAttempts) {
                 clearInterval(reconnectInterval);
-                console.error(`❌ [API Manager] 최대 재연결 시도 횟수(${this.serverStatus.maxReconnectAttempts}) 초과`);
+                logger.error(`❌ [API Manager] 최대 재연결 시도 횟수(${this.serverStatus.maxReconnectAttempts}) 초과`);
                 this.showMaxReconnectError();
                 return;
             }
@@ -520,7 +521,7 @@ class ApiManager {
                 if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
                     if (attempt < this.retryConfig.maxRetries) {
                         const delay = this.retryConfig.retryDelay * Math.pow(this.retryConfig.retryMultiplier, attempt);
-                        console.warn(`[API Manager] 재시도 ${attempt + 1}/${this.retryConfig.maxRetries} (${delay}ms 후)`);
+                        logger.warn(`[API Manager] 재시도 ${attempt + 1}/${this.retryConfig.maxRetries} (${delay}ms 후)`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         continue;
                     }
@@ -608,21 +609,21 @@ class ApiManager {
      * 에러 처리
      */
     handleError(error) {
-        console.error('API 에러:', error);
+        logger.error('API 에러:', error);
 
         // HTTP 400 에러 상세 정보 출력
         if (error.status === 400 && error.data) {
-            console.error('❌ 400 에러 상세:', error.data);
-            console.error('에러 메시지:', error.data.message || error.data.error);
-            console.error('상세 정보:', error.data);
+            logger.error('❌ 400 에러 상세:', error.data);
+            logger.error('에러 메시지:', error.data.message || error.data.error);
+            logger.error('상세 정보:', error.data);
         }
 
         // HTTP 500 에러 상세 정보 출력
         if (error.status === 500 && error.data) {
-            console.error('❌ 500 서버 에러 상세:', error.data);
-            console.error('에러 메시지:', error.data.message || error.data.error);
-            console.error('스택 트레이스:', error.data.stack || error.data.details);
-            console.error('상세 정보:', error.data);
+            logger.error('❌ 500 서버 에러 상세:', error.data);
+            logger.error('에러 메시지:', error.data.message || error.data.error);
+            logger.error('스택 트레이스:', error.data.stack || error.data.details);
+            logger.error('상세 정보:', error.data);
         }
 
         // 네트워크 에러
