@@ -14,6 +14,7 @@
 
 import { showToast } from '../01.common/14_toast.js';
 import dbManager from '../06.database/01_database_manager.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -145,7 +146,7 @@ async function handleNameSubmit() {
         showToast(`${employee.name}님, 역할과 비밀번호를 입력해주세요`, 'success');
 
     } catch (error) {
-        console.error('❌ 직원 조회 실패:', error);
+        logger.error('❌ 직원 조회 실패:', error);
         showToast('직원 정보를 확인할 수 없습니다', 'error');
         elements.loginButton.textContent = '확인';
         elements.loginButton.disabled = false;
@@ -300,7 +301,7 @@ async function handleLogin(event) {
         }, 1000);
 
     } catch (error) {
-        console.error('❌ 로그인 실패:', error);
+        logger.error('❌ 로그인 실패:', error);
 
         // 에러 메시지 처리
         let errorMessage = '로그인에 실패했습니다';
@@ -340,7 +341,7 @@ function redirectToMainPage(role) {
     } else if (role === '관리자') {
         window.location.href = '../04.admin_mode/08_admin_main.html';
     } else {
-        console.error('❌ 알 수 없는 역할:', role);
+        logger.error('❌ 알 수 없는 역할:', role);
         showToast('알 수 없는 역할입니다', 'error');
     }
 }

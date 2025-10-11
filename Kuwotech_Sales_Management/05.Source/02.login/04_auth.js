@@ -12,6 +12,7 @@
 import { showToast } from '../01.common/14_toast.js';
 import { formatDateKorean } from '../01.common/03_format.js';
 import { getDB } from '../06.database/01_database_manager.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [보안 설정]
@@ -119,7 +120,7 @@ export class AuthManager {
             }
             
         } catch (error) {
-            console.error('❌ 로그인 오류:', error);
+            logger.error('❌ 로그인 오류:', error);
             
             // 개발 모드에서만 임시 로그인 허용
             if (this.isDevelopmentMode()) {
@@ -161,7 +162,7 @@ export class AuthManager {
             }
             
         } catch (error) {
-            console.error('서버 인증 실패:', error);
+            logger.error('서버 인증 실패:', error);
 
             // 인증 실패 반환
             return {
@@ -181,7 +182,7 @@ export class AuthManager {
     }
     
     developmentLogin(username, password) {
-        console.warn('⚠️ 개발 모드: 임시 로그인 사용');
+        logger.warn('⚠️ 개발 모드: 임시 로그인 사용');
         
         // 개발용 임시 계정 (프로덕션에서는 절대 사용 안 됨)
         const devAccounts = {
@@ -402,7 +403,7 @@ export class AuthManager {
             }
             
         } catch (error) {
-            console.error('세션 확인 실패:', error);
+            logger.error('세션 확인 실패:', error);
             this.clearSession();
         }
     }
@@ -491,7 +492,7 @@ export class AuthManager {
         try {
             await this.dbManager.logout();
         } catch (error) {
-            console.error('로그아웃 API 호출 실패:', error);
+            logger.error('로그아웃 API 호출 실패:', error);
         }
 
         // 보안 로그
@@ -557,7 +558,7 @@ export class AuthManager {
         // 로컬 로그 (디버깅용)
         
         // 서버로 전송 (백그라운드)
-        this.sendSecurityLog(logEntry).catch(console.error);
+        this.sendSecurityLog(logEntry).catch(err => logger.error('[보안 로그 전송 실패]', err));
     }
     
     async sendSecurityLog(logEntry) {
@@ -600,7 +601,7 @@ export class AuthManager {
             const jsonStr = JSON.stringify(data);
             return btoa(encodeURIComponent(jsonStr));
         } catch (error) {
-            console.error('암호화 실패:', error);
+            logger.error('암호화 실패:', error);
             return null;
         }
     }
@@ -611,7 +612,7 @@ export class AuthManager {
             const jsonStr = decodeURIComponent(atob(encryptedData));
             return jsonStr;
         } catch (error) {
-            console.error('복호화 실패:', error);
+            logger.error('복호화 실패:', error);
             return null;
         }
     }
@@ -663,7 +664,7 @@ export class AuthManager {
                 };
             }
         } catch (error) {
-            console.error('캐시 확인 실패:', error);
+            logger.error('캐시 확인 실패:', error);
         }
         
         return { success: false, message: '인증 정보를 확인할 수 없습니다.' };
