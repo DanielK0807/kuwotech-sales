@@ -8,6 +8,7 @@
 import BaseComponent from '../01.common/12_base_component.js';
 import { formatNumber, formatCurrency, formatDate } from '../01.common/03_format.js';
 import { getFieldLabel } from '../01.common/08_terms.js';
+import logger from '../01.common/23_logger.js';
 
 /**
  * 동적 데이터 테이블 컴포넌트
@@ -1384,7 +1385,7 @@ class DynamicDataTable extends BaseComponent {
             }
             return await response.json();
         } catch (error) {
-            console.error('데이터 로드 실패:', error);
+            logger.error('데이터 로드 실패:', error);
             return [];
         }
     }

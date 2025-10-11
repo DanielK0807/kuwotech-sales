@@ -18,6 +18,8 @@
  * ```
  */
 
+import logger from '../01.common/23_logger.js';
+
 /**
  * 숫자 문자열을 천 단위 쉼표 형식으로 변환
  * @param {string|number} value - 포맷팅할 값
@@ -47,7 +49,7 @@ export function formatWithCommas(value) {
  */
 export function bindAmountFormatting(inputElement) {
     if (!inputElement) {
-        console.warn('[AmountFormatter] 유효하지 않은 입력 요소입니다');
+        logger.warn('[AmountFormatter] 유효하지 않은 입력 요소입니다');
         return;
     }
 

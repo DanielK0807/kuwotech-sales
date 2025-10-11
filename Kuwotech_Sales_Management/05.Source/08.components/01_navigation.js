@@ -8,6 +8,7 @@
 import { ROUTE_CONFIG } from '../01.common/01_global_config.js';
 import { showToast, showLoading, hideLoading } from '../01.common/20_common_index.js';
 import { applyTheme } from '../01.common/07_design.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 네비게이션 상태 관리]
@@ -99,7 +100,7 @@ function getModeFromPath(path) {
 export async function navigate(path, options = {}) {
     // 네비게이션 중복 방지
     if (navigationState.isNavigating) {
-        console.warn('[네비게이션] 이미 진행 중입니다.');
+        logger.warn('[네비게이션] 이미 진행 중입니다.');
         return false;
     }
     
@@ -148,7 +149,7 @@ export async function navigate(path, options = {}) {
         return true;
         
     } catch (error) {
-        console.error('[네비게이션 오류]:', error);
+        logger.error('[네비게이션 오류]:', error);
         showToast('페이지 이동 중 오류가 발생했습니다.', 'error');
         return false;
         
@@ -418,7 +419,7 @@ export function initNavigation(options = {}) {
         checkUserPermission
     };
     
-    console.log('[네비게이션] 시스템 초기화 완료');
+    logger.debug('[네비게이션] 시스템 초기화 완료');
 }
 
 // 페이지 로드 시 자동 초기화

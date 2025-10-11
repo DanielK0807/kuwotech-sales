@@ -5,6 +5,8 @@
 // 설명: 재사용 가능한 자동완성 컴포넌트
 // ============================================
 
+import logger from '../01.common/23_logger.js';
+
 /**
  * 자동완성 매니저 클래스
  * 입력 필드에 자동완성 기능을 추가합니다.
@@ -41,7 +43,7 @@ export class AutocompleteManager {
      */
     init() {
         if (!this.inputElement || !this.listElement) {
-            console.error('[Autocomplete] 필수 요소가 없습니다');
+            logger.error('[Autocomplete] 필수 요소가 없습니다');
             return;
         }
 
@@ -191,7 +193,7 @@ export function createAutocomplete(inputId, listId, dataSource, getDisplayText, 
     const listElement = document.getElementById(listId);
 
     if (!inputElement || !listElement) {
-        console.error('[Autocomplete] 요소를 찾을 수 없습니다:', inputId, listId);
+        logger.error('[Autocomplete] 요소를 찾을 수 없습니다:', inputId, listId);
         return null;
     }
 

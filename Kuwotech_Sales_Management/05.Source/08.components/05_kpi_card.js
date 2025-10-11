@@ -23,6 +23,7 @@
 
 import BaseComponent from '../01.common/02_base_component.js';
 import { formatNumber, formatCurrency, formatPercent } from '../01.common/03_format.js';
+import logger from '../01.common/23_logger.js';
 
 /**
  * KPI 카드 컴포넌트
@@ -853,7 +854,7 @@ class KPICard extends BaseComponent {
                 }
             }
         } catch (error) {
-            console.error('KPI 새로고침 실패:', error);
+            logger.error('KPI 새로고침 실패:', error);
         } finally {
             this.state.isLoading = false;
             if (refreshBtn) {
