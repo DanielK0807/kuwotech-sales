@@ -55,6 +55,9 @@ import {
 // Logger 임포트
 import logger from '../../01.common/23_logger.js';
 
+// ErrorHandler 임포트
+import errorHandler, { DatabaseError, NotFoundError } from '../../01.common/24_error_handler.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -101,7 +104,18 @@ async function initDashboard() {
         try {
             await loadDashboardData();
         } catch (error) {
-            logger.error('[관리자 대시보드] 데이터 로드 실패, 빈 데이터로 표시:', error);
+            await errorHandler.handle(
+                new DatabaseError('관리자 대시보드 데이터 로드 실패', error, {
+                    userMessage: 'KPI 데이터를 불러올 수 없습니다. 빈 데이터로 표시합니다.',
+                    context: {
+                        module: 'admin_dashboard',
+                        action: 'initDashboard',
+                        fallback: 'emptyData'
+                    },
+                    severity: 'MEDIUM'
+                }),
+                { showToUser: false }
+            );
             // 데이터 로드 실패 시 빈 객체로 초기화
             dashboardData = createEmptyKPIData();
         }
@@ -116,9 +130,19 @@ async function initDashboard() {
         isInitialized = true;
 
     } catch (error) {
-        logger.error('[관리자 대시보드] 초기화 실패:', error);
+        await errorHandler.handle(
+            new DatabaseError('관리자 대시보드 초기화 실패', error, {
+                userMessage: '대시보드 로드 중 오류가 발생했습니다.',
+                context: {
+                    module: 'admin_dashboard',
+                    action: 'initDashboard',
+                    user: user?.name
+                },
+                severity: 'HIGH'
+            }),
+            { showToUser: true }
+        );
         hideLoading();
-        showToast('대시보드 로드 중 오류가 발생했습니다.', 'error');
 
         // 초기화 실패해도 빈 카드는 표시
         dashboardData = createEmptyKPIData();
@@ -162,9 +186,17 @@ async function loadDashboardData() {
         }
 
     } catch (error) {
-        logger.error('[관리자 대시보드] 데이터 로드 실패:', error);
-        showToast('KPI 데이터를 불러오는 중 오류가 발생했습니다.', 'error');
-        throw error;
+        const dbError = new DatabaseError('KPI 데이터 로드 실패', error, {
+            userMessage: 'KPI 데이터를 불러오는 중 오류가 발생했습니다.',
+            context: {
+                module: 'admin_dashboard',
+                action: 'loadDashboardData',
+                endpoint: '/kpi/admin'
+            },
+            severity: 'HIGH'
+        });
+        await errorHandler.handle(dbError, { showToUser: true });
+        throw dbError;
     }
 }
 
@@ -347,7 +379,8 @@ function displayKPICardsWithGlass() {
 function renderKPISection(sectionId, kpiConfig) {
     const container = document.getElementById(sectionId);
     if (!container) {
-        logger.error(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
+        // UI 요소 누락은 로그만 남기고 계속 진행
+        logger.warn(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
         return;
     }
 
@@ -364,7 +397,19 @@ function renderKPISection(sectionId, kpiConfig) {
         container.innerHTML = '';
         container.appendChild(kpiGrid.render());
     } catch (error) {
-        logger.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
+        errorHandler.handle(
+            new NotFoundError(`KPI 섹션 렌더링 실패: ${sectionId}`, error, {
+                userMessage: '카드를 표시할 수 없습니다.',
+                context: {
+                    module: 'admin_dashboard',
+                    action: 'renderKPISection',
+                    sectionId,
+                    cardCount: kpiConfig?.length
+                },
+                severity: 'MEDIUM'
+            }),
+            { showToUser: false }
+        );
         container.innerHTML = '<p class="error-message">카드 렌더링 실패</p>';
     }
 }
@@ -480,9 +525,20 @@ async function showRankingModal(type) {
         hideLoading();
 
     } catch (error) {
-        logger.error('[순위 모달] 로드 실패:', error);
+        await errorHandler.handle(
+            new DatabaseError('순위 모달 로드 실패', error, {
+                userMessage: '순위 데이터를 불러오는 중 오류가 발생했습니다.',
+                context: {
+                    module: 'admin_dashboard',
+                    action: 'showRankingModal',
+                    type,
+                    endpoint: `/kpi/admin/ranking/${type}`
+                },
+                severity: 'MEDIUM'
+            }),
+            { showToUser: true }
+        );
         hideLoading();
-        showToast('순위 데이터를 불러오는 중 오류가 발생했습니다.', 'error');
     }
 }
 
@@ -528,9 +584,18 @@ async function refreshDashboard() {
         hideLoading();
         showToast('데이터가 새로고침되었습니다.', 'success');
     } catch (error) {
-        logger.error('[관리자 대시보드] 새로고침 실패:', error);
+        await errorHandler.handle(
+            new DatabaseError('대시보드 새로고침 실패', error, {
+                userMessage: '새로고침 중 오류가 발생했습니다.',
+                context: {
+                    module: 'admin_dashboard',
+                    action: 'refreshDashboard'
+                },
+                severity: 'LOW'
+            }),
+            { showToUser: true }
+        );
         hideLoading();
-        showToast('새로고침 중 오류가 발생했습니다.', 'error');
     }
 }
 
