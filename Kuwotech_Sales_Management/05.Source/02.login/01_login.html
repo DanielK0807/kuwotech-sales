@@ -438,43 +438,35 @@
 
         <!-- 로그인 폼 -->
         <form id="loginForm">
-          <!-- 역할 선택 -->
+          <!-- 이름 입력 -->
           <div class="form-group">
+            <label class="form-label" for="employeeName">
+              성명
+              <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="employeeName"
+              class="form-input"
+              placeholder="이름을 입력하세요"
+              required
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- 역할 선택 (동적으로 표시) -->
+          <div class="form-group" id="roleGroup" style="display: none;">
             <label class="form-label">
               역할 선택
               <span class="required">*</span>
             </label>
-            <div class="radio-group">
-              <div class="radio-option">
-                <input type="radio" id="role-sales" name="role" value="영업담당" />
-                <label class="radio-label" for="role-sales">
-                  <i class="fas fa-user-tie"></i>
-                  영업담당
-                </label>
-              </div>
-              <div class="radio-option">
-                <input type="radio" id="role-admin" name="role" value="관리자" />
-                <label class="radio-label" for="role-admin">
-                  <i class="fas fa-user-shield"></i>
-                  관리자
-                </label>
-              </div>
+            <div class="radio-group" id="roleRadioGroup">
+              <!-- 동적으로 생성됨 -->
             </div>
           </div>
 
-          <!-- 직원 선택 -->
-          <div class="form-group">
-            <label class="form-label" for="employee">
-              직원 선택
-              <span class="required">*</span>
-            </label>
-            <select id="employee" class="form-select" disabled required>
-              <option value="">먼저 역할을 선택해주세요</option>
-            </select>
-          </div>
-
           <!-- 비밀번호 -->
-          <div class="form-group">
+          <div class="form-group" id="passwordGroup" style="display: none;">
             <label class="form-label" for="password">
               비밀번호
               <span class="required">*</span>
@@ -490,15 +482,8 @@
 
           <!-- 로그인 버튼 -->
           <button type="submit" class="login-button" id="loginButton" disabled>
-            로그인
+            확인
           </button>
-
-          <!-- 안내 메시지 -->
-          <div class="info-message">
-            <i class="fas fa-info-circle"></i>
-            <strong>초기 비밀번호: 1234</strong><br />
-            로그인 후 비밀번호를 변경해주세요
-          </div>
         </form>
       </div>
     </div>

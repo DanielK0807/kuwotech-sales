@@ -228,6 +228,23 @@ export class DatabaseManager {
     }
 
     /**
+     * [기능: 이름으로 직원 조회]
+     * @param {string} name - 직원 이름
+     * @returns {Promise<Object>} 직원 정보 { success: true, employee: {...} }
+     */
+    async getEmployeeByName(name) {
+        try {
+            const response = await this.request(`${ENDPOINTS.EMPLOYEES}/${encodeURIComponent(name)}`);
+            console.log('📊 getEmployeeByName 응답:', response);
+            // 백엔드는 { success: true, employee: {...} } 형태로 반환
+            return response;
+        } catch (error) {
+            console.error('Error fetching employee by name:', error);
+            throw error;
+        }
+    }
+
+    /**
      * [기능: 직원 생성]
      */
     async createEmployee(employeeData) {
