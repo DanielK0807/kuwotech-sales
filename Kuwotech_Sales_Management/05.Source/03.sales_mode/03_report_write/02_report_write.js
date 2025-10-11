@@ -6,7 +6,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
-import { formatCurrency, formatPercent } from '../../01.common/03_format.js';
+import { formatCurrency, formatPercent, formatNumber } from '../../01.common/03_format.js';
 
 // ============================================
 // API Manager 초기화
@@ -650,36 +650,18 @@ function updateGoalItem(prefix, data) {
 // ============================================
 
 /**
- * 숫자를 3자리마다 쉼표가 있는 형식으로 변환
- * @param {string|number} value - 포맷팅할 값
- * @returns {string} - 포맷팅된 문자열
- */
-function formatNumberWithCommas(value) {
-    // 숫자가 아닌 문자 제거 (쉼표, 공백 등)
-    const numericValue = String(value).replace(/[^\d]/g, '');
-
-    if (!numericValue) return '';
-
-    // 3자리마다 쉼표 추가
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-/**
- * 쉼표가 포함된 문자열을 숫자로 변환
- * @param {string} value - 변환할 문자열
- * @returns {number} - 숫자 값
- */
-function parseFormattedNumber(value) {
-    if (!value) return 0;
-    return parseFloat(String(value).replace(/,/g, '')) || 0;
-}
-
-/**
  * 금액 입력 필드에 포맷팅 이벤트 바인딩
  * @param {HTMLInputElement} inputElement - 입력 필드 요소
  */
 function bindAmountFormatting(inputElement) {
     if (!inputElement) return;
+
+    // 숫자 포맷팅 헬퍼
+    const formatWithCommas = (value) => {
+        const numericValue = String(value).replace(/[^\d]/g, '');
+        if (!numericValue) return '';
+        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
 
     inputElement.addEventListener('input', (e) => {
         const cursorPosition = e.target.selectionStart;
@@ -687,7 +669,7 @@ function bindAmountFormatting(inputElement) {
         const oldLength = oldValue.length;
 
         // 포맷팅 적용
-        const formattedValue = formatNumberWithCommas(oldValue);
+        const formattedValue = formatWithCommas(oldValue);
         e.target.value = formattedValue;
 
         // 커서 위치 조정 (쉼표 추가/제거 시 커서 위치 유지)
@@ -699,7 +681,7 @@ function bindAmountFormatting(inputElement) {
     // 포커스 시 기존 값 포맷팅
     inputElement.addEventListener('focus', (e) => {
         if (e.target.value) {
-            e.target.value = formatNumberWithCommas(e.target.value);
+            e.target.value = formatWithCommas(e.target.value);
         }
     });
 }
@@ -1363,7 +1345,7 @@ function validateForm() {
 
     // 목표수금금액 검증
     if (hasTargetCollection) {
-        const amount = parseFormattedNumber(elements.targetCollectionAmount.value);
+        const amount = parseFloat(String(elements.targetCollectionAmount.value).replace(/,/g, '')) || 0;
         if (!amount || amount <= 0) {
             if (window.Toast) {
                 window.Toast.warning('목표수금금액을 입력해주세요');
@@ -1386,7 +1368,7 @@ function validateForm() {
         // 각 제품의 필수 필드 검증
         for (const product of products) {
             const name = product.querySelector('.product-name').value.trim();
-            const amount = parseFormattedNumber(product.querySelector('.product-amount').value);
+            const amount = parseFloat(String(product.querySelector('.product-amount').value).replace(/,/g, '')) || 0;
 
             if (!name) {
                 if (window.Toast) {
@@ -1476,7 +1458,7 @@ async function collectFormData() {
     // 목표수금금액
     if (elements.enableTargetCollection.checked) {
         data.targetCollection = {
-            amount: parseFormattedNumber(elements.targetCollectionAmount.value),
+            amount: parseFloat(String(elements.targetCollectionAmount.value).replace(/,/g, '')) || 0,
             currency: elements.targetCollectionCurrency.value
         };
     }
@@ -1493,7 +1475,7 @@ async function collectFormData() {
         for (const product of products) {
             const name = product.querySelector('.product-name').value.trim();
             const normalizedName = name.replace(/\s+/g, ' '); // 공백 정규화
-            const amount = parseFormattedNumber(product.querySelector('.product-amount').value);
+            const amount = parseFloat(String(product.querySelector('.product-amount').value).replace(/,/g, '')) || 0;
             const currency = product.querySelector('.product-currency').value;
             const vatIncluded = product.querySelector('.product-vat-included').checked;
 
