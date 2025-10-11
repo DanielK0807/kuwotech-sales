@@ -2,15 +2,22 @@
  * ============================================
  * KUWOTECH 영업관리 시스템 - 직원 정보 다운로드
  * ============================================
- * 
- * @파일명: 03_download.js
+ *
+ * @파일명: 03_employee_download.js
  * @작성자: System
  * @작성일: 2025-09-30
- * @버전: 1.0
- * 
+ * @수정일: 2025-10-11
+ * @버전: 2.0
+ *
  * @설명:
  * 관리자의 전체 직원 정보 다운로드 기능
- * 통합 다운로드 매니저를 사용하여 체계적인 다운로드 제공
+ * download_helper를 사용하여 중복 코드 제거 및 일관성 향상
+ *
+ * @변경사항 (v2.0):
+ * - download_helper.js의 UI 컴포넌트 함수 사용
+ * - 중복 코드 제거 (Modal HTML 생성, 149 lines 인라인 CSS, 검증 로직)
+ * - additionalContent로 파일 형식 및 필터 옵션 구현
+ * - 코드 라인 수 37% 감소 (437 → 276 lines)
  */
 
 // ============================================
@@ -19,7 +26,7 @@
 
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
-import { showModal } from '../../01.common/06_modal.js';
+import downloadHelper from '../../01.common/helpers/download_helper.js';
 import logger from '../../01.common/23_logger.js';
 
 // ============================================
@@ -31,7 +38,6 @@ import logger from '../../01.common/23_logger.js';
  * HTML의 다운로드 버튼에 이벤트 연결
  */
 export function initEmployeeDownloadButton() {
-
     // 다운로드 버튼 찾기 (여러 패턴 지원)
     const downloadBtn = document.getElementById('btnExport') ||
                        document.getElementById('btn-download-employees') ||
@@ -44,7 +50,6 @@ export function initEmployeeDownloadButton() {
 
         // 새 이벤트 리스너 추가
         downloadBtn.addEventListener('click', showEmployeeDownloadOptions);
-
     } else {
         logger.warn('[직원정보 다운로드] 다운로드 버튼을 찾을 수 없습니다');
     }
@@ -56,325 +61,157 @@ export function initEmployeeDownloadButton() {
 
 /**
  * [함수: 직원 정보 다운로드 옵션 모달]
+ * download_helper를 사용한 간소화된 Modal 생성
+ * 파일 형식 및 필터 옵션은 additionalContent로 구현
  */
 async function showEmployeeDownloadOptions() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    
     // 현재 표시된 직원 수 확인
     const employeeRows = document.querySelectorAll('.employee-table tbody tr:not(.no-data)');
     const totalCount = employeeRows.length;
-    
-    const modalContent = `
-        <div class="employee-download-container">
-            <div class="download-option-section">
-                <h4 class="section-title">📊 다운로드 형식</h4>
-                <div class="format-options">
-                    <label class="format-option glass-card">
-                        <input type="radio" name="download-format" value="excel" checked>
-                        <div class="format-icon">📊</div>
-                        <div class="format-info">
-                            <div class="format-name">Excel (엑셀)</div>
-                            <div class="format-desc">전체 직원 정보를 엑셀 파일로 다운로드</div>
+
+    // 파일 형식 및 필터 옵션 HTML (additionalContent)
+    const additionalOptionsHTML = `
+        <!-- 파일 형식 선택 -->
+        <div class="option-group glass-card">
+            <h3>📊 다운로드 형식</h3>
+            <div class="format-options" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <label class="format-option glass-card" style="flex: 1; min-width: 150px; padding: 15px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s;">
+                    <input type="radio" name="download-format" value="excel" checked style="margin-right: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 24px;">📊</span>
+                        <div>
+                            <div style="font-weight: 600;">Excel</div>
+                            <small style="color: var(--text-secondary);">엑셀 파일 (9개 필드)</small>
                         </div>
-                    </label>
-                    
-                    <label class="format-option glass-card">
-                        <input type="radio" name="download-format" value="csv">
-                        <div class="format-icon">📄</div>
-                        <div class="format-info">
-                            <div class="format-name">CSV (텍스트)</div>
-                            <div class="format-desc">쉼표로 구분된 데이터 파일</div>
+                    </div>
+                </label>
+
+                <label class="format-option glass-card" style="flex: 1; min-width: 150px; padding: 15px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s;">
+                    <input type="radio" name="download-format" value="csv" style="margin-right: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 24px;">📄</span>
+                        <div>
+                            <div style="font-weight: 600;">CSV</div>
+                            <small style="color: var(--text-secondary);">텍스트 파일</small>
                         </div>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="download-option-section">
-                <h4 class="section-title">🎯 포함 항목</h4>
-                <div class="checkbox-options">
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="include-basic-info" checked disabled>
-                        <span>기본 정보 (이름, 사번, 입사일자)</span>
-                    </label>
-                    
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="include-contact" checked>
-                        <span>연락처 정보 (이메일, 전화번호)</span>
-                    </label>
-                    
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="include-department" checked>
-                        <span>조직 정보 (부서, 직급, 역할)</span>
-                    </label>
-                    
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="include-status" checked>
-                        <span>상태 정보 (재직여부)</span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="download-option-section">
-                <h4 class="section-title">🔍 필터 옵션</h4>
-                <div class="checkbox-options">
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="filter-active-only">
-                        <span>재직 중인 직원만</span>
-                    </label>
-                    
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="filter-sales-only">
-                        <span>영업팀만</span>
-                    </label>
-                    
-                    <label class="checkbox-option">
-                        <input type="checkbox" id="include-statistics">
-                        <span>부서별 통계 포함</span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="employee-info glass-card">
-                <div class="info-icon">👥</div>
-                <div class="info-text">
-                    <strong>다운로드 대상:</strong>
-                    <br>현재 표시된 직원: <strong>${totalCount}명</strong>
-                    <br>엑셀 형식은 9개 필드를 포함한 상세 정보를 제공합니다.
-                    <br>
-                    <br><em>※ 개인정보 보호를 위해 반드시 안전하게 관리해주세요.</em>
-                </div>
+                    </div>
+                </label>
             </div>
         </div>
-        
-        <style>
-            .employee-download-container {
-                padding: 10px;
-            }
-            
-            .download-option-section {
-                margin-bottom: 25px;
-            }
-            
-            .section-title {
-                font-size: 16px;
-                font-weight: 700;
-                color: var(--text-primary);
-                margin-bottom: 15px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            
-            .format-options {
-                display: grid;
-                gap: 15px;
-            }
-            
-            .format-option {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                padding: 20px;
-                border-radius: 12px;
-                border: 2px solid var(--glass-border);
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            
-            .format-option:hover {
-                border-color: var(--primary-color);
-                background: rgba(100, 181, 246, 0.05);
-                transform: translateX(5px);
-            }
-            
-            .format-option input[type="radio"] {
-                width: 20px;
-                height: 20px;
-                cursor: pointer;
-            }
-            
-            .format-option input[type="radio"]:checked + .format-icon {
-                transform: scale(1.2);
-            }
-            
-            .format-icon {
-                font-size: 36px;
-                transition: transform 0.3s ease;
-            }
-            
-            .format-info {
-                flex: 1;
-            }
-            
-            .format-name {
-                font-size: 16px;
-                font-weight: 600;
-                color: var(--text-primary);
-                margin-bottom: 4px;
-            }
-            
-            .format-desc {
-                font-size: 13px;
-                color: var(--text-secondary);
-            }
-            
-            .checkbox-options {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .checkbox-option {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 12px 15px;
-                background: rgba(0, 0, 0, 0.02);
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-            
-            .checkbox-option:hover {
-                background: rgba(100, 181, 246, 0.05);
-            }
-            
-            .checkbox-option input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
-                cursor: pointer;
-            }
-            
-            .checkbox-option input[type="checkbox"]:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-            
-            .checkbox-option span {
-                font-size: 14px;
-                color: var(--text-primary);
-            }
-            
-            .employee-info {
-                padding: 15px;
-                display: flex;
-                gap: 12px;
-                background: rgba(100, 181, 246, 0.05);
-                border: 1px solid var(--primary-color);
-                border-radius: 10px;
-                margin-top: 20px;
-            }
-            
-            .info-icon {
-                font-size: 24px;
-                flex-shrink: 0;
-            }
-            
-            .info-text {
-                font-size: 13px;
-                color: var(--text-secondary);
-                line-height: 1.6;
-            }
-            
-            .info-text strong {
-                color: var(--primary-color);
-            }
-            
-            .info-text em {
-                color: #f44336;
-                font-style: normal;
-                font-size: 12px;
-            }
-        </style>
+
+        <!-- 필터 옵션 -->
+        <div class="option-group glass-card">
+            <h3>🔍 필터 옵션</h3>
+            <div class="filter-options">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="filter-active-only">
+                    <span class="checkbox-text">
+                        <strong>재직 중인 직원만</strong>
+                        <small>퇴사자 제외</small>
+                    </span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="filter-sales-only">
+                    <span class="checkbox-text">
+                        <strong>영업팀만</strong>
+                        <small>영업부서만 포함</small>
+                    </span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="include-statistics">
+                    <span class="checkbox-text">
+                        <strong>부서별 통계 포함</strong>
+                        <small>집계 시트 추가</small>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 정보 배너 -->
+        <div class="option-group glass-card" style="background: rgba(100, 181, 246, 0.05); border: 1px solid var(--primary-color);">
+            <h3>👥 다운로드 대상</h3>
+            <p>현재 표시된 직원: <strong>${totalCount}명</strong></p>
+            <p style="color: #f44336; font-size: 0.9em; margin-top: 10px;">
+                ※ 개인정보 보호를 위해 반드시 안전하게 관리해주세요.
+            </p>
+        </div>
     `;
-    
-    const result = await showModal({
-        title: '👥 직원 정보 다운로드',
-        content: modalContent,
-        size: 'medium',
-        buttons: [
+
+    // 통합 다운로드 옵션 Modal 생성 (헬퍼 사용)
+    const options = await downloadHelper.createDownloadOptionsModal({
+        title: '직원 정보 다운로드',
+        icon: '👥',
+        showDateRange: false,  // 직원 정보는 날짜 범위 불필요
+        showQuickPeriod: false,
+        sheets: [
             {
-                text: '취소',
-                type: 'secondary',
-                onClick: () => false
+                id: 'include-basic-info',
+                label: '기본 정보',
+                description: '이름, 사번, 입사일자 (필수)',
+                checked: true,
+                disabled: true
             },
             {
-                text: '다운로드',
-                type: 'primary',
-                onClick: async () => {
-                    // 선택된 옵션 가져오기
-                    const format = document.querySelector('input[name="download-format"]:checked')?.value || 'excel';
-                    const includeContact = document.getElementById('include-contact')?.checked || false;
-                    const includeDepartment = document.getElementById('include-department')?.checked || false;
-                    const includeStatus = document.getElementById('include-status')?.checked || false;
-                    const filterActiveOnly = document.getElementById('filter-active-only')?.checked || false;
-                    const filterSalesOnly = document.getElementById('filter-sales-only')?.checked || false;
-                    const includeStatistics = document.getElementById('include-statistics')?.checked || false;
-                    
-                    // 다운로드 실행
-                    await executeEmployeeDownload(format, {
-                        includeContact,
-                        includeDepartment,
-                        includeStatus,
-                        filterActiveOnly,
-                        filterSalesOnly,
-                        includeStatistics
-                    });
-                    
-                    return true;
-                }
+                id: 'include-contact',
+                label: '연락처 정보',
+                description: '이메일, 전화번호',
+                checked: true,
+                disabled: false
+            },
+            {
+                id: 'include-department',
+                label: '조직 정보',
+                description: '부서, 직급, 역할',
+                checked: true,
+                disabled: false
+            },
+            {
+                id: 'include-status',
+                label: '상태 정보',
+                description: '재직여부',
+                checked: true,
+                disabled: false
             }
-        ]
+        ],
+        additionalContent: additionalOptionsHTML
     });
-}
 
-// ============================================
-// [SECTION: 다운로드 실행]
-// ============================================
+    // 사용자가 취소한 경우
+    if (!options) return;
 
-/**
- * [함수: 직원 정보 다운로드 실행]
- * 
- * @param {string} format - 다운로드 형식 ('excel' | 'csv')
- * @param {Object} options - 다운로드 옵션
- */
-async function executeEmployeeDownload(format, options = {}) {
-    try {
-        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-        
-        // 관리자 권한 확인
-        if (user.role !== 'admin') {
-            showToast('직원 정보 다운로드는 관리자만 가능합니다.', 'error');
-            return;
-        }
-        
-        
-        // 통합 다운로드 매니저 호출
-        const result = await downloadManager.download({
+    // 관리자 권한 확인
+    if (options.userRole !== 'admin') {
+        showToast('직원 정보 다운로드는 관리자만 가능합니다.', 'error');
+        return;
+    }
+
+    // 파일 형식 및 필터 옵션 가져오기
+    const format = document.querySelector('input[name="download-format"]:checked')?.value || 'excel';
+    const filterActiveOnly = document.getElementById('filter-active-only')?.checked || false;
+    const filterSalesOnly = document.getElementById('filter-sales-only')?.checked || false;
+    const includeStatistics = document.getElementById('include-statistics')?.checked || false;
+
+    // 다운로드 실행 (헬퍼의 execute 래퍼 사용)
+    await downloadHelper.execute(async () => {
+        return await downloadManager.download({
             downloadType: DOWNLOAD_TYPES.ADMIN_EMPLOYEES,
             userRole: 'admin',
-            userName: user.name,
+            userName: options.userName,
             format: format,
-            includeSheets: ['직원정보'],
+            includeSheets: options.selectedSheets,
             filterOptions: {
-                activeOnly: options.filterActiveOnly,
-                salesOnly: options.filterSalesOnly
+                activeOnly: filterActiveOnly,
+                salesOnly: filterSalesOnly
             },
-            includeStats: options.includeStatistics,
+            includeStats: includeStatistics,
             dateRange: null
         });
-        
-        if (result.success) {
-            // 성공 메시지는 downloadManager에서 표시
-        } else {
-            logger.error('[직원정보 다운로드] 실패:', result.error);
-            showToast('다운로드 실패: ' + (result.error || '알 수 없는 오류'), 'error');
-        }
-        
-    } catch (error) {
-        logger.error('[직원정보 다운로드] 오류:', error);
-        showToast('다운로드 중 오류가 발생했습니다.', 'error');
-    }
+    }, {
+        downloadType: 'ADMIN_EMPLOYEES',
+        userName: options.userName,
+        showProgress: true,
+        enableRetry: true
+    });
 }
 
 // ============================================
@@ -385,28 +222,30 @@ async function executeEmployeeDownload(format, options = {}) {
  * [함수: 빠른 다운로드 (옵션 없이 즉시 다운로드)]
  */
 export async function quickDownloadEmployees() {
-    try {
-        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-        
-        if (user.role !== 'admin') {
-            showToast('직원 정보 다운로드는 관리자만 가능합니다.', 'error');
-            return;
-        }
-        
-        
-        await downloadManager.download({
+    // 사용자 정보 가져오기 (헬퍼 사용)
+    const userInfo = downloadHelper.getUserInfo();
+    if (!userInfo) return;
+
+    if (userInfo.userRole !== 'admin') {
+        showToast('직원 정보 다운로드는 관리자만 가능합니다.', 'error');
+        return;
+    }
+
+    // 다운로드 실행 (헬퍼의 execute 래퍼 사용)
+    await downloadHelper.execute(async () => {
+        return await downloadManager.download({
             downloadType: DOWNLOAD_TYPES.ADMIN_EMPLOYEES,
             userRole: 'admin',
-            userName: user.name,
+            userName: userInfo.userName,
             format: 'excel',
             includeSheets: ['직원정보'],
             dateRange: null
         });
-        
-    } catch (error) {
-        logger.error('[직원정보 빠른 다운로드] 오류:', error);
-        showToast('다운로드 중 오류가 발생했습니다.', 'error');
-    }
+    }, {
+        downloadType: 'ADMIN_EMPLOYEES',
+        userName: userInfo.userName,
+        showProgress: true
+    });
 }
 
 // ============================================
@@ -416,7 +255,7 @@ export async function quickDownloadEmployees() {
 /**
  * [함수: 레거시 엑셀 내보내기]
  * 기존 코드와의 호환성을 위해 유지
- * 
+ *
  * @deprecated - showEmployeeDownloadOptions 사용 권장
  */
 export async function exportExcel() {
@@ -431,7 +270,6 @@ export async function exportExcel() {
 export default {
     initEmployeeDownloadButton,
     showEmployeeDownloadOptions,
-    executeEmployeeDownload,
     quickDownloadEmployees,
     exportExcel
 };
