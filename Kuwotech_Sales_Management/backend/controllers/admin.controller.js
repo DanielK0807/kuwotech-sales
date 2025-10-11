@@ -214,8 +214,8 @@ export const getBackupHistory = async (req, res) => {
       params.push(backupType);
     }
 
-    query += ' ORDER BY backupAt DESC LIMIT ?';
-    params.push(parseInt(limit));
+    // LIMIT은 문자열에 직접 포함 (placeholder 사용 시 에러 발생)
+    query += ` ORDER BY backupAt DESC LIMIT ${parseInt(limit)}`;
 
     const [rows] = await db.execute(query, params);
 
@@ -351,8 +351,8 @@ export const getSecurityLogs = async (req, res) => {
       params.push(userId);
     }
 
-    query += ' ORDER BY createdAt DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
+    // LIMIT과 OFFSET은 문자열에 직접 포함 (placeholder 사용 시 에러 발생)
+    query += ` ORDER BY createdAt DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
 
     const [rows] = await db.execute(query, params);
 
