@@ -10,7 +10,9 @@ import {
   fixCompanyColumns,
   saveBackupHistory,
   getBackupHistory,
-  deleteBackupHistory
+  deleteBackupHistory,
+  saveSecurityLog,
+  getSecurityLogs
 } from '../controllers/admin.controller.js';
 
 const router = express.Router();
@@ -26,6 +28,10 @@ router.post('/migrate/fix-company-columns', fixCompanyColumns);
 router.post('/backup-history', saveBackupHistory);
 router.get('/backup-history', getBackupHistory);
 router.delete('/backup-history/:id', deleteBackupHistory);
+
+// 보안 로그 관리
+router.post('/security-logs', saveSecurityLog);
+router.get('/security-logs', getSecurityLogs);
 
 // ==========================================
 // POST /api/admin/migrate - 실적보고서 마이그레이션 실행

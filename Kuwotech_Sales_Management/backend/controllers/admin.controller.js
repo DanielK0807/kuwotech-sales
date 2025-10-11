@@ -275,3 +275,105 @@ export const deleteBackupHistory = async (req, res) => {
     });
   }
 };
+
+// ============================================
+// 보안 로그 관리
+// ============================================
+
+// POST /api/admin/security-logs
+// 보안 로그 저장
+export const saveSecurityLog = async (req, res) => {
+  try {
+    const { eventType, userId, username, data, fingerprint } = req.body;
+
+    // 필수 필드 검증
+    if (!eventType) {
+      return res.status(400).json({
+        success: false,
+        message: 'eventType은 필수입니다.'
+      });
+    }
+
+    const db = await getDB();
+
+    // 클라이언트 정보 추출
+    const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+
+    const [result] = await db.execute(
+      `INSERT INTO securityLogs (eventType, userId, username, data, fingerprint, ipAddress, userAgent)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        eventType,
+        userId || null,
+        username || null,
+        data ? JSON.stringify(data) : null,
+        fingerprint || null,
+        ipAddress || null,
+        userAgent || null
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: '보안 로그가 저장되었습니다.',
+      id: result.insertId
+    });
+
+  } catch (error) {
+    console.error('❌ 보안 로그 저장 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '보안 로그 저장 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+};
+
+// GET /api/admin/security-logs
+// 보안 로그 조회
+export const getSecurityLogs = async (req, res) => {
+  try {
+    const { eventType, userId, limit = 100, offset = 0 } = req.query;
+
+    const db = await getDB();
+
+    let query = 'SELECT * FROM securityLogs WHERE 1=1';
+    const params = [];
+
+    if (eventType) {
+      query += ' AND eventType = ?';
+      params.push(eventType);
+    }
+
+    if (userId) {
+      query += ' AND userId = ?';
+      params.push(userId);
+    }
+
+    query += ' ORDER BY createdAt DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
+
+    const [rows] = await db.execute(query, params);
+
+    // JSON 파싱
+    const logs = rows.map(row => ({
+      ...row,
+      data: row.data ? JSON.parse(row.data) : null
+    }));
+
+    res.json({
+      success: true,
+      logs: logs,
+      count: logs.length
+    });
+
+  } catch (error) {
+    console.error('❌ 보안 로그 조회 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '보안 로그 조회 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+};

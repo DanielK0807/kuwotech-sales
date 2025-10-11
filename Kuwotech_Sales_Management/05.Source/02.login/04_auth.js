@@ -624,18 +624,35 @@ export class AuthManager {
     }
     
     async sendSecurityLog(logEntry) {
-        // TODO: DatabaseManager를 통한 보안 로그 전송
-        // 현재는 콘솔 로그만 사용
+        // 백엔드 API를 통한 보안 로그 전송
+        try {
+            const response = await fetch('/api/admin/security-logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    eventType: logEntry.type,
+                    userId: logEntry.data?.userId,
+                    username: logEntry.data?.username,
+                    data: logEntry.data,
+                    fingerprint: await logEntry.fingerprint // Promise이므로 await 필요
+                })
+            });
 
-        // 추후 백엔드 보안 로그 API 구현 시 활성화
-        // try {
-        //     await this.dbManager.request(`${ENDPOINTS.SECURITY}/log`, {
-        //         method: 'POST',
-        //         body: JSON.stringify(logEntry)
-        //     });
-        // } catch (error) {
-        //     // 로그 전송 실패는 무시 (사용자 경험에 영향 없음)
-        // }
+            if (!response.ok) {
+                throw new Error('보안 로그 전송 실패');
+            }
+
+            logger.info('[보안 로그 전송 성공]', logEntry.type);
+
+        } catch (error) {
+            // 로그 전송 실패는 무시 (사용자 경험에 영향 없음)
+            // 개발 환경에서만 에러 표시
+            if (this.isDevelopmentMode()) {
+                logger.error('[보안 로그 전송 실패]', error);
+            }
+        }
     }
     
     // ============================================
