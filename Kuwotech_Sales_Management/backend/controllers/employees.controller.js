@@ -111,6 +111,23 @@ export const updateEmployee = async (req, res) => {
       });
     }
 
+    const currentEmployee = employees[0];
+
+    // 이름이 변경되는 경우, 중복 체크 (현재 직원 제외)
+    if (name !== undefined && name !== currentEmployee.name) {
+      const [duplicateCheck] = await db.execute(
+        'SELECT id FROM employees WHERE name = ? AND id != ?',
+        [name, id]
+      );
+
+      if (duplicateCheck.length > 0) {
+        return res.status(409).json({
+          error: 'Conflict',
+          message: `이미 "${name}" 이름의 다른 직원이 존재합니다.`
+        });
+      }
+    }
+
     // 업데이트할 필드들을 동적으로 구성
     const updates = [];
     const values = [];
