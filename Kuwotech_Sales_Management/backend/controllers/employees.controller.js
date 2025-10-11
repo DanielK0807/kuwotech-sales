@@ -3,6 +3,7 @@
 // ============================================
 
 import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../config/database.js';
 
 // GET /api/employees - 전체 직원 조회
@@ -262,7 +263,6 @@ export const createEmployee = async (req, res) => {
     }
 
     const db = await getDB();
-    const { v4: uuidv4 } = await import('uuid');
     const employeeId = uuidv4();
 
     // 기본 비밀번호 생성 (이름 + 0000)
