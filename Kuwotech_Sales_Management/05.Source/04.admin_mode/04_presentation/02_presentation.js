@@ -4,7 +4,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { showToast } from '../../01.common/20_common_index.js';
-import { formatCurrency, formatDate, formatNumber } from '../../01.common/03_format.js';
+import { formatCurrency, formatDate, formatDateRange, formatNumber } from '../../01.common/03_format.js';
 import { GlobalConfig } from '../../01.common/01_global_config.js';
 
 // ============================================
@@ -704,19 +704,6 @@ function renderPeriodDisplay() {
     if (periodRangeEl) {
         periodRangeEl.textContent = periodText;
     }
-}
-
-/**
- * 날짜 범위 포맷팅
- */
-function formatDateRange(start, end) {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    const startStr = `${startDate.getFullYear()}년 ${startDate.getMonth() + 1}월 ${startDate.getDate()}일`;
-    const endStr = `${endDate.getFullYear()}년 ${endDate.getMonth() + 1}월 ${endDate.getDate()}일`;
-
-    return `${startStr} ~ ${endStr}`;
 }
 
 /**
