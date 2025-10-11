@@ -10,7 +10,7 @@ import { GlobalConfig } from '../../01.common/01_global_config.js';
 // ============================================
 // 전역 변수
 // ============================================
-const apiManager = new ApiManager();
+const apiManager = ApiManager.getInstance();
 
 let allReports = [];           // 전체 보고서 데이터
 let filteredReports = [];      // 필터링된 보고서

@@ -20,7 +20,7 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 // ============================================
 // 전역 변수 및 상수
 // ============================================
-const apiManager = new ApiManager();
+const apiManager = ApiManager.getInstance();
 
 let allReports = [];           // 전체 보고서 데이터
 let allEmployees = [];         // 전체 직원 데이터

@@ -16,7 +16,7 @@ import { formatDate, formatCurrency } from '../../01.common/03_format.js';
 // ============================================
 // 전역 변수
 // ============================================
-const apiManager = new ApiManager();
+const apiManager = ApiManager.getInstance();
 
 let allReportsWithFeedback = [];  // 관리자 의견이 있는 보고서 목록
 let selectedReportId = null;      // 현재 선택된 보고서 ID

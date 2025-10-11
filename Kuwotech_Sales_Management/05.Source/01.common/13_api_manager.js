@@ -41,10 +41,30 @@ const API_CONFIG = {
 };
 
 // ============================================
-// API Manager 클래스
+// API Manager 클래스 (싱글톤 패턴)
 // ============================================
 class ApiManager {
+    // 싱글톤 인스턴스
+    static instance = null;
+
+    /**
+     * 싱글톤 인스턴스 가져오기
+     * @param {string} environment - 환경 (선택)
+     * @returns {ApiManager} API Manager 인스턴스
+     */
+    static getInstance(environment) {
+        if (!ApiManager.instance) {
+            ApiManager.instance = new ApiManager(environment);
+        }
+        return ApiManager.instance;
+    }
+
     constructor(environment) {
+        // 싱글톤 패턴: 이미 인스턴스가 있으면 기존 인스턴스 반환
+        if (ApiManager.instance) {
+            return ApiManager.instance;
+        }
+
         // 환경 자동 감지 (GlobalConfig의 중앙 함수 사용)
         if (!environment) {
             environment = detectEnvironment();
@@ -88,6 +108,12 @@ class ApiManager {
         this.monitoringInterval = null;
         this.monitoringIntervalTime = 30000;
 
+        // 초기화 상태
+        this.isInitialized = false;
+        this.isInitializing = false;
+
+        // 싱글톤 인스턴스 저장
+        ApiManager.instance = this;
     }
 
     /**

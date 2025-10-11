@@ -20,7 +20,7 @@ import { formatNumber, formatDate } from '../../01.common/03_format.js';
 // =====================================================
 // API Manager 초기화
 // =====================================================
-const apiManager = new ApiManager();
+const apiManager = ApiManager.getInstance();
 
 // =====================================================
 // 전역 상태 관리
