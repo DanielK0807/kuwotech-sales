@@ -34,6 +34,96 @@ router.post('/security-logs', saveSecurityLog);
 router.get('/security-logs', getSecurityLogs);
 
 // ==========================================
+// POST /api/admin/migrate/backup-tables - 백업 및 보안 로그 테이블 생성
+// ==========================================
+router.post('/migrate/backup-tables', async (req, res) => {
+  try {
+    console.log('🚀 백업/보안 로그 테이블 마이그레이션 시작...');
+
+    const { getDB } = await import('../config/database.js');
+    const db = await getDB();
+
+    const results = [];
+
+    // backupHistory 테이블 생성
+    try {
+      console.log('📋 backupHistory 테이블 생성 중...');
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS backupHistory (
+          id INT AUTO_INCREMENT PRIMARY KEY COMMENT '백업 이력 ID',
+          backupType VARCHAR(50) NOT NULL COMMENT '백업 타입 (settings, full_backup)',
+          backupBy VARCHAR(100) NOT NULL COMMENT '백업 실행자',
+          backupAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '백업 일시',
+          format VARCHAR(20) DEFAULT 'excel' COMMENT '백업 형식 (excel, json, csv)',
+          memo TEXT COMMENT '백업 메모',
+          selectedSheets JSON COMMENT '선택된 시트 정보',
+          metadata JSON COMMENT '추가 메타데이터',
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
+          INDEX idx_backup_type (backupType),
+          INDEX idx_backup_by (backupBy),
+          INDEX idx_backup_at (backupAt)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='백업 이력 테이블'
+      `);
+      results.push({ table: 'backupHistory', status: 'success', message: '테이블 생성 완료' });
+      console.log('✅ backupHistory 테이블 생성 완료');
+    } catch (error) {
+      if (error.code === 'ER_TABLE_EXISTS_ERROR') {
+        results.push({ table: 'backupHistory', status: 'skipped', message: '이미 존재함' });
+        console.log('⚠️  backupHistory 테이블이 이미 존재합니다');
+      } else {
+        throw error;
+      }
+    }
+
+    // securityLogs 테이블 생성
+    try {
+      console.log('📋 securityLogs 테이블 생성 중...');
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS securityLogs (
+          id INT AUTO_INCREMENT PRIMARY KEY COMMENT '보안 로그 ID',
+          eventType VARCHAR(50) NOT NULL COMMENT '이벤트 타입',
+          userId VARCHAR(100) COMMENT '사용자 ID',
+          username VARCHAR(100) COMMENT '사용자명',
+          data JSON COMMENT '이벤트 데이터',
+          fingerprint VARCHAR(50) COMMENT '디바이스 핑거프린트',
+          ipAddress VARCHAR(45) COMMENT 'IP 주소',
+          userAgent TEXT COMMENT 'User-Agent',
+          createdAt DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
+          INDEX idx_event_type (eventType),
+          INDEX idx_user_id (userId),
+          INDEX idx_created_at (createdAt)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='보안 로그 테이블'
+      `);
+      results.push({ table: 'securityLogs', status: 'success', message: '테이블 생성 완료' });
+      console.log('✅ securityLogs 테이블 생성 완료');
+    } catch (error) {
+      if (error.code === 'ER_TABLE_EXISTS_ERROR') {
+        results.push({ table: 'securityLogs', status: 'skipped', message: '이미 존재함' });
+        console.log('⚠️  securityLogs 테이블이 이미 존재합니다');
+      } else {
+        throw error;
+      }
+    }
+
+    console.log('✅ 마이그레이션 완료');
+
+    res.json({
+      success: true,
+      message: '백업/보안 로그 테이블 마이그레이션 완료',
+      results: results
+    });
+
+  } catch (error) {
+    console.error('❌ 마이그레이션 실패:', error);
+    res.status(500).json({
+      success: false,
+      message: '마이그레이션 실패',
+      error: error.message
+    });
+  }
+});
+
+// ==========================================
 // POST /api/admin/migrate - 실적보고서 마이그레이션 실행
 // ==========================================
 router.post('/migrate', async (req, res) => {
