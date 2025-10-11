@@ -24,35 +24,25 @@ class SystemLoader {
      * 전체 시스템 초기화
      */
     async init(options = {}) {
-        console.log('====================================');
-        console.log('[시스템 로더] 초기화 시작');
-        console.log('====================================');
         
         const startTime = performance.now();
         
         try {
             // 1. CSS 변수 시스템 로드
             await this.loadStyles();
-            console.log('[1/4] 스타일 시스템 로드 완료');
             
             // 2. 매니저 시스템 로드
             await this.loadManagers(options.managers);
-            console.log('[2/4] 매니저 시스템 로드 완료');
             
             // 3. 컴포넌트 시스템 로드
             await this.loadComponents(options.components);
-            console.log('[3/4] 컴포넌트 시스템 로드 완료');
             
             // 4. 페이지별 초기화
             await this.initializePage(options.page);
-            console.log('[4/4] 페이지 초기화 완료');
             
             const endTime = performance.now();
             const loadTime = (endTime - startTime).toFixed(2);
             
-            console.log('====================================');
-            console.log(`[시스템 로더] 초기화 완료 (${loadTime}ms)`);
-            console.log('====================================');
             
             // 초기화 완료 이벤트
             window.dispatchEvent(new CustomEvent('systemReady', {
@@ -122,7 +112,6 @@ class SystemLoader {
         // ThemeManager.init()에서 이미 테마를 설정하므로 여기서 재적용 불필요
         // HTML의 <body class="theme-*">만으로도 충분히 작동함
         if (window.themeManager) {
-            console.log('[시스템 로더] ThemeManager 확인: 현재 테마', window.themeManager.getCurrentTheme());
             // 테마 재적용하지 않음 - 이미 설정된 테마 유지
         }
         
@@ -300,7 +289,6 @@ class SystemLoader {
      */
     async initReportsPage() {
         // 보고서 작성 버튼 - 실제 모달은 각 페이지에서 구현
-        console.log('[보고서 페이지] 초기화 완료');
     }
     
     /**

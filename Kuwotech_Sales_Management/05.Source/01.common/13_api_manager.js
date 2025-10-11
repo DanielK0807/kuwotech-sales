@@ -88,21 +88,17 @@ class ApiManager {
         this.monitoringInterval = null;
         this.monitoringIntervalTime = 30000;
 
-        console.log(`[API Manager] 환경: ${this.currentEnvironment}`);
-        console.log(`[API Manager] API URL: ${this.config.baseURL}`);
     }
 
     /**
      * 초기화
      */
     async init() {
-        console.log('[API Manager] 초기화 시작...');
         
         // API 헬스 체크
         const isConnected = await this.checkServerConnection();
         
         if (isConnected) {
-            console.log('✅ [API Manager] 백엔드 서버 연결 성공');
             this.startMonitoring();
         } else {
             console.error('❌ [API Manager] 백엔드 서버 연결 실패');
@@ -119,7 +115,6 @@ class ApiManager {
     async checkServerConnection(silent = false) {
         try {
             if (!silent) {
-                console.log('[API Manager] 서버 연결 확인 중...');
             }
             
             const controller = new AbortController();
@@ -138,7 +133,6 @@ class ApiManager {
                 this.serverStatus.reconnectAttempts = 0;
                 
                 if (!silent) {
-                    console.log('✅ [API Manager] 서버 응답 정상');
                 }
                 
                 // 연결 성공 시 에러 UI 숨김
@@ -169,7 +163,6 @@ class ApiManager {
             clearInterval(this.monitoringInterval);
         }
         
-        console.log('[API Manager] 서버 모니터링 시작 (30초 간격)');
         
         this.monitoringInterval = setInterval(async () => {
             const isOnline = await this.checkServerConnection(true);
@@ -186,7 +179,6 @@ class ApiManager {
      * 재연결 시도
      */
     async startReconnection() {
-        console.log('[API Manager] 자동 재연결 시도 시작...');
         
         const reconnectInterval = setInterval(async () => {
             if (this.serverStatus.reconnectAttempts >= this.serverStatus.maxReconnectAttempts) {
@@ -197,13 +189,11 @@ class ApiManager {
             }
             
             this.serverStatus.reconnectAttempts++;
-            console.log(`[API Manager] 재연결 시도 ${this.serverStatus.reconnectAttempts}/${this.serverStatus.maxReconnectAttempts}`);
             
             const isConnected = await this.checkServerConnection(true);
             
             if (isConnected) {
                 clearInterval(reconnectInterval);
-                console.log('✅ [API Manager] 서버 재연결 성공!');
                 this.showReconnectSuccess();
                 this.startMonitoring();
             }
@@ -296,12 +286,10 @@ class ApiManager {
      * 수동 재연결 시도
      */
     async retryConnection() {
-        console.log('[API Manager] 수동 재연결 시도...');
         
         const isConnected = await this.checkServerConnection();
         
         if (isConnected) {
-            console.log('✅ [API Manager] 재연결 성공!');
             this.startMonitoring();
             return true;
         } else {
@@ -482,9 +470,6 @@ class ApiManager {
         const finalConfig = await this.beforeRequest(config);
 
         // 🔍 DEBUG: 요청 헤더 로그
-        console.log('[API Manager] 요청 URL:', `${this.config.baseURL}${endpoint}`);
-        console.log('[API Manager] 요청 헤더:', finalConfig.headers);
-        console.log('[API Manager] authToken 존재:', !!this.storage.get('authToken'));
 
         let lastError;
         for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {

@@ -279,11 +279,6 @@ class SessionManager {
         const timeSinceActivity = Date.now() - this.lastActivity;
         
         console.group('Session Debug Info');
-        console.log('User:', user);
-        console.log('Token:', token ? '***' + token.slice(-4) : 'None');
-        console.log('Token Valid:', isValid);
-        console.log('Time Since Activity:', Math.floor(timeSinceActivity / 1000), 'seconds');
-        console.log('Session Data:', this.storage.getAll());
         console.groupEnd();
     }
 }
@@ -297,11 +292,9 @@ window.sessionManager = sessionManager;
 // 헬퍼 함수들
 export function startSessionMonitoring() {
     sessionManager.startSessionTimer();
-    console.log('[세션] 모니터링 시작');
 }
 
 export function handleLogout() {
-    console.log('[세션] 로그아웃 처리 시작');
     
     // 현재 로그인 데이터 백업 (역할선택 단계로 돌아가기 위해)
     const user = sessionManager.getUser();
@@ -334,7 +327,6 @@ export function handleLogout() {
             sessionStorage.setItem('employees_data', user.employeesData || '[]');
         }
         
-        console.log('[세션] 역할선택 단계로 돌아가기 위한 데이터 복원 완료');
     }
     
     // 로그인 페이지로 리다이렉트 (자동으로 Stage 3으로 이동됨)

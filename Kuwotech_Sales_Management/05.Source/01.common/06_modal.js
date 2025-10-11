@@ -588,7 +588,6 @@ function createCompanyDetailModal(companyData) {
                 className: 'btn-secondary',
                 onClick: () => {
                     // 수정 로직
-                    console.log('수정 클릭');
                     return false; // 모달 유지
                 }
             },

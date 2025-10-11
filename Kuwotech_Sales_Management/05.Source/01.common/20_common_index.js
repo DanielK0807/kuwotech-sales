@@ -94,28 +94,24 @@ export { default as Loading } from './22_loading.js';
  * @param {Object} options - 초기화 옵션
  */
 export async function initializeCommonModules(options = {}) {
-    console.log('🚀 공통 모듈 초기화 시작...');
     
     try {
         // 1. 전역 설정 초기화
         const { initGlobalConfig } = await import('./01_global_config.js');
         if (typeof initGlobalConfig === 'function') {
             initGlobalConfig();
-            console.log('✅ 전역 설정 초기화 완료');
         }
         
         // 2. 포맷팅 시스템 초기화
         const { initFormat } = await import('./03_format.js');
         if (typeof initFormat === 'function') {
             initFormat();
-            console.log('✅ 포맷팅 시스템 초기화 완료');
         }
         
         // 3. 디자인 시스템 초기화
         const { initDesign } = await import('./07_design.js');
         if (typeof initDesign === 'function') {
             await initDesign();
-            console.log('✅ 디자인 시스템 초기화 완료');
         }
         
         // 4. 시계 시스템 초기화 (옵션)
@@ -124,7 +120,6 @@ export async function initializeCommonModules(options = {}) {
             initClock({
                 autoStart: false  // floating 시계 자동 생성 방지, 각 레이아웃에서 수동으로 startClock() 호출
             });
-            console.log('✅ 시계 시스템 초기화 완료 (autoStart: false)');
         }
         
         // 5. 스크롤 시스템 초기화
@@ -136,7 +131,6 @@ export async function initializeCommonModules(options = {}) {
                 scrollToTopButton: options.scrollToTopButton,
                 fadeIn: options.fadeInAnimation !== false
             });
-            console.log('✅ 스크롤 시스템 초기화 완료');
         }
         
         // 6. 토스트 시스템 초기화
@@ -144,7 +138,6 @@ export async function initializeCommonModules(options = {}) {
             const { initToast } = await import('./14_toast.js');
             if (typeof initToast === 'function') {
                 initToast();
-                console.log('✅ 토스트 시스템 초기화 완료');
             }
         }
         
@@ -158,13 +151,11 @@ export async function initializeCommonModules(options = {}) {
             window.apiManager = apiManager;
             
             if (isConnected) {
-                console.log('✅ API 매니저 초기화 완료 (서버 연결 성공)');
             } else {
                 console.warn('⚠️ API 매니저 초기화 완료 (서버 연결 실패 - 재연결 시도 중)');
             }
         }
         
-        console.log('🎉 모든 공통 모듈 초기화 완료!');
         return true;
         
     } catch (error) {

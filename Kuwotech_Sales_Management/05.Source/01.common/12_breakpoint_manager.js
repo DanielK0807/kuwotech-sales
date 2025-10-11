@@ -99,7 +99,6 @@ class BreakpointManager {
             setTimeout(() => this.updateBreakpoint(), 100);
         });
         
-        console.log('[BreakpointManager] 초기화 완료');
     }
     
     /**
@@ -164,7 +163,6 @@ class BreakpointManager {
             height: window.innerHeight
         });
         
-        console.log(`[BreakpointManager] 변경: ${from || 'initial'} → ${to}`);
     }
     
     /**
@@ -574,7 +572,6 @@ window.breakpointManager = breakpointManager;
 
 // 레이아웃 변경 이벤트 리스너 예시
 window.addEventListener('layoutchange', (e) => {
-    console.log('[Layout Changed]', e.detail);
 });
 
 export default breakpointManager;

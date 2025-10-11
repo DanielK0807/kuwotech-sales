@@ -69,7 +69,6 @@ class GlassmorphismAutoApply {
      */
     apply() {
         this.currentMode = this.detectMode();
-        console.log(`✨ Glassmorphism Auto Apply: ${this.currentMode} mode detected`);
         
         // 페이지 타입 확인
         const pageType = document.body.dataset.pageType || document.body.dataset.page;
@@ -91,7 +90,6 @@ class GlassmorphismAutoApply {
      * 대시보드 특별 처리
      */
     applyDashboard() {
-        console.log('📊 Applying Dashboard Glassmorphism...');
         
         // KPI 카드
         document.querySelectorAll('.kpi-card').forEach((card, index) => {
@@ -149,7 +147,6 @@ class GlassmorphismAutoApply {
      * 일반 페이지 처리
      */
     applyGeneral() {
-        console.log('📄 Applying General Glassmorphism...');
         
         // 모든 카드
         document.querySelectorAll('.card').forEach(card => {
@@ -359,16 +356,6 @@ class GlassmorphismAutoApply {
      */
     debug() {
         console.group('🔍 Glassmorphism Debug Info');
-        console.log('Current Mode:', this.currentMode);
-        console.log('Page Type:', document.body.dataset.pageType);
-        console.log('Enhanced Elements:', document.querySelectorAll('.glass-enhanced').length);
-        console.log('3D Elements:', document.querySelectorAll('.glass-3d-element').length);
-        console.log('Theme Classes:', Array.from(document.body.classList));
-        console.log('CSS Variables:');
-        console.log('  --layer-1:', getComputedStyle(document.body).getPropertyValue('--layer-1'));
-        console.log('  --layer-2:', getComputedStyle(document.body).getPropertyValue('--layer-2'));
-        console.log('  --primary-color:', getComputedStyle(document.body).getPropertyValue('--primary-color'));
-        console.log('  --glass-bg:', getComputedStyle(document.body).getPropertyValue('--glass-bg'));
         console.groupEnd();
     }
 }
@@ -384,4 +371,3 @@ window.glassmorphismAuto = glassmorphismAuto;
 export { GlassmorphismAutoApply, glassmorphismAuto };
 export default glassmorphismAuto;
 
-console.log('✨ Glassmorphism Auto Apply Module Loaded');

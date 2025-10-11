@@ -103,16 +103,12 @@ const pageFileMap = {
 
 async function initAdminMode() {
     try {
-        console.log('========================================');
-        console.log('[관리자모드] 초기화 시작');
-        console.log('========================================');
         
         // 1. 사용자 인증 확인 - 여러 소스에서 시도
         let userJson = sessionStorage.getItem('user');
         
         // sessionStorage에 없으면 localStorage에서도 확인
         if (!userJson) {
-            console.log('[관리자모드] sessionStorage에 user 없음, localStorage 확인');
             const loginData = localStorage.getItem('loginData');
             if (loginData) {
                 try {
@@ -120,7 +116,6 @@ async function initAdminMode() {
                     if (data.user) {
                         userJson = JSON.stringify(data.user);
                         sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
-                        console.log('[관리자모드] localStorage에서 사용자 정보 복구');
                     }
                 } catch (e) {
                     console.error('[관리자모드] loginData 파싱 실패:', e);
@@ -136,14 +131,12 @@ async function initAdminMode() {
         
         try {
             user = JSON.parse(userJson);
-            console.log('[관리자모드] 로드된 사용자 정보:', user);
             
             // 사용자 이름이 없는 경우 localStorage에서 시도
             if (!user.name) {
                 const savedName = localStorage.getItem('userName');
                 if (savedName) {
                     user.name = savedName;
-                    console.log('[관리자모드] localStorage에서 이름 복구:', savedName);
                 } else {
                     user.name = '사용자';  // 기본값
                     console.warn('[관리자모드] 사용자 이름 없음 - 기본값 사용');
@@ -165,20 +158,14 @@ async function initAdminMode() {
             return;
         }
         
-        console.log('[관리자모드] 권한 확인 완료 - role:', user.role);
         
         // 2. 사용자 정보 표시
-        console.log('[UI] user 객체 전체:', user);
-        console.log('[UI] user.name 값:', user.name);
         
         const userGreeting = document.getElementById('user-greeting');
         if (userGreeting) {
             const userName = user.name || '사용자';
             // 이름만 span으로 감싸서 스타일 적용
             userGreeting.innerHTML = `관리자 <span class="user-name-highlight">${userName}</span>님 수고하십니다.`;
-            console.log(`[UI] 헤더 사용자 정보 표시: 관리자 ${userName}님 수고하십니다.`);
-            console.log('[UI] userGreeting 요소:', userGreeting);
-            console.log('[UI] userGreeting.textContent:', userGreeting.textContent);
         } else {
             console.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
         }
@@ -242,7 +229,6 @@ async function initAdminMode() {
         await loadPage(targetPage);
         
         isInitialized = true;
-        console.log('[관리자모드] 초기화 완료');
         
         // 환영 메시지
         showToast(`안녕하세요, ${user.name}님! 관리자 모드입니다.`, 'success');
@@ -286,7 +272,6 @@ function setupMobileMenuToggle() {
             mobileMenuBtn.classList.add('active');
         }
 
-        console.log(`[모바일 메뉴] 사이드바 ${isOpen ? '닫힘' : '열림'}`);
     });
 
     // 오버레이 클릭 시 사이드바 닫기
@@ -294,7 +279,6 @@ function setupMobileMenuToggle() {
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
         mobileMenuBtn.classList.remove('active');
-        console.log('[모바일 메뉴] 오버레이 클릭 - 사이드바 닫힘');
     });
 
     // 윈도우 리사이즈 시 데스크톱 뷰로 전환되면 사이드바/오버레이 자동 닫기
@@ -311,7 +295,6 @@ function setupMobileMenuToggle() {
         }, 250);
     });
 
-    console.log('✅ 모바일 햄버거 메뉴 토글 설정 완료');
 }
 
 // ============================================
@@ -322,7 +305,6 @@ function setupMobileMenuToggle() {
  * 강정환 관리자 전용 엑셀 업로드 메뉴 표시
  */
 function showExcelUploadMenu() {
-    console.log('[메뉴 표시] 강정환 관리자 전용 엑셀 업로드 메뉴 표시');
 
     const excelMenu = document.getElementById('excel-upload-menu');
     if (!excelMenu) {
@@ -334,7 +316,6 @@ function showExcelUploadMenu() {
     excelMenu.classList.remove('hidden');
     excelMenu.style.display = 'flex';
 
-    console.log('[메뉴 표시] 엑셀 업로드 메뉴 표시 완료 - user.name:', user?.name);
 }
 
 // ============================================
@@ -446,7 +427,6 @@ async function loadPage(page) {
         // HTML 파일 경로
         const htmlPath = `../${mapping.folder}/${mapping.file}.html`;
         
-        console.log(`[페이지 로드] ${page} - ${htmlPath}`);
         
         // HTML 로드
         const response = await fetch(htmlPath);
@@ -485,7 +465,6 @@ function checkPagePermissions(page) {
     const restrictedPages = ['employee-management', 'system-settings'];
     
     if (restrictedPages.includes(page)) {
-        console.log(`[권한 체크] ${page} - 관리자 전용 페이지`);
     }
 }
 
@@ -520,7 +499,6 @@ async function renderPage(container, html, mapping, page) {
             
             await new Promise((resolve, reject) => {
                 script.onload = () => {
-                    console.log(`[스크립트 로드 완료] ${scriptPath}`);
                     resolve();
                 };
                 script.onerror = () => {
@@ -632,15 +610,6 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
         }
     };
     
-    console.log('[관리자모드] 디버그 명령어:');
-    console.log('- adminDebug.currentPage()');
-    console.log('- adminDebug.user()');
-    console.log('- adminDebug.pageMap()');
-    console.log('- adminDebug.navigateTo("dashboard")');
-    console.log('- adminDebug.refreshPage()');
-    console.log('- adminDebug.sessionInfo()');
-    console.log('- adminDebug.simulateReport()');
-    console.log('- adminDebug.systemEvent("warning", "테스트 경고")');
 }
 
 // ============================================
@@ -650,10 +619,8 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 if (document.readyState === 'loading') {
     // DOM이 아직 로딩 중이면 이벤트 리스너 등록
     document.addEventListener('DOMContentLoaded', initAdminMode);
-    console.log('[관리자모드] DOMContentLoaded 이벤트 리스너 등록 완료');
 } else {
     // DOM이 이미 로드되었으면 바로 실행
-    console.log('[관리자모드] DOM 이미 로드됨 - 초기화 함수 바로 실행');
     initAdminMode();
 }
 

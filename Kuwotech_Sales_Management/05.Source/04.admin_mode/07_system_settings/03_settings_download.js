@@ -30,7 +30,6 @@ import { showModal } from '../../01.common/06_modal.js';
  * HTML의 백업/다운로드 버튼에 이벤트 연결
  */
 export function initSettingsBackupButton() {
-    console.log('[시스템설정 백업] 버튼 초기화');
     
     // 백업 버튼 찾기 (여러 패턴 지원)
     const backupBtn = document.getElementById('btn-backup-settings') ||
@@ -44,7 +43,6 @@ export function initSettingsBackupButton() {
         // 새 이벤트 리스너 추가
         backupBtn.addEventListener('click', showBackupOptions);
         
-        console.log('[시스템설정 백업] 버튼 이벤트 연결 완료');
     } else {
         console.warn('[시스템설정 백업] 백업 버튼을 찾을 수 없습니다');
     }
@@ -367,7 +365,6 @@ async function executeBackup(format, options = {}) {
             return;
         }
         
-        console.log('[시스템설정 백업] 시작:', { format, user: user.name, options });
         
         // 통합 다운로드 매니저 호출
         const result = await downloadManager.download({
@@ -388,7 +385,6 @@ async function executeBackup(format, options = {}) {
         });
         
         if (result.success) {
-            console.log('[시스템설정 백업] 성공');
             
             // 백업 이력 저장 (TODO: 구현 필요)
             await saveBackupHistory({
@@ -422,7 +418,6 @@ async function executeBackup(format, options = {}) {
 async function saveBackupHistory(backupInfo) {
     try {
         // TODO: IndexedDB에 백업 이력 저장
-        console.log('[백업 이력 저장]', backupInfo);
         
         // localStorage에 임시 저장 (TODO: IndexedDB로 이전)
         const history = JSON.parse(localStorage.getItem('backup_history') || '[]');
@@ -491,7 +486,6 @@ export async function quickBackup() {
             return;
         }
         
-        console.log('[빠른 백업] 시작');
         
         await downloadManager.download({
             downloadType: DOWNLOAD_TYPES.ADMIN_SETTINGS,

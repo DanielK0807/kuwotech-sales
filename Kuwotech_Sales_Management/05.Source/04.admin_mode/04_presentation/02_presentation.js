@@ -42,7 +42,6 @@ let endDatePicker = null;      // 종료일 Flatpickr 인스턴스
 // 초기화
 // ============================================
 async function init() {
-    console.log('📊 보고서 발표 페이지 초기화...');
 
     // 이벤트 리스너 등록
     setupEventListeners();
@@ -66,7 +65,6 @@ async function init() {
  */
 async function loadMasterData() {
     try {
-        console.log('[마스터데이터] 로드 시작');
         const authToken = localStorage.getItem('authToken');
 
         if (!authToken) {
@@ -75,13 +73,11 @@ async function loadMasterData() {
             return;
         }
 
-        console.log('🔑 [마스터데이터] 인증 토큰 확인:', authToken.substring(0, 20) + '...');
 
         // API Base URL 가져오기 (GlobalConfig 사용)
         const API_BASE_URL = GlobalConfig.API_BASE_URL;
 
         // 1. 담당부서 목록 로드
-        console.log('📡 [담당부서] API 호출 시작:', `${API_BASE_URL}/api/master/departments`);
         const departmentsResponse = await fetch(`${API_BASE_URL}/api/master/departments`, {
             method: 'GET',
             headers: {
@@ -90,15 +86,12 @@ async function loadMasterData() {
             }
         });
 
-        console.log('📡 [담당부서] 응답 상태:', departmentsResponse.status, departmentsResponse.statusText);
 
         if (departmentsResponse.ok) {
             const departmentsData = await departmentsResponse.json();
-            console.log('📦 [담당부서] 응답 데이터:', departmentsData);
 
             if (departmentsData.success && Array.isArray(departmentsData.departments)) {
                 populateDepartmentSelect(departmentsData.departments);
-                console.log('✅ [담당부서] 로드 성공:', departmentsData.departments.length, '개');
             } else {
                 console.warn('⚠️ [담당부서] 응답 형식 오류:', departmentsData);
             }
@@ -109,7 +102,6 @@ async function loadMasterData() {
         }
 
         // 2. 직원 목록 로드
-        console.log('📡 [직원] API 호출 시작:', `${API_BASE_URL}/api/employees`);
         const employeesResponse = await fetch(`${API_BASE_URL}/api/employees`, {
             method: 'GET',
             headers: {
@@ -118,15 +110,12 @@ async function loadMasterData() {
             }
         });
 
-        console.log('📡 [직원] 응답 상태:', employeesResponse.status, employeesResponse.statusText);
 
         if (employeesResponse.ok) {
             const employeesData = await employeesResponse.json();
-            console.log('📦 [직원] 응답 데이터:', employeesData);
 
             if (employeesData.success && Array.isArray(employeesData.employees)) {
                 populateEmployeeSelect(employeesData.employees);
-                console.log('✅ [직원] 로드 성공:', employeesData.employees.length, '개');
             } else {
                 console.warn('⚠️ [직원] 응답 형식 오류:', employeesData);
             }
@@ -207,7 +196,6 @@ function populateEmployeeSelect(employees) {
         return isRole1Sales || isRole2Sales;
     });
 
-    console.log(`📋 [직원 필터링] 전체: ${employees.length}명 → 영업담당: ${salesEmployees.length}명`);
 
     // 기존 보고서 발표용 select
     if (employeeSelect) {
@@ -321,7 +309,6 @@ function handleSectionToggle(event) {
     const section = button.dataset.section;
     const action = button.dataset.action;
 
-    console.log(`[섹션토글] ${section} - ${action}`);
 
     // 섹션별 컨텐츠 요소 찾기
     let sectionElement, contentElements;
@@ -365,7 +352,6 @@ function handleSectionToggle(event) {
         contentElements.forEach(el => {
             el.style.display = 'block';
         });
-        console.log(`[섹션토글] ${section} 섹션 펼침`);
 
         // 실적보고 섹션인 경우 필터 토글 버튼 표시
         if (section === 'performance') {
@@ -387,7 +373,6 @@ function handleSectionToggle(event) {
         contentElements.forEach(el => {
             el.style.display = 'none';
         });
-        console.log(`[섹션토글] ${section} 섹션 접힘`);
 
         // 실적보고 섹션인 경우 필터 토글 버튼 숨김
         if (section === 'performance') {
@@ -424,12 +409,10 @@ function handleFilterToggle(event) {
         // 필터 영역 숨김
         filtersElement.style.display = 'none';
         toggleText.textContent = '펼치기';
-        console.log('[필터토글] 필터 영역 숨김');
     } else {
         // 필터 영역 표시
         filtersElement.style.display = 'block';
         toggleText.textContent = '접기';
-        console.log('[필터토글] 필터 영역 표시');
     }
 }
 
@@ -450,12 +433,10 @@ function handleComparisonFilterToggle(event) {
         // 필터 영역 숨김
         filtersElement.style.display = 'none';
         toggleText.textContent = '펼치기';
-        console.log('[비교보고 필터토글] 필터 영역 숨김');
     } else {
         // 필터 영역 표시
         filtersElement.style.display = 'block';
         toggleText.textContent = '접기';
-        console.log('[비교보고 필터토글] 필터 영역 표시');
     }
 }
 
@@ -468,11 +449,9 @@ function handleComparisonFilterToggle(event) {
  */
 async function loadReports() {
     try {
-        console.log('📋 보고서 데이터 로드 중...');
 
         // 기간 계산
         const dateRange = calculateDateRange(currentFilters.period);
-        console.log(`📅 [조회 기간] ${dateRange.start} ~ ${dateRange.end} (${currentFilters.period})`);
 
         // API 호출 (모든 보고서 조회)
         const response = await apiManager.getReports({
@@ -489,7 +468,6 @@ async function loadReports() {
             allReports = [];
         }
 
-        console.log(`✅ 보고서 ${allReports.length}건 로드 완료`);
 
         // 작성자별 통계
         if (allReports.length > 0) {
@@ -498,7 +476,6 @@ async function loadReports() {
                 const submitter = report.submittedBy || '미상';
                 submitterCounts[submitter] = (submitterCounts[submitter] || 0) + 1;
             });
-            console.log('📊 [작성자별 보고서 수]', submitterCounts);
         }
 
         // 오늘 날짜 보고서 로드 (영업담당자 통계용)
@@ -511,11 +488,7 @@ async function loadReports() {
         applyFiltersAndRender();
 
         // 영업담당자 통계 렌더링
-        console.log('📊 [loadReports] renderEmployeeReportStats() 호출 직전');
-        console.log('📊 [loadReports] employeesMap 상태:', Object.keys(employeesMap).length, '명');
-        console.log('📊 [loadReports] todayReports 상태:', todayReports.length, '건');
         renderEmployeeReportStats();
-        console.log('📊 [loadReports] renderEmployeeReportStats() 호출 완료');
 
     } catch (error) {
         console.error('❌ 보고서 로드 실패:', error);
@@ -528,14 +501,12 @@ async function loadReports() {
  */
 async function loadTodayReports() {
     try {
-        console.log('[올해누적보고서] 데이터 로드 중...');
         const today = new Date();
         const startOfYear = new Date(today.getFullYear(), 0, 1); // 올해 1월 1일
 
         const startDate = startOfYear.toISOString().split('T')[0];
         const endDate = today.toISOString().split('T')[0];
 
-        console.log(`[올해누적보고서] 조회 기간: ${startDate} ~ ${endDate}`);
 
         // API 호출 (올해 1월 1일부터 오늘까지)
         const response = await apiManager.getReports({
@@ -552,7 +523,6 @@ async function loadTodayReports() {
             todayReports = [];
         }
 
-        console.log(`✅ [올해누적보고서] ${todayReports.length}건 로드 완료`);
     } catch (error) {
         console.error('❌ [올해누적보고서] 로드 실패:', error);
         todayReports = [];
@@ -565,26 +535,22 @@ async function loadTodayReports() {
 async function loadCompanies() {
     try {
         const response = await apiManager.getCompanies();
-        console.log('📦 [거래처] 응답 데이터:', response);
 
         // API Manager는 응답을 그대로 반환
         if (response && response.companies && Array.isArray(response.companies)) {
             response.companies.forEach(company => {
                 companiesMap[company.keyValue] = company;
             });
-            console.log(`✅ 거래처 ${response.companies.length}개 로드 완료 (총: ${response.total}개)`);
         } else if (response && response.data && Array.isArray(response.data.companies)) {
             // 혹시 response.data에 있을 경우 대비
             response.data.companies.forEach(company => {
                 companiesMap[company.keyValue] = company;
             });
-            console.log(`✅ 거래처 ${response.data.companies.length}개 로드 완료`);
         } else if (Array.isArray(response)) {
             // 배열 형태로 올 경우
             response.forEach(company => {
                 companiesMap[company.keyValue] = company;
             });
-            console.log(`✅ 거래처 ${response.length}개 로드 완료`);
         } else {
             console.warn('⚠️ 거래처 정보 응답 형식 오류:', response);
         }
@@ -659,7 +625,6 @@ function applyFiltersAndRender() {
         return true;
     });
 
-    console.log(`🔍 필터링 결과: ${filteredReports.length}건`);
 
     // 담당자별 그룹화
     groupedReports = groupByEmployee(filteredReports);
@@ -992,7 +957,6 @@ function handleToggleGroup(event) {
  */
 function handlePeriodChange(event) {
     currentFilters.period = event.target.value;
-    console.log('기간 변경:', currentFilters.period);
 }
 
 /**
@@ -1003,7 +967,6 @@ async function handleApplyFilter() {
     currentFilters.department = document.getElementById('departmentFilter')?.value || '';
     currentFilters.employee = document.getElementById('employeeFilter')?.value || '';
 
-    console.log('필터 적용:', currentFilters);
 
     // 데이터 다시 로드
     await loadReports();
@@ -1013,7 +976,6 @@ async function handleApplyFilter() {
  * 새로고침 핸들러
  */
 async function handleRefresh() {
-    console.log('🔄 데이터 새로고침...');
     showToast('데이터를 새로고침합니다...', 'info');
     await loadReports();
     showToast('새로고침 완료', 'success');
@@ -1300,7 +1262,6 @@ window.closeReportModal = closeReportModal;
  * Flatpickr 달력 초기화
  */
 function initComparisonDatePickers() {
-    console.log('[비교보고] Flatpickr 초기화 시작');
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -1312,7 +1273,6 @@ function initComparisonDatePickers() {
     if (startDateEl) {
         // ✅ Flatpickr 라이브러리 확인
         if (typeof flatpickr !== 'undefined') {
-            console.log('[비교보고] ✅ Flatpickr 라이브러리 감지됨');
 
             try {
                 startDatePicker = flatpickr(startDateEl, {
@@ -1325,7 +1285,6 @@ function initComparisonDatePickers() {
                     position: 'auto',                // 위치 자동 조정
                     disableMobile: false,            // 모바일에서도 커스텀 달력 사용
                     onChange: function(selectedDates, dateStr) {
-                        console.log('[비교보고] 시작일 선택:', dateStr);
                         comparisonFilters.startDate = dateStr;
                         updateComparisonPeriodDisplay();
 
@@ -1337,7 +1296,6 @@ function initComparisonDatePickers() {
                 });
 
                 comparisonFilters.startDate = defaultRange.start;
-                console.log('[비교보고] ✅ 시작일 Flatpickr 적용 완료');
             } catch (error) {
                 console.error('[비교보고] ❌ 시작일 Flatpickr 초기화 오류:', error);
                 // 오류 시 폴백
@@ -1374,7 +1332,6 @@ function initComparisonDatePickers() {
                     position: 'auto',                // 위치 자동 조정
                     disableMobile: false,            // 모바일에서도 커스텀 달력 사용
                     onChange: function(selectedDates, dateStr) {
-                        console.log('[비교보고] 종료일 선택:', dateStr);
                         comparisonFilters.endDate = dateStr;
                         updateComparisonPeriodDisplay();
 
@@ -1386,7 +1343,6 @@ function initComparisonDatePickers() {
                 });
 
                 comparisonFilters.endDate = defaultRange.end;
-                console.log('[비교보고] ✅ 종료일 Flatpickr 적용 완료');
             } catch (error) {
                 console.error('[비교보고] ❌ 종료일 Flatpickr 초기화 오류:', error);
                 // 오류 시 폴백
@@ -1414,7 +1370,6 @@ function initComparisonDatePickers() {
  * 기간확정 버튼 핸들러
  */
 function handleConfirmPeriod() {
-    console.log('[비교보고] 기간확정 버튼 클릭');
 
     // 날짜 입력 필드에서 직접 값 읽기 (Flatpickr가 제대로 작동하지 않을 경우 대비)
     const startDateInput = document.getElementById('comparisonStartDate');
@@ -1427,7 +1382,6 @@ function handleConfirmPeriod() {
         comparisonFilters.endDate = endDateInput.value;
     }
 
-    console.log('[비교보고] 날짜 필터 확인:', {
         startDate: comparisonFilters.startDate,
         endDate: comparisonFilters.endDate
     });
@@ -1451,7 +1405,6 @@ function handleConfirmPeriod() {
     const periodText = formatDateRange(comparisonFilters.startDate, comparisonFilters.endDate);
     showToast(`기간이 확정되었습니다: ${periodText}`, 'success');
 
-    console.log('[비교보고] 기간 확정 완료 - 이제 기간 유형과 담당부서/담당자를 선택하세요');
 }
 
 /**
@@ -1459,7 +1412,6 @@ function handleConfirmPeriod() {
  */
 function handleComparisonPeriodChange(event) {
     comparisonFilters.period = event.target.value;
-    console.log('[비교보고] 기간 유형 변경:', comparisonFilters.period);
 
     // 주간/월간/연간은 단지 테이블 표시 방식만 변경
     // 시작일/종료일은 사용자가 입력한 값 유지
@@ -1470,7 +1422,6 @@ function handleComparisonPeriodChange(event) {
  * 선택된 기간 표시 업데이트
  */
 function updateComparisonPeriodDisplay() {
-    console.log('[비교보고] updateComparisonPeriodDisplay() 호출');
 
     const periodRangeEl = document.getElementById('comparisonPeriodRange');
 
@@ -1479,7 +1430,6 @@ function updateComparisonPeriodDisplay() {
         return;
     }
 
-    console.log('[비교보고] 현재 필터 상태:', {
         startDate: comparisonFilters.startDate,
         endDate: comparisonFilters.endDate
     });
@@ -1487,10 +1437,8 @@ function updateComparisonPeriodDisplay() {
     if (comparisonFilters.startDate && comparisonFilters.endDate) {
         const periodText = formatDateRange(comparisonFilters.startDate, comparisonFilters.endDate);
         periodRangeEl.textContent = periodText;
-        console.log('[비교보고] ✅ 기간 표시 업데이트 완료:', periodText);
     } else {
         periodRangeEl.textContent = '날짜를 선택하세요';
-        console.log('[비교보고] ⚠️ 날짜가 선택되지 않음');
     }
 }
 
@@ -1498,11 +1446,9 @@ function updateComparisonPeriodDisplay() {
  * 계층적 그룹화 토글 핸들러
  */
 function handleToggleGrouping() {
-    console.log('[그룹화토글] 현재 상태:', comparisonFilters.groupingExpanded);
 
     comparisonFilters.groupingExpanded = !comparisonFilters.groupingExpanded;
 
-    console.log('[그룹화토글] 새 상태:', comparisonFilters.groupingExpanded);
 
     // 버튼 텍스트 업데이트
     const toggleText = document.getElementById('groupingToggleText');
@@ -1529,7 +1475,6 @@ async function handleComparisonSearch() {
     comparisonFilters.employee = document.getElementById('comparisonEmployee')?.value || '';
     comparisonFilters.includeZeroReports = document.getElementById('includeZeroReports')?.checked || false;
 
-    console.log('[비교보고] 📋 필터 값 확인:', {
         department: comparisonFilters.department,
         employee: comparisonFilters.employee,
         includeZeroReports: comparisonFilters.includeZeroReports,
@@ -1550,7 +1495,6 @@ async function handleComparisonSearch() {
         return;
     }
 
-    console.log('[비교보고] 조회 시작:', comparisonFilters);
     showToast('비교보고 데이터를 조회합니다...', 'info');
 
     try {
@@ -1566,8 +1510,6 @@ async function handleComparisonSearch() {
  */
 async function loadComparisonReports() {
     try {
-        console.log('[비교보고] 데이터 로드 중...');
-        console.log(`[비교보고] 📅 조회 기간: ${comparisonFilters.startDate} ~ ${comparisonFilters.endDate}`);
 
         // API 호출 파라미터 구성
         const params = {
@@ -1586,7 +1528,6 @@ async function loadComparisonReports() {
             params.submittedBy = comparisonFilters.employee;
         }
 
-        console.log('[비교보고] API 요청 파라미터:', params);
 
         // API 호출
         const response = await apiManager.getReports(params);
@@ -1600,7 +1541,6 @@ async function loadComparisonReports() {
             comparisonReports = [];
         }
 
-        console.log(`[비교보고] 📦 API로부터 ${comparisonReports.length}건 조회됨`);
 
         // 작성자별로 보고서 수 확인
         const submitterCounts = {};
@@ -1608,14 +1548,12 @@ async function loadComparisonReports() {
             const submitter = report.submittedBy || '미상';
             submitterCounts[submitter] = (submitterCounts[submitter] || 0) + 1;
         });
-        console.log('[비교보고] 📊 작성자별 보고서 수 (필터링 전):', submitterCounts);
 
         // ✅ 클라이언트 사이드 필터링 (API가 필터를 보냈으면 이미 필터링됨)
         // API에 department나 submittedBy 파라미터를 전달했다면 클라이언트 필터링 스킵
         const apiFilteredByDepartment = params.department !== undefined;
         const apiFilteredByEmployee = params.submittedBy !== undefined;
 
-        console.log('[비교보고] 필터링 전략:', {
             API부서필터: apiFilteredByDepartment,
             API담당자필터: apiFilteredByEmployee,
             클라이언트부서필터필요: comparisonFilters.department && !apiFilteredByDepartment,
@@ -1632,16 +1570,13 @@ async function loadComparisonReports() {
                 const passed = reportDepartment === comparisonFilters.department;
 
                 if (!passed) {
-                    console.log(`[비교보고] ⚠️ 부서 필터링됨 - ${report.submittedBy} (${reportDepartment} ≠ ${comparisonFilters.department})`);
                 }
 
                 return passed;
             });
 
-            console.log(`[비교보고] ✅ 클라이언트 부서 필터링 완료: ${beforeClientFilterCount}건 → ${comparisonReports.length}건`);
             beforeClientFilterCount = comparisonReports.length;
         } else if (comparisonFilters.department && apiFilteredByDepartment) {
-            console.log(`[비교보고] ℹ️ API에서 이미 부서로 필터링됨 - 클라이언트 필터링 스킵`);
         }
 
         // 내부담당자 필터 (API에서 필터링하지 않았을 경우에만 클라이언트에서 필터링)
@@ -1650,15 +1585,12 @@ async function loadComparisonReports() {
                 const passed = report.submittedBy === comparisonFilters.employee;
 
                 if (!passed) {
-                    console.log(`[비교보고] ⚠️ 담당자 필터링됨 - ${report.submittedBy} ≠ ${comparisonFilters.employee}`);
                 }
 
                 return passed;
             });
 
-            console.log(`[비교보고] ✅ 클라이언트 담당자 필터링 완료: ${beforeClientFilterCount}건 → ${comparisonReports.length}건`);
         } else if (comparisonFilters.employee && apiFilteredByEmployee) {
-            console.log(`[비교보고] ℹ️ API에서 이미 담당자로 필터링됨 - 클라이언트 필터링 스킵`);
         }
 
         // 실적 0 필터링 (체크박스 설정에 따라)
@@ -1673,13 +1605,11 @@ async function loadComparisonReports() {
 
                 // 필터링되는 보고서 로그
                 if (!passed) {
-                    console.log(`[비교보고] ⚠️ 필터링됨 - ${report.submittedBy} (${report.submittedDate}): 수금=${report.actualCollectionAmount}, 매출=${report.actualSalesAmount}`);
                 }
 
                 return passed;
             });
 
-            console.log(`[비교보고] ✅ 필터링 완료: ${beforeFilterCount}건 → ${comparisonReports.length}건 (${beforeFilterCount - comparisonReports.length}건 제외됨)`);
 
             // 필터링 후 작성자별 보고서 수
             const afterSubmitterCounts = {};
@@ -1687,9 +1617,7 @@ async function loadComparisonReports() {
                 const submitter = report.submittedBy || '미상';
                 afterSubmitterCounts[submitter] = (afterSubmitterCounts[submitter] || 0) + 1;
             });
-            console.log('[비교보고] 📊 작성자별 보고서 수 (필터링 후):', afterSubmitterCounts);
         } else {
-            console.log('[비교보고] ℹ️ 실적 0인 보고서 포함 옵션 활성화 - 필터링 생략');
         }
 
         // 선택 기간 표시 업데이트
@@ -1715,7 +1643,6 @@ function generatePeriodRanges(startDate, endDate, periodType) {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    console.log(`[기간생성] 시작: ${startDate}, 종료: ${endDate}, 유형: ${periodType}`);
 
     if (periodType === 'weekly') {
         // 시작일이 속한 주의 월요일부터 시작
@@ -1780,7 +1707,6 @@ function generatePeriodRanges(startDate, endDate, periodType) {
         }
     }
 
-    console.log(`[기간생성] 완료: ${Object.keys(periods).length}개 기간 생성됨`);
     return periods;
 }
 
@@ -1791,7 +1717,6 @@ function groupReportsByPeriod(reports, period, startDate, endDate) {
     // 먼저 선택된 범위 내의 모든 기간 생성
     const grouped = generatePeriodRanges(startDate, endDate, period);
 
-    console.log(`[기간별그룹화] 총 ${Object.keys(grouped).length}개 기간에 ${reports.length}건 보고서 배치 시작`);
 
     // 보고서를 해당 기간에 배치
     reports.forEach(report => {
@@ -1819,7 +1744,6 @@ function groupReportsByPeriod(reports, period, startDate, endDate) {
         }
     });
 
-    console.log('[기간별그룹화] 완료');
     return grouped;
 }
 
@@ -1827,9 +1751,6 @@ function groupReportsByPeriod(reports, period, startDate, endDate) {
  * 부서별 보고서 그룹화
  */
 function groupReportsByDepartment(reports) {
-    console.log('[부서그룹화] === 시작 ===');
-    console.log('[부서그룹화] 입력 보고서 수:', reports.length);
-    console.log('[부서그룹화] employeesMap 크기:', Object.keys(employeesMap).length);
 
     const grouped = {};
 
@@ -1838,7 +1759,6 @@ function groupReportsByDepartment(reports) {
         const department = employeeInfo.department || report.department || '미분류';
 
         if (index < 3) { // 처음 3개만 로그
-            console.log(`[부서그룹화] 보고서 ${index + 1}:`, {
                 작성자: report.submittedBy,
                 보고서부서필드: report.department,
                 매핑된부서: employeeInfo.department,
@@ -1852,7 +1772,6 @@ function groupReportsByDepartment(reports) {
                 employees: {},
                 reports: []
             };
-            console.log(`[부서그룹화] 새 부서 생성: "${department}"`);
         }
 
         // 부서 내 직원별로도 그룹화
@@ -1868,8 +1787,6 @@ function groupReportsByDepartment(reports) {
         grouped[department].reports.push(report);
     });
 
-    console.log('[부서그룹화] === 완료 ===');
-    console.log('[부서그룹화] 결과:', Object.entries(grouped).map(([dept, group]) =>
         `${dept}: ${group.reports.length}건 (직원 ${Object.keys(group.employees).length}명)`
     ).join(', '));
 
@@ -1948,7 +1865,6 @@ function renderComparisonTable() {
     let html = '';
     let aggregationInfo = '';
 
-    console.log('[테이블렌더링] 렌더링 모드 결정:', {
         employee: comparisonFilters.employee,
         department: comparisonFilters.department,
         period: comparisonFilters.period
@@ -1957,24 +1873,20 @@ function renderComparisonTable() {
     // 필터 조건에 따라 다른 렌더링 방식 적용
     if (comparisonFilters.employee) {
         // 담당부서 + 내부담당자 선택: 특정 직원의 기간별 데이터
-        console.log('[테이블렌더링] 모드: 직원별 기간별 집계');
         html = renderComparisonByEmployee();
         const periodName = comparisonFilters.period === 'weekly' ? '주간' : comparisonFilters.period === 'monthly' ? '월간' : '연간';
         aggregationInfo = `📊 <strong>${comparisonFilters.employee}</strong>님의 <strong>${periodName}</strong> 기간별 집계`;
     } else if (comparisonFilters.department) {
         // 담당부서만 선택: 해당 부서의 직원별 전체 합계
-        console.log('[테이블렌더링] 모드: 부서별 직원별 전체 합계');
         html = renderComparisonByDepartment();
         aggregationInfo = `👥 <strong>${comparisonFilters.department}</strong> 부서의 <strong>직원별 전체 합계</strong>`;
     } else {
         // 부서/직원 선택 없음: 기간별 전체 집계
-        console.log('[테이블렌더링] 모드: 전체 기간별 집계');
         html = renderComparisonByPeriod();
         const periodName = comparisonFilters.period === 'weekly' ? '주간' : comparisonFilters.period === 'monthly' ? '월간' : '연간';
         aggregationInfo = `📅 전체 데이터의 <strong>${periodName}</strong> 기간별 집계`;
     }
 
-    console.log('[테이블렌더링] HTML 길이:', html.length);
 
     // 집계 방식 안내 표시
     const aggregationInfoEl = document.getElementById('comparisonAggregationInfo');
@@ -2090,11 +2002,6 @@ function renderComparisonByPeriod() {
  * 부서별 집계 렌더링 (부서만 선택)
  */
 function renderComparisonByDepartment() {
-    console.log('[부서별집계] === 렌더링 시작 ===');
-    console.log('[부서별집계] comparisonReports 수:', comparisonReports.length);
-    console.log('[부서별집계] 선택된 부서:', comparisonFilters.department);
-    console.log('[부서별집계] 기간 타입:', comparisonFilters.period);
-    console.log('[부서별집계] 토글 상태:', comparisonFilters.groupingExpanded);
 
     const selectedDept = comparisonFilters.department;
     let html = '';
@@ -2105,7 +2012,6 @@ function renderComparisonByDepartment() {
         .map(([name, info]) => name)
         .sort();
 
-    console.log(`[부서별집계] "${selectedDept}" 부서 전체 직원 (${departmentEmployees.length}명):`, departmentEmployees);
 
     if (departmentEmployees.length === 0) {
         console.warn(`[부서별집계] ⚠️ "${selectedDept}" 부서에 등록된 직원이 없습니다`);
@@ -2121,7 +2027,6 @@ function renderComparisonByDepartment() {
 
     // 기간 키를 날짜순으로 정렬
     const sortedPeriodKeys = Object.keys(allPeriods).sort();
-    console.log(`[부서별집계] 생성된 기간 수: ${sortedPeriodKeys.length}개`);
 
     // ✅ 각 기간별로 부서 합계 표시
     sortedPeriodKeys.forEach(periodKey => {
@@ -2170,8 +2075,6 @@ function renderComparisonByDepartment() {
         }
     });
 
-    console.log('[부서별집계] HTML 생성 완료');
-    console.log('[부서별집계] === 렌더링 완료 ===');
     return html;
 }
 
@@ -2278,13 +2181,11 @@ function renderComparisonSummary() {
  * 담당자별 보고서 통계 렌더링
  */
 function renderEmployeeReportStats() {
-    console.log('🔍 [영업담당자통계] === 함수 시작 ===');
 
     const statsContainer = document.getElementById('employeeReportStats');
     const statsTableBody = document.getElementById('statsTableBody');
     const statsTitle = document.getElementById('employeeStatsTitle');
 
-    console.log('🔍 [영업담당자통계] DOM 요소 확인:', {
         statsContainer: !!statsContainer,
         statsTableBody: !!statsTableBody,
         statsTitle: !!statsTitle
@@ -2300,22 +2201,16 @@ function renderEmployeeReportStats() {
     const year = today.getFullYear();
     const dateStr = `${year}.01.01 ~ ${year}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
     statsTitle.textContent = `👥 영업담당자별 보고서 제출현황 (${dateStr})`;
-    console.log('✅ [영업담당자통계] 제목 설정:', statsTitle.textContent);
 
-    console.log('🔍 [영업담당자통계] employeesMap 확인:', Object.keys(employeesMap).length, '명');
-    console.log('🔍 [영업담당자통계] employeesMap 샘플:', Object.entries(employeesMap).slice(0, 3));
 
     // 모든 영업담당자 목록 생성
     const salesEmployees = Object.entries(employeesMap).filter(([name, info]) => {
         return info.role1 === '영업담당' || info.role2 === '영업담당';
     });
 
-    console.log('✅ [영업담당자통계] 영업담당자 필터링:', salesEmployees.length, '명');
-    console.log('🔍 [영업담당자통계] 영업담당자 목록:', salesEmployees.map(([name]) => name));
 
     // 영업담당자가 있으면 표시
     if (salesEmployees.length > 0) {
-        console.log('✅ [영업담당자통계] 영업담당자 존재 - 통계 표시');
 
         // 담당자별 통계 계산
         const employeeStats = {};
@@ -2332,8 +2227,6 @@ function renderEmployeeReportStats() {
             };
         });
 
-        console.log('✅ [영업담당자통계] 담당자별 통계 초기화 완료:', Object.keys(employeeStats).length, '명');
-        console.log('🔍 [영업담당자통계] todayReports 확인:', todayReports.length, '건');
 
         // 오늘 날짜 보고서 데이터에서 통계 집계
         todayReports.forEach(report => {
@@ -2364,14 +2257,12 @@ function renderEmployeeReportStats() {
             }
         });
 
-        console.log('✅ [영업담당자통계] 통계 집계 완료:', employeeStats);
 
         // 담당자 이름순 정렬
         const sortedStats = Object.values(employeeStats).sort((a, b) => {
             return a.name.localeCompare(b.name);
         });
 
-        console.log('✅ [영업담당자통계] 정렬 완료:', sortedStats.length, '명');
 
         // 테이블 행 렌더링
         let html = '';
@@ -2388,19 +2279,16 @@ function renderEmployeeReportStats() {
             `;
         });
 
-        console.log('✅ [영업담당자통계] HTML 생성 완료 (길이:', html.length, ')');
         statsTableBody.innerHTML = html;
 
         // display 설정
         statsContainer.style.display = 'block';
-        console.log('✅ [영업담당자통계] 컨테이너 표시 완료 (display:', statsContainer.style.display, ')');
     } else {
         // 영업담당자가 없으면 숨김
         console.warn('⚠️ [영업담당자통계] 영업담당자가 없음 - 숨김 처리');
         statsContainer.style.display = 'none';
     }
 
-    console.log('🔍 [영업담당자통계] === 함수 종료 ===');
 }
 
 // ============================================

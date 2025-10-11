@@ -216,7 +216,6 @@ export async function downloadAllReports() {
         });
         
         if (result.success) {
-            console.log('[다운로드 성공] 전체 보고서');
         }
         
     } catch (error) {
@@ -257,7 +256,6 @@ export async function downloadSelectedReports(selectedReports) {
         });
         
         if (result.success) {
-            console.log('[다운로드 성공] 선택 보고서:', reportIds.length + '건');
         }
         
     } catch (error) {
@@ -298,7 +296,6 @@ export async function downloadFilteredReports(filteredReports) {
         });
         
         if (result.success) {
-            console.log('[다운로드 성공] 필터링된 보고서:', reportIds.length + '건');
         }
         
     } catch (error) {
@@ -360,7 +357,6 @@ export async function downloadSingleReport(reportId) {
         });
         
         if (result.success) {
-            console.log('[다운로드 성공] 단일 보고서:', reportId);
         }
         
     } catch (error) {

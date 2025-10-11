@@ -673,7 +673,6 @@ export function initToast(options = {}) {
         window.showToast = showToast;
     }
     
-    console.log('[토스트] 시스템 초기화 완료');
 }
 
 // ============================================

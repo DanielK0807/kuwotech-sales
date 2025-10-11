@@ -26,7 +26,6 @@ let currentUserName = null;       // 현재 로그인한 사용자 이름
 // 초기화
 // ============================================
 async function init() {
-    console.log('📝 관리자의견 확인 페이지 초기화...');
 
     // 사용자 정보 가져오기
     const userJson = localStorage.getItem('user');
@@ -34,7 +33,6 @@ async function init() {
         try {
             const user = JSON.parse(userJson);
             currentUserName = user.name;
-            console.log('현재 사용자:', currentUserName);
         } catch (e) {
             console.error('❌ 사용자 정보 파싱 실패:', e);
             alert('로그인 정보를 읽을 수 없습니다. 다시 로그인해주세요.');
@@ -50,7 +48,6 @@ async function init() {
     const btnRefresh = document.getElementById('btnRefresh');
     if (btnRefresh) {
         btnRefresh.addEventListener('click', async () => {
-            console.log('🔄 데이터 새로고침...');
             await loadReportsWithFeedback();
         });
     }
@@ -68,46 +65,30 @@ async function init() {
  */
 async function loadReportsWithFeedback() {
     try {
-        console.log('📋 관리자 의견이 있는 보고서 로드 중...');
-        console.log('현재 사용자:', currentUserName);
 
         // 본인의 전체 보고서 조회
         const response = await apiManager.getReports({
             employeeName: currentUserName
         });
 
-        console.log('📦 보고서 API 원본 응답:', response);
-        console.log('📦 응답 타입:', typeof response);
-        console.log('📦 Array.isArray(response):', Array.isArray(response));
-        console.log('📦 response.data 존재:', !!response?.data);
-        console.log('📦 response.data 타입:', typeof response?.data);
-        console.log('📦 Array.isArray(response.data):', Array.isArray(response?.data));
-        console.log('📦 response 키들:', response ? Object.keys(response) : 'null');
 
         let reports = [];
         if (Array.isArray(response)) {
             reports = response;
-            console.log('✅ 직접 배열 형태');
         } else if (response && Array.isArray(response.data)) {
             reports = response.data;
-            console.log('✅ response.data 배열 형태');
         } else if (response && response.data && Array.isArray(response.data.reports)) {
             // ✅ 실제 구조: response.data.reports
             reports = response.data.reports;
-            console.log('✅ response.data.reports 배열 형태');
         } else if (response && response.success && Array.isArray(response.reports)) {
             reports = response.reports;
-            console.log('✅ response.reports 배열 형태');
         } else {
             console.error('❌ 알 수 없는 응답 형태:', response);
             console.error('❌ response.data:', response?.data);
         }
 
-        console.log(`📊 전체 보고서 수: ${reports.length}`);
 
         if (reports.length > 0) {
-            console.log('📋 첫 번째 보고서 샘플:', reports[0]);
-            console.log('📋 adminComment 필드들:', reports.map(r => ({
                 reportId: r.reportId,
                 adminComment: r.adminComment,
                 hasComment: !!r.adminComment
@@ -118,12 +99,10 @@ async function loadReportsWithFeedback() {
         allReportsWithFeedback = reports.filter(report => {
             const hasComment = report.adminComment && report.adminComment.trim().length > 0;
             if (hasComment) {
-                console.log(`✅ 의견 있음: ${report.reportId}`, report.adminComment);
             }
             return hasComment;
         });
 
-        console.log(`✅ 관리자 의견이 있는 보고서: ${allReportsWithFeedback.length}건`);
 
         // 통계 카드 업데이트
         updateStatistics(reports.length, allReportsWithFeedback.length);
@@ -146,24 +125,19 @@ async function loadReportsWithFeedback() {
  * 통계 카드 업데이트
  */
 function updateStatistics(totalCount, feedbackCount) {
-    console.log(`📊 통계 업데이트 함수 호출: 전체 ${totalCount}건, 의견 ${feedbackCount}건`);
 
     const totalReportsEl = document.getElementById('totalReports');
     const feedbackReportsEl = document.getElementById('feedbackReports');
 
-    console.log('📊 totalReportsEl:', totalReportsEl);
-    console.log('📊 feedbackReportsEl:', feedbackReportsEl);
 
     if (totalReportsEl) {
         totalReportsEl.textContent = totalCount;
-        console.log('✅ 전체 보고서 수 업데이트:', totalCount);
     } else {
         console.error('❌ totalReports 요소를 찾을 수 없음');
     }
 
     if (feedbackReportsEl) {
         feedbackReportsEl.textContent = feedbackCount;
-        console.log('✅ 의견 작성됨 수 업데이트:', feedbackCount);
     } else {
         console.error('❌ feedbackReports 요소를 찾을 수 없음');
     }
@@ -227,13 +201,6 @@ function renderReportDetail(report) {
     }
 
     // 🔍 디버깅: processedBy 필드 확인
-    console.log('=== 보고서 상세 렌더링 디버깅 ===');
-    console.log('📋 전체 보고서 객체:', report);
-    console.log('👤 submittedBy (영업담당):', report.submittedBy);
-    console.log('👔 processedBy (관리자):', report.processedBy);
-    console.log('📅 processedDate:', report.processedDate);
-    console.log('💬 adminComment:', report.adminComment);
-    console.log('===============================');
 
     // 데이터 파싱
     const activityNotes = parseJSON(report.activityNotes, []);
@@ -362,7 +329,6 @@ function renderReportDetail(report) {
  * 보고서 클릭 핸들러
  */
 window.handleReportClick = function(reportId) {
-    console.log('보고서 클릭:', reportId);
 
     selectedReportId = reportId;
     const report = allReportsWithFeedback.find(r => r.reportId === reportId);
@@ -425,12 +391,10 @@ function calculateAchievementRate(actual, target) {
 // 페이지 로드 시 초기화
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOMContentLoaded 이벤트 발생');
     init();
 });
 
 // 즉시 실행도 시도 (레이아웃에서 동적 로드되는 경우 대비)
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    console.log('🚀 페이지 이미 로드됨 - 즉시 초기화');
     setTimeout(() => init(), 100);
 }

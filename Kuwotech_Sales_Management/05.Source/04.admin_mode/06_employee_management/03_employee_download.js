@@ -30,7 +30,6 @@ import { showModal } from '../../01.common/06_modal.js';
  * HTML의 다운로드 버튼에 이벤트 연결
  */
 export function initEmployeeDownloadButton() {
-    console.log('[직원정보 다운로드] 버튼 초기화');
 
     // 다운로드 버튼 찾기 (여러 패턴 지원)
     const downloadBtn = document.getElementById('btnExport') ||
@@ -45,7 +44,6 @@ export function initEmployeeDownloadButton() {
         // 새 이벤트 리스너 추가
         downloadBtn.addEventListener('click', showEmployeeDownloadOptions);
 
-        console.log('[직원정보 다운로드] 버튼 이벤트 연결 완료:', downloadBtn.id || downloadBtn.className);
     } else {
         console.warn('[직원정보 다운로드] 다운로드 버튼을 찾을 수 없습니다');
     }
@@ -349,7 +347,6 @@ async function executeEmployeeDownload(format, options = {}) {
             return;
         }
         
-        console.log('[직원정보 다운로드] 시작:', { format, user: user.name, options });
         
         // 통합 다운로드 매니저 호출
         const result = await downloadManager.download({
@@ -367,7 +364,6 @@ async function executeEmployeeDownload(format, options = {}) {
         });
         
         if (result.success) {
-            console.log('[직원정보 다운로드] 성공');
             // 성공 메시지는 downloadManager에서 표시
         } else {
             console.error('[직원정보 다운로드] 실패:', result.error);
@@ -396,7 +392,6 @@ export async function quickDownloadEmployees() {
             return;
         }
         
-        console.log('[직원정보 빠른 다운로드] 시작');
         
         await downloadManager.download({
             downloadType: DOWNLOAD_TYPES.ADMIN_EMPLOYEES,

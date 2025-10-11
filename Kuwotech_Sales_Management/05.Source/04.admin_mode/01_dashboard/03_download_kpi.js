@@ -39,7 +39,6 @@ import { formatDate } from '../../01.common/03_format.js';
  */
 export function initDownloadButton() {
     // 기능 비활성화: 다운로드 버튼 및 옵션 버튼 삭제됨
-    console.log('[전사 KPI 다운로드] 기능 비활성화됨');
     return;
 }
 

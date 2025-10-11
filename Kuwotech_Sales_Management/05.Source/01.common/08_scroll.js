@@ -76,7 +76,6 @@ export function initScrollbar(target = 'body', options = {}) {
     
     styleElement.textContent = css;
     
-    console.log(`[스크롤바] ${selector} 커스터마이징 완료`);
 }
 
 // ============================================
@@ -153,7 +152,6 @@ export function enableSmoothAnchors() {
         }
     });
     
-    console.log('[스크롤] 앵커 링크 스무스 스크롤 활성화');
 }
 
 // ============================================
@@ -294,7 +292,6 @@ export function createScrollToTopButton(options = {}) {
     document.body.appendChild(button);
     scrollToTopButton = button;
     
-    console.log('[스크롤] 투 탑 버튼 생성됨');
     return button;
 }
 
@@ -422,7 +419,6 @@ export function setupFadeInAnimation(selector = '.fade-in', options = {}) {
         observer.observe(element);
     });
     
-    console.log(`[스크롤] ${elements.length}개 요소에 페이드인 애니메이션 설정`);
 }
 
 // ============================================
@@ -471,7 +467,6 @@ export function createScrollProgress(options = {}) {
     
     document.body.appendChild(container);
     
-    console.log('[스크롤] 프로그레스 바 생성됨');
     return container;
 }
 
@@ -490,7 +485,6 @@ export function disableScroll() {
     document.body.style.width = '100%';
     document.body.setAttribute('data-scroll-y', scrollY);
     
-    console.log('[스크롤] 비활성화됨');
 }
 
 /**
@@ -508,7 +502,6 @@ export function enableScroll() {
         document.body.removeAttribute('data-scroll-y');
     }
     
-    console.log('[스크롤] 활성화됨');
 }
 
 /**
@@ -582,7 +575,6 @@ export function setupScrollSpy(navSelector, sectionSelector, options = {}) {
     window.addEventListener('scroll', scrollHandler);
     scrollHandler(); // 초기 상태
     
-    console.log('[스크롤 스파이] 설정 완료');
 }
 
 // ============================================
@@ -653,7 +645,6 @@ export function initScroll(options = {}) {
         };
     }
     
-    console.log('[스크롤] 시스템 초기화 완료');
 }
 
 // ============================================

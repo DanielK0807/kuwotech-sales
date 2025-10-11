@@ -27,7 +27,6 @@ export async function logChange(changeData) {
   // 백엔드 API에서 company_history 테이블에 자동 기록되므로
   // 프론트엔드에서는 별도 처리 불필요
 
-  console.log('[변경 이력] 백엔드 API에서 자동 처리됨:', changeData.operation, '-', changeData.tableName);
 
   return null;
 }
@@ -193,7 +192,6 @@ export async function getChangeHistory(filter = {}) {
   try {
     // 백엔드 API에 변경 이력 조회 엔드포인트가 구현되면 사용
     // 현재는 빈 배열 반환
-    console.log('[변경 이력] 조회 기능은 추후 구현 예정');
     return [];
 
   } catch (error) {
@@ -275,7 +273,6 @@ function getOperationLabel(operation) {
 export async function getChangeStatistics(filter = {}) {
   try {
     // 백엔드 API에 변경 이력 통계 엔드포인트가 구현되면 사용
-    console.log('[변경 통계] 기능은 추후 구현 예정');
 
     return {
       totalChanges: 0,

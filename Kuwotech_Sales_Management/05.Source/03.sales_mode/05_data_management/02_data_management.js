@@ -21,7 +21,6 @@ let downloadHistory = [];
 
 // [초기화]
 async function init() {
-    console.log('[데이터 관리] 초기화 시작');
     
     // 테마 설정
     themeManager.applyTheme('sales');
@@ -41,7 +40,6 @@ async function init() {
     // 다운로드 이력 로드
     loadDownloadHistory();
     
-    console.log('[데이터 관리] 초기화 완료');
 }
 
 // [데이터베이스 초기화]
@@ -50,7 +48,6 @@ async function initDatabase() {
         crudManager = new CRUDManager('KuwotechSalesDB', 3);
         await crudManager.openDB();
         excelSync = new ExcelSync(crudManager);
-        console.log('[DB] 연결 성공');
     } catch (error) {
         console.error('[DB] 연결 실패:', error);
         showToast('데이터베이스 연결 실패', 'error');

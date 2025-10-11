@@ -91,16 +91,12 @@ const pageFileMap = {
 
 async function initSalesMode() {
     try {
-        console.log('========================================');
-        console.log('[영업모드] 초기화 시작');
-        console.log('========================================');
         
         // 1. 사용자 인증 확인 - 여러 소스에서 시도
         let userJson = sessionStorage.getItem('user');
         
         // sessionStorage에 없으면 localStorage에서도 확인
         if (!userJson) {
-            console.log('[영업모드] sessionStorage에 user 없음, localStorage 확인');
             const loginData = localStorage.getItem('loginData');
             if (loginData) {
                 try {
@@ -108,7 +104,6 @@ async function initSalesMode() {
                     if (data.user) {
                         userJson = JSON.stringify(data.user);
                         sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
-                        console.log('[영업모드] localStorage에서 사용자 정보 복구');
                     }
                 } catch (e) {
                     console.error('[영업모드] loginData 파싱 실패:', e);
@@ -124,14 +119,12 @@ async function initSalesMode() {
         
         try {
             user = JSON.parse(userJson);
-            console.log('[영업모드] 로드된 사용자 정보:', user);
             
             // 사용자 이름이 없는 경우 localStorage에서 시도
             if (!user.name) {
                 const savedName = localStorage.getItem('userName');
                 if (savedName) {
                     user.name = savedName;
-                    console.log('[영업모드] localStorage에서 이름 복구:', savedName);
                 } else {
                     user.name = '사용자';  // 기본값
                     console.warn('[영업모드] 사용자 이름 없음 - 기본값 사용');
@@ -153,11 +146,8 @@ async function initSalesMode() {
             return;
         }
         
-        console.log('[영업모드] 권한 확인 완료 - role:', user.role);
         
         // 2. 사용자 정보 표시
-        console.log('[UI] user 객체 전체:', user);
-        console.log('[UI] user.name 값:', user.name);
         
         const userGreeting = document.getElementById('user-greeting');
         if (userGreeting) {
@@ -165,9 +155,6 @@ async function initSalesMode() {
             const userName = user.name || '사용자';
             // 이름만 span으로 감싸서 스타일 적용
             userGreeting.innerHTML = `${roleText} <span class="user-name-highlight">${userName}</span>님 수고하십니다.`;
-            console.log(`[UI] 헤더 사용자 정보 표시: ${roleText} ${userName}님 수고하십니다.`);
-            console.log('[UI] userGreeting 요소:', userGreeting);
-            console.log('[UI] userGreeting.textContent:', userGreeting.textContent);
         } else {
             console.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
         }
@@ -228,7 +215,6 @@ async function initSalesMode() {
         await loadPage(targetPage);
         
         isInitialized = true;
-        console.log('[영업모드] 초기화 완료');
         
         // 환영 메시지
         showToast(`안녕하세요, ${user.name}님! 영업관리 시스템에 오신 것을 환영합니다.`, 'success');
@@ -272,7 +258,6 @@ function setupMobileMenuToggle() {
             mobileMenuBtn.classList.add('active');
         }
 
-        console.log(`[모바일 메뉴] 사이드바 ${isOpen ? '닫힘' : '열림'}`);
     });
 
     // 오버레이 클릭 시 사이드바 닫기
@@ -280,7 +265,6 @@ function setupMobileMenuToggle() {
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
         mobileMenuBtn.classList.remove('active');
-        console.log('[모바일 메뉴] 오버레이 클릭 - 사이드바 닫힘');
     });
 
     // 윈도우 리사이즈 시 데스크톱 뷰로 전환되면 사이드바/오버레이 자동 닫기
@@ -297,7 +281,6 @@ function setupMobileMenuToggle() {
         }, 250);
     });
 
-    console.log('✅ 모바일 햄버거 메뉴 토글 설정 완료');
 }
 
 // ============================================
@@ -334,7 +317,6 @@ async function loadPage(page) {
         // HTML 파일 경로
         const htmlPath = `../${mapping.folder}/${mapping.file}.html`;
         
-        console.log(`[페이지 로드] ${page} - ${htmlPath}`);
         
         // HTML 로드
         const response = await fetch(htmlPath);
@@ -402,7 +384,6 @@ async function renderPage(container, html, mapping, page) {
             
             await new Promise((resolve, reject) => {
                 script.onload = () => {
-                    console.log(`[스크립트 로드 완료] ${scriptPath}`);
                     resolve();
                 };
                 script.onerror = () => {
@@ -502,13 +483,6 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
         sessionInfo: () => SessionManager.debugSession()
     };
     
-    console.log('[영업모드] 디버그 명령어:');
-    console.log('- salesDebug.currentPage()');
-    console.log('- salesDebug.user()');
-    console.log('- salesDebug.pageMap()');
-    console.log('- salesDebug.navigateTo("dashboard")');
-    console.log('- salesDebug.refreshPage()');
-    console.log('- salesDebug.sessionInfo()');
 }
 
 // ============================================
@@ -518,10 +492,8 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 if (document.readyState === 'loading') {
     // DOM이 아직 로딩 중이면 이벤트 리스너 등록
     document.addEventListener('DOMContentLoaded', initSalesMode);
-    console.log('[영업모드] DOMContentLoaded 이벤트 리스너 등록 완료');
 } else {
     // DOM이 이미 로드되었으면 바로 실행
-    console.log('[영업모드] DOM 이미 로드됨 - 초기화 함수 바로 실행');
     initSalesMode();
 }
 

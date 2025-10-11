@@ -50,10 +50,6 @@ let uploadHistory = [];
 
 async function initExcelUpload() {
     try {
-        console.log('========================================');
-        console.log('[엑셀 업로드] 초기화 시작');
-        console.log('========================================');
-        
         // DOM 요소들이 존재하는지 확인
         const requiredElements = {
             'upload-zone': document.getElementById('upload-zone'),
@@ -63,37 +59,23 @@ async function initExcelUpload() {
             'last-upload': document.getElementById('last-upload'),
             'storage-status': document.getElementById('storage-status')
         };
-        
-        console.log('[엑셀 업로드] 필수 DOM 요소 확인:');
-        for (const [id, element] of Object.entries(requiredElements)) {
-            console.log(`  - ${id}: ${element ? '✓ 존재' : '✗ 없음'}`);
-        }
-        
+
         // 필수 요소가 없으면 에러
         if (!requiredElements['upload-zone'] || !requiredElements['excel-file-input']) {
             throw new Error('필수 DOM 요소를 찾을 수 없습니다.');
         }
-        
+
         // ExcelDataLoader 인스턴스 생성
-        console.log('[엑셀 업로드] ExcelDataLoader 초기화...');
         excelLoader = new ExcelDataLoader();
-        console.log('[엑셀 업로드] ExcelDataLoader 초기화 완료');
-        
+
         // 현재 상태 로드
-        console.log('[엑셀 업로드] 현재 상태 로드...');
         await loadCurrentStatus();
-        
+
         // 업로드 이력 로드
-        console.log('[엑셀 업로드] 업로드 이력 로드...');
         await loadUploadHistory();
-        
+
         // 이벤트 리스너 설정
-        console.log('[엑셀 업로드] 이벤트 리스너 설정...');
         setupEventListeners();
-        
-        console.log('========================================');
-        console.log('[엑셀 업로드] 초기화 완료');
-        console.log('========================================');
         
     } catch (error) {
         console.error('========================================');
@@ -109,16 +91,10 @@ async function initExcelUpload() {
 
 async function loadCurrentStatus() {
     try {
-        console.log('[현재 상태] DatabaseManager 가져오기...');
         const db = await getDB();
-        console.log('[현재 상태] DatabaseManager:', db);
-        console.log('[현재 상태] baseURL:', db.baseURL);
 
         // REST API를 사용하여 거래처 수 조회
-        console.log('[현재 상태] getAllClients() 호출...');
         const companies = await db.getAllClients();
-        console.log('[현재 상태] 거래처 수:', companies.length);
-        console.log('[현재 상태] 첫 3개 거래처:', companies.slice(0, 3));
 
         const count = companies.length;
 
@@ -166,52 +142,35 @@ async function loadCurrentStatus() {
 // ============================================
 
 function setupEventListeners() {
-    console.log('[이벤트 설정] 이벤트 리스너 설정 시작');
-    
     const uploadZone = document.getElementById('upload-zone');
     const fileInput = document.getElementById('excel-file-input');
     const selectFileBtn = document.getElementById('select-file-btn');
     const removeFileBtn = document.getElementById('remove-file-btn');
     const uploadBtn = document.getElementById('upload-btn');
     const closeModalBtn = document.getElementById('close-changes-modal');
-    
-    // DOM 요소 존재 확인
-    console.log('[이벤트 설정] DOM 요소 확인:', {
-        uploadZone: !!uploadZone,
-        fileInput: !!fileInput,
-        selectFileBtn: !!selectFileBtn,
-        removeFileBtn: !!removeFileBtn,
-        uploadBtn: !!uploadBtn,
-        closeModalBtn: !!closeModalBtn
-    });
-    
+
     // 파일 선택 버튼
     if (selectFileBtn && fileInput) {
         selectFileBtn.addEventListener('click', (e) => {
-            console.log('[파일 선택 버튼] 클릭됨');
             e.preventDefault();
             e.stopPropagation();
             fileInput.click();
         });
-        console.log('[이벤트 설정] 파일 선택 버튼 이벤트 등록 완료');
     } else {
         console.error('[이벤트 설정] 파일 선택 버튼 또는 input을 찾을 수 없음!', {
             selectFileBtn,
             fileInput
         });
     }
-    
+
     // 파일 선택
     if (fileInput) {
         fileInput.addEventListener('change', (e) => {
-            console.log('[파일 Input] change 이벤트 발생');
             const file = e.target.files[0];
             if (file) {
-                console.log('[파일 선택] 파일:', file.name, file.size, file.type);
                 handleFileSelect(file);
             }
         });
-        console.log('[이벤트 설정] 파일 input change 이벤트 등록 완료');
     }
     
     // 드래그 앤 드롭
@@ -242,7 +201,6 @@ function setupEventListeners() {
         
         // 업로드 존 클릭으로도 파일 선택
         uploadZone.addEventListener('click', (e) => {
-            console.log('[업로드 존] 클릭됨');
             // 버튼이 클릭된 경우는 제외 (이벤트 버블링)
             if (e.target === uploadZone || e.target.closest('.upload-zone')) {
                 if (fileInput) {
@@ -250,20 +208,17 @@ function setupEventListeners() {
                 }
             }
         });
-        
-        console.log('[이벤트 설정] 업로드 존 이벤트 등록 완료');
     }
-    
+
     // 파일 제거
     if (removeFileBtn && fileInput) {
         removeFileBtn.addEventListener('click', () => {
-            console.log('[파일 제거] 버튼 클릭됨');
             selectedFile = null;
             currentData = null;
             const fileInfo = document.getElementById('file-info');
             const uploadZoneEl = document.getElementById('upload-zone');
             const previewDiv = document.getElementById('excel-preview');
-            
+
             if (fileInfo) fileInfo.style.display = 'none';
             if (uploadZoneEl) uploadZoneEl.style.display = 'block';
             if (previewDiv) {
@@ -272,29 +227,22 @@ function setupEventListeners() {
             }
             fileInput.value = '';
         });
-        console.log('[이벤트 설정] 파일 제거 버튼 이벤트 등록 완료');
     }
-    
+
     // 업로드 버튼
     if (uploadBtn) {
         uploadBtn.addEventListener('click', () => {
-            console.log('[업로드 버튼] 클릭됨');
             uploadToDatabase();
         });
-        console.log('[이벤트 설정] 업로드 버튼 이벤트 등록 완료');
     }
-    
+
     // 모달 닫기
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', () => {
-            console.log('[모달 닫기] 버튼 클릭됨');
             const modal = document.getElementById('changes-modal');
             if (modal) modal.style.display = 'none';
         });
-        console.log('[이벤트 설정] 모달 닫기 버튼 이벤트 등록 완료');
     }
-    
-    console.log('[이벤트 설정] 모든 이벤트 리스너 설정 완료');
 }
 
 // ============================================
@@ -303,7 +251,6 @@ function setupEventListeners() {
 
 async function handleFileSelect(file) {
     try {
-        console.log('[파일 선택] 파일 처리 시작:', file.name);
         selectedFile = file;
         
         // 파일 정보 표시
@@ -337,27 +284,23 @@ async function handleFileSelect(file) {
 
 async function previewExcelData(file) {
     try {
-        console.log('[미리보기] 엑셀 파일 읽기 시작');
-        
         // XLSX 라이브러리 확인
         if (typeof XLSX === 'undefined') {
             throw new Error('XLSX 라이브러리가 로드되지 않았습니다.');
         }
-        
+
         // 파일 읽기
         const data = await readFileAsArrayBuffer(file);
         const workbook = XLSX.read(data, {
             type: 'array',
             cellDates: true
         });
-        
-        console.log('[미리보기] 워크북 로드 완료. 시트:', workbook.SheetNames);
-        
+
         // 기본정보 시트 찾기
         const possibleSheetNames = ['기본정보', '거래처정보', '거래처', 'Companies', 'Data'];
         let worksheet = null;
         let foundSheetName = '';
-        
+
         for (const sheetName of possibleSheetNames) {
             if (workbook.Sheets[sheetName]) {
                 worksheet = workbook.Sheets[sheetName];
@@ -365,27 +308,23 @@ async function previewExcelData(file) {
                 break;
             }
         }
-        
+
         // 첫 번째 시트 사용
         if (!worksheet && workbook.SheetNames.length > 0) {
             foundSheetName = workbook.SheetNames[0];
             worksheet = workbook.Sheets[foundSheetName];
         }
-        
+
         if (!worksheet) {
             throw new Error('거래처 데이터 시트를 찾을 수 없습니다.');
         }
-        
-        console.log(`[미리보기] 사용 시트: ${foundSheetName}`);
-        
+
         // JSON으로 변환
         const jsonData = XLSX.utils.sheet_to_json(worksheet, {
             raw: false,
             defval: ''
         });
-        
-        console.log(`[미리보기] ${jsonData.length}개 행 추출`);
-        
+
         // 미리보기 표시
         displayPreview(jsonData, foundSheetName);
         
@@ -410,7 +349,6 @@ function readFileAsArrayBuffer(file) {
 // ============================================
 
 function displayPreview(data, sheetName) {
-    console.log('[미리보기 표시] 데이터 행 수:', data.length);
     
     // 미리보기 영역 생성
     let previewDiv = document.getElementById('excel-preview');
@@ -1018,26 +956,21 @@ let isPageInitialized = false;
  */
 function initializePageSafe() {
     if (isPageInitialized) {
-        console.log('[엑셀 업로드] 이미 초기화됨 - 스킨');
         return;
     }
-    
+
     const isExcelUploadPage = document.querySelector('.excel-upload-page');
     if (!isExcelUploadPage) {
-        console.log('[엑셀 업로드] 엑셀 업로드 페이지가 아님 - 스킨');
         return;
     }
-    
-    console.log('[엑셀 업로드] 페이지 초기화 실행');
+
     isPageInitialized = true;
     initExcelUpload();
 }
 
 // pageLoaded 이벤트 리스너
 window.addEventListener('pageLoaded', (e) => {
-    console.log('[엑셀 업로드] pageLoaded 이벤트 수신:', e.detail);
     if (e.detail && e.detail.page === 'excel-upload') {
-        console.log('[엑셀 업로드] 엑셀 업로드 페이지 확인 - 초기화 실행');
         // 이벤트로 초기화되면 플래그 리셋
         isPageInitialized = false;
         setTimeout(() => initializePageSafe(), 100);
@@ -1046,12 +979,9 @@ window.addEventListener('pageLoaded', (e) => {
 
 // DOM이 이미 로드된 경우
 if (document.readyState !== 'loading') {
-    console.log('[엑셀 업로드] DOM 이미 로드됨 - 직접 초기화 시도');
     setTimeout(() => initializePageSafe(), 200);
 } else {
-    console.log('[엑셀 업로드] DOMContentLoaded 이벤트 대기 중');
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('[엑셀 업로드] DOMContentLoaded 이벤트 발생 - 초기화 시도');
         setTimeout(() => initializePageSafe(), 200);
     });
 }
@@ -1065,5 +995,3 @@ window.excelUploadModule = {
     loadStatus: loadCurrentStatus,
     loadHistory: loadUploadHistory
 };
-
-console.log('[엑셀 업로드] 모듈 로드 완료');

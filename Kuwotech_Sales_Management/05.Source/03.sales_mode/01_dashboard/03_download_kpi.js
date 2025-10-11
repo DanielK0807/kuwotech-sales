@@ -88,7 +88,6 @@ export function initDownloadButton() {
     downloadBtn.addEventListener('click', handleQuickDownload);
     optionBtn.addEventListener('click', showDownloadOptionsModal);
     
-    console.log('[KPI 다운로드] 버튼 초기화 완료');
 }
 
 // ============================================

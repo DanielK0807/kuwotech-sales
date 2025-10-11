@@ -96,7 +96,6 @@ export class ExcelDataLoader {
             
             // 백업 생성
             if (createBackupFirst) {
-                console.log('[ExcelDataLoader] 백업 생성 중...');
                 await createBackup('엑셀 업로드 전 백업');
             }
             
@@ -110,7 +109,6 @@ export class ExcelDataLoader {
                 dateNF: 'yyyy-mm-dd'
             });
             
-            console.log('[ExcelDataLoader] 워크북 로드 완료. 시트:', workbook.SheetNames);
             
             // 데이터 타입별 처리
             if (dataType === 'companies' || dataType === 'all') {
@@ -162,7 +160,6 @@ export class ExcelDataLoader {
      * 거래처 데이터 로드
      */
     async loadCompaniesData(workbook) {
-        console.log('[ExcelDataLoader] 거래처 데이터 로드 시작');
         
         // 가능한 시트명들
         const possibleSheetNames = ['기본정보', '거래처정보', '거래처', 'Companies', 'Data'];
@@ -187,7 +184,6 @@ export class ExcelDataLoader {
             throw new Error('거래처 데이터 시트를 찾을 수 없습니다.');
         }
         
-        console.log(`[ExcelDataLoader] 사용 시트: ${foundSheetName}`);
         
         // JSON으로 변환
         const jsonData = XLSX.utils.sheet_to_json(worksheet, {
@@ -196,7 +192,6 @@ export class ExcelDataLoader {
             defval: ''
         });
         
-        console.log(`[ExcelDataLoader] ${jsonData.length}개 행 추출`);
         
         // 데이터 변환 및 검증
         this.loadedData.companies = [];
@@ -210,7 +205,6 @@ export class ExcelDataLoader {
             }
         }
         
-        console.log(`[ExcelDataLoader] ${this.loadedData.companies.length}개 거래처 데이터 파싱 완료`);
 
         // Railway MySQL에 저장 (REST API)
         if (this.loadedData.companies.length > 0) {
@@ -222,7 +216,6 @@ export class ExcelDataLoader {
      * 직원 데이터 로드
      */
     async loadEmployeesData(workbook) {
-        console.log('[ExcelDataLoader] 직원 데이터 로드 시작');
         
         // 가능한 시트명들
         const possibleSheetNames = ['직원정보', '직원명단', '사원정보', '입사일자', 'Employees'];
@@ -242,7 +235,6 @@ export class ExcelDataLoader {
             return;
         }
         
-        console.log(`[ExcelDataLoader] 사용 시트: ${foundSheetName}`);
         
         // JSON으로 변환
         const jsonData = XLSX.utils.sheet_to_json(worksheet, {
@@ -251,7 +243,6 @@ export class ExcelDataLoader {
             defval: ''
         });
         
-        console.log(`[ExcelDataLoader] ${jsonData.length}개 행 추출`);
         
         // 데이터 변환 및 검증
         this.loadedData.employees = [];
@@ -265,7 +256,6 @@ export class ExcelDataLoader {
             }
         }
         
-        console.log(`[ExcelDataLoader] ${this.loadedData.employees.length}명 직원 데이터 파싱 완료`);
 
         // Railway MySQL에 저장 (REST API)
         if (this.loadedData.employees.length > 0) {
@@ -379,7 +369,6 @@ export class ExcelDataLoader {
         try {
             const db = await getDB();
 
-            console.log('[ExcelDataLoader] 기존 거래처 데이터 조회 중...');
             // 기존 데이터 조회
             const existingCompanies = await db.getAllClients();
 
@@ -393,7 +382,6 @@ export class ExcelDataLoader {
             let updatedCount = 0;
             let errorCount = 0;
 
-            console.log(`[ExcelDataLoader] ${this.loadedData.companies.length}개 거래처 저장 시작...`);
 
             for (const company of this.loadedData.companies) {
                 try {
@@ -421,12 +409,10 @@ export class ExcelDataLoader {
                         // 업데이트
                         await db.updateClient(company.keyValue, companyData);
                         updatedCount++;
-                        console.log(`[ExcelDataLoader] 업데이트: ${company.finalCompanyName}`);
                     } else {
                         // 새로 추가
                         await db.createClient(companyData);
                         addedCount++;
-                        console.log(`[ExcelDataLoader] 추가: ${company.finalCompanyName}`);
                     }
 
                 } catch (error) {
@@ -436,7 +422,6 @@ export class ExcelDataLoader {
                 }
             }
 
-            console.log(`[ExcelDataLoader] 거래처 DB 저장 완료 - 추가: ${addedCount}, 수정: ${updatedCount}, 실패: ${errorCount}`);
 
         } catch (error) {
             console.error('[ExcelDataLoader] DB 저장 실패:', error);
@@ -451,7 +436,6 @@ export class ExcelDataLoader {
         try {
             const db = await getDB();
 
-            console.log('[ExcelDataLoader] 기존 직원 데이터 조회 중...');
             // 기존 데이터 조회
             const existingEmployees = await db.getAllEmployees();
 
@@ -465,7 +449,6 @@ export class ExcelDataLoader {
             let updatedCount = 0;
             let errorCount = 0;
 
-            console.log(`[ExcelDataLoader] ${this.loadedData.employees.length}명 직원 저장 시작...`);
 
             for (const employee of this.loadedData.employees) {
                 try {
@@ -488,12 +471,10 @@ export class ExcelDataLoader {
                         // 업데이트
                         await db.updateEmployee(existing.id, employeeData);
                         updatedCount++;
-                        console.log(`[ExcelDataLoader] 업데이트: ${employee.name}`);
                     } else {
                         // 새로 추가
                         await db.createEmployee(employeeData);
                         addedCount++;
-                        console.log(`[ExcelDataLoader] 추가: ${employee.name}`);
                     }
 
                 } catch (error) {
@@ -503,7 +484,6 @@ export class ExcelDataLoader {
                 }
             }
 
-            console.log(`[ExcelDataLoader] 직원 DB 저장 완료 - 추가: ${addedCount}, 수정: ${updatedCount}, 실패: ${errorCount}`);
 
             // 세션스토리지에도 저장 (로그인 프로세스 호환성)
             sessionStorage.setItem('employees_data', JSON.stringify(this.loadedData.employees));

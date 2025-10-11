@@ -29,7 +29,6 @@ let currentUser = null;
 // ============================================
 
 async function initializePage() {
-    console.log('[시스템 설정] 초기화 시작');
 
     try {
         // 테마 적용
@@ -47,7 +46,6 @@ async function initializePage() {
         // 이벤트 리스너 설정
         setupEventListeners();
 
-        console.log('[시스템 설정] 초기화 완료');
     } catch (error) {
         console.error('[시스템 설정] 초기화 오류:', error);
         showToast('페이지 초기화 중 오류가 발생했습니다', 'error');
@@ -80,14 +78,12 @@ async function loadDepartments() {
         }
 
         const data = await response.json();
-        console.log('[부서 목록] 로드:', data);
 
         // employees 배열 추출
         const employees = data.employees || [];
 
         // 부서 목록 추출 (중복 제거)
         const departments = [...new Set(employees.map(emp => emp.department).filter(Boolean))];
-        console.log('[부서 목록] 중복 제거:', departments);
 
         // Select 옵션 추가
         const departmentSelect = document.getElementById('userDepartment');
@@ -120,7 +116,6 @@ function loadUserInfo() {
     }
 
     currentUser = JSON.parse(userStr);
-    console.log('[시스템 설정] 사용자 정보 로드:', currentUser);
 
     // 폼 필드에 정보 표시
     document.getElementById('userName').value = currentUser.name || '';
@@ -241,7 +236,6 @@ window.saveUserInfo = async function() {
         }
 
         const result = await response.json();
-        console.log('[정보 변경] 성공:', result);
 
         // 로컬 스토리지 업데이트
         currentUser.email = email;
@@ -342,7 +336,6 @@ window.changePassword = async function() {
         }
 
         const result = await response.json();
-        console.log('[비밀번호 변경] 성공:', result);
 
         // 입력 필드 초기화
         document.getElementById('currentPassword').value = '';

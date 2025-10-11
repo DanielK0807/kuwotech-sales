@@ -49,8 +49,6 @@ let currentSort = 'name';
 
 async function initMyCompanies() {
     try {
-        console.log('[담당거래처] 초기화 시작');
-        console.log('[담당거래처] DOM 상태:', document.readyState);
         
         showLoading('거래처 데이터를 불러오는 중...');
         
@@ -68,7 +66,6 @@ async function initMyCompanies() {
         initDownloadButton();
         
         hideLoading();
-        console.log('[담당거래처] 초기화 완료');
         
     } catch (error) {
         console.error('[담당거래처] 초기화 실패:', error);
@@ -100,7 +97,6 @@ function waitForDOMReady() {
  */
 async function loadMasterData() {
     try {
-        console.log('[마스터데이터] 로드 시작');
 
         // 1. 거래상태 populate (정적 데이터)
         populateStatusSelect();
@@ -119,7 +115,6 @@ async function loadMasterData() {
             if (productsData.success) {
                 window.masterProducts = productsData.products; // 전역 저장
                 populateProductSelect(productsData.products);
-                console.log('[제품] 로드 성공:', productsData.products.length, '개');
             }
         }
 
@@ -136,7 +131,6 @@ async function loadMasterData() {
             const regionsData = await regionsResponse.json();
             if (regionsData.success) {
                 populateRegionSelect(regionsData.regions);
-                console.log('[고객사지역] 로드 성공 (regions 테이블 기준):', regionsData.regions.length, '개');
             }
         }
 
@@ -153,7 +147,6 @@ async function loadMasterData() {
             const departmentsData = await departmentsResponse.json();
             if (departmentsData.success) {
                 window.masterDepartments = departmentsData.departments; // 전역 저장
-                console.log('[담당부서] 로드 성공:', departmentsData.departments.length, '개');
             }
         }
 
@@ -363,7 +356,6 @@ async function loadCompanies() {
         // 백엔드 API 엔드포인트
         const apiUrl = `${GlobalConfig.API_BASE_URL}/api/companies/manager/${encodeURIComponent(user.name)}`;
 
-        console.log('[API 호출]', apiUrl);
 
         // 백엔드 API 호출
         const response = await fetch(apiUrl, {
@@ -431,7 +423,6 @@ async function loadCompanies() {
 
         hideLoading();
 
-        console.log('[거래처 로드 성공]', companyList.length, '개');
 
     } catch (error) {
         console.error('[거래처 로드 실패]', error);
@@ -570,7 +561,6 @@ function sortCompanies() {
  */
 function handleCompanyInput(event) {
     const inputValue = event.target.value.trim().toLowerCase();
-    console.log('[담당거래처] 거래처명 입력:', inputValue);
 
     const autocompleteList = document.getElementById('company-autocomplete-list');
     if (!autocompleteList) return;
@@ -669,7 +659,6 @@ function updateStatistics() {
     
     const totalReceivable = totalSales - totalCollection;
     
-    console.log('[updateStatistics] 통계 업데이트:', {
         totalCount,
         totalSales,
         totalCollection,
@@ -981,7 +970,6 @@ async function showCompanyEditModal(company) {
 }
 
 async function openCompanyModal() {
-    console.log('[거래처 추가] openCompanyModal 함수 호출됨');
 
     // 지역 목록 가져오기
     let regionsHtml = '<option value="">선택하세요</option>';
@@ -1269,7 +1257,6 @@ async function openCompanyModal() {
 
 // 거래처 상세보기/수정 모달 (전체 20개 항목)
 async function openCompanyDetailModal(keyValue) {
-    console.log('[거래처 상세] 함수 호출됨, keyValue:', keyValue);
 
     try {
         showLoading('거래처 정보 로드 중...');
@@ -1623,18 +1610,14 @@ async function openCompanyDetailModal(keyValue) {
 // ============================================
 
 function setupEventListeners() {
-    console.log('[이벤트 리스너] 설정 시작');
 
     // 거래처 추가 버튼
     const addCompanyBtn = document.getElementById('add-company-btn');
-    console.log('[이벤트 리스너] add-company-btn 요소:', addCompanyBtn);
 
     if (addCompanyBtn) {
         addCompanyBtn.addEventListener('click', () => {
-            console.log('[거래처 추가] 버튼 클릭됨');
             openCompanyModal();
         });
-        console.log('[거래처 추가 버튼] 이벤트 리스너 등록 완료');
     } else {
         console.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
     }
@@ -1791,7 +1774,6 @@ function applyFilter() {
         .filter(cb => cb.checked)
         .map(cb => cb.value);
 
-    console.log('[필터 적용]', currentFilter);
 
     // 거래처 목록 재로드
     loadCompanies();
@@ -1845,7 +1827,6 @@ window.addEventListener('pageLoaded', (e) => {
 
 // HTML에서 사용할 함수들을 window 객체에 등록
 if (typeof window !== 'undefined') {
-    console.log('[전역 함수] window 객체에 등록 시작');
     
     window.openCompanyModal = openCompanyModal;
     window.viewCompany = viewCompany;
@@ -1856,7 +1837,6 @@ if (typeof window !== 'undefined') {
     window.importExcel = importExcel;  // 03_download.js에서 import
     window.applyFilter = applyFilter;
     
-    console.log('[전역 함수] 등록 완료 - openCompanyModal:', typeof window.openCompanyModal);
 }
 
 // ============================================
@@ -2090,5 +2070,4 @@ if (typeof window !== 'undefined') {
     window.deleteCompany = deleteCompany;
     window.openCompanyModal = openCompanyModal;
     
-    console.log('[담당거래처관리] 모듈 함수 전역 등록 완료');
 }

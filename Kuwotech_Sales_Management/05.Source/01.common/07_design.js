@@ -406,7 +406,6 @@ class GlassmorphismManager {
 
         document.head.appendChild(styleSheet);
         this.initialized = true;
-        console.log('✅ 글래스모피즘 시스템 초기화 완료');
     }
 
     /**

@@ -51,7 +51,6 @@ function showModal(options) {
  * HTML의 다운로드 버튼에 이벤트 연결
  */
 export function initDownloadButton() {
-    console.log('[담당거래처 다운로드] 버튼 초기화');
     
     // 기존 엑셀 내보내기 버튼을 다운로드 옵션 버튼으로 변경
     const exportBtn = document.querySelector('button[onclick="exportExcel()"]');
@@ -62,7 +61,6 @@ export function initDownloadButton() {
         // 새 이벤트 리스너 추가
         exportBtn.addEventListener('click', showDownloadOptions);
         
-        console.log('[담당거래처 다운로드] 버튼 이벤트 연결 완료');
     }
 }
 
@@ -336,7 +334,6 @@ async function executeDownload(format, options = {}) {
             showProgress: true,
             enableRetry: true,
             onProgress: (percent, message) => {
-                console.log(`[진행률] ${percent}% - ${message}`);
             }
         }
     );

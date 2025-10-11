@@ -81,7 +81,6 @@ const elements = {
 // 초기화
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[Report Write] 페이지 초기화 시작');
 
     // DOM 요소 캐싱
     cacheElements();
@@ -95,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 이벤트 리스너 연결
     attachEventListeners();
 
-    console.log('[Report Write] 페이지 초기화 완료');
 });
 
 /**
@@ -112,7 +110,6 @@ function cacheElements() {
 
         // Flatpickr 로딩 확인
         if (typeof flatpickr !== 'undefined') {
-            console.log('[Report Write] ✅ Flatpickr 라이브러리 감지됨');
 
             try {
                 const fpInstance = flatpickr(elements.reportDate, {
@@ -125,14 +122,11 @@ function cacheElements() {
                     maxDate: today,                  // 오늘 이후 선택 불가
                     position: 'auto',                // 자동 위치 조정
                     onReady: function(selectedDates, dateStr, instance) {
-                        console.log('[Report Write] 📅 Flatpickr 초기화 완료:', dateStr);
                     },
                     onChange: function(selectedDates, dateStr, instance) {
-                        console.log('[Report Write] 📅 날짜 선택:', dateStr);
                     }
                 });
 
-                console.log('[Report Write] ✅ Flatpickr 달력 적용 완료', fpInstance);
             } catch (error) {
                 console.error('[Report Write] ❌ Flatpickr 초기화 오류:', error);
                 // 오류 시 폴백
@@ -211,7 +205,6 @@ async function initializePage() {
             return;
         }
 
-        console.log('[Report Write] 현재 사용자:', state.currentUser);
 
         // ⚠️ CRITICAL: id 필드 검증
         if (!state.currentUser.id) {
@@ -226,7 +219,6 @@ async function initializePage() {
             return;
         }
 
-        console.log('[Report Write] ✅ 사용자 ID 확인:', state.currentUser.id);
 
         // 담당 거래처 목록 로드
         await loadUserCompanies();
@@ -311,13 +303,11 @@ function attachEventListeners() {
  */
 async function loadProducts() {
     try {
-        console.log('[Report Write] 제품 목록 로드 중...');
 
         const response = await apiManager.getProducts();
 
         if (response.success) {
             state.products = response.data || [];
-            console.log('[Report Write] ✅ 제품 목록 로드 완료:', state.products.length, '개');
         } else {
             console.error('[Report Write] 제품 목록 로드 실패:', response.message);
             state.products = [];
@@ -334,16 +324,12 @@ async function loadProducts() {
  */
 async function loadUserCompanies() {
     try {
-        console.log('[Report Write] 거래처 목록 로드 중...');
-        console.log('[Report Write] 담당자:', state.currentUser.name);
 
         // 담당자별 거래처 조회 API 호출
         const response = await apiManager.getCompaniesByManager(state.currentUser.name);
 
         if (response.success) {
             state.companies = response.companies || [];
-            console.log('[Report Write] ✅ 거래처 목록 로드 성공:', state.companies.length, '개');
-            console.log('[Report Write] 거래처 목록 샘플:', state.companies.slice(0, 3));
         } else {
             console.warn('[Report Write] ⚠️ 거래처 목록 로드 실패:', response.message);
             if (window.Toast) {
@@ -363,7 +349,6 @@ async function loadUserCompanies() {
  */
 function handleCompanyInput(event) {
     const inputValue = event.target.value.trim().toLowerCase();
-    console.log('[Report Write] 거래처 입력:', inputValue);
 
     // 입력값이 비어있으면 목록 숨기기
     if (!inputValue) {
@@ -372,7 +357,6 @@ function handleCompanyInput(event) {
     }
 
     // 전체 거래처 수 확인
-    console.log('[Report Write] 전체 거래처 수:', state.companies.length);
 
     // 일치하는 거래처 필터링
     const filteredCompanies = state.companies.filter(company => {
@@ -380,7 +364,6 @@ function handleCompanyInput(event) {
         return companyName.includes(inputValue);
     });
 
-    console.log('[Report Write] 필터링된 거래처 수:', filteredCompanies.length);
 
     // 결과 표시
     displayAutocompleteResults(filteredCompanies, inputValue);
@@ -407,8 +390,6 @@ function handleCompanyFocus() {
 function displayAutocompleteResults(companies, searchTerm) {
     const list = elements.companyAutocompleteList;
 
-    console.log('[Report Write] 자동완성 목록 표시 시작');
-    console.log('[Report Write] 결과 개수:', companies.length);
 
     // 목록 초기화
     list.innerHTML = '';
@@ -416,7 +397,6 @@ function displayAutocompleteResults(companies, searchTerm) {
     if (companies.length === 0) {
         list.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
         list.classList.remove('hidden');
-        console.log('[Report Write] 검색 결과 없음 메시지 표시');
         return;
     }
 
@@ -441,7 +421,6 @@ function displayAutocompleteResults(companies, searchTerm) {
     });
 
     list.classList.remove('hidden');
-    console.log('[Report Write] ✅ 자동완성 목록 표시 완료');
 }
 
 /**
@@ -458,7 +437,6 @@ function selectCompanyFromAutocomplete(company) {
     // 확인 상태 초기화
     resetVerificationStatus();
 
-    console.log('[Report Write] ✅ 거래처 선택:', companyName);
 }
 
 /**
@@ -534,7 +512,6 @@ async function loadEmployeeGoals() {
             return;
         }
 
-        console.log('[Report Write] 직원 실적 로드:', { 
             employeeId: state.currentUser.id,
             employeeName: state.currentUser.name,
             year, 
@@ -585,7 +562,6 @@ async function loadCompanyGoals(companyId) {
         const reportDate = elements.reportDate.value;
         const [year, month] = reportDate.split('-');
 
-        console.log('[Report Write] 거래처 실적 로드:', { companyId, year, month });
 
         const response = await apiManager.get(`/goals/company/${companyId}/monthly`, { year, month });
 
@@ -1268,7 +1244,6 @@ async function handleSubmit(event) {
         // 폼 데이터 수집 (새 제품 자동 추가 포함)
         const reportData = await collectFormData();
 
-        console.log('[Report Write] 보고서 제출 (원본):', reportData);
 
         // ⚠️ CRITICAL: 서버가 기대하는 형식으로 데이터 변환
         const serverData = {
@@ -1300,18 +1275,6 @@ async function handleSubmit(event) {
                 : null
         };
 
-        console.log('[Report Write] 서버 전송 데이터:', serverData);
-        console.log('[Report Write] 📊 상세:');
-        console.log('  - reportId:', serverData.reportId, typeof serverData.reportId);
-        console.log('  - submittedBy:', serverData.submittedBy, typeof serverData.submittedBy);
-        console.log('  - submittedDate:', serverData.submittedDate, typeof serverData.submittedDate);
-        console.log('  - companyId:', serverData.companyId, typeof serverData.companyId);
-        console.log('  - reportType:', serverData.reportType, typeof serverData.reportType);
-        console.log('  - status:', serverData.status, typeof serverData.status);
-        console.log('  - targetCollectionAmount:', serverData.targetCollectionAmount, typeof serverData.targetCollectionAmount);
-        console.log('  - targetSalesAmount:', serverData.targetSalesAmount, typeof serverData.targetSalesAmount);
-        console.log('  - targetProducts:', serverData.targetProducts, typeof serverData.targetProducts);
-        console.log('  - activityNotes:', serverData.activityNotes, typeof serverData.activityNotes);
 
         // API 호출
         const response = await apiManager.createReport(serverData);
@@ -1541,12 +1504,10 @@ async function collectFormData() {
 
             // 존재하지 않으면 추가
             if (!existingProduct) {
-                console.log(`[Report Write] 새 제품 추가: ${normalizedName}`);
                 try {
                     const response = await apiManager.addProduct(normalizedName);
                     if (response.success && !response.isExisting) {
                         state.products.push(response.data);
-                        console.log(`[Report Write] ✅ 제품 추가 성공: ${normalizedName}`);
                     }
                 } catch (error) {
                     console.error(`[Report Write] 제품 추가 실패: ${normalizedName}`, error);
@@ -1649,24 +1610,19 @@ function handleCancel() {
  * 초기화 실행 함수
  */
 async function runInitialization() {
-    console.log('[Report Write] 초기화 시작');
 
     try {
         // API Manager 초기화
         await apiManager.init();
-        console.log('[Report Write] API Manager 초기화 완료');
 
         // DOM 요소 캐싱
         cacheElements();
-        console.log('[Report Write] DOM 요소 캐싱 완료');
 
         // 이벤트 리스너 연결
         attachEventListeners();
-        console.log('[Report Write] 이벤트 리스너 연결 완료');
 
         // 페이지 초기화 (거래처 목록 로드 포함)
         await initializePage();
-        console.log('[Report Write] 페이지 초기화 완료');
 
     } catch (error) {
         console.error('[Report Write] 초기화 중 오류 발생:', error);
@@ -1680,9 +1636,7 @@ async function runInitialization() {
 if (document.readyState === 'loading') {
     // 아직 로딩 중이면 DOMContentLoaded 이벤트 대기
     document.addEventListener('DOMContentLoaded', runInitialization);
-    console.log('[Report Write] DOMContentLoaded 이벤트 등록');
 } else {
     // 이미 로드되었으면 즉시 실행
-    console.log('[Report Write] DOM 이미 로드됨 - 즉시 초기화 실행');
     runInitialization();
 }

@@ -257,24 +257,19 @@ export function setupGlobalEvents(loadPageFn, isInitializedRef, options = {}) {
 export function setupLogoutButton(handleLogoutFn, showToastFn, user) {
     const logoutBtn = document.getElementById('logout-btn');
 
-    console.log('[로그아웃 버튼] 설정 시작, 버튼 요소:', logoutBtn);
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            console.log('[로그아웃 버튼] 클릭됨');
 
             // 로그 기록
             if (user) {
-                console.log(`[로그아웃] ${user.name} - ${new Date().toISOString()}`);
             }
 
             // 간단한 confirm 사용
             const confirmed = confirm('정말 로그아웃 하시겠습니까?');
 
-            console.log('[로그아웃 확인]:', confirmed);
 
             if (confirmed) {
-                console.log('[로그아웃] 처리 시작');
                 showToastFn('로그아웃 중...', 'info');
 
                 setTimeout(() => {
@@ -283,7 +278,6 @@ export function setupLogoutButton(handleLogoutFn, showToastFn, user) {
             }
         });
 
-        console.log('[로그아웃 버튼] 이벤트 리스너 등록 완료');
     } else {
         console.error('[로그아웃 버튼] 버튼 요소를 찾을 수 없습니다!');
     }

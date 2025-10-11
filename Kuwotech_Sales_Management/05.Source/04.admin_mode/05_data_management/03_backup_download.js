@@ -30,7 +30,6 @@ import { formatDateKorean, formatNumber } from '../../01.common/03_format.js';
  * [함수: 전체 백업 버튼 초기화]
  */
 export function initFullBackup() {
-    console.log('[관리자 전체 백업] 초기화');
     
     // 빠른 다운로드 카드 이벤트
     setupQuickDownloadCards();
@@ -114,7 +113,6 @@ async function quickDownload(type) {
                 return;
         }
         
-        console.log(`[빠른 다운로드] ${typeName} 시작`);
         
         await downloadManager.download({
             downloadType: downloadType,
@@ -628,7 +626,6 @@ async function executeFullBackup(options = {}) {
             return;
         }
         
-        console.log('[전체 백업] 시작:', { user: user.name, options });
         
         // 통합 다운로드 매니저 호출
         const result = await downloadManager.download({
@@ -646,7 +643,6 @@ async function executeFullBackup(options = {}) {
         });
         
         if (result.success) {
-            console.log('[전체 백업] 성공');
             
             // 백업 이력 저장
             await saveBackupHistory({
@@ -705,7 +701,6 @@ async function showScheduleBackupOptions() {
  */
 async function saveBackupHistory(backupInfo) {
     try {
-        console.log('[백업 이력 저장]', backupInfo);
         
         const history = JSON.parse(localStorage.getItem('full_backup_history') || '[]');
         history.unshift(backupInfo);

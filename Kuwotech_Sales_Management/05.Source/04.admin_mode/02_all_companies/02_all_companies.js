@@ -59,9 +59,6 @@ let currentSort = 'name';
 
 async function initAllCompanies() {
     try {
-        console.log('[전체거래처] 초기화 시작');
-        console.log('[전체거래처] DOM 상태:', document.readyState);
-        
         showLoading('거래처 데이터를 불러오는 중...');
         
         // DOM 요소 확인 후 이벤트 리스너 설정
@@ -76,9 +73,8 @@ async function initAllCompanies() {
         
         // 다운로드 버튼 초기화
         initDownloadButton();
-        
+
         hideLoading();
-        console.log('[전체거래처] 초기화 완료');
         
     } catch (error) {
         console.error('[전체거래처] 초기화 실패:', error);
@@ -111,8 +107,6 @@ function waitForDOMReady() {
  */
 async function loadMasterData() {
     try {
-        console.log('[마스터데이터] 로드 시작');
-        
         // 1. 제품 목록 로드
         const productsResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/products`, {
             method: 'GET',
@@ -126,7 +120,6 @@ async function loadMasterData() {
             const productsData = await productsResponse.json();
             if (productsData.success) {
                 populateProductSelect(productsData.products);
-                console.log('[제품] 로드 성공:', productsData.products.length, '개');
             }
         }
 
@@ -143,7 +136,6 @@ async function loadMasterData() {
             const regionsData = await regionsResponse.json();
             if (regionsData.success) {
                 populateRegionSelect(regionsData.regions);
-                console.log('[고객사지역] 로드 성공 (regions 테이블 기준):', regionsData.regions.length, '개');
             }
         }
 
@@ -161,10 +153,9 @@ async function loadMasterData() {
             if (departmentsData.success) {
                 populateDepartmentSelect(departmentsData.departments);
                 window.masterDepartments = departmentsData.departments; // 전역 저장
-                console.log('[담당부서] 로드 성공:', departmentsData.departments.length, '개');
             }
         }
-        
+
         // 4. 직원 목록 로드
         const employeesResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees`, {
             method: 'GET',
@@ -178,7 +169,6 @@ async function loadMasterData() {
             const employeesData = await employeesResponse.json();
             if (employeesData.success) {
                 populateEmployeeSelect(employeesData.employees);
-                console.log('[직원] 로드 성공:', employeesData.employees.length, '개');
             }
         }
 
@@ -218,8 +208,6 @@ function populateProductSelect(products) {
         item.appendChild(label);
         dropdownMenu.appendChild(item);
     });
-
-    console.log('[판매제품] 체크박스 드롭다운 로드 성공:', products.length, '개');
 }
 
 /**
@@ -274,8 +262,6 @@ function populateRegionSelect(regions) {
         item.appendChild(label);
         dropdownMenu.appendChild(item);
     });
-
-    console.log('[고객사지역] 체크박스 드롭다운 로드 성공 (regions 테이블 기준):', sortedRegions.length, '개');
 }
 
 /**
@@ -327,8 +313,6 @@ function populateDepartmentSelect(departments) {
         item.appendChild(label);
         dropdownMenu.appendChild(item);
     });
-
-    console.log('[담당부서] 체크박스 드롭다운 로드 성공:', departments.length, '개');
 }
 
 /**
@@ -381,8 +365,6 @@ function populateStatusSelect() {
         item.appendChild(label);
         dropdownMenu.appendChild(item);
     });
-
-    console.log('[거래상태] 체크박스 드롭다운 로드 성공:', statuses.length, '개');
 }
 
 /**
@@ -435,8 +417,6 @@ function populateEmployeeSelect(employees) {
         item.appendChild(label);
         dropdownMenu.appendChild(item);
     });
-
-    console.log('[직원] 체크박스 드롭다운 로드 성공:', employees.length, '개');
 }
 
 /**
@@ -493,8 +473,6 @@ function populateCompanyNameSelect(companies) {
         option.textContent = name;
         filterNameSelect.appendChild(option);
     });
-
-    console.log('[거래처명] 로드 성공:', sortedNames.length, '개');
 }
 
 // ============================================
@@ -508,8 +486,6 @@ async function loadCompanies() {
         // 백엔드 API 엔드포인트 (관리자용 전체 거래처)
         // limit=10000으로 설정하여 전체 거래처 조회
         const apiUrl = `${GlobalConfig.API_BASE_URL}/api/companies?limit=10000`;
-
-        console.log('[API 호출]', apiUrl);
 
         // 백엔드 API 호출
         const response = await fetch(apiUrl, {
@@ -594,8 +570,6 @@ async function loadCompanies() {
         updateStatistics();
 
         hideLoading();
-
-        console.log('[거래처 로드 성공]', companyList.length, '개');
         
     } catch (error) {
         console.error('[거래처 로드 실패]', error);
@@ -737,7 +711,6 @@ function sortCompanies() {
  */
 function handleCompanyInput(event) {
     const inputValue = event.target.value.trim().toLowerCase();
-    console.log('[전체거래처] 거래처명 입력:', inputValue);
 
     const autocompleteList = document.getElementById('company-autocomplete-list');
     if (!autocompleteList) return;
@@ -835,19 +808,7 @@ function updateStatistics() {
     }, 0);
     
     const totalReceivable = totalSales - totalCollection;
-    
-    console.log('[updateStatistics] 통계 업데이트:', {
-        totalCount,
-        totalSales,
-        totalCollection,
-        totalReceivable,
-        sampleData: companyList.slice(0, 2).map(c => ({
-            name: getCompanyDisplayName(c),
-            sales: c.accumulatedSales,
-            collection: c.accumulatedCollection
-        }))
-    });
-    
+
     // 거래처 개수 업데이트
     const totalCountElement = document.getElementById('total-count');
     if (totalCountElement) {
@@ -1168,8 +1129,6 @@ async function showCompanyEditModal(company) {
 }
 
 async function openCompanyModal() {
-    console.log('[거래처 추가] openCompanyModal 함수 호출됨');
-
     // 지역 목록 가져오기
     let regionsHtml = '<option value="">선택하세요</option>';
     try {
@@ -1482,9 +1441,7 @@ async function openCompanyModal() {
 
 // 거래처 상세보기/수정 모달 (전체 20개 항목)
 async function openCompanyDetailModal(keyValue) {
-    console.log('[거래처 상세] 함수 호출됨, keyValue:', keyValue);
-
-    try {
+    try{
         showLoading('거래처 정보 로드 중...');
 
         // 거래처 정보 가져오기
@@ -1953,18 +1910,13 @@ async function openCompanyDetailModal(keyValue) {
 // ============================================
 
 function setupEventListeners() {
-    console.log('[이벤트 리스너] 설정 시작');
-
     // 거래처 추가 버튼
     const addCompanyBtn = document.getElementById('add-company-btn');
-    console.log('[이벤트 리스너] add-company-btn 요소:', addCompanyBtn);
 
     if (addCompanyBtn) {
         addCompanyBtn.addEventListener('click', () => {
-            console.log('[거래처 추가] 버튼 클릭됨');
             openCompanyModal();
         });
-        console.log('[거래처 추가 버튼] 이벤트 리스너 등록 완료');
     } else {
         console.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
     }
@@ -2181,8 +2133,6 @@ function applyFilter() {
     // 거래처명만 단일 선택이므로 여기서 업데이트
     currentFilter.name = document.getElementById('filter-name')?.value || '';
 
-    console.log('[필터 적용]', currentFilter);
-
     // 거래처 목록 재로드
     loadCompanies();
 }
@@ -2193,8 +2143,6 @@ function applyFilter() {
 
 // HTML에서 사용할 함수들을 window 객체에 등록
 if (typeof window !== 'undefined') {
-    console.log('[전역 함수] window 객체에 등록 시작');
-
     window.openCompanyModal = openCompanyModal;
     window.openCompanyDetailModal = openCompanyDetailModal;
     window.viewCompany = viewCompany;
@@ -2204,8 +2152,6 @@ if (typeof window !== 'undefined') {
     window.searchCompanies = searchCompanies;
     window.exportExcel = exportExcel;  // 03_download.js에서 import
     window.importExcel = importExcel;  // 03_download.js에서 import
-
-    console.log('[전역 함수] 등록 완료 - openCompanyModal:', typeof window.openCompanyModal);
 }
 
 // ============================================
@@ -2232,6 +2178,4 @@ if (typeof window !== 'undefined') {
         searchCompanies,
         applyFilter
     };
-
-    console.log('[전체거래처관리] 모듈 함수 전역 등록 완료');
 }

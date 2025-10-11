@@ -52,7 +52,6 @@ function showModal(options) {
  * HTML의 다운로드 버튼에 이벤트 연결
  */
 export function initDownloadButton() {
-    console.log('[전체거래처 다운로드] 버튼 초기화');
     
     // 기존 엑셀 내보내기 버튼을 다운로드 옵션 버튼으로 변경
     const exportBtn = document.querySelector('button[onclick="exportExcel()"]');
@@ -63,7 +62,6 @@ export function initDownloadButton() {
         // 새 이벤트 리스너 추가
         exportBtn.addEventListener('click', showDownloadOptions);
         
-        console.log('[전체거래처 다운로드] 버튼 이벤트 연결 완료');
     }
 }
 
@@ -181,7 +179,6 @@ async function showDownloadOptions() {
  */
 async function executeDownload(options) {
     try {
-        console.log('[전체거래처 다운로드] 시작:', options);
         
         // 현재 표시된 거래처 목록 가져오기
         let companies = window.allCompaniesModule?.companyList || [];

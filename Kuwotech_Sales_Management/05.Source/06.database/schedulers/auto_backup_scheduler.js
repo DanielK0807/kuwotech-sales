@@ -62,12 +62,10 @@ export class AutoBackupScheduler {
      */
     async start() {
         if (this.isRunning) {
-            console.log('[자동 백업] 이미 실행 중입니다');
             return;
         }
         
         this.isRunning = true;
-        console.log('[자동 백업] 스케줄러 시작');
         
         // 각 백업 유형별로 스케줄 설정
         for (const [type, config] of Object.entries(this.backupConfig)) {
@@ -84,7 +82,6 @@ export class AutoBackupScheduler {
             this.checkAndRunBackups();
         }, 60 * 60 * 1000); // 1시간
         
-        console.log('[자동 백업] 스케줄러 시작 완료');
     }
     
     /**
@@ -99,7 +96,6 @@ export class AutoBackupScheduler {
         });
         
         this.timers = {};
-        console.log('[자동 백업] 스케줄러 정지');
     }
     
     // ============================================
@@ -120,7 +116,6 @@ export class AutoBackupScheduler {
             
             // 백업 간격이 지났는지 확인
             if (timeSinceLastRun >= config.interval) {
-                console.log(`[자동 백업] ${type} 백업 실행 필요`);
                 await this.executeBackup(type);
             }
         }
@@ -134,7 +129,6 @@ export class AutoBackupScheduler {
         const config = this.backupConfig[type];
         
         if (!config || !config.enabled) {
-            console.log(`[자동 백업] ${type} 백업 비활성화됨`);
             return;
         }
         
@@ -143,7 +137,6 @@ export class AutoBackupScheduler {
         const delay = nextRunTime - Date.now();
         
         if (delay > 0) {
-            console.log(`[자동 백업] ${type} 백업 예약: ${new Date(nextRunTime).toLocaleString('ko-KR')}`);
             
             this.timers[type] = setTimeout(async () => {
                 await this.executeBackup(type);
@@ -159,7 +152,6 @@ export class AutoBackupScheduler {
      */
     async executeBackup(type) {
         try {
-            console.log(`[자동 백업] ${type} 백업 시작`);
             
             const timestamp = new Date().toISOString();
             const filename = this.generateFilename(type, timestamp);
@@ -183,7 +175,6 @@ export class AutoBackupScheduler {
             // 오래된 백업 삭제
             await this.cleanOldBackups(type);
             
-            console.log(`[자동 백업] ${type} 백업 완료`);
             
             // 알림 표시 (옵션)
             if (GlobalConfig.AUTO_BACKUP.SHOW_NOTIFICATION) {
@@ -267,7 +258,6 @@ export class AutoBackupScheduler {
                 cutoffDate: new Date(cutoffDate)
             });
             
-            console.log(`[자동 백업] ${type} 백업 정리 완료 (${config.retentionDays}일 이상)`);
             
         } catch (error) {
             console.error(`[자동 백업] ${type} 백업 정리 실패:`, error);
@@ -330,7 +320,6 @@ export class AutoBackupScheduler {
                 // 기존 설정과 병합
                 Object.assign(this.backupConfig, settings.backupConfig || {});
                 
-                console.log('[자동 백업] 설정 로드 완료');
             }
             
         } catch (error) {
@@ -374,7 +363,6 @@ export class AutoBackupScheduler {
             }
         }
         
-        console.log(`[자동 백업] ${type} 설정 변경 완료`);
     }
     
     /**
@@ -383,7 +371,6 @@ export class AutoBackupScheduler {
      */
     async runManualBackup(type = 'manual') {
         try {
-            console.log('[자동 백업] 수동 백업 실행');
             
             const backup = await createBackup({
                 description: '수동 백업',
@@ -458,7 +445,6 @@ export async function initAutoBackup() {
         const scheduler = getScheduler();
         await scheduler.start();
         
-        console.log('[자동 백업] 시스템 초기화 완료');
         
         return scheduler;
         

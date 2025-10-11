@@ -75,11 +75,9 @@ export async function parseExcelFile(file) {
           const foundSheet = altNames.find(name => workbook.SheetNames.includes(name));
           
           if (foundSheet) {
-            console.log(`[시트 대체] '${foundSheet}' 시트 사용`);
           } else if (workbook.SheetNames.length > 0) {
             // 첫 번째 시트 사용
             const firstSheet = workbook.SheetNames[0];
-            console.log(`[시트 대체] 첫 번째 시트 '${firstSheet}' 사용`);
           } else {
             throw new Error(`엑셀 파일에서 시트를 찾을 수 없습니다.`);
           }
@@ -95,7 +93,6 @@ export async function parseExcelFile(file) {
           defval: '' // 빈 셀 기본값
         });
         
-        console.log(`[엑셀 파싱] ${jsonData.length}개 행 추출`);
         
         // 데이터 정제
         const cleanedData = jsonData.map(row => cleanExcelRow(row));
@@ -239,7 +236,6 @@ export function validateExcelData(data) {
     data: validRows
   };
   
-  console.log('[데이터 검증]', result.valid ? '통과' : '실패', 
     `(유효: ${result.validRows}, 오류: ${result.errorRows})`);
   
   return result;
@@ -329,7 +325,6 @@ export async function syncExcelToDb(excelData, options = {}) {
 
     // 백업 생성
     if (shouldBackup) {
-      console.log('[백업 생성 중...]');
       await createBackup();
     }
 
@@ -348,7 +343,6 @@ export async function syncExcelToDb(excelData, options = {}) {
       });
     } else if (mode === 'replace') {
       // replace 모드: 모든 기존 데이터 삭제
-      console.log('[기존 데이터] 삭제 시작...');
       existingCompanies = await db.getAllClients();
       for (const company of existingCompanies) {
         try {
@@ -357,7 +351,6 @@ export async function syncExcelToDb(excelData, options = {}) {
           console.warn(`[삭제 실패] ${company.keyValue}:`, error.message);
         }
       }
-      console.log('[기존 데이터] 삭제 완료');
     }
 
     // 데이터 저장
@@ -410,7 +403,6 @@ export async function syncExcelToDb(excelData, options = {}) {
       warnings: validation.warnings
     };
 
-    console.log(`[엑셀 → DB] 동기화 완료`, syncResult);
 
     return syncResult;
 
@@ -488,23 +480,19 @@ export async function syncDbToExcel(options = {}) {
     const db = await getDB();
 
     // 데이터 수집
-    console.log('[데이터 수집 중...]');
 
     // 1. 거래처 데이터 (REST API 사용)
     const companies = await db.getAllClients();
-    console.log(`거래처: ${companies.length}개`);
 
     // 2. 보고서 데이터 (REST API 사용)
     let reports = [];
     if (includeReports) {
       reports = await db.getAllReports();
-      console.log(`보고서: ${reports.length}개`);
     }
 
     // 3. 변경 이력 (추후 구현 예정)
     let changeHistory = [];
     if (includeHistory) {
-      console.log('[변경이력] 기능은 추후 구현 예정');
       // 추후 백엔드에서 /api/history 엔드포인트 제공 시 구현
     }
     
@@ -582,7 +570,6 @@ export async function syncDbToExcel(options = {}) {
       exportDate: new Date().toISOString()
     };
     
-    console.log(`[DB → 엑셀] ${finalFileName} 생성 완료`, result);
     
     // 변경 이력 기록
     await logChange({

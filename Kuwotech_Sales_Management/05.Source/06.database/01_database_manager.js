@@ -18,7 +18,6 @@ const API_CONFIG = {
     TIMEOUT: 30000, // 30초
 };
 
-console.log(`🔗 API 서버 연결: ${API_CONFIG.BASE_URL}`);
 
 // 스토어 → API 엔드포인트 매핑
 const ENDPOINTS = {
@@ -73,8 +72,6 @@ export class DatabaseManager {
                 // sessionStorage에 사용자 정보만 임시 저장 (현재 세션용)
                 sessionStorage.setItem('user', JSON.stringify(this.user));
 
-                console.log('✅ 로그인 성공 - 사용자 정보 저장:', this.user);
-                console.log('✅ 인증 토큰 localStorage 저장:', this.token ? '토큰 있음' : '토큰 없음');
 
                 return response.user;
             } else {
@@ -92,7 +89,6 @@ export class DatabaseManager {
     async logout() {
         // 이미 로그아웃 중이면 중복 호출 방지
         if (this.isLoggingOut) {
-            console.log('⚠️ 로그아웃이 이미 진행 중입니다.');
             return;
         }
 
@@ -120,7 +116,6 @@ export class DatabaseManager {
             // sessionStorage에서 임시 저장된 사용자 정보 삭제
             sessionStorage.removeItem('user');
 
-            console.log('✅ 로그아웃 완료 - 저장된 정보 모두 삭제');
         }
     }
 
@@ -145,7 +140,6 @@ export class DatabaseManager {
     async refreshToken() {
         // 이미 토큰 갱신 중이거나 로그아웃 중이면 중복 호출 방지
         if (this.isRefreshing || this.isLoggingOut) {
-            console.log('⚠️ 토큰 갱신이 이미 진행 중이거나 로그아웃 중입니다.');
             return false;
         }
 
@@ -191,7 +185,6 @@ export class DatabaseManager {
     async getEmployeesByRole(role) {
         try {
             const response = await this.request(`${ENDPOINTS.AUTH}/employees-by-role/${encodeURIComponent(role)}`);
-            console.log('📊 getEmployeesByRole 응답:', response);
 
             // 백엔드 응답 구조: { success: true, data: { employees: [...] } }
             if (response.success && response.data && response.data.employees) {
@@ -235,7 +228,6 @@ export class DatabaseManager {
     async getEmployeeByName(name) {
         try {
             const response = await this.request(`${ENDPOINTS.EMPLOYEES}/${encodeURIComponent(name)}`);
-            console.log('📊 getEmployeeByName 응답:', response);
             // 백엔드는 { success: true, employee: {...} } 형태로 반환
             return response;
         } catch (error) {
@@ -732,15 +724,12 @@ export class DatabaseManager {
 
             // skipRetry 옵션이 있거나, 인증 엔드포인트이거나, 이미 갱신/로그아웃 중이면 재시도하지 않음
             if (response.status === 401 && !options.skipRetry && !isAuthEndpoint && !this.isRefreshing && !this.isLoggingOut) {
-                console.log('🔄 401 에러 감지 - 토큰 갱신 시도');
                 const refreshed = await this.refreshToken();
 
                 // 토큰 갱신 성공 시에만 재시도
                 if (refreshed) {
-                    console.log('✅ 토큰 갱신 성공 - 요청 재시도');
                     return await this.request(endpoint, { ...options, skipRetry: true });
                 } else {
-                    console.log('❌ 토큰 갱신 실패 - 로그인 필요');
                     throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
                 }
             }
@@ -787,7 +776,6 @@ export class DatabaseManager {
     async init() {
         // API 모드에서는 초기화 불필요
         // 하위 호환성을 위해 메서드만 유지
-        console.log('Database Manager initialized in API mode');
         return Promise.resolve();
     }
 }

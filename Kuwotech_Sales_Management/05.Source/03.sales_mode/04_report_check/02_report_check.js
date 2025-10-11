@@ -64,49 +64,32 @@ const elements = {
 // =====================================================
 async function initReportCheckPage() {
   try {
-    console.log('✅ [Report Check] 실적보고서 확인 페이지 초기화 시작');
-
     // DOM 요소 캐싱
-    console.log('[Report Check] 1/5 DOM 요소 캐싱 중...');
     cacheElements();
-    console.log('[Report Check] ✓ DOM 요소 캐싱 완료');
 
     // API Manager 초기화
-    console.log('[Report Check] 2/5 API Manager 초기화 중...');
     await apiManager.init();
-    console.log('[Report Check] ✓ API Manager 초기화 완료');
 
     // 사용자 정보 확인
-    console.log('[Report Check] 3/5 사용자 세션 확인 중...');
     if (!checkUserSession()) {
-      console.warn('[Report Check] ✗ 사용자 세션 없음 - 로그인 페이지로 이동');
       return;
     }
-    console.log('[Report Check] ✓ 사용자 세션 확인 완료:', state.currentUser?.name);
 
     // 이벤트 리스너 등록 (CRITICAL: 반드시 실행되어야 함)
-    console.log('[Report Check] 4/6 이벤트 리스너 등록 중...');
     initEventListeners();
-    console.log('[Report Check] ✓ 이벤트 리스너 등록 완료');
 
     // 거래처 목록 로드
-    console.log('[Report Check] 5/6 거래처 목록 로드 중...');
     await loadCompanies();
-    console.log('[Report Check] ✓ 거래처 목록 로드 완료');
 
     // 초기 데이터 로드
-    console.log('[Report Check] 6/6 데이터 로드 중...');
     await loadReportsData();
-    console.log('[Report Check] ✓ 초기화 완료');
   } catch (error) {
     console.error('❌ [Report Check] 초기화 실패:', error);
     console.error('   스택:', error.stack);
 
     // 초기화 실패해도 이벤트 리스너는 등록 시도
     try {
-      console.log('[Report Check] 긴급: 이벤트 리스너 강제 등록 시도');
       initEventListeners();
-      console.log('[Report Check] ✓ 이벤트 리스너 강제 등록 성공');
     } catch (listenerError) {
       console.error('❌ [Report Check] 이벤트 리스너 등록 실패:', listenerError);
     }
@@ -122,7 +105,6 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initReportCheckPage);
 } else {
   // 이미 DOM이 로드되었으면 즉시 실행
-  console.log('[Report Check] DOM 이미 로드됨 - 즉시 초기화 시작');
   initReportCheckPage();
 }
 
@@ -168,7 +150,6 @@ function checkUserSession() {
     return false;
   }
 
-  console.log('[Report Check] 현재 사용자:', state.currentUser);
   return true;
 }
 
@@ -177,12 +158,10 @@ function checkUserSession() {
 // =====================================================
 function initEventListeners() {
   try {
-    console.log('[Report Check] 이벤트 리스너 등록 시작...');
 
     // 검색 버튼
     if (elements.btnSearch) {
       elements.btnSearch.addEventListener('click', handleSearch);
-      console.log('[Report Check]   - 검색 버튼 리스너 등록 ✓');
     } else {
       console.error('[Report Check]   - 검색 버튼 요소 없음 ✗');
     }
@@ -190,7 +169,6 @@ function initEventListeners() {
     // 새로고침 버튼
     if (elements.btnRefresh) {
       elements.btnRefresh.addEventListener('click', handleRefresh);
-      console.log('[Report Check]   - 새로고침 버튼 리스너 등록 ✓');
     } else {
       console.error('[Report Check]   - 새로고침 버튼 요소 없음 ✗');
     }
@@ -200,24 +178,20 @@ function initEventListeners() {
       elements.filterType.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch();
       });
-      console.log('[Report Check]   - 유형 필터 엔터키 리스너 등록 ✓');
     }
 
     if (elements.filterCompany) {
       elements.filterCompany.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch();
       });
-      console.log('[Report Check]   - 거래처 필터 엔터키 리스너 등록 ✓');
     }
 
     if (elements.filterStatus) {
       elements.filterStatus.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch();
       });
-      console.log('[Report Check]   - 상태 필터 엔터키 리스너 등록 ✓');
     }
 
-    console.log('[Report Check] 모든 이벤트 리스너 등록 완료');
   } catch (error) {
     console.error('[Report Check] 이벤트 리스너 등록 중 오류:', error);
     throw error;
@@ -231,8 +205,6 @@ async function loadReportsData() {
   showLoading(true);
 
   try {
-    console.log('[Report Check] 보고서 목록 로드 중...');
-    console.log('[Report Check] 현재 사용자:', state.currentUser?.name);
 
     // API 호출로 실제 데이터 가져오기
     // ✅ FIX: 백엔드는 submittedBy 파라미터를 기대함 (employeeId 아님)
@@ -242,17 +214,14 @@ async function loadReportsData() {
       offset: 0
     });
 
-    console.log('[Report Check] API 응답:', response);
 
     if (response.success) {
       // API 응답에서 실제 보고서 배열 추출
       // 응답 구조: { success: true, data: { reports: [...] } }
       const reportsArray = response.data?.reports || response.data || [];
-      console.log('[Report Check] 받은 보고서 데이터:', reportsArray);
 
       // 데이터 변환 (API 응답 → 아코디언 UI 형식)
       state.reportsData = transformReportsData(reportsArray);
-      console.log('[Report Check] 보고서 목록 로드 성공:', state.reportsData.length, '개');
 
       // 날짜 기준 내림차순 정렬 (최신순)
       state.reportsData.sort((a, b) =>
@@ -264,7 +233,6 @@ async function loadReportsData() {
 
       // 개발용: 목업 데이터 사용
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('[Report Check] 개발 환경: 목업 데이터 사용');
         state.reportsData = generateMockData();
       }
     }
@@ -273,10 +241,8 @@ async function loadReportsData() {
     state.filteredReports = [...state.reportsData];
 
     // UI 업데이트
-    console.log('[Report Check] UI 업데이트 시작...');
     updateSummaryCards();
     renderReportList();
-    console.log('[Report Check] UI 업데이트 완료');
 
     showLoading(false);
   } catch (error) {
@@ -286,7 +252,6 @@ async function loadReportsData() {
 
     // 개발용: 목업 데이터 사용
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      console.log('[Report Check] 에러 발생: 목업 데이터 사용');
       state.reportsData = generateMockData();
       state.filteredReports = [...state.reportsData];
       updateSummaryCards();
@@ -302,15 +267,12 @@ async function loadReportsData() {
  */
 async function loadCompanies() {
   try {
-    console.log('[Report Check] 거래처 목록 로드 중...');
-    console.log('[Report Check] 담당자:', state.currentUser.name);
 
     // 담당자별 거래처 조회 API 호출
     const response = await apiManager.getCompaniesByManager(state.currentUser.name);
 
     if (response.success) {
       state.companies = response.companies || [];
-      console.log('[Report Check] 거래처 목록 로드 성공:', state.companies.length, '개');
 
       // 거래처 드롭다운 채우기
       populateCompanyFilter();
@@ -351,14 +313,12 @@ function populateCompanyFilter() {
     elements.filterCompany.appendChild(option);
   });
 
-  console.log('[Report Check] 거래처 필터 채우기 완료:', sortedCompanies.length, '개');
 }
 
 /**
  * API 데이터를 UI 형식으로 변환
  */
 function transformReportsData(apiData) {
-  console.log('[Report Check] 데이터 변환 시작:', apiData?.length, '개 보고서');
 
   if (!apiData || !Array.isArray(apiData)) {
     console.warn('[Report Check] 유효하지 않은 데이터:', apiData);
@@ -367,7 +327,6 @@ function transformReportsData(apiData) {
 
   return apiData.map((report, index) => {
     try {
-      console.log(`[Report Check] 보고서 #${index + 1} 변환:`, report.reportId);
 
       // ✅ FIX: 백엔드 실제 필드명에 맞춰 파싱
       // 백엔드는 targetProducts (JSON 문자열), activityNotes (JSON 문자열) 반환
@@ -411,7 +370,6 @@ function transformReportsData(apiData) {
         activities: transformActivitiesFromBackend(activityNotes, confirmationData.activities || [])
       };
 
-      console.log(`[Report Check] 보고서 #${index + 1} 변환 완료:`, transformed.id);
       return transformed;
     } catch (error) {
       console.error(`[Report Check] 보고서 #${index + 1} 변환 실패:`, error, report);
@@ -562,7 +520,6 @@ function handleSearch() {
   const companyFilter = elements.filterCompany.value;
   const statusFilter = elements.filterStatus.value;
 
-  console.log('[Report Check] 필터 적용:', { typeFilter, companyFilter, statusFilter });
 
   state.filteredReports = state.reportsData.filter(report => {
     const matchType = !typeFilter || report.type === typeFilter;
@@ -580,7 +537,6 @@ function handleSearch() {
 }
 
 function handleRefresh() {
-  console.log('[Report Check] 🔄 새로고침 버튼 클릭됨');
 
   try {
     // 애니메이션 효과
@@ -596,15 +552,12 @@ function handleRefresh() {
     // 필터 초기화
     if (elements.filterType) {
       elements.filterType.value = '';
-      console.log('[Report Check]   - 유형 필터 초기화');
     }
     if (elements.filterStatus) {
       elements.filterStatus.value = '';
-      console.log('[Report Check]   - 상태 필터 초기화');
     }
 
     // 데이터 리로드
-    console.log('[Report Check]   - 데이터 리로드 시작');
     loadReportsData();
 
     // 토스트 알림
@@ -612,7 +565,6 @@ function handleRefresh() {
       window.Toast.info('데이터를 새로고침했습니다');
     }
 
-    console.log('[Report Check] ✓ 새로고침 완료');
   } catch (error) {
     console.error('[Report Check] ❌ 새로고침 중 오류:', error);
     if (window.Toast) {
@@ -880,7 +832,6 @@ function toggleSectionContent(sectionTitle) {
     sectionContent.style.display = 'block';
   }
 
-  console.log('[Report Check] 섹션 토글:', sectionTitle.dataset.section, isExpanded ? '접기' : '펼치기');
 }
 
 // =====================================================
@@ -898,14 +849,6 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
     state.expandedReportId = null;
   } else {
     // ✅ DEBUG: 상세보기 클릭 시 전체 보고서 데이터 로깅
-    console.log('[Report Check] ========== 상세보기 클릭 ==========');
-    console.log('[Report Check] 보고서 ID:', report.reportId);
-    console.log('[Report Check] 전체 보고서 객체:', JSON.stringify(report, null, 2));
-    console.log('[Report Check] collection.planned:', report.collection?.planned);
-    console.log('[Report Check] sales.planned:', report.sales?.planned);
-    console.log('[Report Check] sales.products:', report.sales?.products);
-    console.log('[Report Check] activities:', report.activities);
-    console.log('[Report Check] =====================================');
 
     // 다른 모든 아코디언 닫기
     document.querySelectorAll('.report-item.expanded').forEach(item => {
@@ -934,7 +877,6 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
 // 동적 입력줄 추가
 // =====================================================
 function addDynamicCollectionRow(reportItem, report) {
-  console.log('[Report Check] 수금 실적 입력줄 추가');
 
   const container = reportItem.querySelector('.collection-section .dynamic-input-rows');
   if (!container) {
@@ -966,7 +908,6 @@ function addDynamicCollectionRow(reportItem, report) {
 }
 
 function addDynamicSalesRow(reportItem, report) {
-  console.log('[Report Check] 매출 실적 입력줄 추가');
 
   const container = reportItem.querySelector('.sales-section .dynamic-input-rows');
   if (!container) {
@@ -1004,11 +945,8 @@ function addDynamicSalesRow(reportItem, report) {
 // 상세 정보 로드
 // =====================================================
 function loadReportDetails(reportItem, report) {
-  console.log('[Report Check] ========== 상세 정보 로드 시작 ==========');
-  console.log('[Report Check] 보고서 ID:', report.reportId);
 
   // ✅ 보고서 기본정보 섹션 채우기
-  console.log('[Report Check] --- 보고서 기본정보 ---');
 
   const detailReportId = reportItem.querySelector('.detail-report-id');
   if (detailReportId) {
@@ -1052,7 +990,6 @@ function loadReportDetails(reportItem, report) {
     detailStatus.textContent = getStatusLabel(report.status);
   }
 
-  console.log('[Report Check] ✓ 보고서 기본정보 로드 완료');
 
   // ✅ 섹션 표시 (데이터가 있으면 표시) 및 자동 펼치기
   const collectionSection = reportItem.querySelector('.collection-section');
@@ -1070,7 +1007,6 @@ function loadReportDetails(reportItem, report) {
       collectionSectionContent.classList.remove('hidden');
       collectionSectionContent.style.display = 'block';
       collectionSectionTitle.classList.add('expanded');
-      console.log('[Report Check] ✓ 수금 섹션 자동 펼침');
     }
   }
 
@@ -1085,7 +1021,6 @@ function loadReportDetails(reportItem, report) {
       salesSectionContent.classList.remove('hidden');
       salesSectionContent.style.display = 'block';
       salesSectionTitle.classList.add('expanded');
-      console.log('[Report Check] ✓ 매출 섹션 자동 펼침');
     }
   }
 
@@ -1100,19 +1035,14 @@ function loadReportDetails(reportItem, report) {
       activitySectionContent.classList.remove('hidden');
       activitySectionContent.style.display = 'block';
       activitySectionTitle.classList.add('expanded');
-      console.log('[Report Check] ✓ 활동 섹션 자동 펼침');
     }
   }
 
   // ✅ DEBUG: 수금 섹션 로딩
-  console.log('[Report Check] --- 수금 섹션 ---');
   const planCollectionEl = reportItem.querySelector('.plan-collection-amount');
-  console.log('[Report Check] planCollectionEl 요소:', planCollectionEl ? '있음' : '없음');
-  console.log('[Report Check] collection.planned 값:', report.collection.planned);
   if (planCollectionEl) {
     const formattedValue = formatNumber(report.collection.planned);
     planCollectionEl.textContent = formattedValue;
-    console.log('[Report Check] → 표시된 값:', formattedValue);
   }
 
   // ✅ 통화단위 표시
@@ -1124,12 +1054,9 @@ function loadReportDetails(reportItem, report) {
   // ✅ 미이행 금액 계산 및 표시
   const collectionRemaining = report.collection.planned - report.collection.actual;
   const collectionRemainingEl = reportItem.querySelector('.collection-remaining-amount');
-  console.log('[Report Check] collectionRemainingEl 요소:', collectionRemainingEl ? '있음' : '없음');
-  console.log('[Report Check] 미이행 금액:', collectionRemaining);
   if (collectionRemainingEl) {
     const formattedValue = formatNumber(collectionRemaining);
     collectionRemainingEl.textContent = formattedValue;
-    console.log('[Report Check] → 표시된 값:', formattedValue);
   }
 
   // 기존 수금 실적 표시
@@ -1139,25 +1066,18 @@ function loadReportDetails(reportItem, report) {
   }
 
   // ✅ DEBUG: 매출 섹션 로딩
-  console.log('[Report Check] --- 매출 섹션 ---');
   const planSalesEl = reportItem.querySelector('.plan-sales-total');
-  console.log('[Report Check] planSalesEl 요소:', planSalesEl ? '있음' : '없음');
-  console.log('[Report Check] sales.planned 값:', report.sales.planned);
   if (planSalesEl) {
     const formattedValue = formatNumber(report.sales.planned);
     planSalesEl.textContent = formattedValue;
-    console.log('[Report Check] → 표시된 값:', formattedValue);
   }
 
   // ✅ 미이행 금액 계산 및 표시
   const salesRemaining = report.sales.planned - report.sales.actual;
   const salesRemainingEl = reportItem.querySelector('.sales-remaining-amount');
-  console.log('[Report Check] salesRemainingEl 요소:', salesRemainingEl ? '있음' : '없음');
-  console.log('[Report Check] 미이행 금액:', salesRemaining);
   if (salesRemainingEl) {
     const formattedValue = formatNumber(salesRemaining);
     salesRemainingEl.textContent = formattedValue;
-    console.log('[Report Check] → 표시된 값:', formattedValue);
   }
 
   // ✅ 매출 통화단위 표시
@@ -1179,22 +1099,16 @@ function loadReportDetails(reportItem, report) {
   }
 
   // ✅ DEBUG: 활동 섹션 로딩
-  console.log('[Report Check] --- 활동 섹션 ---');
   const activityItems = reportItem.querySelector('.activity-items');
-  console.log('[Report Check] activityItems 요소:', activityItems ? '있음' : '없음');
-  console.log('[Report Check] activities:', report.activities);
   if (activityItems) {
     activityItems.innerHTML = '';
 
     if (report.activities && report.activities.length > 0) {
-      console.log('[Report Check] → 활동 개수:', report.activities.length);
       report.activities.forEach((activity, index) => {
-        console.log(`[Report Check] → 활동 #${index + 1}:`, activity);
         const activityCard = createActivityCard(activity);
         activityItems.appendChild(activityCard);
       });
     } else {
-      console.log('[Report Check] → 활동 없음');
       // ✅ 빈 컨테이너만 표시 (메시지 제거)
       activityItems.innerHTML = '';
     }
@@ -1203,7 +1117,6 @@ function loadReportDetails(reportItem, report) {
   // ✅ 헤더 상태 업데이트
   updateSectionStatuses(reportItem, report);
 
-  console.log('[Report Check] ========== 상세 정보 로드 완료 ==========');
 }
 
 // =====================================================
@@ -1244,11 +1157,6 @@ function getStatus(entries, actual, planned) {
 }
 
 function renderActualItems(container, entries, type, report) {
-  console.log('[Report Check] ========== renderActualItems 시작 ==========');
-  console.log('[Report Check] container:', container);
-  console.log('[Report Check] entries:', entries);
-  console.log('[Report Check] entries 개수:', entries?.length);
-  console.log('[Report Check] type:', type);
 
   if (!container) {
     console.error('[Report Check] ❌ renderActualItems: container가 null입니다');
@@ -1256,17 +1164,13 @@ function renderActualItems(container, entries, type, report) {
   }
 
   container.innerHTML = '';
-  console.log('[Report Check] 컨테이너 초기화 완료');
 
   if (!entries || entries.length === 0) {
     // ✅ 빈 컨테이너만 표시 (메시지 제거)
-    console.log('[Report Check] entries가 없음. 빈 컨테이너 표시');
     return;
   }
 
-  console.log('[Report Check] entries 렌더링 시작 - 총', entries.length, '개');
   entries.forEach((entry, index) => {
-    console.log(`[Report Check] → 항목 #${index + 1} 렌더링:`, entry);
     const item = document.createElement('div');
     item.className = 'actual-item glass-card';
 
@@ -1336,21 +1240,14 @@ function createActivityCard(activity) {
 // 수금 실적 추가
 // =====================================================
 async function handleAddCollection(reportItem, report) {
-  console.log('[Report Check] ========== 수금 실적 추가 시작 ==========');
 
   const amountInput = reportItem.querySelector('.actual-collection-amount');
   const dateInput = reportItem.querySelector('.actual-collection-date');
 
-  console.log('[Report Check] amountInput 요소:', amountInput);
-  console.log('[Report Check] dateInput 요소:', dateInput);
-  console.log('[Report Check] amountInput.value:', amountInput?.value);
-  console.log('[Report Check] dateInput.value:', dateInput?.value);
 
   const amount = parseFloat(amountInput.value);
   const date = dateInput.value;
 
-  console.log('[Report Check] 파싱된 amount:', amount);
-  console.log('[Report Check] date:', date);
 
   // 유효성 검사
   if (!amount || amount <= 0) {
@@ -1367,7 +1264,6 @@ async function handleAddCollection(reportItem, report) {
     return;
   }
 
-  console.log('[Report Check] 유효성 검사 통과 ✓');
 
   // 실적 추가
   if (!report.collection.entries) {
@@ -1399,23 +1295,16 @@ async function handleAddCollection(reportItem, report) {
   // 상태 업데이트
   updateReportStatus(report);
 
-  console.log('[Report Check] 데이터 추가 완료. entries:', report.collection.entries);
-  console.log('[Report Check] 누적 실적:', report.collection.actual);
 
   // ✅ CRITICAL: 섹션이 접혀있을 수 있으므로 강제로 펼치기
   const collectionSectionTitle = reportItem.querySelector('.collapsible-section-title[data-section="collection"]');
   const collectionSectionContent = collectionSectionTitle?.nextElementSibling;
 
-  console.log('[Report Check] 섹션 체크:');
-  console.log('[Report Check] - collectionSectionTitle:', collectionSectionTitle ? '있음' : '없음');
-  console.log('[Report Check] - collectionSectionContent:', collectionSectionContent ? '있음' : '없음');
 
   if (collectionSectionContent) {
     const isContentVisible = collectionSectionContent.style.display !== 'none';
-    console.log('[Report Check] - section-content 표시 상태:', isContentVisible ? 'visible' : 'hidden');
 
     if (!isContentVisible) {
-      console.log('[Report Check] → 섹션이 접혀있음. 자동으로 펼침');
       collectionSectionContent.style.display = 'block';
       if (collectionSectionTitle) {
         collectionSectionTitle.classList.add('expanded');
@@ -1425,10 +1314,8 @@ async function handleAddCollection(reportItem, report) {
 
   // ✅ UI 업데이트 - 실적 리스트만 업데이트
   const collectionItemsEl = reportItem.querySelector('.collection-actual-items');
-  console.log('[Report Check] collectionItemsEl 요소:', collectionItemsEl);
 
   if (collectionItemsEl) {
-    console.log('[Report Check] renderActualItems 호출 - entries 개수:', report.collection.entries.length);
     renderActualItems(collectionItemsEl, report.collection.entries, 'collection', report);
   } else {
     console.error('[Report Check] ❌ collection-actual-items 요소를 찾을 수 없음');
@@ -1437,11 +1324,9 @@ async function handleAddCollection(reportItem, report) {
   // ✅ 미이행 금액 업데이트
   const collectionRemaining = report.collection.planned - report.collection.actual;
   const collectionRemainingEl = reportItem.querySelector('.collection-remaining-amount');
-  console.log('[Report Check] 미이행 금액:', collectionRemaining);
 
   if (collectionRemainingEl) {
     collectionRemainingEl.textContent = formatNumber(collectionRemaining);
-    console.log('[Report Check] 미이행 금액 업데이트 완료');
   } else {
     console.error('[Report Check] ❌ collection-remaining-amount 요소를 찾을 수 없음');
   }
@@ -1449,7 +1334,6 @@ async function handleAddCollection(reportItem, report) {
   updateCompleteDates(reportItem, report);
 
   // 서버 저장
-  console.log('[Report Check] 서버 저장 시작...');
   await saveReportData(report);
 
   // 성공 피드백
@@ -1457,7 +1341,6 @@ async function handleAddCollection(reportItem, report) {
     window.Toast.success('✅ 수금 실적이 추가되었습니다');
   }
 
-  console.log('[Report Check] ========== 수금 실적 추가 완료 ==========');
 }
 
 // =====================================================
@@ -1528,7 +1411,6 @@ async function handleAddSales(reportItem, report) {
   const salesSectionContent = salesSectionTitle?.nextElementSibling;
 
   if (salesSectionContent && salesSectionContent.style.display === 'none') {
-    console.log('[Report Check] 매출 섹션이 접혀있음. 자동으로 펼침');
     salesSectionContent.style.display = 'block';
     if (salesSectionTitle) {
       salesSectionTitle.classList.add('expanded');
@@ -1676,7 +1558,6 @@ function updateCompleteDates(reportItem, report) {
 // =====================================================
 async function saveReportData(report) {
   try {
-    console.log('[Report Check] 보고서 저장 중:', report.reportId);
 
     // 확인 데이터 구조화
     const confirmationData = {
@@ -1706,7 +1587,6 @@ async function saveReportData(report) {
     });
 
     if (response.success) {
-      console.log('[Report Check] 보고서 저장 성공');
       return true;
     } else {
       throw new Error(response.message || '저장 실패');
@@ -1725,7 +1605,6 @@ async function saveReportData(report) {
 // =====================================================
 async function handleDeleteReport(reportItem, report) {
   try {
-    console.log('[Report Check] 보고서 삭제 요청:', report.reportId);
 
     // 삭제 확인 메시지
     const confirmMsg = `정말로 이 보고서를 삭제하시겠습니까?\n\n` +
@@ -1735,17 +1614,14 @@ async function handleDeleteReport(reportItem, report) {
       `⚠️ 삭제된 보고서는 복구할 수 없습니다.`;
 
     if (!confirm(confirmMsg)) {
-      console.log('[Report Check] 삭제 취소됨');
       return;
     }
 
-    console.log('[Report Check] 삭제 확인 완료. API 호출 중...');
 
     // API 호출로 보고서 삭제
     const response = await apiManager.deleteReport(report.reportId);
 
     if (response.success) {
-      console.log('[Report Check] 보고서 삭제 성공');
 
       // UI에서 보고서 제거
       reportItem.style.animation = 'fadeOut 0.3s ease';
@@ -1789,7 +1665,6 @@ async function handleDeleteReport(reportItem, report) {
 // =====================================================
 async function handleConfirmCollection(reportItem, report) {
   try {
-    console.log('[Report Check] 수금 확인 처리 시작');
 
     // 입력된 실적이 있는지 확인
     if (!report.collection.entries || report.collection.entries.length === 0) {
@@ -1833,7 +1708,6 @@ async function handleConfirmCollection(reportItem, report) {
 // =====================================================
 async function handleConfirmSales(reportItem, report) {
   try {
-    console.log('[Report Check] 매출 확인 처리 시작');
 
     // 입력된 실적이 있는지 확인
     if (!report.sales.entries || report.sales.entries.length === 0) {

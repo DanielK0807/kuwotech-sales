@@ -313,7 +313,6 @@ export function getMessage(messageKey, params = {}) {
  */
 export function extendTerms(customTerms = {}) {
     Object.assign(BUSINESS_TERMS, customTerms);
-    console.log('[용어] 사전 확장 완료', customTerms);
 }
 
 // ============================================
@@ -370,8 +369,6 @@ export function initTerms() {
         getMessage: getMessage
     };
     
-    console.log('[용어] 시스템 초기화 완료');
-    console.log(`[용어] 총 ${Object.keys({...BUSINESS_TERMS, ...UI_TERMS, ...FIELD_LABELS, ...KPI_TERMS}).length}개 용어 등록됨`);
 }
 
 // 페이지 로드 시 자동 초기화

@@ -30,7 +30,6 @@ import { formatDateKorean } from '../../01.common/03_format.js';
  * [함수: 통합 다운로드 버튼 초기화]
  */
 export function initIntegratedDownload() {
-    console.log('[영업담당 통합 다운로드] 초기화');
     
     // 빠른 다운로드 카드 이벤트
     setupQuickDownloadCards();
@@ -98,7 +97,6 @@ async function quickDownload(type) {
                 return;
         }
         
-        console.log(`[빠른 다운로드] ${typeName} 시작`);
         
         await downloadManager.download({
             downloadType: downloadType,
@@ -483,7 +481,6 @@ async function executeIntegratedDownload(options = {}) {
     try {
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         
-        console.log('[통합 다운로드] 시작:', { user: user.name, options });
         
         // 포함할 시트 결정
         const includeSheets = [];
@@ -503,7 +500,6 @@ async function executeIntegratedDownload(options = {}) {
         });
         
         if (result.success) {
-            console.log('[통합 다운로드] 성공');
         } else {
             console.error('[통합 다운로드] 실패:', result.error);
             showToast('다운로드 실패: ' + (result.error || '알 수 없는 오류'), 'error');

@@ -640,7 +640,6 @@ class DownloadManager {
      * REST API를 사용하여 시스템 설정 조회 (추후 구현)
      */
     async getSystemSettings() {
-        console.log('[시스템 설정] 추후 구현 예정');
         return [];
     }
 
@@ -649,7 +648,6 @@ class DownloadManager {
      * REST API를 사용하여 변경 이력 조회 (추후 구현)
      */
     async getChangeHistory() {
-        console.log('[변경 이력] 추후 구현 예정');
         return [];
     }
     
@@ -1050,7 +1048,6 @@ class DownloadManager {
      * REST API를 사용하여 다운로드 이력 저장 (추후 구현)
      */
     async saveDownloadHistory(downloadType, userName) {
-        console.log('[다운로드 이력]', {
             downloadType,
             userName,
             downloadedAt: new Date().toISOString(),

@@ -160,7 +160,6 @@ export function showLoading(message = '로딩 중...', options = {}) {
         }, options.timeout);
     }
 
-    console.log(`[로딩] 표시: ${message}`);
 }
 
 /**
@@ -197,7 +196,6 @@ export function hideLoading(force = false) {
         loadingCount = 0;
     }, 300);
 
-    console.log('[로딩] 숨김');
 }
 
 /**

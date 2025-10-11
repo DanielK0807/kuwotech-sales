@@ -77,25 +77,21 @@ let isInitialized = false;
 async function initDashboard() {
     // 중복 초기화 방지
     if (isInitialized) {
-        console.log('[관리자 대시보드] 이미 초기화됨 - 스킵');
         return;
     }
 
     try {
-        console.log('[관리자 대시보드] 초기화 시작');
         showLoading('대시보드 데이터를 불러오는 중...');
 
         // 글래스모피즘 시스템 초기화
         if (glassmorphism && typeof glassmorphism.init === 'function') {
             glassmorphism.init();
-            console.log('[글래스모피즘] 시스템 초기화 완료');
         }
 
         // 새로고침 버튼 이벤트 리스너 등록
         const btnRefresh = document.getElementById('btnRefreshKPI');
         if (btnRefresh) {
             btnRefresh.addEventListener('click', refreshDashboard);
-            console.log('[관리자 대시보드] 새로고침 버튼 이벤트 등록 완료');
         }
 
         // 대시보드 데이터 로드
@@ -115,7 +111,6 @@ async function initDashboard() {
 
         hideLoading();
         isInitialized = true;
-        console.log('[관리자 대시보드] 초기화 완료 - 자동 새로고침 활성화');
 
     } catch (error) {
         console.error('[관리자 대시보드] 초기화 실패:', error);
@@ -159,7 +154,6 @@ async function loadDashboardData() {
 
         if (response.success) {
             dashboardData = response.data;
-            console.log('[관리자 대시보드] KPI 데이터 로드 완료:', dashboardData);
         } else {
             throw new Error(response.message || 'KPI 데이터 로드 실패');
         }
@@ -185,7 +179,6 @@ function displayKPICardsWithGlass() {
         dashboardData = createEmptyKPIData();
     }
 
-    console.log('[KPI 카드] 렌더링 시작, 데이터:', dashboardData);
 
     // 섹션 1: 전사 거래처 지표 (4개)
     const section1Config = [
@@ -343,7 +336,6 @@ function displayKPICardsWithGlass() {
     renderKPISection('kpiSection3', section3Config);
     renderKPISection('kpiSection4', section4Config);
 
-    console.log('[KPI 카드] 14개 지표 4개 섹션 렌더링 완료');
 }
 
 /**
@@ -368,7 +360,6 @@ function renderKPISection(sectionId, kpiConfig) {
 
         container.innerHTML = '';
         container.appendChild(kpiGrid.render());
-        console.log(`[KPI 섹션] ${sectionId} 렌더링 완료 (${kpiConfig.length}개 카드, ${kpiConfig.length}컬럼)`);
     } catch (error) {
         console.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
         container.innerHTML = '<p class="error-message">카드 렌더링 실패</p>';
@@ -525,11 +516,9 @@ async function refreshDashboard() {
         // DOM이 존재하는지 확인 (다른 페이지로 이동했을 수 있음)
         const section1 = document.getElementById('kpiSection1');
         if (!section1) {
-            console.log('[관리자 대시보드] DOM이 존재하지 않음 - 새로고침 스킵');
             return;
         }
 
-        console.log('[관리자 대시보드] 자동 새로고침');
         showLoading('데이터를 새로고침하는 중...');
         await loadDashboardData();
         displayKPICardsWithGlass();
@@ -547,7 +536,6 @@ function cleanupDashboard() {
     if (refreshTimer) {
         clearInterval(refreshTimer);
         refreshTimer = null;
-        console.log('[관리자 대시보드] 자동 새로고침 타이머 정리됨');
     }
     isInitialized = false;
 }
@@ -559,7 +547,6 @@ function cleanupDashboard() {
 // 페이지 로드 이벤트 리스닝 (admin_layout.js에서 발생)
 window.addEventListener('pageLoaded', (e) => {
     if (e.detail && e.detail.page === 'dashboard') {
-        console.log('[관리자 대시보드] pageLoaded 이벤트 수신');
         initDashboard();
     }
 });
@@ -569,7 +556,6 @@ if (document.readyState !== 'loading') {
     // 100ms 대기 후 초기화되지 않았으면 실행
     setTimeout(() => {
         if (!isInitialized) {
-            console.log('[관리자 대시보드] 직접 초기화 실행');
             initDashboard();
         }
     }, 100);
@@ -591,4 +577,3 @@ window.dashboardModule = {
 window.addEventListener('beforePageChange', cleanupDashboard);
 window.addEventListener('beforeunload', cleanupDashboard);
 
-console.log('[관리자 대시보드] 모듈 전역 노출 완료');

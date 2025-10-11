@@ -89,7 +89,6 @@ class LogoManager {
         // 로고 추적을 위해 Set에 추가
         this.logos.add(logo);
 
-        console.log(`✅ 로고 생성: ${className} (높이: ${height}px, 하얀색: ${white})`);
         return logo;
     }
 
@@ -112,7 +111,6 @@ class LogoManager {
             }
         });
 
-        console.log(`✅ ${this.logos.size}개의 로고 업데이트 완료`);
     }
 
     /**
@@ -146,7 +144,6 @@ class LogoManager {
             if (logo.parentNode) {
                 logo.parentNode.removeChild(logo);
             }
-            console.log('✅ 로고 제거됨');
         }
     }
 
@@ -160,7 +157,6 @@ class LogoManager {
             }
         });
         this.logos.clear();
-        console.log('✅ 모든 로고 제거됨');
     }
 
     /**
@@ -194,11 +190,9 @@ class FontManager {
 
         // 이미 로드됨
         if (this.loaded) {
-            console.log('✅ Paperlogy 폰트는 이미 로드되었습니다');
             return true;
         }
 
-        console.log('🔄 Paperlogy 폰트 로드 시작...');
 
         this.loadingPromise = this._loadFontsInternal();
         return this.loadingPromise;
@@ -220,7 +214,6 @@ class FontManager {
                 await Promise.all(fontCheckPromises);
                 
                 this.loaded = true;
-                console.log('✅ Paperlogy 폰트 로드 완료 (6종)');
                 
                 // 폰트 로드 이벤트 발생
                 window.dispatchEvent(new CustomEvent('fontsLoaded', {
@@ -274,7 +267,6 @@ class FontManager {
         await new Promise(resolve => setTimeout(resolve, 100));
         
         this.loaded = true;
-        console.log('✅ CSS를 통한 폰트 로드 완료');
     }
 
     /**
@@ -301,7 +293,6 @@ class FontManager {
     applyToBody() {
         document.body.style.fontFamily = "'Paperlogy', -apple-system, 'Noto Sans KR', sans-serif";
         document.body.style.fontWeight = 400;
-        console.log('✅ body에 Paperlogy 폰트 적용');
     }
 
     /**
@@ -349,7 +340,6 @@ export async function initLogoAndFont(options = {}) {
         logoOptions = {}
     } = options;
 
-    console.log('🚀 로고 및 폰트 시스템 초기화...');
 
     try {
         // 1. 폰트 로드
@@ -366,7 +356,6 @@ export async function initLogoAndFont(options = {}) {
             logoManager.insertLogo(logoContainer, logoOptions);
         }
 
-        console.log('✅ 로고 및 폰트 시스템 초기화 완료');
         return true;
 
     } catch (error) {

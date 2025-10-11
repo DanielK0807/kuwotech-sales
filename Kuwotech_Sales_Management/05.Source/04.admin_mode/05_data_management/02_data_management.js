@@ -19,7 +19,6 @@ let salesPeople = [];
 
 // [초기화]
 async function init() {
-    console.log('[데이터 관리] 초기화 시작');
 
     try {
         // DOM 요소 확인
@@ -28,12 +27,10 @@ async function init() {
 
         if (missingElements.length > 0) {
             console.warn('[데이터 관리] 다음 요소들을 찾을 수 없습니다:', missingElements);
-            console.log('[데이터 관리] 재시도 중... (500ms 후)');
             setTimeout(init, 500);
             return;
         }
 
-        console.log('[데이터 관리] 모든 DOM 요소 확인 완료');
 
         // 데이터 로드
         await loadData();
@@ -56,7 +53,6 @@ async function init() {
             });
         }
 
-        console.log('[데이터 관리] 초기화 완료');
     } catch (error) {
         console.error('[데이터 관리] 초기화 실패:', error);
         showToast('데이터 로드 중 오류가 발생했습니다', 'error');
@@ -77,7 +73,6 @@ async function loadData() {
         const API_BASE_URL = GlobalConfig.API_BASE_URL;
 
         // 거래처 데이터 로드 (전체 데이터 - limit=9999)
-        console.log('📡 [거래처] API 호출 시작:', `${API_BASE_URL}/api/companies?limit=9999`);
         const companiesResponse = await fetch(`${API_BASE_URL}/api/companies?limit=9999`, {
             method: 'GET',
             headers: {
@@ -86,15 +81,12 @@ async function loadData() {
             }
         });
 
-        console.log('📡 [거래처] 응답 상태:', companiesResponse.status, companiesResponse.statusText);
 
         if (companiesResponse.ok) {
             const companiesData = await companiesResponse.json();
-            console.log('📦 [거래처] 응답 데이터 - count:', companiesData.count, 'total:', companiesData.total);
 
             // API 응답 형식: {success: true, count: 1008, total: 1008, companies: [...]}
             const companiesArray = companiesData.companies || companiesData.data || [];
-            console.log('📦 [거래처] companies 필드:', Array.isArray(companiesArray), '길이:', companiesArray.length);
 
             if (companiesData.success && Array.isArray(companiesArray)) {
                 // KPI calculator를 위해 한글 필드명 추가
@@ -106,7 +98,6 @@ async function loadData() {
                     매출채권잔액: c.accountsReceivable,
                     거래처명: c.finalCompanyName || c.erpCompanyName
                 }));
-                console.log('✅ [거래처] 로드 성공:', allCompanies.length, '개 (전체:', companiesData.total, '개)');
             } else {
                 console.error('❌ [거래처] 응답 형식 오류:', companiesData);
             }
@@ -116,7 +107,6 @@ async function loadData() {
         }
 
         // 직원 데이터 로드
-        console.log('📡 [직원] API 호출 시작:', `${API_BASE_URL}/api/employees`);
         const employeesResponse = await fetch(`${API_BASE_URL}/api/employees`, {
             method: 'GET',
             headers: {
@@ -125,15 +115,12 @@ async function loadData() {
             }
         });
 
-        console.log('📡 [직원] 응답 상태:', employeesResponse.status, employeesResponse.statusText);
 
         if (employeesResponse.ok) {
             const employeesData = await employeesResponse.json();
-            console.log('📦 [직원] 응답 데이터:', employeesData);
 
             // API 응답 형식: {success: true, count: 18, employees: [...]}
             const employeesArray = employeesData.employees || employeesData.data || [];
-            console.log('📦 [직원] employees 필드:', Array.isArray(employeesArray), '길이:', employeesArray.length);
 
             if (employeesData.success && Array.isArray(employeesArray)) {
                 allEmployees = employeesArray;
@@ -141,8 +128,6 @@ async function loadData() {
                 // role 필드 값 확인
                 const role1Values = [...new Set(allEmployees.map(e => e.role1).filter(r => r))];
                 const role2Values = [...new Set(allEmployees.map(e => e.role2).filter(r => r))];
-                console.log('📋 [직원] role1 필드 값들:', role1Values);
-                console.log('📋 [직원] role2 필드 값들:', role2Values);
 
                 // role1 또는 role2에 '영업담당' 또는 '영업'이 있는 직원 필터링
                 // (관리자만 있는 경우는 제외, 영업담당+관리자 중복은 포함)
@@ -151,8 +136,6 @@ async function loadData() {
                     return roles.some(r => r === '영업담당' || r === '영업');
                 });
 
-                console.log('✅ [직원] 로드 성공:', allEmployees.length, '명 (영업담당:', salesPeople.length, '명)');
-                console.log('📋 [영업담당자 목록]:', salesPeople.map(e => `${e.name} (role1: ${e.role1}, role2: ${e.role2})`));
 
                 if (salesPeople.length === 0) {
                     console.warn('⚠️ [직원] 영업담당 직원이 없습니다. role1:', role1Values, 'role2:', role2Values);
@@ -165,7 +148,6 @@ async function loadData() {
             console.error('❌ [직원] 로드 실패:', employeesResponse.status, errorData);
         }
 
-        console.log('[데이터 로드] 완료 - 거래처:', allCompanies.length, '직원:', allEmployees.length);
     } catch (error) {
         console.error('[데이터 로드] 실패:', error);
         showToast('데이터 로드 중 오류가 발생했습니다', 'error');
@@ -175,7 +157,6 @@ async function loadData() {
 
 // [통계 정보 업데이트]
 function updateStatistics() {
-    console.log('[통계 업데이트] 시작 - 거래처:', allCompanies.length, '영업담당:', salesPeople.length);
 
     // 전체거래처 통계
     const activeCompanies = allCompanies.filter(c => c.businessStatus !== '불용');
@@ -184,7 +165,6 @@ function updateStatistics() {
 
     if (totalCompaniesEl) {
         totalCompaniesEl.textContent = `${activeCompanies.length}개`;
-        console.log('[통계 업데이트] 총 거래처:', activeCompanies.length);
     } else {
         console.error('[통계 업데이트] totalCompanies 요소를 찾을 수 없습니다');
     }
@@ -201,7 +181,6 @@ function updateStatistics() {
 
     if (totalSalesPeopleEl) {
         totalSalesPeopleEl.textContent = `${salesPeople.length}명`;
-        console.log('[통계 업데이트] 총 영업담당자:', salesPeople.length);
     } else {
         console.error('[통계 업데이트] totalSalesPeople 요소를 찾을 수 없습니다');
     }
@@ -212,7 +191,6 @@ function updateStatistics() {
         console.error('[통계 업데이트] kpiDate 요소를 찾을 수 없습니다');
     }
 
-    console.log('[통계 업데이트] 완료');
 }
 
 // [영업담당자 셀렉트 박스 초기화]
@@ -237,7 +215,6 @@ function initSalesPersonSelect() {
         select.appendChild(option);
     });
 
-    console.log('[영업담당자 셀렉트] 초기화 완료 -', salesPeople.length, '명');
 }
 
 // [전체거래처 다운로드]
@@ -525,11 +502,9 @@ window.downloadCompanyKPI = async function() {
 // [DOM 로드 완료 시 초기화]
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('[데이터 관리] DOMContentLoaded 이벤트 발생');
         setTimeout(init, 100); // 100ms 지연
     });
 } else {
     // DOM이 이미 로드된 경우 약간의 지연 후 실행
-    console.log('[데이터 관리] DOM already loaded, executing with delay');
     setTimeout(init, 100);
 }

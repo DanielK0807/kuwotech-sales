@@ -28,7 +28,6 @@ let departments = [];        // 부서 목록 (API에서 로드)
 // 초기화 함수
 // ===================
 async function initializePage() {
-    console.log('[직원 관리] 페이지 초기화 시작');
 
     try {
         // 부서 목록 로드 (API에서)
@@ -49,7 +48,6 @@ async function initializePage() {
         // 다운로드 버튼 초기화
         initEmployeeDownloadButton();
 
-        console.log('[직원 관리] 페이지 초기화 완료');
         showToast('직원 관리 페이지가 로드되었습니다', 'success');
 
     } catch (error) {
@@ -64,7 +62,6 @@ async function initializePage() {
 async function loadDepartments() {
     try {
         const token = localStorage.getItem('authToken');
-        console.log('[부서 목록] API 호출 시작, 토큰:', token ? '있음' : '없음');
         const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/master/departments`, {
             method: 'GET',
             headers: {
@@ -81,7 +78,6 @@ async function loadDepartments() {
 
         const data = await response.json();
         departments = data.departments || [];
-        console.log('[부서 목록] 로드 성공:', departments.length, '개');
 
     } catch (error) {
         console.error('[부서 목록] 로드 오류:', error);
@@ -112,7 +108,6 @@ async function loadEmployeeData() {
         const token = localStorage.getItem('authToken');
 
         // 직원 데이터 로드
-        console.log('[직원 데이터] API 호출 시작, 토큰:', token ? '있음' : '없음');
         const employeeResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees?limit=9999`, {
             method: 'GET',
             headers: {
@@ -126,13 +121,10 @@ async function loadEmployeeData() {
         }
 
         const employeeData = await employeeResponse.json();
-        console.log('[직원 데이터] 응답:', employeeData);
-        console.log('[직원 데이터] 응답 구조:', {
             success: employeeData.success,
             employeesCount: employeeData.employees?.length,
             firstEmployee: employeeData.employees?.[0]
         });
-        console.log('[직원 데이터] 첫 번째 직원 상세:', JSON.stringify(employeeData.employees?.[0], null, 2));
 
         // API 응답 형식: {success: true, employees: [...]}
         const employeesArray = employeeData.employees || employeeData.data || [];
@@ -151,8 +143,6 @@ async function loadEmployeeData() {
                 companyCount: 0  // 나중에 계산
             }));
 
-            console.log('[직원 데이터] 로드 성공:', employees.length, '명');
-            console.log('[직원 데이터] 매핑 후 샘플:', employees.slice(0, 2));
 
             // 담당 거래처 개수 계산
             await calculateCompanyCounts();
@@ -179,7 +169,6 @@ async function calculateCompanyCounts() {
     try {
         const token = localStorage.getItem('authToken');
 
-        console.log('[거래처 데이터] API 호출 시작');
         const companyResponse = await fetch(`${GlobalConfig.API_BASE_URL}/api/companies?limit=9999`, {
             method: 'GET',
             headers: {
@@ -195,7 +184,6 @@ async function calculateCompanyCounts() {
         const companyData = await companyResponse.json();
         const companiesArray = companyData.companies || companyData.data || [];
 
-        console.log('[거래처 데이터] 로드 성공:', companiesArray.length, '개');
 
         // 각 직원별 담당 거래처 개수 계산
         employees.forEach(emp => {
@@ -204,7 +192,6 @@ async function calculateCompanyCounts() {
             ).length;
         });
 
-        console.log('[담당 거래처] 계산 완료');
 
     } catch (error) {
         console.error('[담당 거래처 계산] 실패:', error);
@@ -218,7 +205,6 @@ async function calculateCompanyCounts() {
 async function updateStatistics() {
     try {
         const token = localStorage.getItem('authToken');
-        console.log('[통계 업데이트] API 호출 시작');
 
         const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/statistics`, {
             method: 'GET',
@@ -233,11 +219,9 @@ async function updateStatistics() {
         }
 
         const data = await response.json();
-        console.log('[통계 업데이트] 응답:', data);
 
         const { totalEmployees, salesEmployees, adminEmployees, activeEmployees } = data.statistics;
 
-        console.log('[통계 업데이트] 결과:', {
             totalEmployees,
             salesEmployees,
             adminEmployees,
@@ -1210,7 +1194,6 @@ async function transferCompaniesAPI(companyKeys, targetName) {
             }
         }
 
-        console.log(`[거래처 이관] 완료: ${companyKeys.length}개`);
         return true;
 
     } catch (error) {
@@ -1323,7 +1306,6 @@ function confirmRetirement(employee) {
 async function addEmployeeToDatabase(employeeData) {
     try {
         const token = localStorage.getItem('authToken');
-        console.log('[직원 추가] API 호출 시작:', employeeData);
 
         const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees`, {
             method: 'POST',
@@ -1341,7 +1323,6 @@ async function addEmployeeToDatabase(employeeData) {
         }
 
         const result = await response.json();
-        console.log('[직원 추가] API 응답 성공:', result);
         return true;
 
     } catch (error) {
@@ -1356,7 +1337,6 @@ async function addEmployeeToDatabase(employeeData) {
 async function updateEmployeeInDatabase(employeeId, updatedData) {
     try {
         const token = localStorage.getItem('authToken');
-        console.log('[직원 수정] API 호출 시작:', employeeId, updatedData);
 
         const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/${employeeId}`, {
             method: 'PUT',
@@ -1374,7 +1354,6 @@ async function updateEmployeeInDatabase(employeeId, updatedData) {
         }
 
         const result = await response.json();
-        console.log('[직원 수정] API 응답 성공:', result);
         return true;
 
     } catch (error) {
@@ -1389,7 +1368,6 @@ async function updateEmployeeInDatabase(employeeId, updatedData) {
 async function deleteEmployeeFromDatabase(employeeId) {
     try {
         const token = localStorage.getItem('authToken');
-        console.log('[직원 삭제] API 호출 시작:', employeeId);
 
         const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/${employeeId}`, {
             method: 'DELETE',
@@ -1406,7 +1384,6 @@ async function deleteEmployeeFromDatabase(employeeId) {
         }
 
         const result = await response.json();
-        console.log('[직원 삭제] API 응답 성공:', result);
         return true;
 
     } catch (error) {
@@ -1449,10 +1426,8 @@ async function updateEmployeeStatus(employeeId, status) {
 // ===================
 if (document.readyState === 'loading') {
     // DOM이 아직 로드 중이면 이벤트 리스너 등록
-    console.log('[직원 관리] DOM loading, adding event listener');
     document.addEventListener('DOMContentLoaded', initializePage);
 } else {
     // DOM이 이미 로드된 경우 약간의 지연 후 실행
-    console.log('[직원 관리] DOM already loaded, executing with delay');
     setTimeout(initializePage, 100);
 }

@@ -105,7 +105,6 @@ export function scrollToTop(options) {
 // ============================================
 
 export async function initCommonModules(options = {}) {
-    console.log('[공통모듈] 초기화 시작...');
     
     try {
         // 테마 초기화
@@ -121,7 +120,6 @@ export async function initCommonModules(options = {}) {
         // 스크롤 초기화
         if (options.scrollbar) {
             // 스크롤바 초기화는 다른 모듈에서 처리
-            console.log('[스크롤] 초기화 옵션 확인');
         }
         
         // 에셋 로드
@@ -130,7 +128,6 @@ export async function initCommonModules(options = {}) {
             updateAllLogos();
         }
         
-        console.log('[공통모듈] 초기화 완료');
         
         // 이벤트 발생
         window.dispatchEvent(new CustomEvent('commonModulesReady', {

@@ -221,7 +221,6 @@ class ThemeManager {
         // HTML에 이미 테마가 설정되어 있으면 그것을 사용
         if (currentThemeFromHTML && this.themes[currentThemeFromHTML]) {
             this.currentTheme = currentThemeFromHTML;
-            console.log(`✅ HTML에서 테마 감지: ${currentThemeFromHTML}`);
             // localStorage에 저장 (다음 방문 시 유지)
             localStorage.setItem('kuwotech_theme', currentThemeFromHTML);
         } else {
@@ -239,7 +238,6 @@ class ThemeManager {
         }
         
         this.initialized = true;
-        console.log('✅ 테마 매니저 초기화 완료:', this.currentTheme);
     }
 
     /**
@@ -281,7 +279,6 @@ class ThemeManager {
             document.documentElement.style.removeProperty(key);
         });
         
-        console.log(`🎨 테마 클래스 적용: theme-${themeName} (CSS 파일 기반)`);
         
         // 현재 테마 저장
         this.currentTheme = themeName;
@@ -290,7 +287,6 @@ class ThemeManager {
         // 이벤트 발생
         this.dispatchThemeChange(themeName);
         
-        console.log(`🎨 테마 적용: ${theme.icon} ${theme.name}`);
         return true;
     }
 

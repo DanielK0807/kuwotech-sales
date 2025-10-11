@@ -25,9 +25,6 @@ class ManagerLoader {
             return;
         }
         
-        console.log('========================================');
-        console.log('[매니저 시스템] 초기화 시작');
-        console.log('========================================');
         
         try {
             // 1. 테마 매니저 로드
@@ -40,21 +37,18 @@ class ManagerLoader {
                 if (this.managers.theme) {
                     this.managers.theme.applyTheme(savedTheme);
                 }
-                console.log('[1/4] 테마 매니저 로드 완료');
             }
             
             // 2. 베이스 컴포넌트 로드
             if (options.component !== false) {
                 await this.loadScript('./02_base_component.js');
                 this.managers.baseComponent = window.BaseComponent;
-                console.log('[2/4] 베이스 컴포넌트 로드 완료');
             }
             
             // 3. 브레이크포인트 매니저 로드
             if (options.breakpoint !== false) {
                 await this.loadScript('./12_breakpoint_manager.js');
                 this.managers.breakpoint = window.breakpointManager;
-                console.log('[3/4] 브레이크포인트 매니저 로드 완료');
             }
             
             // 4. 애니메이션 매니저 로드
@@ -66,7 +60,6 @@ class ManagerLoader {
                 if (options.scrollAnimations !== false && this.managers.animation) {
                     this.setupScrollAnimations();
                 }
-                console.log('[4/4] 애니메이션 매니저 로드 완료');
             }
             
             // 초기화 완료
@@ -77,9 +70,6 @@ class ManagerLoader {
                 detail: { managers: this.managers }
             }));
             
-            console.log('========================================');
-            console.log('[매니저 시스템] 초기화 완료');
-            console.log('========================================');
             
             return this.managers;
             

@@ -28,13 +28,11 @@ export async function createBackup(options = {}) {
     // 문자열이 전달된 경우 description으로 처리
     const description = typeof options === 'string' ? options : (options.description || '수동 백업');
 
-    console.log('[백업 생성] 백엔드 API 호출:', description);
 
     const db = await getDB();
     const result = await db.createBackup();
 
     if (result.success) {
-      console.log('[백업 완료]', result.backup);
       return {
         success: true,
         message: '백업이 성공적으로 생성되었습니다.',
@@ -65,13 +63,11 @@ export async function createBackup(options = {}) {
  */
 export async function restoreBackup(backupData) {
   try {
-    console.log('[백업 복원] 백엔드 API 호출');
 
     const db = await getDB();
     const result = await db.restoreBackup(backupData);
 
     if (result.success) {
-      console.log('[복원 완료]', result.message);
       return {
         success: true,
         message: result.message || '백업이 성공적으로 복원되었습니다.'
@@ -99,7 +95,6 @@ export async function restoreBackup(backupData) {
  * @returns {Promise<Array>} 백업 목록
  */
 export async function listBackups() {
-  console.log('[백업 목록] 추후 구현 예정');
   return [];
 }
 
@@ -110,7 +105,6 @@ export async function listBackups() {
  * @returns {Promise<boolean>} 성공 여부
  */
 export async function deleteBackup(backupId) {
-  console.log('[백업 삭제] 추후 구현 예정:', backupId);
   return false;
 }
 
@@ -120,7 +114,6 @@ export async function deleteBackup(backupId) {
  * @returns {Promise<number>} 삭제된 개수
  */
 export async function cleanOldBackups() {
-  console.log('[백업 정리] 추후 구현 예정');
   return 0;
 }
 
@@ -133,7 +126,6 @@ export async function cleanOldBackups() {
  * 추후 구현
  */
 export function startAutoBackup() {
-  console.log('[자동 백업] 추후 구현 예정');
 }
 
 /**
@@ -141,7 +133,6 @@ export function startAutoBackup() {
  * 추후 구현
  */
 export function stopAutoBackup() {
-  console.log('[자동 백업 중지] 추후 구현 예정');
 }
 
 // ============================================
@@ -153,7 +144,6 @@ export function stopAutoBackup() {
  * 추후 구현
  */
 export async function exportBackupToFile(backupId) {
-  console.log('[백업 내보내기] 추후 구현 예정:', backupId);
 }
 
 /**
@@ -161,7 +151,6 @@ export async function exportBackupToFile(backupId) {
  * 추후 구현
  */
 export async function importBackupFromFile(file) {
-  console.log('[백업 가져오기] 추후 구현 예정:', file.name);
   return {
     success: false,
     message: '추후 구현 예정'

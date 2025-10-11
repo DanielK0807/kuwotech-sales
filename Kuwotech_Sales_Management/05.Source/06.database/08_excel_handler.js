@@ -186,12 +186,10 @@ async function processExcelUpload(file, modal) {
         if (backupOption) {
             const { createBackup } = await import('./07_backup.js');
             await createBackup('엑셀 업로드 전 백업');
-            console.log('백업 생성 완료');
         }
         
         // 2. 파일 파싱
         const data = await parseExcelFile(file);
-        console.log(`${data.length}개 데이터 파싱 완료`);
         
         // 3. 유효성 검사
         if (validateOption) {
@@ -609,7 +607,6 @@ document.head.appendChild(style);
  * [기능: 엑셀 핸들러 초기화]
  */
 export function initExcelHandler() {
-    console.log('[엑셀 핸들러] 초기화 완료');
     
     // 전역 함수로 등록
     window.KUWOTECH_EXCEL = {

@@ -72,7 +72,6 @@ export class AuthManager {
     // ============================================
     
     async login(username, password) {
-        console.log('🔐 로그인 시도:', username);
         
         // 입력 검증
         if (!this.validateInput(username, password)) {
@@ -291,7 +290,6 @@ export class AuthManager {
             timestamp: new Date().toISOString()
         });
         
-        console.log('✅ 로그인 성공:', user.name);
     }
     
     // ============================================
@@ -310,7 +308,6 @@ export class AuthManager {
             timestamp: new Date().toISOString()
         });
         
-        console.log('❌ 로그인 실패:', username, `(시도: ${attempts}/${AUTH_CONFIG.MAX_LOGIN_ATTEMPTS})`);
     }
     
     // ============================================
@@ -489,7 +486,6 @@ export class AuthManager {
     // ============================================
     
     async logout() {
-        console.log('👋 로그아웃 처리');
 
         // DatabaseManager를 통한 로그아웃
         try {
@@ -539,12 +535,10 @@ export class AuthManager {
         
         // 네트워크 상태 감지
         window.addEventListener('online', () => {
-            console.log('🌐 온라인 상태');
             this.refreshSession();
         });
         
         window.addEventListener('offline', () => {
-            console.log('📵 오프라인 상태');
         });
     }
     
@@ -561,7 +555,6 @@ export class AuthManager {
         };
         
         // 로컬 로그 (디버깅용)
-        console.log(`[보안 이벤트] ${eventType}:`, data);
         
         // 서버로 전송 (백그라운드)
         this.sendSecurityLog(logEntry).catch(console.error);
@@ -570,7 +563,6 @@ export class AuthManager {
     async sendSecurityLog(logEntry) {
         // TODO: DatabaseManager를 통한 보안 로그 전송
         // 현재는 콘솔 로그만 사용
-        console.log('[Security Log]', logEntry);
 
         // 추후 백엔드 보안 로그 API 구현 시 활성화
         // try {

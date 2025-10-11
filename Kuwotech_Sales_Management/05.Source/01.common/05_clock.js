@@ -236,7 +236,6 @@ function startClock(elementIdOrOptions = {}, additionalOptions = {}) {
         clockInterval = setInterval(updateClock, CLOCK_CONFIG.UPDATE_INTERVAL);
     }
     
-    console.log('[시계] 시작됨');
     return clockElement;
 }
 
@@ -247,7 +246,6 @@ function stopClock() {
     if (clockInterval) {
         clearInterval(clockInterval);
         clockInterval = null;
-        console.log('[시계] 정지됨');
     }
 }
 
@@ -260,7 +258,6 @@ function destroyClock() {
     if (clockElement && clockElement.parentNode) {
         clockElement.parentNode.removeChild(clockElement);
         clockElement = null;
-        console.log('[시계] 제거됨');
     }
 }
 
@@ -500,7 +497,6 @@ function initClock(options = {}) {
         };
     }
     
-    console.log('[시계] 시스템 초기화 완료');
 }
 
 // ============================================

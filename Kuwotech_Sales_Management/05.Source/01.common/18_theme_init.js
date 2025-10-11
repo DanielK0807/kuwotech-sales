@@ -19,16 +19,13 @@ export function initializeTheme() {
     if (isLoggedIn === 'true' && userRole) {
         // 역할에 따른 테마 설정
         themeManager.setThemeByRole(userRole);
-        console.log(`[Theme] 역할별 테마 적용: ${userRole}`);
     } else {
         // 로그인 페이지 테마
         themeManager.applyTheme('login');
-        console.log('[Theme] 로그인 테마 적용');
     }
     
     // 테마 변경 리스너 등록
     themeManager.addListener((themeName, themeInfo) => {
-        console.log(`[Theme] 테마 변경됨: ${themeName}`);
         
         // 테마 변경 시 추가 처리
         updateUIComponents(themeName);
@@ -226,7 +223,6 @@ export function registerThemeEvents() {
     if (window.matchMedia) {
         const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
         darkModeQuery.addListener((e) => {
-            console.log(`[Theme] 시스템 색상 스키마 변경: ${e.matches ? 'dark' : 'light'}`);
             
             // 필요시 테마 조정
             if (e.matches) {
@@ -280,7 +276,6 @@ export function applyThemePreset(preset) {
     
     if (presets[preset]) {
         themeManager.overrideColors(presets[preset]);
-        console.log(`[Theme] 프리셋 적용: ${preset}`);
     }
 }
 

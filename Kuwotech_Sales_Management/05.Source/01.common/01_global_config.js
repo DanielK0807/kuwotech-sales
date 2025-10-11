@@ -937,9 +937,6 @@ export function initGlobalConfig() {
     // 전역 유틸리티 등록
     window.KUWOTECH = GLOBAL_UTILS;
     
-    console.log('[전역설정] 초기화 완료');
-    console.log('[전역설정] window.KUWOTECH_CONFIG 사용 가능');
-    console.log('[전역설정] window.KUWOTECH 유틸리티 사용 가능');
     
     return KUWOTECH_CONFIG;
 }

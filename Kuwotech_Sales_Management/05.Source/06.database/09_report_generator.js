@@ -408,7 +408,6 @@ function formatReportValue(value, type) {
  * [기능: 보고서 생성기 초기화]
  */
 export function initReportGenerator() {
-    console.log('[보고서 생성기] 초기화 완료');
     
     // 전역 함수 등록
     window.KUWOTECH_REPORT = {

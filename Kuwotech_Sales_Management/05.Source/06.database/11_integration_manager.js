@@ -43,32 +43,25 @@ export class IntegrationManager {
      */
     async initialize() {
         if (this.isInitialized) {
-            console.log('[통합관리] 이미 초기화됨');
             return;
         }
         
         try {
-            console.log('[통합관리] 시스템 초기화 시작...');
             
             // 1. 데이터베이스 초기화
             this.db = await initDB();
-            console.log('✅ 데이터베이스 초기화 완료');
             
             // 2. CRUD 인스턴스 생성
             this.companyCrud = new CompanyCRUD();
             this.reportCrud = new ReportCRUD();
-            console.log('✅ CRUD 모듈 초기화 완료');
             
             // 3. 자동 백업 스케줄러 시작
             this.backupScheduler = await initAutoBackup();
-            console.log('✅ 자동 백업 스케줄러 시작');
             
             // 4. 엑셀 동기화 준비
             await this.checkExcelLibrary();
-            console.log('✅ 엑셀 동기화 준비 완료');
             
             this.isInitialized = true;
-            console.log('[통합관리] ✅ 시스템 초기화 완료!');
             
             // 초기화 완료 이벤트 발생
             window.dispatchEvent(new CustomEvent('systemReady', {
@@ -86,7 +79,6 @@ export class IntegrationManager {
      */
     async checkExcelLibrary() {
         if (typeof XLSX === 'undefined') {
-            console.log('[통합관리] SheetJS 라이브러리 로드 중...');
             await this.loadExcelLibrary();
         }
     }
@@ -99,7 +91,6 @@ export class IntegrationManager {
             const script = document.createElement('script');
             script.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
             script.onload = () => {
-                console.log('✅ SheetJS 라이브러리 로드 완료');
                 resolve();
             };
             script.onerror = reject;
@@ -175,7 +166,6 @@ export class IntegrationManager {
     async uploadExcel(file, options = {}) {
         if (!this.isInitialized) await this.initialize();
         
-        console.log('[통합관리] 엑셀 업로드 시작');
         
         // 백업 생성 (업로드 전)
         await createBackup({
@@ -189,7 +179,6 @@ export class IntegrationManager {
             createBackup: false // 이미 생성함
         });
         
-        console.log('[통합관리] 엑셀 업로드 완료:', result);
         
         return result;
     }
@@ -200,7 +189,6 @@ export class IntegrationManager {
     async downloadExcel(options = {}) {
         if (!this.isInitialized) await this.initialize();
         
-        console.log('[통합관리] 엑셀 다운로드 시작');
         
         const result = await syncDbToExcel({
             includeReports: options.includeReports !== false,
@@ -208,7 +196,6 @@ export class IntegrationManager {
             fileName: options.fileName
         });
         
-        console.log('[통합관리] 엑셀 다운로드 완료:', result);
         
         return result;
     }
@@ -225,7 +212,6 @@ export class IntegrationManager {
         }
         
         try {
-            console.log(`[통합관리] ${storeName} → 엑셀 동기화`);
             
             // 비동기로 처리 (UI 블로킹 방지)
             setTimeout(async () => {
