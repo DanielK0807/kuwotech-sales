@@ -3,12 +3,18 @@
  * Created by: Daniel.K
  * Date: 2025-09-27
  * Owner: Kang Jung Hwan
- * 
+ *
  * 기능:
  * - KPI 계산 결과 캐싱
  * - TTL 기반 캐시 무효화
  * - 캐시 통계 관리
  */
+
+// ============================================
+// [섹션: Import]
+// ============================================
+
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: KPI 캐시 클래스]
@@ -22,7 +28,7 @@ class KPICache {
         this.missCount = 0;
         this.initTime = Date.now();
         
-        console.log(`[KPI 캐시] 초기화 완료 (TTL: ${this.TTL/1000}초)`);
+        logger.debug(`[KPI 캐시] 초기화 완료 (TTL: ${this.TTL/1000}초)`);
     }
     
     // ============================================
@@ -55,21 +61,21 @@ class KPICache {
         
         if (!cached) {
             this.missCount++;
-            console.log(`[캐시 미스] ${key} (미스율: ${this.getMissRate()}%)`);
+            logger.debug(`[캐시 미스] ${key} (미스율: ${this.getMissRate()}%)`);
             return null;
         }
-        
+
         // TTL 확인
         const age = Date.now() - cached.timestamp;
         if (age > this.TTL) {
             this.cache.delete(key);
             this.missCount++;
-            console.log(`[캐시 만료] ${key} (나이: ${Math.round(age/1000)}초)`);
+            logger.debug(`[캐시 만료] ${key} (나이: ${Math.round(age/1000)}초)`);
             return null;
         }
-        
+
         this.hitCount++;
-        console.log(`[캐시 히트] ${key} (히트율: ${this.getHitRate()}%)`);
+        logger.debug(`[캐시 히트] ${key} (히트율: ${this.getHitRate()}%)`);
         return cached.data;
     }
     
@@ -92,7 +98,7 @@ class KPICache {
             hits: 0
         });
         
-        console.log(`[캐시 저장] ${key} (크기: ${this.cache.size})`);
+        logger.debug(`[캐시 저장] ${key} (크기: ${this.cache.size})`);
         
         // 메모리 관리 - 최대 100개 항목
         if (this.cache.size > 100) {
@@ -114,12 +120,12 @@ class KPICache {
             const key = this.generateKey(type, userId);
             const deleted = this.cache.delete(key);
             if (deleted) {
-                console.log(`[캐시 삭제] ${key}`);
+                logger.debug(`[캐시 삭제] ${key}`);
             }
         } else {
             const size = this.cache.size;
             this.cache.clear();
-            console.log(`[캐시 전체 삭제] ${size}개 항목 삭제`);
+            logger.debug(`[캐시 전체 삭제] ${size}개 항목 삭제`);
         }
     }
     
@@ -142,7 +148,7 @@ class KPICache {
             }
         }
         
-        console.log(`[패턴 삭제] ${pattern} → ${count}개 삭제`);
+        logger.debug(`[패턴 삭제] ${pattern} → ${count}개 삭제`);
     }
     
     // ============================================
@@ -155,7 +161,7 @@ class KPICache {
      */
     setTTL(seconds) {
         this.TTL = seconds * 1000;
-        console.log(`[TTL 변경] ${seconds}초`);
+        logger.debug(`[TTL 변경] ${seconds}초`);
     }
     
     // ============================================
@@ -178,7 +184,7 @@ class KPICache {
         
         if (oldestKey) {
             this.cache.delete(oldestKey);
-            console.log(`[캐시 축출] ${oldestKey} (LRU)`);
+            logger.debug(`[캐시 축출] ${oldestKey} (LRU)`);
         }
     }
     
@@ -282,11 +288,11 @@ export async function withCache(type, calculateFn, userId = null) {
     }
     
     // 계산 실행
-    console.log(`[캐시 계산] ${type} 계산 시작...`);
+    logger.debug(`[캐시 계산] ${type} 계산 시작...`);
     const startTime = performance.now();
     const result = await calculateFn();
     const duration = performance.now() - startTime;
-    console.log(`[캐시 계산] ${type} 완료 (${duration.toFixed(2)}ms)`);
+    logger.debug(`[캐시 계산] ${type} 완료 (${duration.toFixed(2)}ms)`);
     
     // 캐시 저장
     kpiCache.set(type, result, userId);
@@ -303,7 +309,7 @@ export async function withCache(type, calculateFn, userId = null) {
  */
 export function invalidateKPICache() {
     kpiCache.clear();
-    console.log('[KPI 캐시 무효화] 모든 캐시 삭제');
+    logger.debug('[KPI 캐시 무효화] 모든 캐시 삭제');
 }
 
 /**
@@ -312,7 +318,7 @@ export function invalidateKPICache() {
  */
 export function invalidateUserKPICache(userId) {
     kpiCache.clearByPattern(`.*_${userId}`);
-    console.log(`[KPI 캐시 무효화] 사용자: ${userId}`);
+    logger.debug(`[KPI 캐시 무효화] 사용자: ${userId}`);
 }
 
 /**
@@ -320,7 +326,7 @@ export function invalidateUserKPICache(userId) {
  */
 export function invalidateSalesKPICache() {
     kpiCache.clearByPattern('sales_kpi_.*');
-    console.log('[KPI 캐시 무효화] 모든 영업담당 KPI');
+    logger.debug('[KPI 캐시 무효화] 모든 영업담당 KPI');
 }
 
 /**
@@ -328,7 +334,7 @@ export function invalidateSalesKPICache() {
  */
 export function invalidateAdminKPICache() {
     kpiCache.clear('admin_kpi');
-    console.log('[KPI 캐시 무효화] 관리자 KPI');
+    logger.debug('[KPI 캐시 무효화] 관리자 KPI');
 }
 
 // ============================================
@@ -377,18 +383,18 @@ export async function getContributionRankingWithCache(type) {
  */
 export function startCacheRefresh(interval = 300) {
     setInterval(() => {
-        console.log('[자동 갱신] KPI 캐시 갱신 시작');
-        
+        logger.debug('[자동 갱신] KPI 캐시 갱신 시작');
+
         // 오래된 캐시 항목만 갱신
         const stats = kpiCache.getStats();
-        console.log(`[자동 갱신] 현재 캐시: ${stats.size}개, 히트율: ${stats.hitRate}%`);
-        
+        logger.debug(`[자동 갱신] 현재 캐시: ${stats.size}개, 히트율: ${stats.hitRate}%`);
+
         // 히트율이 낮으면 캐시 전체 삭제
         if (parseFloat(stats.hitRate) < 50) {
             kpiCache.clear();
-            console.log('[자동 갱신] 히트율 낮음 → 전체 삭제');
+            logger.debug('[자동 갱신] 히트율 낮음 → 전체 삭제');
         }
-        
+
     }, interval * 1000);
 }
 
@@ -401,17 +407,17 @@ export function startCacheRefresh(interval = 300) {
  */
 export function monitorCache() {
     const stats = kpiCache.getStats();
-    
-    console.log('=== KPI 캐시 모니터링 ===');
-    console.log(`캐시 크기: ${stats.size}개`);
-    console.log(`히트/미스: ${stats.hits}/${stats.misses}`);
-    console.log(`히트율: ${stats.hitRate}%`);
-    console.log(`TTL: ${stats.ttl}`);
-    console.log(`메모리: ${stats.memoryUsage}`);
-    console.log(`가동시간: ${stats.uptime}`);
-    console.log(`분당 요청: ${stats.avgRequestsPerMinute}`);
-    console.log('========================');
-    
+
+    logger.debug('=== KPI 캐시 모니터링 ===');
+    logger.debug(`캐시 크기: ${stats.size}개`);
+    logger.debug(`히트/미스: ${stats.hits}/${stats.misses}`);
+    logger.debug(`히트율: ${stats.hitRate}%`);
+    logger.debug(`TTL: ${stats.ttl}`);
+    logger.debug(`메모리: ${stats.memoryUsage}`);
+    logger.debug(`가동시간: ${stats.uptime}`);
+    logger.debug(`분당 요청: ${stats.avgRequestsPerMinute}`);
+    logger.debug('========================');
+
     return stats;
 }
 

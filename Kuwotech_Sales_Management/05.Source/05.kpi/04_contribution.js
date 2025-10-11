@@ -17,6 +17,7 @@
 import { getEmployees } from './01_kpi_calculator.js';
 import { calculateSalesKPI } from './02_sales_kpi.js';
 import { formatNumber } from '../01.common/03_format.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 영업담당자별 기여도 순위]
@@ -28,14 +29,14 @@ import { formatNumber } from '../01.common/03_format.js';
  * @returns {array} 순위 배열
  */
 export async function calculateContributionRanking(type = 'total') {
-    console.log(`=== 기여도 순위 계산 시작 (${type}) ===`);
-    
+    logger.debug(`=== 기여도 순위 계산 시작 (${type}) ===`);
+
     try {
         // 영업담당자 목록 조회
         const employees = await getEmployees();
         const salesEmployees = employees.filter(emp => emp.role === 'sales');
 
-        console.log(`[영업담당자] ${salesEmployees.length}명`);
+        logger.debug(`[영업담당자] ${salesEmployees.length}명`);
 
         const rankings = [];
 
@@ -89,9 +90,9 @@ export async function calculateContributionRanking(type = 'total') {
         
         // 합계 계산
         const totals = calculateTotals(rankings, type);
-        
-        console.log('=== 기여도 순위 계산 완료 ===');
-        console.table(rankings);
+
+        logger.debug('=== 기여도 순위 계산 완료 ===');
+        logger.table(rankings);
         
         return {
             rankings,
@@ -101,7 +102,7 @@ export async function calculateContributionRanking(type = 'total') {
         };
         
     } catch (error) {
-        console.error('[기여도 순위 계산 실패]', error);
+        logger.error('[기여도 순위 계산 실패]', error);
         throw error; // 에러를 상위로 전달
     }
 }
@@ -115,7 +116,7 @@ export async function calculateContributionRanking(type = 'total') {
  * @returns {object} 부서별 기여도
  */
 export async function calculateDepartmentContribution() {
-    console.log('=== 부서별 기여도 계산 시작 ===');
+    logger.debug('=== 부서별 기여도 계산 시작 ===');
     
     try {
         // 부서별 집계 (향후 부서 정보 추가 시 구현)
@@ -148,14 +149,14 @@ export async function calculateDepartmentContribution() {
         
         // 매출액 기준 정렬
         contributions.sort((a, b) => b.totalSales - a.totalSales);
-        
-        console.log('=== 부서별 기여도 계산 완료 ===');
-        console.table(contributions);
+
+        logger.debug('=== 부서별 기여도 계산 완료 ===');
+        logger.table(contributions);
         
         return contributions;
         
     } catch (error) {
-        console.error('[부서별 기여도 계산 실패]', error);
+        logger.error('[부서별 기여도 계산 실패]', error);
         return [];
     }
 }
@@ -222,11 +223,11 @@ export function saveCurrentRankingData(type, data) {
         if (current) {
             localStorage.setItem(`contribution_ranking_${type}_previous`, current);
         }
-        
+
         // 새 데이터를 현재 데이터로 저장
         localStorage.setItem(`contribution_ranking_${type}_current`, JSON.stringify(data));
     } catch (error) {
-        console.error('[순위 데이터 저장 실패]', error);
+        logger.error('[순위 데이터 저장 실패]', error);
     }
 }
 
