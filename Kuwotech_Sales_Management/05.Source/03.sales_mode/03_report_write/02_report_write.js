@@ -451,12 +451,6 @@ async function loadEmployeeGoals() {
             return;
         }
 
-            employeeId: state.currentUser.id,
-            employeeName: state.currentUser.name,
-            year, 
-            month 
-        });
-
         // 월간 실적 로드 (연간 실적도 함께 반환됨)
         const response = await apiManager.get(`/goals/employee/${state.currentUser.id}/monthly`, { year, month });
 

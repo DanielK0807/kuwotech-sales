@@ -36,6 +36,7 @@ import {
     parseRegionFromAddress
 } from '../../01.common/18_validation_utils.js';
 import logger from '../../01.common/23_logger.js';
+import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -735,7 +736,7 @@ function initCompanyAutocomplete() {
     }
 
     // AutocompleteManager 생성
-    companyAutocompleteManager = new window.AutocompleteManager({
+    companyAutocompleteManager = new AutocompleteManager({
         inputElement,
         listElement,
         dataSource: allCompaniesForAutocomplete,
