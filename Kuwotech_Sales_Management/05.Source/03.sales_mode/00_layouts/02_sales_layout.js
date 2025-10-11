@@ -32,6 +32,9 @@ import {
 
 import logger from '../../01.common/23_logger.js';
 
+// ErrorHandler 임포트
+import errorHandler, { AuthError, PermissionError, NotFoundError, ValidationError } from '../../01.common/24_error_handler.js';
+
 // 세션 매니저 임포트
 import sessionManager, { startSessionMonitoring, handleLogout, isAuthenticated, hasRole } from '../../01.common/16_session_manager.js';
 
@@ -108,13 +111,35 @@ async function initSalesMode() {
                         sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
                     }
                 } catch (e) {
-                    logger.error('[영업모드] loginData 파싱 실패:', e);
+                    await errorHandler.handle(
+                        new AuthError('로그인 데이터 파싱 실패', e, {
+                            userMessage: '로그인 정보를 확인할 수 없습니다.',
+                            context: {
+                                module: 'sales_layout',
+                                action: 'initSalesMode',
+                                source: 'localStorage'
+                            },
+                            severity: 'MEDIUM'
+                        }),
+                        { showToUser: false }
+                    );
                 }
             }
         }
         
         if (!userJson) {
-            logger.error('[영업모드] 사용자 정보 없음 - 로그인 페이지로 이동');
+            await errorHandler.handle(
+                new AuthError('사용자 정보 없음', null, {
+                    userMessage: '로그인이 필요합니다.',
+                    context: {
+                        module: 'sales_layout',
+                        action: 'initSalesMode',
+                        redirect: true
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: false }
+            );
             window.location.href = '../../02.login/01_login.html';
             return;
         }
@@ -133,15 +158,37 @@ async function initSalesMode() {
                 }
             }
         } catch (error) {
-            logger.error('[영업모드] 사용자 정보 파싱 실패:', error);
+            await errorHandler.handle(
+                new AuthError('사용자 정보 파싱 실패', error, {
+                    userMessage: '로그인 정보가 손상되었습니다. 다시 로그인해주세요.',
+                    context: {
+                        module: 'sales_layout',
+                        action: 'initSalesMode',
+                        userJson
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: false }
+            );
             window.location.href = '../../02.login/01_login.html';
             return;
         }
         
         // 역할 확인 ("영업담당" 또는 "관리자" 한글로 체크)
         if (user.role !== '영업담당' && user.role !== '관리자') {
-            logger.error('[영업모드] 권한 없음 - role:', user.role);
-            showToast('영업모드 접근 권한이 없습니다.', 'error');
+            await errorHandler.handle(
+                new PermissionError('영업모드 권한 없음', null, {
+                    userMessage: '영업모드 접근 권한이 없습니다.',
+                    context: {
+                        module: 'sales_layout',
+                        action: 'initSalesMode',
+                        userRole: user.role,
+                        requiredRoles: ['영업담당', '관리자']
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: true }
+            );
             setTimeout(() => {
                 window.location.href = '../../02.login/01_login.html';
             }, 2000);
@@ -158,7 +205,8 @@ async function initSalesMode() {
             // 이름만 span으로 감싸서 스타일 적용
             userGreeting.innerHTML = `${roleText} <span class="user-name-highlight">${userName}</span>님 수고하십니다.`;
         } else {
-            logger.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
+            // UI 요소 누락은 로그만 남기고 계속 진행 (치명적이지 않음)
+            logger.warn('[UI] user-greeting 요소를 찾을 수 없습니다!');
         }
         
         // 3. 공통 모듈 초기화
@@ -222,8 +270,18 @@ async function initSalesMode() {
         showToast(`안녕하세요, ${user.name}님! 영업관리 시스템에 오신 것을 환영합니다.`, 'success');
         
     } catch (error) {
-        logger.error('[영업모드] 초기화 실패:', error);
-        showToast('시스템 초기화 중 오류가 발생했습니다.', 'error');
+        await errorHandler.handle(
+            new AuthError('영업모드 초기화 실패', error, {
+                userMessage: '시스템 초기화 중 오류가 발생했습니다.',
+                context: {
+                    module: 'sales_layout',
+                    action: 'initSalesMode',
+                    user: user?.name
+                },
+                severity: 'CRITICAL'
+            }),
+            { showToUser: true }
+        );
     }
 }
 
@@ -346,12 +404,23 @@ async function loadPage(page) {
         hideLoading();
         
     } catch (error) {
-        logger.error(`[페이지 로드 실패] ${page}:`, error);
+        await errorHandler.handle(
+            new NotFoundError(`페이지 로드 실패: ${page}`, error, {
+                userMessage: '페이지를 불러올 수 없습니다.',
+                context: {
+                    module: 'sales_layout',
+                    action: 'loadPage',
+                    page,
+                    mapping: pageFileMap[page]
+                },
+                severity: 'MEDIUM'
+            }),
+            { showToUser: true }
+        );
         hideLoading();
 
         // 에러 페이지 표시
         showErrorPage(error.message);
-        showToast('페이지를 불러올 수 없습니다.', 'error');
     }
 }
 
@@ -450,7 +519,19 @@ export async function navigateTo(page) {
         activateMenu(page);
         await loadPage(page);
     } else {
-        logger.error(`[네비게이션 오류] 알 수 없는 페이지: ${page}`);
+        await errorHandler.handle(
+            new ValidationError(`알 수 없는 페이지: ${page}`, null, {
+                userMessage: '요청하신 페이지를 찾을 수 없습니다.',
+                context: {
+                    module: 'sales_layout',
+                    action: 'navigateTo',
+                    page,
+                    availablePages: Object.keys(pageFileMap)
+                },
+                severity: 'LOW'
+            }),
+            { showToUser: true }
+        );
     }
 }
 

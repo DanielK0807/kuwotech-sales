@@ -46,6 +46,9 @@ import {
 // Logger 임포트
 import logger from '../../01.common/23_logger.js';
 
+// ErrorHandler 임포트
+import errorHandler, { AuthError, PermissionError, NotFoundError, ValidationError } from '../../01.common/24_error_handler.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -121,13 +124,35 @@ async function initAdminMode() {
                         sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
                     }
                 } catch (e) {
-                    logger.error('[관리자모드] loginData 파싱 실패:', e);
+                    await errorHandler.handle(
+                        new AuthError('로그인 데이터 파싱 실패', e, {
+                            userMessage: '로그인 정보를 확인할 수 없습니다.',
+                            context: {
+                                module: 'admin_layout',
+                                action: 'initAdminMode',
+                                source: 'localStorage'
+                            },
+                            severity: 'MEDIUM'
+                        }),
+                        { showToUser: false }
+                    );
                 }
             }
         }
         
         if (!userJson) {
-            logger.error('[관리자모드] 사용자 정보 없음 - 로그인 페이지로 이동');
+            await errorHandler.handle(
+                new AuthError('사용자 정보 없음', null, {
+                    userMessage: '로그인이 필요합니다.',
+                    context: {
+                        module: 'admin_layout',
+                        action: 'initAdminMode',
+                        redirect: true
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: false }
+            );
             window.location.href = '../../02.login/01_login.html';
             return;
         }
@@ -146,15 +171,37 @@ async function initAdminMode() {
                 }
             }
         } catch (error) {
-            logger.error('[관리자모드] 사용자 정보 파싱 실패:', error);
+            await errorHandler.handle(
+                new AuthError('사용자 정보 파싱 실패', error, {
+                    userMessage: '로그인 정보가 손상되었습니다. 다시 로그인해주세요.',
+                    context: {
+                        module: 'admin_layout',
+                        action: 'initAdminMode',
+                        userJson
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: false }
+            );
             window.location.href = '../../02.login/01_login.html';
             return;
         }
         
         // 역할 확인 ("관리자" 한글로 체크)
         if (user.role !== '관리자') {
-            logger.error('[관리자모드] 권한 없음 - role:', user.role);
-            showToast('관리자 권한이 필요합니다.', 'error');
+            await errorHandler.handle(
+                new PermissionError('관리자 권한 없음', null, {
+                    userMessage: '관리자 권한이 필요합니다.',
+                    context: {
+                        module: 'admin_layout',
+                        action: 'initAdminMode',
+                        userRole: user.role,
+                        requiredRole: '관리자'
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: true }
+            );
             setTimeout(() => {
                 window.location.href = '../../02.login/01_login.html';
             }, 2000);
@@ -170,7 +217,8 @@ async function initAdminMode() {
             // 이름만 span으로 감싸서 스타일 적용
             userGreeting.innerHTML = `관리자 <span class="user-name-highlight">${userName}</span>님 수고하십니다.`;
         } else {
-            logger.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
+            // UI 요소 누락은 로그만 남기고 계속 진행 (치명적이지 않음)
+            logger.warn('[UI] user-greeting 요소를 찾을 수 없습니다!');
         }
         
         // 3. 공통 모듈 초기화 (관리자 테마)
@@ -237,8 +285,18 @@ async function initAdminMode() {
         showToast(`안녕하세요, ${user.name}님! 관리자 모드입니다.`, 'success');
         
     } catch (error) {
-        logger.error('[관리자모드] 초기화 실패:', error);
-        showToast('시스템 초기화 중 오류가 발생했습니다.', 'error');
+        await errorHandler.handle(
+            new AuthError('관리자모드 초기화 실패', error, {
+                userMessage: '시스템 초기화 중 오류가 발생했습니다.',
+                context: {
+                    module: 'admin_layout',
+                    action: 'initAdminMode',
+                    user: user?.name
+                },
+                severity: 'CRITICAL'
+            }),
+            { showToUser: true }
+        );
     }
 }
 
@@ -311,7 +369,8 @@ function showExcelUploadMenu() {
 
     const excelMenu = document.getElementById('excel-upload-menu');
     if (!excelMenu) {
-        logger.error('[메뉴 표시] excel-upload-menu 요소를 찾을 수 없습니다.');
+        // UI 요소 누락은 로그만 남기고 계속 진행
+        logger.warn('[메뉴 표시] excel-upload-menu 요소를 찾을 수 없습니다.');
         return;
     }
 
@@ -451,12 +510,23 @@ async function loadPage(page) {
         hideLoading();
         
     } catch (error) {
-        logger.error(`[페이지 로드 실패] ${page}:`, error);
+        await errorHandler.handle(
+            new NotFoundError(`페이지 로드 실패: ${page}`, error, {
+                userMessage: '페이지를 불러올 수 없습니다.',
+                context: {
+                    module: 'admin_layout',
+                    action: 'loadPage',
+                    page,
+                    mapping: pageFileMap[page]
+                },
+                severity: 'MEDIUM'
+            }),
+            { showToUser: true }
+        );
         hideLoading();
-        
+
         // 에러 페이지 표시
         showErrorPage(error.message);
-        showToast('페이지를 불러올 수 없습니다.', 'error');
     }
 }
 
@@ -567,7 +637,19 @@ export async function navigateTo(page) {
         activateMenu(page);
         await loadPage(page);
     } else {
-        logger.error(`[네비게이션 오류] 알 수 없는 페이지: ${page}`);
+        await errorHandler.handle(
+            new ValidationError(`알 수 없는 페이지: ${page}`, null, {
+                userMessage: '요청하신 페이지를 찾을 수 없습니다.',
+                context: {
+                    module: 'admin_layout',
+                    action: 'navigateTo',
+                    page,
+                    availablePages: Object.keys(pageFileMap)
+                },
+                severity: 'LOW'
+            }),
+            { showToUser: true }
+        );
     }
 }
 
