@@ -16,6 +16,7 @@
 // ============================================
 
 import dbManager from '../06.database/01_database_manager.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 주요제품 3단계 우선순위]
@@ -39,31 +40,31 @@ export function calculateMainProducts(companies) {
     });
     
     const step1Count = results.size;
-    console.log(`[주요제품 1단계: 임플란트] ${step1Count}개`);
-    
+    logger.debug(`[주요제품 1단계: 임플란트] ${step1Count}개`);
+
     // 2단계: 지르코니아 포함 (1단계 제외)
     companies.forEach(company => {
-        if (!results.has(company.keyValue) && 
-            company.salesProduct && 
+        if (!results.has(company.keyValue) &&
+            company.salesProduct &&
             company.salesProduct.includes('지르코니아')) {
             results.add(company.keyValue);
         }
     });
-    
+
     const step2Count = results.size - step1Count;
-    console.log(`[주요제품 2단계: 지르코니아] ${step2Count}개 (누적: ${results.size}개)`);
-    
+    logger.debug(`[주요제품 2단계: 지르코니아] ${step2Count}개 (누적: ${results.size}개)`);
+
     // 3단계: Abutment 포함 (1,2단계 제외)
     companies.forEach(company => {
-        if (!results.has(company.keyValue) && 
-            company.salesProduct && 
+        if (!results.has(company.keyValue) &&
+            company.salesProduct &&
             company.salesProduct.includes('Abutment')) {
             results.add(company.keyValue);
         }
     });
-    
+
     const step3Count = results.size - step1Count - step2Count;
-    console.log(`[주요제품 3단계: Abutment] ${step3Count}개 (총: ${results.size}개)`);
+    logger.debug(`[주요제품 3단계: Abutment] ${step3Count}개 (총: ${results.size}개)`);
     
     return results.size;
 }
@@ -87,31 +88,31 @@ export function calculateMainProductsDetailed(companies) {
         }
     });
     
-    console.log(`[1단계: 임플란트] ${results.step1.size}개`);
-    
+    logger.debug(`[1단계: 임플란트] ${results.step1.size}개`);
+
     // 2단계: 지르코니아 포함 (1단계 제외)
     companies.forEach(company => {
-        if (!results.total.has(company.keyValue) && 
-            company.salesProduct && 
+        if (!results.total.has(company.keyValue) &&
+            company.salesProduct &&
             company.salesProduct.includes('지르코니아')) {
             results.step2.add(company.keyValue);
             results.total.add(company.keyValue);
         }
     });
-    
-    console.log(`[2단계: 지르코니아] ${results.step2.size}개 (누적: ${results.total.size}개)`);
-    
+
+    logger.debug(`[2단계: 지르코니아] ${results.step2.size}개 (누적: ${results.total.size}개)`);
+
     // 3단계: Abutment 포함 (1,2단계 제외)
     companies.forEach(company => {
-        if (!results.total.has(company.keyValue) && 
-            company.salesProduct && 
+        if (!results.total.has(company.keyValue) &&
+            company.salesProduct &&
             company.salesProduct.includes('Abutment')) {
             results.step3.add(company.keyValue);
             results.total.add(company.keyValue);
         }
     });
-    
-    console.log(`[3단계: Abutment] ${results.step3.size}개 (누적: ${results.total.size}개)`);
+
+    logger.debug(`[3단계: Abutment] ${results.step3.size}개 (누적: ${results.total.size}개)`);
     
     return {
         step1Count: results.step1.size,
@@ -144,15 +145,15 @@ export function calculateCurrentMonth(hireDate) {
         // 1년 이상 근무: 올해 1월 1일부터 현재까지
         const yearStart = new Date(now.getFullYear(), 0, 1);
         const monthsSinceYearStart = Math.floor((now - yearStart) / (1000 * 60 * 60 * 24 * 30));
-        
-        console.log(`[현재월수] 1년 이상 근무자 → 올해 1월 1일부터 ${monthsSinceYearStart}개월`);
+
+        logger.debug(`[현재월수] 1년 이상 근무자 → 올해 1월 1일부터 ${monthsSinceYearStart}개월`);
         return monthsSinceYearStart;
-        
+
     } else {
         // 1년 미만: 입사일부터 현재까지
         const monthsSinceHire = Math.floor((now - hire) / (1000 * 60 * 60 * 24 * 30));
-        
-        console.log(`[현재월수] 1년 미만 근무자 → 입사일부터 ${monthsSinceHire}개월`);
+
+        logger.debug(`[현재월수] 1년 미만 근무자 → 입사일부터 ${monthsSinceHire}개월`);
         return monthsSinceHire;
     }
 }
@@ -168,18 +169,18 @@ export function calculateCurrentMonthDetailed(hireDate) {
     const daysDiff = (now - hire) / (1000 * 60 * 60 * 24);
     const yearsDiff = daysDiff / 365;
     
-    console.log(`[입사일] ${hire.toLocaleDateString()}`);
-    console.log(`[현재일] ${now.toLocaleDateString()}`);
-    console.log(`[근무기간] ${daysDiff.toFixed(0)}일 (${yearsDiff.toFixed(2)}년)`);
-    
+    logger.debug(`[입사일] ${hire.toLocaleDateString()}`);
+    logger.debug(`[현재일] ${now.toLocaleDateString()}`);
+    logger.debug(`[근무기간] ${daysDiff.toFixed(0)}일 (${yearsDiff.toFixed(2)}년)`);
+
     if (yearsDiff > 1) {
         // 1년 이상: 올해 1월 1일 기준
         const yearStart = new Date(now.getFullYear(), 0, 1);
         const daysFromYearStart = (now - yearStart) / (1000 * 60 * 60 * 24);
         const monthsFromYearStart = Math.floor(daysFromYearStart / 30);
-        
-        console.log(`[판단] 1년 이상 근무 → 올해 1월 1일 기준`);
-        console.log(`[계산] ${now.getFullYear()}년 1월 1일부터 ${daysFromYearStart.toFixed(0)}일 = ${monthsFromYearStart}개월`);
+
+        logger.debug(`[판단] 1년 이상 근무 → 올해 1월 1일 기준`);
+        logger.debug(`[계산] ${now.getFullYear()}년 1월 1일부터 ${daysFromYearStart.toFixed(0)}일 = ${monthsFromYearStart}개월`);
         
         return {
             currentMonth: monthsFromYearStart,
@@ -191,9 +192,9 @@ export function calculateCurrentMonthDetailed(hireDate) {
     } else {
         // 1년 미만: 입사일 기준
         const monthsFromHire = Math.floor(daysDiff / 30);
-        
-        console.log(`[판단] 1년 미만 근무 → 입사일 기준`);
-        console.log(`[계산] 입사일부터 ${daysDiff.toFixed(0)}일 = ${monthsFromHire}개월`);
+
+        logger.debug(`[판단] 1년 미만 근무 → 입사일 기준`);
+        logger.debug(`[계산] 입사일부터 ${daysDiff.toFixed(0)}일 = ${monthsFromHire}개월`);
         
         return {
             currentMonth: monthsFromHire,
@@ -213,15 +214,15 @@ export function calculateCurrentMonthDetailed(hireDate) {
  */
 export function calculateSalesConcentration(totalSales, totalCompanies, currentMonth) {
     if (totalCompanies === 0 || currentMonth === 0) {
-        console.log('[매출집중도] 거래처 또는 월수가 0 → 0 반환');
+        logger.debug('[매출집중도] 거래처 또는 월수가 0 → 0 반환');
         return 0;
     }
-    
+
     // 매출집중도 = 누적매출금액 / 담당거래처 / 현재월수
     const concentration = totalSales / totalCompanies / currentMonth;
-    
-    console.log(`[매출집중도] ${totalSales.toLocaleString()} / ${totalCompanies} / ${currentMonth} = ${Math.round(concentration).toLocaleString()}`);
-    
+
+    logger.debug(`[매출집중도] ${totalSales.toLocaleString()} / ${totalCompanies} / ${currentMonth} = ${Math.round(concentration).toLocaleString()}`);
+
     return concentration;
 }
 
@@ -229,28 +230,28 @@ export function calculateSalesConcentration(totalSales, totalCompanies, currentM
  * 매출집중도 상세 계산
  */
 export function calculateSalesConcentrationDetailed(totalSales, totalCompanies, currentMonth) {
-    console.log('=== 매출집중도 계산 ===');
-    console.log(`누적매출금액: ${totalSales.toLocaleString()}원`);
-    console.log(`담당거래처: ${totalCompanies}개`);
-    console.log(`현재월수: ${currentMonth}개월`);
-    
+    logger.debug('=== 매출집중도 계산 ===');
+    logger.debug(`누적매출금액: ${totalSales.toLocaleString()}원`);
+    logger.debug(`담당거래처: ${totalCompanies}개`);
+    logger.debug(`현재월수: ${currentMonth}개월`);
+
     // 예외 처리
     if (totalCompanies === 0) {
-        console.log('[결과] 거래처 0개 → 매출집중도 0');
+        logger.debug('[결과] 거래처 0개 → 매출집중도 0');
         return { concentration: 0, interpretation: '거래처 없음' };
     }
-    
+
     if (currentMonth === 0) {
-        console.log('[결과] 월수 0개월 → 매출집중도 0');
+        logger.debug('[결과] 월수 0개월 → 매출집중도 0');
         return { concentration: 0, interpretation: '신입직원' };
     }
-    
+
     // 매출집중도 = 누적매출금액 / 담당거래처 / 현재월수
     const concentration = totalSales / totalCompanies / currentMonth;
-    
-    console.log(`[계산] ${totalSales.toLocaleString()} ÷ ${totalCompanies} ÷ ${currentMonth}`);
-    console.log(`[결과] 매출집중도: ${concentration.toLocaleString()}원`);
-    console.log(`[의미] 거래처 1개당 월 평균 ${Math.round(concentration).toLocaleString()}원`);
+
+    logger.debug(`[계산] ${totalSales.toLocaleString()} ÷ ${totalCompanies} ÷ ${currentMonth}`);
+    logger.debug(`[결과] 매출집중도: ${concentration.toLocaleString()}원`);
+    logger.debug(`[의미] 거래처 1개당 월 평균 ${Math.round(concentration).toLocaleString()}원`);
     
     return {
         concentration: concentration,
@@ -302,9 +303,9 @@ export function calculateAchievementRate(actual, target) {
     const rate = ((actual / target) - 1) * 100;
     
     if (rate >= 0) {
-        console.log(`[달성율] ${actual} / ${target} = ${rate.toFixed(2)}% 초과`);
+        logger.debug(`[달성율] ${actual} / ${target} = ${rate.toFixed(2)}% 초과`);
     } else {
-        console.log(`[달성율] ${actual} / ${target} = (${Math.abs(rate).toFixed(2)})% 미달`);
+        logger.debug(`[달성율] ${actual} / ${target} = (${Math.abs(rate).toFixed(2)})% 미달`);
     }
     
     return rate;
@@ -323,7 +324,7 @@ export async function getEmployees() {
         const employees = await dbManager.getAll('employees');
         return employees || [];
     } catch (error) {
-        console.error('[직원 조회 실패]', error);
+        logger.error('[직원 조회 실패]', error);
         return [];
     }
 }
@@ -334,7 +335,7 @@ export async function getEmployees() {
 export async function getSalesPersonCount() {
     const employees = await getEmployees();
     const salesCount = employees.filter(emp => emp.role === 'sales').length;
-    console.log(`[영업담당자 수] ${salesCount}명`);
+    logger.debug(`[영업담당자 수] ${salesCount}명`);
     return salesCount;
 }
 

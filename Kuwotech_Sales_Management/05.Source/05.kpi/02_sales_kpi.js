@@ -17,8 +17,9 @@
 
 import dbManager from '../06.database/01_database_manager.js';
 import { formatNumber, formatCurrency, formatPercent } from '../01.common/03_format.js';
-import { 
-    calculateMainProducts, 
+import logger from '../01.common/23_logger.js';
+import {
+    calculateMainProducts,
     calculateCurrentMonth,
     calculateCurrentMonthDetailed,
     calculateSalesConcentration,
@@ -38,19 +39,19 @@ import {
  * @returns {object} KPI 결과
  */
 export async function calculateSalesKPI(userId) {
-    console.log(`=== 영업담당 KPI 계산 시작 (userId: ${userId}) ===`);
-    
+    logger.debug(`=== 영업담당 KPI 계산 시작 (userId: ${userId}) ===`);
+
     try {
         // 사용자 정보 조회
         const user = await getUserInfo(userId);
         if (!user) {
             throw new Error(`사용자 정보 없음: ${userId}`);
         }
-        console.log(`[사용자] ${user.name} (입사일: ${user.hireDate})`);
-        
+        logger.debug(`[사용자] ${user.name} (입사일: ${user.hireDate})`);
+
         // 본인 담당 거래처만 조회
         const companies = await getCompaniesByManager(user.name);
-        console.log(`[담당 거래처] 총 ${companies.length}개`);
+        logger.debug(`[담당 거래처] 총 ${companies.length}개`);
         
         // ============================================
         // 거래처 관련 KPI (4개)
@@ -58,20 +59,20 @@ export async function calculateSalesKPI(userId) {
         
         // 1. 담당거래처 (불용 제외)
         const totalCompanies = companies.filter(c => c.businessStatus !== '불용').length;
-        console.log(`[KPI 1] 담당거래처: ${totalCompanies}개`);
-        
+        logger.debug(`[KPI 1] 담당거래처: ${totalCompanies}개`);
+
         // 2. 활성거래처
         const activeCompanies = companies.filter(c => isActiveCompany(c)).length;
-        console.log(`[KPI 2] 활성거래처: ${activeCompanies}개`);
-        
+        logger.debug(`[KPI 2] 활성거래처: ${activeCompanies}개`);
+
         // 3. 활성화율
-        const activationRate = totalCompanies > 0 ? 
+        const activationRate = totalCompanies > 0 ?
             (activeCompanies / totalCompanies * 100).toFixed(2) : '0.00';
-        console.log(`[KPI 3] 활성화율: ${activationRate}%`);
-        
+        logger.debug(`[KPI 3] 활성화율: ${activationRate}%`);
+
         // 4. 주요제품판매거래처 (3단계 우선순위)
         const mainProductCompanies = calculateMainProducts(companies);
-        console.log(`[KPI 4] 주요제품판매거래처: ${mainProductCompanies}개`);
+        logger.debug(`[KPI 4] 주요제품판매거래처: ${mainProductCompanies}개`);
         
         // ============================================
         // 달성율 관련 KPI (2개)
@@ -80,12 +81,12 @@ export async function calculateSalesKPI(userId) {
         // 5. 회사배정기준대비 달성율 (기준: 80개)
         const targetBase = 80;
         const achievementRate = calculateAchievementRate(totalCompanies, targetBase);
-        console.log(`[KPI 5] 회사배정기준대비 달성율: ${achievementRate.toFixed(2)}%`);
-        
+        logger.debug(`[KPI 5] 회사배정기준대비 달성율: ${achievementRate.toFixed(2)}%`);
+
         // 6. 주요고객처목표달성율 (목표: 40개)
         const mainTarget = 40;
         const mainAchievementRate = (mainProductCompanies / mainTarget) * 100;
-        console.log(`[KPI 6] 주요고객처목표달성율: ${mainAchievementRate.toFixed(2)}%`);
+        logger.debug(`[KPI 6] 주요고객처목표달성율: ${mainAchievementRate.toFixed(2)}%`);
         
         // ============================================
         // 매출 관련 KPI (5개)
@@ -93,27 +94,27 @@ export async function calculateSalesKPI(userId) {
         
         // 7. 누적매출금액
         const totalSales = companies.reduce((sum, c) => sum + (c.accumulatedSales || 0), 0);
-        console.log(`[KPI 7] 누적매출금액: ${totalSales.toLocaleString()}원`);
-        
+        logger.debug(`[KPI 7] 누적매출금액: ${totalSales.toLocaleString()}원`);
+
         // 8. 주요제품매출액
         const mainProductSales = companies
             .filter(c => isMainProduct(c.salesProduct))
             .reduce((sum, c) => sum + (c.accumulatedSales || 0), 0);
-        console.log(`[KPI 8] 주요제품매출액: ${mainProductSales.toLocaleString()}원`);
-        
+        logger.debug(`[KPI 8] 주요제품매출액: ${mainProductSales.toLocaleString()}원`);
+
         // 9. 주요제품매출비율
-        const mainProductRatio = totalSales > 0 ? 
+        const mainProductRatio = totalSales > 0 ?
             (mainProductSales / totalSales * 100).toFixed(2) : '0.00';
-        console.log(`[KPI 9] 주요제품매출비율: ${mainProductRatio}%`);
-        
+        logger.debug(`[KPI 9] 주요제품매출비율: ${mainProductRatio}%`);
+
         // 10. 매출집중도
         const currentMonth = calculateCurrentMonth(user.hireDate);
         const salesConcentration = calculateSalesConcentration(totalSales, totalCompanies, currentMonth);
-        console.log(`[KPI 10] 매출집중도: ${Math.round(salesConcentration).toLocaleString()}원`);
-        
+        logger.debug(`[KPI 10] 매출집중도: ${Math.round(salesConcentration).toLocaleString()}원`);
+
         // 11. 누적수금금액
         const totalCollection = companies.reduce((sum, c) => sum + (c.accumulatedCollection || 0), 0);
-        console.log(`[KPI 11] 누적수금금액: ${totalCollection.toLocaleString()}원`);
+        logger.debug(`[KPI 11] 누적수금금액: ${totalCollection.toLocaleString()}원`);
         
         // ============================================
         // 기여도 관련 KPI (3개)
@@ -121,21 +122,21 @@ export async function calculateSalesKPI(userId) {
         
         // 12. 매출채권잔액
         const receivables = companies.reduce((sum, c) => sum + (c.accountsReceivable || 0), 0);
-        console.log(`[KPI 12] 매출채권잔액: ${receivables.toLocaleString()}원`);
-        
+        logger.debug(`[KPI 12] 매출채권잔액: ${receivables.toLocaleString()}원`);
+
         // 13. 전체매출기여도 (전사 대비)
         const allSales = await getTotalSales();
-        const salesContribution = allSales > 0 ? 
+        const salesContribution = allSales > 0 ?
             (totalSales / allSales * 100).toFixed(2) : '0.00';
-        console.log(`[KPI 13] 전체매출기여도: ${salesContribution}%`);
-        
+        logger.debug(`[KPI 13] 전체매출기여도: ${salesContribution}%`);
+
         // 14. 주요제품매출기여도 (전사 주요제품 대비)
         const allMainSales = await getTotalMainProductSales();
-        const mainContribution = allMainSales > 0 ? 
+        const mainContribution = allMainSales > 0 ?
             (mainProductSales / allMainSales * 100).toFixed(2) : '0.00';
-        console.log(`[KPI 14] 주요제품매출기여도: ${mainContribution}%`);
-        
-        console.log('=== 영업담당 KPI 계산 완료 ===');
+        logger.debug(`[KPI 14] 주요제품매출기여도: ${mainContribution}%`);
+
+        logger.debug('=== 영업담당 KPI 계산 완료 ===');
         
         return {
             // 거래처 관련 (4개)
@@ -166,7 +167,7 @@ export async function calculateSalesKPI(userId) {
         };
         
     } catch (error) {
-        console.error('[영업담당 KPI 계산 실패]', error);
+        logger.error('[영업담당 KPI 계산 실패]', error);
         throw error; // 에러를 상위로 전달
     }
 }
