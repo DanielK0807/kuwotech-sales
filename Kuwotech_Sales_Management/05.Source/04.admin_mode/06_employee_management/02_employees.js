@@ -534,13 +534,13 @@ window.viewEmployee = function(id) {
             <div class="employee-detail p-20">
                 <div class="grid-2col gap-20">
                     <div>
-                        <h3 class="mb-15 font-weight-600" style="font-size: 15px;">기본 정보</h3>
+                        <h3 class="mb-15 font-weight-600" style="font-size: 15px; color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">기본 정보</h3>
                         <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>이름:</strong> ${employee.name}</p>
                         <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>이메일:</strong> ${employee.email || '-'}</p>
                         <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>전화번호:</strong> ${formatPhone(employee.phone) || '-'}</p>
                     </div>
                     <div>
-                        <h3 class="mb-15 font-weight-600" style="font-size: 15px;">직무 정보</h3>
+                        <h3 class="mb-15 font-weight-600" style="font-size: 15px; color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">직무 정보</h3>
                         <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>역할:</strong> ${roles}</p>
                         <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>부서:</strong> ${employee.department || '-'}</p>
                         <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>입사일:</strong> ${formatDateKorean(employee.hireDate) || '-'}</p>
