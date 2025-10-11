@@ -630,13 +630,17 @@ window.editEmployee = function(id) {
                 text: '저장',
                 className: 'glass-button primary',
                 onClick: async () => {
+                    // status 값을 한글로 변환
+                    const statusValue = document.getElementById('editStatus').value;
+                    const statusKorean = statusValue === 'active' ? '재직' : '퇴사';
+
                     const updatedData = {
                         name: document.getElementById('editName').value,
                         email: document.getElementById('editEmail').value || null,
                         role1: document.getElementById('editRole').value,
                         department: document.getElementById('editDepartment').value || null,
                         phone: document.getElementById('editPhone').value.replace(/-/g, '') || null,
-                        status: document.getElementById('editStatus').value
+                        status: statusKorean
                     };
 
                     // 데이터베이스에 저장
@@ -1423,13 +1427,16 @@ async function deleteEmployeeFromDatabase(employeeId) {
 async function updateEmployeeStatus(employeeId, status) {
     try {
         const token = localStorage.getItem('authToken');
+        // status 값을 한글로 변환
+        const statusKorean = status === 'active' ? '재직' : '퇴사';
+
         const response = await fetch(`${GlobalConfig.API_BASE_URL}/api/employees/${employeeId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ status })
+            body: JSON.stringify({ status: statusKorean })
         });
 
         if (!response.ok) throw new Error('상태 업데이트 실패');
