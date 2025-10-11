@@ -27,6 +27,7 @@ import {
 
 import { initDownloadButton, exportExcel, importExcel } from './03_companies_download.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -71,7 +72,7 @@ async function initMyCompanies() {
         hideLoading();
         
     } catch (error) {
-        console.error('[담당거래처] 초기화 실패:', error);
+        logger.error('[담당거래처] 초기화 실패:', error);
         hideLoading();
         showToast('거래처 데이터 로드 중 오류가 발생했습니다.', 'error');
     }
@@ -154,7 +155,7 @@ async function loadMasterData() {
         }
 
     } catch (error) {
-        console.error('[마스터데이터] 로드 실패:', error);
+        logger.error('[마스터데이터] 로드 실패:', error);
         // 에러가 발생해도 계속 진행
     }
 }
@@ -433,7 +434,7 @@ async function loadCompanies() {
 
 
     } catch (error) {
-        console.error('[거래처 로드 실패]', error);
+        logger.error('[거래처 로드 실패]', error);
         hideLoading();
         showToast('거래처 데이터 로드 중 오류가 발생했습니다.', 'error');
 
@@ -574,7 +575,7 @@ function initCompanyAutocomplete() {
     const listElement = document.getElementById('company-autocomplete-list');
 
     if (!inputElement || !listElement) {
-        console.warn('[자동완성] 필수 요소를 찾을 수 없습니다');
+        logger.warn('[자동완성] 필수 요소를 찾을 수 없습니다');
         return;
     }
 
@@ -706,7 +707,7 @@ async function deleteCompany(keyValue) {
         showToast('거래처가 삭제되었습니다.', 'success');
         
     } catch (error) {
-        console.error('[거래처 삭제] 실패:', error);
+        logger.error('[거래처 삭제] 실패:', error);
         hideLoading();
         showToast('거래처 삭제 중 오류가 발생했습니다.', 'error');
     }
@@ -792,7 +793,7 @@ async function showCompanyEditModal(company) {
             }
         }
     } catch (error) {
-        console.error('[제품 목록 로드 실패]', error);
+        logger.error('[제품 목록 로드 실패]', error);
     }
     
     const modalContent = `
@@ -915,7 +916,7 @@ async function showCompanyEditModal(company) {
                         
                     } catch (error) {
                         hideLoading();
-                        console.error('[거래처 수정 실패]', error);
+                        logger.error('[거래처 수정 실패]', error);
                         showToast('거래처 수정 중 오류가 발생했습니다.', 'error');
                         return null;
                     }
@@ -947,9 +948,9 @@ async function openCompanyModal() {
             }
         }
     } catch (error) {
-        console.error('[지역 목록 로드 실패]', error);
+        logger.error('[지역 목록 로드 실패]', error);
     }
-    
+
     // 담당부서 목록 가져오기
     let departmentsHtml = '<option value="">선택하세요</option>';
     try {
@@ -970,9 +971,9 @@ async function openCompanyModal() {
             }
         }
     } catch (error) {
-        console.error('[담당부서 목록 로드 실패]', error);
+        logger.error('[담당부서 목록 로드 실패]', error);
     }
-    
+
     const modalContent = `
         <div class="company-form">
             <div class="form-section">
@@ -1201,7 +1202,7 @@ async function openCompanyModal() {
 
                     } catch (error) {
                         hideLoading();
-                        console.error('[거래처 등록 실패]', error);
+                        logger.error('[거래처 등록 실패]', error);
                         showToast(error.message || '거래처 등록 중 오류가 발생했습니다.', 'error');
                         return null; // 모달 유지
                     }
@@ -1253,7 +1254,7 @@ async function openCompanyDetailModal(keyValue) {
                 }
             }
         } catch (error) {
-            console.error('[지역 목록 로드 실패]', error);
+            logger.error('[지역 목록 로드 실패]', error);
         }
 
         // 담당부서 목록 가져오기
@@ -1276,7 +1277,7 @@ async function openCompanyDetailModal(keyValue) {
                 }
             }
         } catch (error) {
-            console.error('[담당부서 목록 로드 실패]', error);
+            logger.error('[담당부서 목록 로드 실패]', error);
         }
 
         hideLoading();
@@ -1545,7 +1546,7 @@ async function openCompanyDetailModal(keyValue) {
 
                         } catch (error) {
                             hideLoading();
-                            console.error('[거래처 수정 실패]', error);
+                            logger.error('[거래처 수정 실패]', error);
                             showToast(error.message || '거래처 수정 중 오류가 발생했습니다.', 'error');
                             return null; // 모달 유지
                         }
@@ -1556,7 +1557,7 @@ async function openCompanyDetailModal(keyValue) {
 
     } catch (error) {
         hideLoading();
-        console.error('[거래처 상세 로드 실패]', error);
+        logger.error('[거래처 상세 로드 실패]', error);
         showToast('거래처 정보를 불러올 수 없습니다.', 'error');
     }
 }
@@ -1575,7 +1576,7 @@ function setupEventListeners() {
             openCompanyModal();
         });
     } else {
-        console.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
+        logger.warn('[거래처 추가 버튼] 요소를 찾을 수 없습니다!');
     }
 
     // 거래처명 자동완성은 AutocompleteManager가 자동 처리

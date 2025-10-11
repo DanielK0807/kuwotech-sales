@@ -59,6 +59,8 @@ import {
     formatAchievementRate
 } from '../../01.common/21_kpi_calculator.js';
 
+import logger from '../../01.common/23_logger.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -105,7 +107,7 @@ async function initDashboard() {
         try {
             await loadDashboardData();
         } catch (error) {
-            console.error('[대시보드] 데이터 로드 실패, 빈 데이터로 표시:', error);
+            logger.error('[대시보드] 데이터 로드 실패, 빈 데이터로 표시:', error);
             // 데이터 로드 실패 시 빈 객체로 초기화
             dashboardData = createEmptyKPIData();
         }
@@ -120,7 +122,7 @@ async function initDashboard() {
         isInitialized = true;
 
     } catch (error) {
-        console.error('[대시보드] 초기화 실패:', error);
+        logger.error('[대시보드] 초기화 실패:', error);
         hideLoading();
         showToast('대시보드 로드 중 오류가 발생했습니다.', 'error');
 
@@ -159,7 +161,7 @@ async function loadDashboardData() {
     try {
         // 사용자 정보 확인 (데이터베이스 스키마 기준 id 필드 사용)
         if (!user || !user.id) {
-            console.error('[대시보드] 사용자 정보:', user);
+            logger.error('[대시보드] 사용자 정보:', user);
             throw new Error('사용자 정보를 찾을 수 없습니다.');
         }
 
@@ -174,7 +176,7 @@ async function loadDashboardData() {
         }
 
     } catch (error) {
-        console.error('[대시보드] 데이터 로드 실패:', error);
+        logger.error('[대시보드] 데이터 로드 실패:', error);
         showToast('KPI 데이터를 불러오는 중 오류가 발생했습니다.', 'error');
         throw error;
     }
@@ -190,7 +192,7 @@ async function loadDashboardData() {
 
 function displayKPICardsWithGlass() {
     if (!dashboardData) {
-        console.warn('[KPI 카드] 데이터가 없습니다. 빈 데이터로 표시합니다.');
+        logger.warn('[KPI 카드] 데이터가 없습니다. 빈 데이터로 표시합니다.');
         dashboardData = createEmptyKPIData();
     }
 
@@ -357,7 +359,7 @@ function displayKPICardsWithGlass() {
 function renderKPISection(sectionId, kpiConfig) {
     const container = document.getElementById(sectionId);
     if (!container) {
-        console.error(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
+        logger.error(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
         return;
     }
 
@@ -374,7 +376,7 @@ function renderKPISection(sectionId, kpiConfig) {
         container.innerHTML = '';
         container.appendChild(kpiGrid.render());
     } catch (error) {
-        console.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
+        logger.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
         container.innerHTML = '<p style="color: red;">카드 렌더링 실패</p>';
     }
 }
@@ -401,7 +403,7 @@ async function refreshDashboard() {
         hideLoading();
         showToast('데이터가 새로고침되었습니다.', 'success');
     } catch (error) {
-        console.error('[대시보드] 새로고침 실패:', error);
+        logger.error('[대시보드] 새로고침 실패:', error);
         hideLoading();
         showToast('새로고침 중 오류가 발생했습니다.', 'error');
     }

@@ -30,6 +30,8 @@ import {
     loadFonts
 } from '../../01.common/20_common_index.js';
 
+import logger from '../../01.common/23_logger.js';
+
 // 세션 매니저 임포트
 import sessionManager, { startSessionMonitoring, handleLogout, isAuthenticated, hasRole } from '../../01.common/16_session_manager.js';
 
@@ -106,13 +108,13 @@ async function initSalesMode() {
                         sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
                     }
                 } catch (e) {
-                    console.error('[영업모드] loginData 파싱 실패:', e);
+                    logger.error('[영업모드] loginData 파싱 실패:', e);
                 }
             }
         }
         
         if (!userJson) {
-            console.error('[영업모드] 사용자 정보 없음 - 로그인 페이지로 이동');
+            logger.error('[영업모드] 사용자 정보 없음 - 로그인 페이지로 이동');
             window.location.href = '../../02.login/01_login.html';
             return;
         }
@@ -127,18 +129,18 @@ async function initSalesMode() {
                     user.name = savedName;
                 } else {
                     user.name = '사용자';  // 기본값
-                    console.warn('[영업모드] 사용자 이름 없음 - 기본값 사용');
+                    logger.warn('[영업모드] 사용자 이름 없음 - 기본값 사용');
                 }
             }
         } catch (error) {
-            console.error('[영업모드] 사용자 정보 파싱 실패:', error);
+            logger.error('[영업모드] 사용자 정보 파싱 실패:', error);
             window.location.href = '../../02.login/01_login.html';
             return;
         }
         
         // 역할 확인 ("영업담당" 또는 "관리자" 한글로 체크)
         if (user.role !== '영업담당' && user.role !== '관리자') {
-            console.error('[영업모드] 권한 없음 - role:', user.role);
+            logger.error('[영업모드] 권한 없음 - role:', user.role);
             showToast('영업모드 접근 권한이 없습니다.', 'error');
             setTimeout(() => {
                 window.location.href = '../../02.login/01_login.html';
@@ -156,7 +158,7 @@ async function initSalesMode() {
             // 이름만 span으로 감싸서 스타일 적용
             userGreeting.innerHTML = `${roleText} <span class="user-name-highlight">${userName}</span>님 수고하십니다.`;
         } else {
-            console.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
+            logger.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
         }
         
         // 3. 공통 모듈 초기화
@@ -220,7 +222,7 @@ async function initSalesMode() {
         showToast(`안녕하세요, ${user.name}님! 영업관리 시스템에 오신 것을 환영합니다.`, 'success');
         
     } catch (error) {
-        console.error('[영업모드] 초기화 실패:', error);
+        logger.error('[영업모드] 초기화 실패:', error);
         showToast('시스템 초기화 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -238,7 +240,7 @@ function setupMobileMenuToggle() {
     const overlay = document.getElementById('sidebar-overlay');
 
     if (!mobileMenuBtn || !sidebar || !overlay) {
-        console.warn('[모바일 메뉴] 햄버거 메뉴 요소를 찾을 수 없습니다.');
+        logger.warn('[모바일 메뉴] 햄버거 메뉴 요소를 찾을 수 없습니다.');
         return;
     }
 
@@ -344,9 +346,9 @@ async function loadPage(page) {
         hideLoading();
         
     } catch (error) {
-        console.error(`[페이지 로드 실패] ${page}:`, error);
+        logger.error(`[페이지 로드 실패] ${page}:`, error);
         hideLoading();
-        
+
         // 에러 페이지 표시
         showErrorPage(error.message);
         showToast('페이지를 불러올 수 없습니다.', 'error');
@@ -387,13 +389,13 @@ async function renderPage(container, html, mapping, page) {
                     resolve();
                 };
                 script.onerror = () => {
-                    console.warn(`[스크립트 로드 실패] ${scriptPath}`);
+                    logger.warn(`[스크립트 로드 실패] ${scriptPath}`);
                     resolve(); // 스크립트 없어도 계속 진행
                 };
                 document.body.appendChild(script);
             });
         } catch (error) {
-            console.warn(`[스크립트 로드 오류] ${scriptPath}:`, error);
+            logger.warn(`[스크립트 로드 오류] ${scriptPath}:`, error);
         }
     }
     
@@ -448,7 +450,7 @@ export async function navigateTo(page) {
         activateMenu(page);
         await loadPage(page);
     } else {
-        console.error(`[네비게이션 오류] 알 수 없는 페이지: ${page}`);
+        logger.error(`[네비게이션 오류] 알 수 없는 페이지: ${page}`);
     }
 }
 

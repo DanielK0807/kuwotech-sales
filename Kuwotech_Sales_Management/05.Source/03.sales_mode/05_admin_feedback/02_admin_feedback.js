@@ -13,6 +13,7 @@
 import ApiManager from '../../01.common/13_api_manager.js';
 import { formatDate, formatCurrency } from '../../01.common/03_format.js';
 import { parseJSON } from '../../01.common/02_utils.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // 전역 변수
@@ -35,12 +36,12 @@ async function init() {
             const user = JSON.parse(userJson);
             currentUserName = user.name;
         } catch (e) {
-            console.error('❌ 사용자 정보 파싱 실패:', e);
+            logger.error('❌ 사용자 정보 파싱 실패:', e);
             alert('로그인 정보를 읽을 수 없습니다. 다시 로그인해주세요.');
             return;
         }
     } else {
-        console.error('❌ 사용자 정보 없음');
+        logger.error('❌ 사용자 정보 없음');
         alert('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
         return;
     }
@@ -84,8 +85,8 @@ async function loadReportsWithFeedback() {
         } else if (response && response.success && Array.isArray(response.reports)) {
             reports = response.reports;
         } else {
-            console.error('❌ 알 수 없는 응답 형태:', response);
-            console.error('❌ response.data:', response?.data);
+            logger.error('❌ 알 수 없는 응답 형태:', response);
+            logger.error('❌ response.data:', response?.data);
         }
 
 
@@ -112,8 +113,8 @@ async function loadReportsWithFeedback() {
         renderReportList();
 
     } catch (error) {
-        console.error('❌ 보고서 로드 실패:', error);
-        console.error('❌ 에러 스택:', error.stack);
+        logger.error('❌ 보고서 로드 실패:', error);
+        logger.error('❌ 에러 스택:', error.stack);
         alert('보고서 목록을 불러오는데 실패했습니다.');
     }
 }
@@ -134,13 +135,13 @@ function updateStatistics(totalCount, feedbackCount) {
     if (totalReportsEl) {
         totalReportsEl.textContent = totalCount;
     } else {
-        console.error('❌ totalReports 요소를 찾을 수 없음');
+        logger.error('❌ totalReports 요소를 찾을 수 없음');
     }
 
     if (feedbackReportsEl) {
         feedbackReportsEl.textContent = feedbackCount;
     } else {
-        console.error('❌ feedbackReports 요소를 찾을 수 없음');
+        logger.error('❌ feedbackReports 요소를 찾을 수 없음');
     }
 }
 
@@ -156,7 +157,7 @@ function renderReportList() {
     const feedbackCountEl = document.getElementById('feedbackCount');
 
     if (!reportListEl || !feedbackCountEl) {
-        console.error('❌ 리스트 요소를 찾을 수 없음');
+        logger.error('❌ 리스트 요소를 찾을 수 없음');
         return;
     }
 
@@ -197,7 +198,7 @@ function renderReportDetail(report) {
     const detailContentEl = document.getElementById('detailContent');
 
     if (!detailContentEl || !report) {
-        console.error('❌ 상세 영역을 찾을 수 없거나 보고서 데이터 없음');
+        logger.error('❌ 상세 영역을 찾을 수 없거나 보고서 데이터 없음');
         return;
     }
 
@@ -335,7 +336,7 @@ window.handleReportClick = function(reportId) {
     const report = allReportsWithFeedback.find(r => r.reportId === reportId);
 
     if (!report) {
-        console.error('❌ 보고서를 찾을 수 없음:', reportId);
+        logger.error('❌ 보고서를 찾을 수 없음:', reportId);
         return;
     }
 

@@ -21,6 +21,7 @@ import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_m
 import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
 import { formatDateKorean } from '../../01.common/03_format.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 통합 다운로드 초기화]
@@ -107,7 +108,7 @@ async function quickDownload(type) {
         });
         
     } catch (error) {
-        console.error('[빠른 다운로드 오류]', error);
+        logger.error('[빠른 다운로드 오류]', error);
         showToast('다운로드 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -501,12 +502,12 @@ async function executeIntegratedDownload(options = {}) {
         
         if (result.success) {
         } else {
-            console.error('[통합 다운로드] 실패:', result.error);
+            logger.error('[통합 다운로드] 실패:', result.error);
             showToast('다운로드 실패: ' + (result.error || '알 수 없는 오류'), 'error');
         }
         
     } catch (error) {
-        console.error('[통합 다운로드] 오류:', error);
+        logger.error('[통합 다운로드] 오류:', error);
         showToast('다운로드 중 오류가 발생했습니다.', 'error');
     }
 }

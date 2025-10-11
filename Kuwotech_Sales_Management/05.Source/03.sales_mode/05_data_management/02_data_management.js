@@ -13,6 +13,7 @@ import { themeManager } from '../../01.common/12_theme_manager.js';
 import { CRUDManager } from '../../06.database/03_crud.js';
 import { ExcelSync } from '../../06.database/05_excel_sync.js';
 import { downloadCompanies, downloadReports, downloadKPI, createBackup, initDownloadButton } from './03_integrated_download.js';
+import logger from '../../01.common/23_logger.js';
 
 // [전역 변수]
 let crudManager = null;
@@ -49,7 +50,7 @@ async function initDatabase() {
         await crudManager.openDB();
         excelSync = new ExcelSync(crudManager);
     } catch (error) {
-        console.error('[DB] 연결 실패:', error);
+        logger.error('[DB] 연결 실패:', error);
         showToast('데이터베이스 연결 실패', 'error');
     }
 }
@@ -85,7 +86,7 @@ async function loadStatistics() {
         document.getElementById('kpiDate').textContent = formatDateKorean(new Date());
         
     } catch (error) {
-        console.error('[통계] 로드 실패:', error);
+        logger.error('[통계] 로드 실패:', error);
         // 기본값 설정
         document.getElementById('companyCount').textContent = '0개';
         document.getElementById('reportCount').textContent = '0개';
@@ -206,7 +207,7 @@ function formatFileSize(bytes) {
         showToast(`${myCompanies.length}개 거래처 다운로드 완료`, 'success');
         
     } catch (error) {
-        console.error('[거래처 다운로드] 실패:', error);
+        logger.error('[거래처 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 // };
@@ -271,7 +272,7 @@ function formatFileSize(bytes) {
         showToast(`${myReports.length}개 보고서 다운로드 완료`, 'success');
         
     } catch (error) {
-        console.error('[보고서 다운로드] 실패:', error);
+        logger.error('[보고서 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 // };
@@ -325,7 +326,7 @@ function formatFileSize(bytes) {
         showToast('KPI 다운로드 완료', 'success');
         
     } catch (error) {
-        console.error('[KPI 다운로드] 실패:', error);
+        logger.error('[KPI 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 // };
@@ -380,7 +381,7 @@ function formatFileSize(bytes) {
         showToast('전체 백업이 완료되었습니다', 'success');
         
     } catch (error) {
-        console.error('[백업 생성] 실패:', error);
+        logger.error('[백업 생성] 실패:', error);
         showToast('백업 생성 중 오류가 발생했습니다', 'error');
     }
 // };

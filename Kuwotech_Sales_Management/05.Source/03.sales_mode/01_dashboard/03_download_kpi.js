@@ -27,6 +27,7 @@ import { showToast } from '../../01.common/14_toast.js';
 import Modal from '../../01.common/06_modal.js';
 import { formatDate } from '../../01.common/03_format.js';
 import { setQuickPeriod } from '../../01.common/02_utils.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [섹션 2: 다운로드 버튼 초기화]
@@ -40,7 +41,7 @@ export function initDownloadButton() {
     const pageHeader = document.querySelector('.page-header');
     
     if (!pageHeader) {
-        console.warn('[KPI 다운로드] 페이지 헤더를 찾을 수 없습니다');
+        logger.warn('[KPI 다운로드] 페이지 헤더를 찾을 수 없습니다');
         return;
     }
     
@@ -130,7 +131,7 @@ async function handleQuickDownload() {
         });
         
     } catch (error) {
-        console.error('[KPI 다운로드] 실패:', error);
+        logger.error('[KPI 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 }
@@ -310,7 +311,7 @@ async function handleCustomDownload(modal) {
         });
         
     } catch (error) {
-        console.error('[KPI 다운로드] 실패:', error);
+        logger.error('[KPI 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 }

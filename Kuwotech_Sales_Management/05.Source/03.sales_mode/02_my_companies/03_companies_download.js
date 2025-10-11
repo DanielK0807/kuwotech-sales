@@ -21,6 +21,7 @@ import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_m
 import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
 import downloadHelper from '../../01.common/helpers/download_helper.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 다운로드 버튼 초기화]
@@ -333,7 +334,7 @@ async function executeDownload(format, options = {}) {
  * @deprecated - showDownloadOptions 사용 권장
  */
 export async function exportExcel() {
-    console.warn('[담당거래처] exportExcel() is deprecated. Use showDownloadOptions() instead.');
+    logger.warn('[담당거래처] exportExcel() is deprecated. Use showDownloadOptions() instead.');
     await showDownloadOptions();
 }
 
