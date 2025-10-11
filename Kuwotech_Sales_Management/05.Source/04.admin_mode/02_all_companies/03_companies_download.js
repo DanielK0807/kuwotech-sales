@@ -19,29 +19,9 @@
 
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
-import Modal from '../../01.common/06_modal.js';
+import { showModal } from '../../01.common/06_modal.js';
 import downloadHelper from '../../01.common/helpers/download_helper.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
-
-// Helper: showModal 래퍼 함수
-function showModal(options) {
-    return new Promise((resolve) => {
-        const modal = new Modal({
-            ...options,
-            buttons: options.buttons?.map(btn => ({
-                ...btn,
-                onClick: async () => {
-                    const result = btn.onClick ? await btn.onClick() : true;
-                    if (result !== false) {
-                        resolve(result);
-                    }
-                    return result;
-                }
-            })) || []
-        });
-        modal.open();
-    });
-}
 
 // ============================================
 // [SECTION: 다운로드 버튼 초기화]
