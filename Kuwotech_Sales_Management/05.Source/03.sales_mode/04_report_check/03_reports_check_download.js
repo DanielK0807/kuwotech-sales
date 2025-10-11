@@ -2,15 +2,22 @@
  * ============================================
  * KUWOTECH 영업관리 시스템 - 보고서 확인 다운로드 모듈
  * ============================================
- * 
- * @파일명: 03_download.js
+ *
+ * @파일명: 03_reports_check_download.js
  * @작성자: System
  * @작성일: 2025-09-30
- * @버전: 1.0
- * 
+ * @수정일: 2025-10-11
+ * @버전: 2.0
+ *
  * @설명:
  * 영업담당이 작성한 방문보고서 이력을 다운로드하는 모듈
- * (report_write와 동일한 기능)
+ * download_helper를 사용하여 중복 코드 제거 및 일관성 향상
+ *
+ * @변경사항 (v2.0):
+ * - download_helper.js의 UI 컴포넌트 함수 사용
+ * - 중복 코드 제거 (Modal HTML 생성, 날짜 처리, 검증 로직)
+ * - additionalContent로 정렬 옵션 구현
+ * - 코드 라인 수 36% 감소 (290 → 187 lines)
  */
 
 // ============================================
@@ -19,9 +26,7 @@
 
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
-import Modal from '../../01.common/06_modal.js';
-import { formatDate } from '../../01.common/03_format.js';
-import { setQuickPeriod } from '../../01.common/02_utils.js';
+import downloadHelper from '../../01.common/helpers/download_helper.js';
 import logger from '../../01.common/23_logger.js';
 
 // ============================================
@@ -31,12 +36,12 @@ import logger from '../../01.common/23_logger.js';
 export function initDownloadButton() {
     // reports-header 찾기
     const reportsHeader = document.querySelector('.reports-header');
-    
+
     if (!reportsHeader) {
         logger.warn('[보고서 다운로드] .reports-header를 찾을 수 없습니다');
         return;
     }
-    
+
     // 버튼 컨테이너 찾기 또는 생성
     let btnContainer = reportsHeader.querySelector('.header-actions');
     if (!btnContainer) {
@@ -44,7 +49,7 @@ export function initDownloadButton() {
         btnContainer.className = 'header-actions';
         reportsHeader.appendChild(btnContainer);
     }
-    
+
     // 다운로드 버튼
     const downloadBtn = document.createElement('button');
     downloadBtn.id = 'btn-download-reports';
@@ -57,7 +62,7 @@ export function initDownloadButton() {
         </svg>
         <span>보고서 다운로드</span>
     `;
-    
+
     // 옵션 버튼
     const optionBtn = document.createElement('button');
     optionBtn.id = 'btn-download-options';
@@ -70,14 +75,13 @@ export function initDownloadButton() {
         </svg>
     `;
     optionBtn.title = '다운로드 옵션';
-    
+
     btnContainer.appendChild(downloadBtn);
     btnContainer.appendChild(optionBtn);
-    
+
     // 이벤트 리스너
     downloadBtn.addEventListener('click', handleQuickDownload);
     optionBtn.addEventListener('click', showDownloadOptionsModal);
-    
 }
 
 // ============================================
@@ -85,34 +89,31 @@ export function initDownloadButton() {
 // ============================================
 
 async function handleQuickDownload() {
-    const userName = sessionStorage.getItem('userName');
-    const userRole = sessionStorage.getItem('userRole');
-    
-    if (!userName || !userRole) {
-        showToast('로그인 정보를 확인할 수 없습니다', 'error');
-        return;
-    }
-    
+    // 사용자 정보 가져오기 (헬퍼 사용)
+    const userInfo = downloadHelper.getUserInfo();
+    if (!userInfo) return;
+
     // 올해 전체 보고서
     const year = new Date().getFullYear();
     const dateRange = {
         start: `${year}-01-01`,
         end: `${year}-12-31`
     };
-    
-    try {
-        await downloadManager.download({
+
+    // 다운로드 실행 (헬퍼의 execute 래퍼 사용)
+    await downloadHelper.execute(async () => {
+        return await downloadManager.download({
             downloadType: DOWNLOAD_TYPES.SALES_REPORTS,
-            userRole: userRole,
-            userName: userName,
+            userRole: userInfo.userRole,
+            userName: userInfo.userName,
             dateRange: dateRange,
             format: 'excel'
         });
-        
-    } catch (error) {
-        logger.error('[보고서 다운로드] 실패:', error);
-        showToast('다운로드 중 오류가 발생했습니다', 'error');
-    }
+    }, {
+        downloadType: 'SALES_REPORTS',
+        userName: userInfo.userName,
+        showProgress: true
+    });
 }
 
 // ============================================
@@ -120,167 +121,62 @@ async function handleQuickDownload() {
 // ============================================
 
 async function showDownloadOptionsModal() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-    
-    const modalContent = `
-        <div class="download-options-container">
-            <h2 class="modal-title">
-                <i class="icon">📥</i> 내 보고서 다운로드
-            </h2>
-            
-            <!-- 기간 선택 -->
-            <div class="option-group glass-card">
-                <h3>📅 기간 선택</h3>
-                <div class="date-range-selector">
-                    <div class="date-input-group">
-                        <label for="start-date">시작일</label>
-                        <input type="date" id="start-date" class="glass-input" 
-                               value="${currentYear}-${currentMonth}-01">
-                    </div>
-                    <div class="date-input-group">
-                        <label for="end-date">종료일</label>
-                        <input type="date" id="end-date" class="glass-input" 
-                               value="${formatDate(now)}">
-                    </div>
-                </div>
-                
-                <!-- 빠른 선택 -->
-                <div class="quick-select-buttons">
-                    <button class="glass-button small" data-period="this-month">이번 달</button>
-                    <button class="glass-button small" data-period="last-month">지난 달</button>
-                    <button class="glass-button small" data-period="this-quarter">이번 분기</button>
-                    <button class="glass-button small" data-period="this-year">올해</button>
-                    <button class="glass-button small" data-period="last-year">작년</button>
-                </div>
-            </div>
-            
-            <!-- 정렬 옵션 -->
-            <div class="option-group glass-card">
-                <h3>📋 정렬 기준</h3>
-                <div class="sort-selection">
-                    <select id="sort-by" class="glass-input">
-                        <option value="date-desc">방문일자 (최신순)</option>
-                        <option value="date-asc">방문일자 (오래된순)</option>
-                        <option value="company">거래처명 (가나다순)</option>
-                        <option value="sales-desc">매출액 (높은순)</option>
-                    </select>
-                </div>
-            </div>
-            
-            <!-- 파일명 -->
-            <div class="option-group glass-card">
-                <h3>💾 파일명</h3>
-                <div class="filename-input-group">
-                    <input type="text" id="filename" class="glass-input" 
-                           value="내보고서_${sessionStorage.getItem('userName')}_${currentYear}">
-                    <span class="file-extension">.xlsx</span>
-                </div>
-            </div>
-            
-            <!-- 액션 버튼 -->
-            <div class="modal-actions">
-                <button class="glass-button" id="btn-cancel">
-                    <i class="icon">❌</i>
-                    <span>취소</span>
-                </button>
-                <button class="glass-button primary" id="btn-download">
-                    <i class="icon">⬇️</i>
-                    <span>다운로드</span>
-                </button>
+    // 정렬, 파일명 옵션 HTML (additionalContent)
+    const additionalOptionsHTML = `
+        <!-- 정렬 옵션 -->
+        <div class="option-group glass-card">
+            <h3>📋 정렬 기준</h3>
+            <div class="sort-selection">
+                <select id="sort-by" class="glass-input">
+                    <option value="date-desc">방문일자 (최신순)</option>
+                    <option value="date-asc">방문일자 (오래된순)</option>
+                    <option value="company">거래처명 (가나다순)</option>
+                    <option value="sales-desc">매출액 (높은순)</option>
+                </select>
             </div>
         </div>
     `;
-    
-    const modal = new Modal({
-        size: 'md',
-        content: modalContent,
-        showClose: true
-    });
-    
-    modal.open();
-    
-    // 이벤트 리스너
-    setupModalEventListeners(modal);
-}
 
-// ============================================
-// [섹션 5: 모달 이벤트 리스너]
-// ============================================
-
-function setupModalEventListeners(modal) {
-    // 빠른 선택 버튼
-    const quickButtons = document.querySelectorAll('.quick-select-buttons button');
-    quickButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const period = e.currentTarget.dataset.period;
-            setQuickPeriod(period, 'start-date', 'end-date');
-            showToast('기간이 설정되었습니다', 'info');
-        });
+    // 통합 다운로드 옵션 Modal 생성 (헬퍼 사용)
+    const options = await downloadHelper.createDownloadOptionsModal({
+        title: '내 보고서 다운로드',
+        icon: '📥',
+        showDateRange: true,
+        showQuickPeriod: true,
+        sheets: [],  // 보고서는 시트 선택 불필요
+        additionalContent: additionalOptionsHTML,
+        defaultStartDate: downloadHelper.getDefaultStartDate(true),  // 이번 달 1일
+        defaultEndDate: downloadHelper.getDefaultEndDate(true)       // 이번 달 마지막 날
     });
 
-    // 취소
-    document.getElementById('btn-cancel').addEventListener('click', () => {
-        modal.close();
-    });
+    // 사용자가 취소한 경우
+    if (!options) return;
 
-    // 다운로드
-    document.getElementById('btn-download').addEventListener('click', () => {
-        handleCustomDownload(modal);
-    });
-}
-
-// ============================================
-// [섹션 6: 커스텀 다운로드]
-// ============================================
-
-async function handleCustomDownload(modal) {
-    const userName = sessionStorage.getItem('userName');
-    const userRole = sessionStorage.getItem('userRole');
-    
-    const startDate = document.getElementById('start-date').value;
-    const endDate = document.getElementById('end-date').value;
-    
-    if (!startDate || !endDate) {
-        showToast('날짜 범위를 선택해주세요', 'warning');
-        return;
-    }
-    
-    if (new Date(startDate) > new Date(endDate)) {
-        showToast('시작일이 종료일보다 늦습니다', 'error');
-        return;
-    }
-    
-    const dateRange = {
-        start: startDate,
-        end: endDate
+    // 정렬 옵션 가져오기
+    const downloadOptions = {
+        sortBy: document.getElementById('sort-by')?.value || 'date-desc'
     };
-    
-    const options = {
-        sortBy: document.getElementById('sort-by').value
-    };
-    
-    modal.close();
-    
-    try {
-        await downloadManager.download({
+
+    // 다운로드 실행 (헬퍼의 execute 래퍼 사용)
+    await downloadHelper.execute(async () => {
+        return await downloadManager.download({
             downloadType: DOWNLOAD_TYPES.SALES_REPORTS,
-            userRole: userRole,
-            userName: userName,
-            dateRange: dateRange,
-            options: options,
+            userRole: options.userRole,
+            userName: options.userName,
+            dateRange: options.dateRange,
+            options: downloadOptions,
             format: 'excel'
         });
-        
-    } catch (error) {
-        logger.error('[보고서 다운로드] 실패:', error);
-        showToast('다운로드 중 오류가 발생했습니다', 'error');
-    }
+    }, {
+        downloadType: 'SALES_REPORTS',
+        userName: options.userName,
+        showProgress: true,
+        enableRetry: true
+    });
 }
 
 // ============================================
-// [섹션 8: Export]
+// [섹션 5: Export]
 // ============================================
 
 export default {
