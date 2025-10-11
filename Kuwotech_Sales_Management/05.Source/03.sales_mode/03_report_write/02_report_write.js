@@ -223,6 +223,9 @@ async function initializePage() {
         // 담당 거래처 목록 로드
         await loadUserCompanies();
 
+        // 거래처 자동완성 초기화
+        initCompanyAutocomplete();
+
         // 제품 목록 로드
         await loadProducts();
 
@@ -241,25 +244,10 @@ async function initializePage() {
  * 이벤트 리스너 연결
  */
 function attachEventListeners() {
-    // 거래처 입력 시 자동완성
-    elements.companySelect.addEventListener('input', handleCompanyInput);
-
-    // 거래처 포커스 시 자동완성 표시
-    elements.companySelect.addEventListener('focus', handleCompanyFocus);
-
-    // 거래처 선택 변경 시 확인 상태 초기화
-    elements.companySelect.addEventListener('input', resetVerificationStatus);
+    // 거래처 자동완성은 AutocompleteManager가 자동 처리
 
     // 거래처 확인 버튼
     elements.verifyCompanyBtn.addEventListener('click', handleVerifyCompany);
-
-    // 문서 클릭 시 자동완성 목록 닫기
-    document.addEventListener('click', function(e) {
-        if (!elements.companySelect.contains(e.target) &&
-            !elements.companyAutocompleteList.contains(e.target)) {
-            elements.companyAutocompleteList.classList.add('hidden');
-        }
-    });
 
     // 접기/펼치기 섹션 토글
     setupCollapsibleSections();
@@ -330,6 +318,11 @@ async function loadUserCompanies() {
 
         if (response.success) {
             state.companies = response.companies || [];
+
+            // 자동완성 데이터 소스 업데이트
+            if (companyAutocompleteManager) {
+                companyAutocompleteManager.updateDataSource(state.companies);
+            }
         } else {
             console.warn('[Report Write] ⚠️ 거래처 목록 로드 실패:', response.message);
             if (window.Toast) {
@@ -345,98 +338,42 @@ async function loadUserCompanies() {
 }
 
 /**
- * 거래처 입력 시 자동완성 표시
+ * 거래처 자동완성 관리
  */
-function handleCompanyInput(event) {
-    const inputValue = event.target.value.trim().toLowerCase();
+let companyAutocompleteManager = null;
 
-    // 입력값이 비어있으면 목록 숨기기
-    if (!inputValue) {
-        elements.companyAutocompleteList.classList.add('hidden');
+/**
+ * 거래처 자동완성 초기화 (AutocompleteManager 사용)
+ */
+function initCompanyAutocomplete() {
+    if (!elements.companySelect || !elements.companyAutocompleteList) {
+        console.warn('[Report Write] 자동완성 요소를 찾을 수 없습니다');
         return;
     }
 
-    // 전체 거래처 수 확인
-
-    // 일치하는 거래처 필터링
-    const filteredCompanies = state.companies.filter(company => {
-        const companyName = getCompanyDisplayName(company).toLowerCase();
-        return companyName.includes(inputValue);
-    });
-
-
-    // 결과 표시
-    displayAutocompleteResults(filteredCompanies, inputValue);
-}
-
-/**
- * 거래처 포커스 시 전체 목록 표시
- */
-function handleCompanyFocus() {
-    const inputValue = elements.companySelect.value.trim();
-    
-    if (inputValue) {
-        // 입력값이 있으면 필터링된 목록 표시
-        handleCompanyInput({ target: elements.companySelect });
-    } else {
-        // 비어있으면 전체 목록 표시
-        displayAutocompleteResults(state.companies, '');
-    }
-}
-
-/**
- * 자동완성 결과 표시
- */
-function displayAutocompleteResults(companies, searchTerm) {
-    const list = elements.companyAutocompleteList;
-
-
-    // 목록 초기화
-    list.innerHTML = '';
-
-    if (companies.length === 0) {
-        list.innerHTML = '<div class="autocomplete-item autocomplete-no-results">검색 결과가 없습니다</div>';
-        list.classList.remove('hidden');
-        return;
+    // 기존 인스턴스 정리
+    if (companyAutocompleteManager) {
+        companyAutocompleteManager.destroy();
     }
 
-    // 결과 항목 추가 (최대 10개)
-    companies.slice(0, 10).forEach(company => {
-        const companyName = getCompanyDisplayName(company);
-        const item = document.createElement('div');
-        item.className = 'autocomplete-item';
+    // AutocompleteManager 생성
+    companyAutocompleteManager = new window.AutocompleteManager({
+        inputElement: elements.companySelect,
+        listElement: elements.companyAutocompleteList,
+        dataSource: state.companies,
+        getDisplayText: (company) => getCompanyDisplayName(company),
+        onSelect: (company) => {
+            const companyName = getCompanyDisplayName(company);
+            elements.companySelect.value = companyName;
+            state.selectedCompany = company;
 
-        // 검색어 하이라이팅
-        if (searchTerm) {
-            const regex = new RegExp(`(${searchTerm})`, 'gi');
-            item.innerHTML = companyName.replace(regex, '<strong>$1</strong>');
-        } else {
-            item.textContent = companyName;
-        }
-
-        // 클릭 이벤트
-        item.addEventListener('click', () => selectCompanyFromAutocomplete(company));
-
-        list.appendChild(item);
+            // 확인 상태 초기화
+            resetVerificationStatus();
+        },
+        maxResults: 10,
+        placeholder: '검색 결과가 없습니다',
+        highlightSearch: true
     });
-
-    list.classList.remove('hidden');
-}
-
-/**
- * 자동완성에서 거래처 선택
- */
-function selectCompanyFromAutocomplete(company) {
-    const companyName = getCompanyDisplayName(company);
-    elements.companySelect.value = companyName;
-    state.selectedCompany = company;
-
-    // 자동완성 목록 닫기
-    elements.companyAutocompleteList.classList.add('hidden');
-
-    // 확인 상태 초기화
-    resetVerificationStatus();
-
 }
 
 /**
