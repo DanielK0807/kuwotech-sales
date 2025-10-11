@@ -16,6 +16,7 @@ import { showToast } from '../../01.common/14_toast.js';
 import { themeManager } from '../../01.common/11_theme_manager.js';
 import { initGlassmorphism } from '../../01.common/07_design.js';
 import { showModal } from '../../01.common/06_modal.js';
+import { validateEmail, validatePhone } from '../../01.common/18_validation_utils.js';
 import GlobalConfig from '../../01.common/01_global_config.js';
 
 // ============================================
@@ -421,16 +422,6 @@ function checkPasswordStrength() {
 // ============================================
 // [SECTION: 유효성 검사]
 // ============================================
-
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-function validatePhone(phone) {
-    const re = /^\d{3}-\d{3,4}-\d{4}$/;
-    return re.test(phone);
-}
 
 function validatePassword(password) {
     // 최소 8자, 영문과 숫자 포함

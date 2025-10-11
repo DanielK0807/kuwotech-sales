@@ -9,7 +9,28 @@
 import { GlobalConfig, showToast, showModal } from './10_index.js';
 
 /**
- * 전화번호 형식 검증
+ * 이메일 형식 검증 (간단한 boolean 체크)
+ * @param {string} email - 검증할 이메일 주소
+ * @returns {boolean} - 유효하면 true
+ */
+export function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+/**
+ * 전화번호 형식 검증 (간단한 boolean 체크)
+ * 형식: 010-1234-5678, 02-1234-5678 등
+ * @param {string} phone - 검증할 전화번호
+ * @returns {boolean} - 유효하면 true
+ */
+export function validatePhone(phone) {
+    const re = /^\d{3}-\d{3,4}-\d{4}$/;
+    return re.test(phone);
+}
+
+/**
+ * 전화번호 형식 검증 (상세한 검증 및 포맷팅)
  * 지원 형식: 02-1234-5678, 0212345678, 031-123-4567, 010-1234-5678 등
  */
 export function validatePhoneNumber(phoneNumber) {
