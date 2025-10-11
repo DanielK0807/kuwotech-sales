@@ -13,6 +13,7 @@ import './02_dynamic_button.js';
 import './04_dynamic_table.js';
 import './05_kpi_card.js';
 import './07_accordion.js';
+import './08_autocomplete.js';
 
 /**
  * 컴포넌트 시스템 초기화
@@ -47,7 +48,12 @@ export async function initComponents(options = {}) {
 
         // 5. 아코디언 컴포넌트 초기화
         if (options.accordion !== false && window.Accordion) {
-            console.log('[5/5] 아코디언 컴포넌트 로드 완료');
+            console.log('[5/6] 아코디언 컴포넌트 로드 완료');
+        }
+
+        // 6. 자동완성 컴포넌트 초기화
+        if (options.autocomplete !== false && window.AutocompleteManager) {
+            console.log('[6/6] 자동완성 컴포넌트 로드 완료');
         }
         
         // 컴포넌트 스타일 적용
@@ -380,7 +386,8 @@ function getLoadedComponents() {
         buttonGroup: !!window.ButtonGroup,
         kpiGroup: !!window.KPIGroup,
         modal: !!window.Modal,
-        accordion: !!window.Accordion
+        accordion: !!window.Accordion,
+        autocomplete: !!window.AutocompleteManager
     };
 }
 
@@ -408,7 +415,13 @@ export const ComponentFactory = {
     kpiGroup: (config) => new window.KPIGroup(config),
 
     // 아코디언 생성
-    accordion: (config) => new window.Accordion(config)
+    accordion: (config) => new window.Accordion(config),
+
+    // 자동완성 생성
+    autocomplete: (config) => new window.AutocompleteManager(config),
+
+    // 간단한 자동완성 생성
+    createAutocomplete: window.createAutocomplete
 };
 
 // 전역으로 노출
@@ -429,5 +442,7 @@ export default {
     DynamicDataTable: window.DynamicDataTable,
     KPICard: window.KPICard,
     KPIGroup: window.KPIGroup,
-    Accordion: window.Accordion
+    Accordion: window.Accordion,
+    AutocompleteManager: window.AutocompleteManager,
+    createAutocomplete: window.createAutocomplete
 };
