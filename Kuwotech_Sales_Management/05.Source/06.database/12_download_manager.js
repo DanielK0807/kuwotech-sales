@@ -568,18 +568,107 @@ class DownloadManager {
     
     /**
      * [메서드: 월별 추이 조회]
+     * 최근 12개월간의 매출/수금 추이 데이터 반환
      */
     async getMonthlyTrends() {
-        // TODO: 구현 필요
-        return [];
+        const reports = await this.getAllReports();
+
+        // 월별로 그룹화
+        const trendsByMonth = {};
+
+        reports.forEach(report => {
+            if (!report.visitDate) return;
+
+            const date = new Date(report.visitDate);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+            if (!trendsByMonth[monthKey]) {
+                trendsByMonth[monthKey] = {
+                    month: monthKey,
+                    monthLabel: `${date.getFullYear()}년 ${date.getMonth() + 1}월`,
+                    totalSales: 0,
+                    totalCollection: 0,
+                    visitCount: 0,
+                    collectionRate: '0%'
+                };
+            }
+
+            trendsByMonth[monthKey].totalSales += report.salesAmount || 0;
+            trendsByMonth[monthKey].totalCollection += report.collectionAmount || 0;
+            trendsByMonth[monthKey].visitCount++;
+        });
+
+        // 수금률 계산 및 정렬 (최근 12개월)
+        const trends = Object.values(trendsByMonth)
+            .map(trend => {
+                const collectionRate = trend.totalSales > 0
+                    ? (trend.totalCollection / trend.totalSales * 100).toFixed(2)
+                    : 0;
+                return {
+                    ...trend,
+                    collectionRate: collectionRate + '%'
+                };
+            })
+            .sort((a, b) => b.month.localeCompare(a.month))
+            .slice(0, 12);
+
+        return trends;
     }
-    
+
     /**
      * [메서드: Top 거래처 조회]
+     * 매출액 상위 거래처 조회 (Top 10)
      */
     async getTopCompanies() {
-        // TODO: 구현 필요
-        return [];
+        const companies = await this.getAllCompanies();
+        const reports = await this.getAllReports();
+
+        // 거래처별 매출 집계
+        const salesByCompany = {};
+
+        reports.forEach(report => {
+            const companyKey = report.finalCompanyName || report.erpCompanyName || report.companyName || '미지정';
+
+            if (!salesByCompany[companyKey]) {
+                salesByCompany[companyKey] = {
+                    companyName: companyKey,
+                    totalSales: 0,
+                    totalCollection: 0,
+                    visitCount: 0,
+                    collectionRate: '0%',
+                    lastVisitDate: null
+                };
+            }
+
+            salesByCompany[companyKey].totalSales += report.salesAmount || 0;
+            salesByCompany[companyKey].totalCollection += report.collectionAmount || 0;
+            salesByCompany[companyKey].visitCount++;
+
+            // 최근 방문일 업데이트
+            if (report.visitDate) {
+                const visitDate = new Date(report.visitDate);
+                if (!salesByCompany[companyKey].lastVisitDate || visitDate > salesByCompany[companyKey].lastVisitDate) {
+                    salesByCompany[companyKey].lastVisitDate = visitDate;
+                }
+            }
+        });
+
+        // 수금률 계산 및 정렬 (매출액 상위 10개)
+        const topCompanies = Object.values(salesByCompany)
+            .map(company => {
+                const collectionRate = company.totalSales > 0
+                    ? (company.totalCollection / company.totalSales * 100).toFixed(2)
+                    : 0;
+                return {
+                    ...company,
+                    collectionRate: collectionRate + '%',
+                    lastVisitDate: company.lastVisitDate ? formatDate(company.lastVisitDate) : '-'
+                };
+            })
+            .sort((a, b) => b.totalSales - a.totalSales)
+            .slice(0, 10);
+
+        return topCompanies;
     }
     
     /**
