@@ -263,6 +263,21 @@ export const createEmployee = async (req, res) => {
     }
 
     const db = await getDB();
+
+    // 중복 체크 - 같은 이름의 직원이 이미 존재하는지 확인
+    const [existingEmployees] = await db.execute(
+      'SELECT id, name FROM employees WHERE name = ?',
+      [name]
+    );
+
+    if (existingEmployees.length > 0) {
+      console.log('[직원 추가] 중복된 이름:', name);
+      return res.status(409).json({
+        error: 'Conflict',
+        message: `이미 "${name}" 이름의 직원이 존재합니다.`
+      });
+    }
+
     const employeeId = uuidv4();
 
     // 기본 비밀번호 생성 (이름 + 0000)
