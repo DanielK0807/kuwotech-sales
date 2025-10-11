@@ -12,6 +12,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { formatDate, formatCurrency } from '../../01.common/03_format.js';
+import { parseJSON } from '../../01.common/02_utils.js';
 
 // ============================================
 // 전역 변수
@@ -346,23 +347,6 @@ window.handleReportClick = function(reportId) {
 // ============================================
 // 유틸리티 함수
 // ============================================
-
-/**
- * JSON 문자열 파싱 (에러 처리 포함)
- */
-function parseJSON(jsonString, defaultValue = null) {
-    if (!jsonString) return defaultValue;
-
-    try {
-        if (typeof jsonString === 'string') {
-            return JSON.parse(jsonString);
-        }
-        return jsonString;
-    } catch (e) {
-        console.warn('JSON 파싱 실패:', e);
-        return defaultValue;
-    }
-}
 
 /**
  * 미이행 금액 계산 (목표 - 실제)

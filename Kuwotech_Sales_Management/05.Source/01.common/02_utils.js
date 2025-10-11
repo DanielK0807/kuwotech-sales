@@ -225,6 +225,33 @@ export function removeStorage(key) {
 }
 
 /**
+ * JSON 문자열을 안전하게 파싱
+ * @param {string|Object} jsonString - 파싱할 JSON 문자열 또는 객체
+ * @param {*} defaultValue - 파싱 실패 시 반환할 기본값 (기본값: null)
+ * @returns {*} 파싱된 객체 또는 기본값
+ *
+ * @example
+ * parseJSON('{"name": "test"}') // { name: "test" }
+ * parseJSON('[1,2,3]') // [1, 2, 3]
+ * parseJSON('invalid json', []) // []
+ * parseJSON({ already: 'parsed' }) // { already: 'parsed' }
+ */
+export function parseJSON(jsonString, defaultValue = null) {
+    if (!jsonString) return defaultValue;
+
+    try {
+        // 이미 객체인 경우 그대로 반환
+        if (typeof jsonString === 'string') {
+            return JSON.parse(jsonString);
+        }
+        return jsonString;
+    } catch (e) {
+        console.warn('[parseJSON] JSON 파싱 실패:', e);
+        return defaultValue;
+    }
+}
+
+/**
  * URL 파라미터 파싱
  * @param {string} search - search 문자열 (기본값: window.location.search)
  * @returns {Object} 파라미터 객체
@@ -484,6 +511,7 @@ if (typeof window !== 'undefined') {
         setStorage,
         getStorage,
         removeStorage,
+        parseJSON,
         parseUrlParams,
         objectToUrlParams,
         formatDateTime,
@@ -520,6 +548,7 @@ export default {
     setStorage,
     getStorage,
     removeStorage,
+    parseJSON,
     parseUrlParams,
     objectToUrlParams,
     formatDateTime,

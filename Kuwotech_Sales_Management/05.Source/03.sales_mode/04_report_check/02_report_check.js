@@ -14,7 +14,7 @@
  */
 
 import ApiManager from '../../01.common/13_api_manager.js';
-import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import { getCompanyDisplayName, parseJSON } from '../../01.common/02_utils.js';
 import { formatNumber, formatDate } from '../../01.common/03_format.js';
 
 // =====================================================
@@ -462,16 +462,6 @@ function transformActivitiesFromBackend(activityNotes = [], confirmedActivities 
       note: confirmed?.note || ''
     };
   });
-}
-
-function parseJSON(jsonString, defaultValue = {}) {
-  if (!jsonString) return defaultValue;
-  try {
-    return typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
-  } catch (error) {
-    console.error('JSON 파싱 에러:', error);
-    return defaultValue;
-  }
 }
 
 function extractCompletionDates(confirmationData) {
