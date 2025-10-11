@@ -1000,14 +1000,14 @@ window.showTransferCompanies = async function(employeeId) {
                             <input type="radio" name="transferMode" value="all" checked onchange="updateTransferMode()">
                             <div>
                                 <strong>전체 일괄 이관</strong>
-                                <p class="m-5-0 text-xs text-secondary">${companies.length}개 거래처 모두 이관</p>
+                                <p class="m-5-0 text-xs" style="color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">${companies.length}개 거래처 모두 이관</p>
                             </div>
                         </label>
                         <label class="transfer-option flex-1 p-15 border-info cursor-pointer">
                             <input type="radio" name="transferMode" value="selective" onchange="updateTransferMode()">
                             <div>
                                 <strong>선택적 이관</strong>
-                                <p class="m-5-0 text-xs text-secondary">거래처를 선택하여 이관</p>
+                                <p class="m-5-0 text-xs" style="color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">거래처를 선택하여 이관</p>
                             </div>
                         </label>
                     </div>
@@ -1021,7 +1021,7 @@ window.showTransferCompanies = async function(employeeId) {
                                 <input type="checkbox" class="company-checkbox" data-key="${c.keyValue}" onchange="updateSelectedCompanyCount()">
                                 <div class="ml-10 flex-1">
                                     <strong>${c.finalCompanyName}</strong>
-                                    <span class="ml-10 text-xs text-secondary">
+                                    <span class="ml-10 text-xs" style="color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">
                                         ${c.businessStatus} | 매출: ${formatCurrency(c.accumulatedSales || 0, true)}
                                     </span>
                                 </div>
