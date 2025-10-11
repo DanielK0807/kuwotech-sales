@@ -186,12 +186,7 @@ export {
     
     // 테마
     themeManager,
-    
-    // 에셋 (주석 처리 - 파일 없음)
-    // loadFonts,
-    // createLogoElement,
-    // updateAllLogos,
-    
+
     // 세션
     sessionManager
 };
