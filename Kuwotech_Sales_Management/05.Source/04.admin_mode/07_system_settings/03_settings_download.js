@@ -241,18 +241,36 @@ async function showBackupOptions() {
  */
 async function saveBackupHistory(backupInfo) {
     try {
-        // localStorage에 임시 저장 (TODO: IndexedDB로 이전)
-        const history = JSON.parse(localStorage.getItem('backup_history') || '[]');
-        history.unshift(backupInfo);
+        // 백엔드 API를 통해 DB에 저장
+        const response = await fetch('/api/admin/backup-history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                backupType: 'settings',
+                backupBy: backupInfo.backupBy,
+                format: backupInfo.format,
+                memo: backupInfo.options?.memo,
+                selectedSheets: Object.entries(backupInfo.options || {})
+                    .filter(([key, value]) => key.startsWith('include') && value)
+                    .map(([key]) => key),
+                metadata: {
+                    backupAt: backupInfo.backupAt
+                }
+            })
+        });
 
-        // 최근 20개만 유지
-        if (history.length > 20) {
-            history.splice(20);
+        if (!response.ok) {
+            throw new Error('백업 이력 저장 실패');
         }
 
-        localStorage.setItem('backup_history', JSON.stringify(history));
+        const result = await response.json();
+        logger.info('[백업 이력 저장 성공]', result);
+
     } catch (error) {
         logger.error('[백업 이력 저장 오류]', error);
+        // 실패해도 백업 자체는 성공이므로 에러를 표시하지 않음
     }
 }
 
@@ -310,11 +328,20 @@ async function showRestoreOptions() {
 /**
  * [함수: 백업 이력 조회]
  *
- * @returns {Array} 백업 이력 배열
+ * @param {string} backupType - 백업 타입 ('settings', 'full_backup')
+ * @returns {Promise<Array>} 백업 이력 배열
  */
-export function getBackupHistory() {
+export async function getBackupHistory(backupType = 'settings') {
     try {
-        return JSON.parse(localStorage.getItem('backup_history') || '[]');
+        const response = await fetch(`/api/admin/backup-history?backupType=${backupType}&limit=20`);
+
+        if (!response.ok) {
+            throw new Error('백업 이력 조회 실패');
+        }
+
+        const result = await response.json();
+        return result.history || [];
+
     } catch (error) {
         logger.error('[백업 이력 조회 오류]', error);
         return [];

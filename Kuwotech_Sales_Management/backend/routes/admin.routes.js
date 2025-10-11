@@ -5,7 +5,13 @@
 import express from 'express';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { resetAllPasswords, fixCompanyColumns } from '../controllers/admin.controller.js';
+import {
+  resetAllPasswords,
+  fixCompanyColumns,
+  saveBackupHistory,
+  getBackupHistory,
+  deleteBackupHistory
+} from '../controllers/admin.controller.js';
 
 const router = express.Router();
 const execPromise = promisify(exec);
@@ -15,6 +21,11 @@ router.post('/reset-passwords', resetAllPasswords);
 
 // POST /api/admin/migrate/fix-company-columns - Companies 테이블 컬럼명 영문 변경
 router.post('/migrate/fix-company-columns', fixCompanyColumns);
+
+// 백업 이력 관리
+router.post('/backup-history', saveBackupHistory);
+router.get('/backup-history', getBackupHistory);
+router.delete('/backup-history/:id', deleteBackupHistory);
 
 // ==========================================
 // POST /api/admin/migrate - 실적보고서 마이그레이션 실행

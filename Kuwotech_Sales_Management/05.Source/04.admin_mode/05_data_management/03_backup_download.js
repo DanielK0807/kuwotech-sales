@@ -381,28 +381,51 @@ async function showScheduleBackupOptions() {
  */
 async function saveBackupHistory(backupInfo) {
     try {
-        
-        const history = JSON.parse(localStorage.getItem('full_backup_history') || '[]');
-        history.unshift(backupInfo);
-        
-        // 최근 20개만 유지
-        if (history.length > 20) {
-            history.splice(20);
+        // 백엔드 API를 통해 DB에 저장
+        const response = await fetch('/api/admin/backup-history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                backupType: 'full_backup',
+                backupBy: backupInfo.backupBy,
+                format: 'excel',
+                memo: backupInfo.memo,
+                selectedSheets: backupInfo.selectedSheets,
+                metadata: {
+                    backupAt: backupInfo.backupAt
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('백업 이력 저장 실패');
         }
-        
-        localStorage.setItem('full_backup_history', JSON.stringify(history));
-        
+
+        const result = await response.json();
+        logger.info('[백업 이력 저장 성공]', result);
+
     } catch (error) {
         logger.error('[백업 이력 저장 오류]', error);
+        // 실패해도 백업 자체는 성공이므로 에러를 표시하지 않음
     }
 }
 
 /**
  * [함수: 백업 이력 조회]
  */
-export function getBackupHistory() {
+export async function getBackupHistory() {
     try {
-        return JSON.parse(localStorage.getItem('full_backup_history') || '[]');
+        const response = await fetch('/api/admin/backup-history?backupType=full_backup&limit=20');
+
+        if (!response.ok) {
+            throw new Error('백업 이력 조회 실패');
+        }
+
+        const result = await response.json();
+        return result.history || [];
+
     } catch (error) {
         logger.error('[백업 이력 조회 오류]', error);
         return [];

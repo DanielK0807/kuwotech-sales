@@ -148,3 +148,130 @@ export const resetAllPasswords = async (req, res) => {
     });
   }
 };
+
+// ============================================
+// 백업 이력 관리
+// ============================================
+
+// POST /api/admin/backup-history
+// 백업 이력 저장
+export const saveBackupHistory = async (req, res) => {
+  try {
+    const { backupType, backupBy, format, memo, selectedSheets, metadata } = req.body;
+
+    // 필수 필드 검증
+    if (!backupType || !backupBy) {
+      return res.status(400).json({
+        success: false,
+        message: 'backupType과 backupBy는 필수입니다.'
+      });
+    }
+
+    const db = await getDB();
+
+    const [result] = await db.execute(
+      `INSERT INTO backupHistory (backupType, backupBy, format, memo, selectedSheets, metadata)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        backupType,
+        backupBy,
+        format || 'excel',
+        memo || null,
+        selectedSheets ? JSON.stringify(selectedSheets) : null,
+        metadata ? JSON.stringify(metadata) : null
+      ]
+    );
+
+    res.json({
+      success: true,
+      message: '백업 이력이 저장되었습니다.',
+      id: result.insertId
+    });
+
+  } catch (error) {
+    console.error('❌ 백업 이력 저장 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '백업 이력 저장 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+};
+
+// GET /api/admin/backup-history
+// 백업 이력 조회
+export const getBackupHistory = async (req, res) => {
+  try {
+    const { backupType, limit = 20 } = req.query;
+
+    const db = await getDB();
+
+    let query = 'SELECT * FROM backupHistory';
+    const params = [];
+
+    if (backupType) {
+      query += ' WHERE backupType = ?';
+      params.push(backupType);
+    }
+
+    query += ' ORDER BY backupAt DESC LIMIT ?';
+    params.push(parseInt(limit));
+
+    const [rows] = await db.execute(query, params);
+
+    // JSON 파싱
+    const history = rows.map(row => ({
+      ...row,
+      selectedSheets: row.selectedSheets ? JSON.parse(row.selectedSheets) : null,
+      metadata: row.metadata ? JSON.parse(row.metadata) : null
+    }));
+
+    res.json({
+      success: true,
+      history: history
+    });
+
+  } catch (error) {
+    console.error('❌ 백업 이력 조회 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '백업 이력 조회 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+};
+
+// DELETE /api/admin/backup-history/:id
+// 백업 이력 삭제
+export const deleteBackupHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const db = await getDB();
+
+    const [result] = await db.execute(
+      'DELETE FROM backupHistory WHERE id = ?',
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: '해당 백업 이력을 찾을 수 없습니다.'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: '백업 이력이 삭제되었습니다.'
+    });
+
+  } catch (error) {
+    console.error('❌ 백업 이력 삭제 에러:', error);
+    res.status(500).json({
+      success: false,
+      message: '백업 이력 삭제 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+};
