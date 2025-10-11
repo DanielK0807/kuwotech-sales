@@ -658,18 +658,7 @@ function updateStatistics() {
     }, 0);
     
     const totalReceivable = totalSales - totalCollection;
-    
-        totalCount,
-        totalSales,
-        totalCollection,
-        totalReceivable,
-        sampleData: companyList.slice(0, 2).map(c => ({
-            name: getCompanyDisplayName(c),
-            sales: c.accumulatedSales,
-            collection: c.accumulatedCollection
-        }))
-    });
-    
+
     // 거래처 개수 업데이트
     const totalCountElement = document.getElementById('total-count');
     if (totalCountElement) {

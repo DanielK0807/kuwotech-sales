@@ -18,6 +18,7 @@
 // ============================================
 
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
+import dbManager from '../../06.database/01_database_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
 import { formatDateKorean, formatNumber } from '../../01.common/03_format.js';
@@ -738,12 +739,16 @@ export function getBackupHistory() {
  */
 async function getDataStatistics() {
     try {
-        // TODO: IndexedDB에서 실제 데이터 개수 조회
+        // 실제 데이터베이스에서 데이터 개수 조회
+        const companies = await dbManager.getAllClients({ limit: 100000 });
+        const reports = await dbManager.getAllReports({ limit: 100000 });
+        const employees = await dbManager.getAllEmployees({ limit: 100000 });
+
         return {
-            companies: 150,
-            reports: 420,
-            employees: 25,
-            history: 1250
+            companies: companies?.length || 0,
+            reports: reports?.length || 0,
+            employees: employees?.length || 0,
+            history: 0 // TODO: 변경이력 API 구현 시 추가
         };
     } catch (error) {
         console.error('[통계 조회 오류]', error);
