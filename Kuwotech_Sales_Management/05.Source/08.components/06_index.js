@@ -5,6 +5,9 @@
    설명: 모든 컴포넌트 모듈 통합 관리
 ============================================ */
 
+// Logger
+import logger from '../01.common/23_logger.js';
+
 // 기존 컴포넌트
 import * as navigation from './01_navigation.js';
 
@@ -20,48 +23,48 @@ import './08_autocomplete.js';
  * @param {Object} options - 초기화 옵션
  */
 export async function initComponents(options = {}) {
-    console.log('========================================');
-    console.log('[컴포넌트 시스템] 초기화 시작');
-    console.log('========================================');
+    logger.debug('========================================');
+    logger.debug('[컴포넌트 시스템] 초기화 시작');
+    logger.debug('========================================');
     
     try {
         // 1. 네비게이션 초기화
         if (options.navigation !== false) {
             await navigation.initNavigation(options.navigationConfig);
-            console.log('[1/5] 네비게이션 컴포넌트 초기화 완료');
+            logger.debug('[1/5] 네비게이션 컴포넌트 초기화 완료');
         }
         
         // 2. 버튼 컴포넌트 초기화
         if (options.button !== false && window.DynamicButton) {
-            console.log('[2/5] 동적 버튼 컴포넌트 로드 완료');
+            logger.debug('[2/5] 동적 버튼 컴포넌트 로드 완료');
         }
 
         // 3. 테이블 컴포넌트 초기화
         if (options.table !== false && window.DynamicDataTable) {
-            console.log('[3/5] 동적 테이블 컴포넌트 로드 완료');
+            logger.debug('[3/5] 동적 테이블 컴포넌트 로드 완료');
         }
 
         // 4. KPI 카드 컴포넌트 초기화
         if (options.kpi !== false && window.KPICard) {
-            console.log('[4/5] KPI 카드 컴포넌트 로드 완료');
+            logger.debug('[4/5] KPI 카드 컴포넌트 로드 완료');
         }
 
         // 5. 아코디언 컴포넌트 초기화
         if (options.accordion !== false && window.Accordion) {
-            console.log('[5/6] 아코디언 컴포넌트 로드 완료');
+            logger.debug('[5/6] 아코디언 컴포넌트 로드 완료');
         }
 
         // 6. 자동완성 컴포넌트 초기화
         if (options.autocomplete !== false && window.AutocompleteManager) {
-            console.log('[6/6] 자동완성 컴포넌트 로드 완료');
+            logger.debug('[6/6] 자동완성 컴포넌트 로드 완료');
         }
         
         // 컴포넌트 스타일 적용
         applyComponentStyles();
         
-        console.log('========================================');
-        console.log('[컴포넌트 시스템] 초기화 완료');
-        console.log('========================================');
+        logger.debug('========================================');
+        logger.debug('[컴포넌트 시스템] 초기화 완료');
+        logger.debug('========================================');
         
         // 초기화 완료 이벤트
         window.dispatchEvent(new CustomEvent('componentsReady', {
@@ -71,7 +74,7 @@ export async function initComponents(options = {}) {
         return true;
         
     } catch (error) {
-        console.error('[컴포넌트 시스템] 초기화 실패:', error);
+        logger.error('[컴포넌트 시스템] 초기화 실패:', error);
         throw error;
     }
 }
