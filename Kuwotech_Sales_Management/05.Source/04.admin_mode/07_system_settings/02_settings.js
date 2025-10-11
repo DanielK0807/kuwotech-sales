@@ -18,6 +18,7 @@ import { initGlassmorphism } from '../../01.common/07_design.js';
 import { showModal } from '../../01.common/06_modal.js';
 import { validateEmail, validatePhone } from '../../01.common/18_validation_utils.js';
 import GlobalConfig from '../../01.common/01_global_config.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -48,7 +49,7 @@ async function initializePage() {
         setupEventListeners();
 
     } catch (error) {
-        console.error('[시스템 설정] 초기화 오류:', error);
+        logger.error('[시스템 설정] 초기화 오류:', error);
         showToast('페이지 초기화 중 오류가 발생했습니다', 'error');
     }
 }
@@ -61,7 +62,7 @@ async function loadDepartments() {
     try {
         const token = localStorage.getItem('authToken');
         if (!token) {
-            console.warn('[부서 목록] 인증 토큰이 없습니다');
+            logger.warn('[부서 목록] 인증 토큰이 없습니다');
             return;
         }
 
@@ -99,7 +100,7 @@ async function loadDepartments() {
         }
 
     } catch (error) {
-        console.error('[부서 목록] 로드 오류:', error);
+        logger.error('[부서 목록] 로드 오류:', error);
         // 오류가 나도 계속 진행 (부서 선택 불가능하지만 다른 기능은 작동)
     }
 }
@@ -248,7 +249,7 @@ window.saveUserInfo = async function() {
         showToast('본인 정보가 성공적으로 변경되었습니다', 'success');
 
     } catch (error) {
-        console.error('[정보 변경] 오류:', error);
+        logger.error('[정보 변경] 오류:', error);
         showToast(error.message || '정보 변경 중 오류가 발생했습니다', 'error');
     }
 };
@@ -366,7 +367,7 @@ window.changePassword = async function() {
         }, 1000);
 
     } catch (error) {
-        console.error('[비밀번호 변경] 오류:', error);
+        logger.error('[비밀번호 변경] 오류:', error);
         showToast(error.message || '비밀번호 변경 중 오류가 발생했습니다', 'error');
     }
 };

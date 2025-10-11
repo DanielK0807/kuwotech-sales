@@ -20,6 +20,7 @@
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 다운로드 버튼 초기화]
@@ -45,7 +46,7 @@ export function initEmployeeDownloadButton() {
         downloadBtn.addEventListener('click', showEmployeeDownloadOptions);
 
     } else {
-        console.warn('[직원정보 다운로드] 다운로드 버튼을 찾을 수 없습니다');
+        logger.warn('[직원정보 다운로드] 다운로드 버튼을 찾을 수 없습니다');
     }
 }
 
@@ -366,12 +367,12 @@ async function executeEmployeeDownload(format, options = {}) {
         if (result.success) {
             // 성공 메시지는 downloadManager에서 표시
         } else {
-            console.error('[직원정보 다운로드] 실패:', result.error);
+            logger.error('[직원정보 다운로드] 실패:', result.error);
             showToast('다운로드 실패: ' + (result.error || '알 수 없는 오류'), 'error');
         }
         
     } catch (error) {
-        console.error('[직원정보 다운로드] 오류:', error);
+        logger.error('[직원정보 다운로드] 오류:', error);
         showToast('다운로드 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -403,7 +404,7 @@ export async function quickDownloadEmployees() {
         });
         
     } catch (error) {
-        console.error('[직원정보 빠른 다운로드] 오류:', error);
+        logger.error('[직원정보 빠른 다운로드] 오류:', error);
         showToast('다운로드 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -419,7 +420,7 @@ export async function quickDownloadEmployees() {
  * @deprecated - showEmployeeDownloadOptions 사용 권장
  */
 export async function exportExcel() {
-    console.warn('[직원관리] exportExcel() is deprecated. Use showEmployeeDownloadOptions() instead.');
+    logger.warn('[직원관리] exportExcel() is deprecated. Use showEmployeeDownloadOptions() instead.');
     await showEmployeeDownloadOptions();
 }
 

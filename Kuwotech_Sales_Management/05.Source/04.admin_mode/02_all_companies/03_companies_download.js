@@ -22,6 +22,7 @@ import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
 import downloadHelper from '../../01.common/helpers/download_helper.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 다운로드 버튼 초기화]
@@ -235,7 +236,7 @@ async function executeDownload(options) {
         }
         
     } catch (error) {
-        console.error('[전체거래처 다운로드] 실패:', error);
+        logger.error('[전체거래처 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -289,7 +290,7 @@ export async function importExcel() {
         input.click();
         
     } catch (error) {
-        console.error('[엑셀 가져오기] 실패:', error);
+        logger.error('[엑셀 가져오기] 실패:', error);
         showToast('파일 가져오기 중 오류가 발생했습니다.', 'error');
     }
 }

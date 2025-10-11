@@ -26,6 +26,7 @@
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
 import Modal from '../../01.common/06_modal.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [섹션 2: 다운로드 옵션 모달]
@@ -219,7 +220,7 @@ export async function downloadAllReports() {
         }
         
     } catch (error) {
-        console.error('[다운로드 실패] 전체 보고서:', error);
+        logger.error('[다운로드 실패] 전체 보고서:', error);
         showToast('다운로드 실패: ' + error.message, 'error');
     }
 }
@@ -259,7 +260,7 @@ export async function downloadSelectedReports(selectedReports) {
         }
         
     } catch (error) {
-        console.error('[다운로드 실패] 선택 보고서:', error);
+        logger.error('[다운로드 실패] 선택 보고서:', error);
         showToast('다운로드 실패: ' + error.message, 'error');
     }
 }
@@ -299,7 +300,7 @@ export async function downloadFilteredReports(filteredReports) {
         }
         
     } catch (error) {
-        console.error('[다운로드 실패] 필터링된 보고서:', error);
+        logger.error('[다운로드 실패] 필터링된 보고서:', error);
         showToast('다운로드 실패: ' + error.message, 'error');
     }
 }
@@ -360,7 +361,7 @@ export async function downloadSingleReport(reportId) {
         }
         
     } catch (error) {
-        console.error('[다운로드 실패] 단일 보고서:', error);
+        logger.error('[다운로드 실패] 단일 보고서:', error);
         showToast('다운로드 실패: ' + error.message, 'error');
     }
 }

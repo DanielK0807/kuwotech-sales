@@ -22,6 +22,7 @@ import dbManager from '../../06.database/01_database_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
 import { formatDateKorean, formatNumber } from '../../01.common/03_format.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 전체 백업 초기화]
@@ -124,7 +125,7 @@ async function quickDownload(type) {
         });
         
     } catch (error) {
-        console.error('[빠른 다운로드 오류]', error);
+        logger.error('[빠른 다운로드 오류]', error);
         showToast('다운로드 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -652,12 +653,12 @@ async function executeFullBackup(options = {}) {
                 backupAt: new Date().toISOString()
             });
         } else {
-            console.error('[전체 백업] 실패:', result.error);
+            logger.error('[전체 백업] 실패:', result.error);
             showToast('백업 실패: ' + (result.error || '알 수 없는 오류'), 'error');
         }
         
     } catch (error) {
-        console.error('[전체 백업] 오류:', error);
+        logger.error('[전체 백업] 오류:', error);
         showToast('백업 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -715,7 +716,7 @@ async function saveBackupHistory(backupInfo) {
         localStorage.setItem('full_backup_history', JSON.stringify(history));
         
     } catch (error) {
-        console.error('[백업 이력 저장 오류]', error);
+        logger.error('[백업 이력 저장 오류]', error);
     }
 }
 
@@ -726,7 +727,7 @@ export function getBackupHistory() {
     try {
         return JSON.parse(localStorage.getItem('full_backup_history') || '[]');
     } catch (error) {
-        console.error('[백업 이력 조회 오류]', error);
+        logger.error('[백업 이력 조회 오류]', error);
         return [];
     }
 }
@@ -752,7 +753,7 @@ async function getDataStatistics() {
             history: 0 // TODO: 변경이력 API 구현 시 추가
         };
     } catch (error) {
-        console.error('[통계 조회 오류]', error);
+        logger.error('[통계 조회 오류]', error);
         return {
             companies: 0,
             reports: 0,

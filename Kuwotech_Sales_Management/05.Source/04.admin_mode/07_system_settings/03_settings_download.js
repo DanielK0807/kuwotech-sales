@@ -20,6 +20,7 @@
 import downloadManager, { DOWNLOAD_TYPES } from '../../06.database/12_download_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
 import { showModal } from '../../01.common/06_modal.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 백업 버튼 초기화]
@@ -44,7 +45,7 @@ export function initSettingsBackupButton() {
         backupBtn.addEventListener('click', showBackupOptions);
         
     } else {
-        console.warn('[시스템설정 백업] 백업 버튼을 찾을 수 없습니다');
+        logger.warn('[시스템설정 백업] 백업 버튼을 찾을 수 없습니다');
     }
     
     // 복원 버튼도 있다면 초기화
@@ -396,12 +397,12 @@ async function executeBackup(format, options = {}) {
             
             // 성공 메시지는 downloadManager에서 표시
         } else {
-            console.error('[시스템설정 백업] 실패:', result.error);
+            logger.error('[시스템설정 백업] 실패:', result.error);
             showToast('백업 실패: ' + (result.error || '알 수 없는 오류'), 'error');
         }
         
     } catch (error) {
-        console.error('[시스템설정 백업] 오류:', error);
+        logger.error('[시스템설정 백업] 오류:', error);
         showToast('백업 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -431,7 +432,7 @@ async function saveBackupHistory(backupInfo) {
         localStorage.setItem('backup_history', JSON.stringify(history));
         
     } catch (error) {
-        console.error('[백업 이력 저장 오류]', error);
+        logger.error('[백업 이력 저장 오류]', error);
     }
 }
 
@@ -498,7 +499,7 @@ export async function quickBackup() {
         });
         
     } catch (error) {
-        console.error('[빠른 백업] 오류:', error);
+        logger.error('[빠른 백업] 오류:', error);
         showToast('백업 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -516,7 +517,7 @@ export function getBackupHistory() {
     try {
         return JSON.parse(localStorage.getItem('backup_history') || '[]');
     } catch (error) {
-        console.error('[백업 이력 조회 오류]', error);
+        logger.error('[백업 이력 조회 오류]', error);
         return [];
     }
 }
