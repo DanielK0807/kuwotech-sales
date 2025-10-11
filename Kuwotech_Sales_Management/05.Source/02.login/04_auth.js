@@ -13,6 +13,7 @@ import { showToast } from '../01.common/14_toast.js';
 import { formatDateKorean } from '../01.common/03_format.js';
 import { getDB } from '../06.database/01_database_manager.js';
 import logger from '../01.common/23_logger.js';
+import errorHandler, { AuthError, NetworkError } from '../01.common/24_error_handler.js';
 
 // ============================================
 // [보안 설정]
@@ -120,16 +121,28 @@ export class AuthManager {
             }
             
         } catch (error) {
-            logger.error('❌ 로그인 오류:', error);
-            
+            // ErrorHandler를 통한 에러 처리
+            await errorHandler.handle(
+                new AuthError('로그인 처리 오류', error, {
+                    userMessage: '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+                    context: {
+                        module: 'auth',
+                        action: 'login',
+                        username,
+                        isDevelopmentMode: this.isDevelopmentMode()
+                    }
+                }),
+                { showToUser: false } // showToast로 직접 표시
+            );
+
             // 개발 모드에서만 임시 로그인 허용
             if (this.isDevelopmentMode()) {
                 return this.developmentLogin(username, password);
             }
-            
+
             // 오류 토스트 메시지 표시
             showToast('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
-            
+
             return {
                 success: false,
                 message: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.'
@@ -162,7 +175,18 @@ export class AuthManager {
             }
             
         } catch (error) {
-            logger.error('서버 인증 실패:', error);
+            // ErrorHandler를 통한 에러 처리
+            await errorHandler.handle(
+                new AuthError('서버 인증 실패', error, {
+                    userMessage: '인증 서버와 통신할 수 없습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'authenticateWithServer',
+                        username
+                    }
+                }),
+                { showToUser: false } // 호출자가 메시지 처리
+            );
 
             // 인증 실패 반환
             return {
@@ -355,34 +379,36 @@ export class AuthManager {
     // [세션 관리]
     // ============================================
     
-    saveSession(user, token) {
+    async saveSession(user, token) {
         const sessionData = {
             user: user,
             token: token,
             createdAt: Date.now(),
             expiresAt: Date.now() + AUTH_CONFIG.SESSION_TIMEOUT
         };
-        
+
         // 세션 스토리지 (탭 닫으면 삭제)
         sessionStorage.setItem('session', JSON.stringify(sessionData));
-        
+
         // 로컬 스토리지 (Remember Me 옵션 시)
         if (document.getElementById('rememberMe')?.checked) {
-            const encryptedData = this.encryptData(sessionData);
-            localStorage.setItem('session', encryptedData);
+            const encryptedData = await this.encryptData(sessionData);
+            if (encryptedData) {
+                localStorage.setItem('session', encryptedData);
+            }
         }
     }
     
-    checkSession() {
+    async checkSession() {
         try {
             // 세션 스토리지 우선 확인
             let sessionData = sessionStorage.getItem('session');
-            
+
             if (!sessionData) {
                 // 로컬 스토리지 확인
                 const encryptedData = localStorage.getItem('session');
                 if (encryptedData) {
-                    sessionData = this.decryptData(encryptedData);
+                    sessionData = await this.decryptData(encryptedData);
                 }
             }
             
@@ -403,7 +429,18 @@ export class AuthManager {
             }
             
         } catch (error) {
-            logger.error('세션 확인 실패:', error);
+            // ErrorHandler를 통한 에러 처리
+            await errorHandler.handle(
+                new AuthError('세션 확인 실패', error, {
+                    userMessage: '세션 정보를 확인할 수 없습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'checkSession'
+                    },
+                    severity: 'MEDIUM'
+                }),
+                { showToUser: false } // Silent session check
+            );
             this.clearSession();
         }
     }
@@ -492,7 +529,19 @@ export class AuthManager {
         try {
             await this.dbManager.logout();
         } catch (error) {
-            logger.error('로그아웃 API 호출 실패:', error);
+            // ErrorHandler를 통한 에러 처리
+            await errorHandler.handle(
+                new NetworkError('로그아웃 API 호출 실패', error, {
+                    userMessage: '서버 로그아웃 처리에 실패했습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'logout',
+                        userId: this.currentUser?.id
+                    },
+                    severity: 'LOW' // 로컬 세션은 정리됨
+                }),
+                { showToUser: false } // 로그아웃은 계속 진행
+            );
         }
 
         // 보안 로그
@@ -558,7 +607,20 @@ export class AuthManager {
         // 로컬 로그 (디버깅용)
         
         // 서버로 전송 (백그라운드)
-        this.sendSecurityLog(logEntry).catch(err => logger.error('[보안 로그 전송 실패]', err));
+        this.sendSecurityLog(logEntry).catch(async (err) => {
+            await errorHandler.handle(
+                new NetworkError('보안 로그 전송 실패', err, {
+                    userMessage: '보안 로그를 서버로 전송하지 못했습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'sendSecurityLog',
+                        eventType: eventType
+                    },
+                    severity: 'LOW' // 백그라운드 작업, 중요하지 않음
+                }),
+                { showToUser: false, silent: true }
+            );
+        });
     }
     
     async sendSecurityLog(logEntry) {
@@ -595,24 +657,44 @@ export class AuthManager {
         return false; // 구현 필요
     }
     
-    encryptData(data) {
+    async encryptData(data) {
         // 간단한 암호화 (프로덕션에서는 더 강력한 암호화 필요)
         try {
             const jsonStr = JSON.stringify(data);
             return btoa(encodeURIComponent(jsonStr));
         } catch (error) {
-            logger.error('암호화 실패:', error);
+            await errorHandler.handle(
+                new AuthError('데이터 암호화 실패', error, {
+                    userMessage: '데이터를 안전하게 저장할 수 없습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'encryptData'
+                    },
+                    severity: 'MEDIUM'
+                }),
+                { showToUser: false }
+            );
             return null;
         }
     }
     
-    decryptData(encryptedData) {
+    async decryptData(encryptedData) {
         // 복호화
         try {
             const jsonStr = decodeURIComponent(atob(encryptedData));
             return jsonStr;
         } catch (error) {
-            logger.error('복호화 실패:', error);
+            await errorHandler.handle(
+                new AuthError('데이터 복호화 실패', error, {
+                    userMessage: '저장된 데이터를 읽을 수 없습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'decryptData'
+                    },
+                    severity: 'MEDIUM'
+                }),
+                { showToUser: false }
+            );
             return null;
         }
     }
@@ -650,7 +732,7 @@ export class AuthManager {
         }
         
         try {
-            const decrypted = this.decryptData(cached);
+            const decrypted = await this.decryptData(cached);
             const cachedAuth = JSON.parse(decrypted);
             
             if (cachedAuth.username === username && 
@@ -664,9 +746,20 @@ export class AuthManager {
                 };
             }
         } catch (error) {
-            logger.error('캐시 확인 실패:', error);
+            await errorHandler.handle(
+                new AuthError('캐시 확인 실패', error, {
+                    userMessage: '저장된 인증 정보를 확인할 수 없습니다.',
+                    context: {
+                        module: 'auth',
+                        action: 'checkCachedCredentials',
+                        username
+                    },
+                    severity: 'MEDIUM'
+                }),
+                { showToUser: false }
+            );
         }
-        
+
         return { success: false, message: '인증 정보를 확인할 수 없습니다.' };
     }
 }
