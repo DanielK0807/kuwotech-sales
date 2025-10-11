@@ -476,8 +476,8 @@ window.showAddEmployee = function() {
                         role2: null,
                         department: document.getElementById('newDepartment').value || null,
                         phone: document.getElementById('newPhone').value.replace(/-/g, '') || null,
-                        hireDate: hireDate || new Date().toISOString().split('T')[0],
-                        status: 'active'
+                        hireDate: hireDate || new Date().toISOString().split('T')[0]
+                        // status 필드 제거 - 백엔드가 기본값 '재직'을 사용
                     };
 
                     // 데이터베이스에 저장
