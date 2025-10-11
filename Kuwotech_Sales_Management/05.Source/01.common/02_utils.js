@@ -300,6 +300,68 @@ export function formatDateTime(format = 'YYYY-MM-DD HH:mm:ss', date = new Date()
 }
 
 /**
+ * 빠른 기간 설정 (다운로드 모달용)
+ * @param {string} period - 기간 (this-month, last-month, this-quarter, this-year, last-year)
+ * @param {string} startInputId - 시작일 input ID (기본값: 'start-date')
+ * @param {string} endInputId - 종료일 input ID (기본값: 'end-date')
+ */
+export function setQuickPeriod(period, startInputId = 'start-date', endInputId = 'end-date') {
+    const now = new Date();
+    const startInput = document.getElementById(startInputId);
+    const endInput = document.getElementById(endInputId);
+
+    if (!startInput || !endInput) {
+        console.warn(`[setQuickPeriod] Input 요소를 찾을 수 없음: ${startInputId}, ${endInputId}`);
+        return;
+    }
+
+    let start, end;
+
+    switch (period) {
+        case 'this-month':
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            break;
+
+        case 'last-month':
+            start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            end = new Date(now.getFullYear(), now.getMonth(), 0);
+            break;
+
+        case 'this-quarter':
+            const quarter = Math.floor(now.getMonth() / 3);
+            start = new Date(now.getFullYear(), quarter * 3, 1);
+            end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+            break;
+
+        case 'this-year':
+            start = new Date(now.getFullYear(), 0, 1);
+            end = new Date(now.getFullYear(), 11, 31);
+            break;
+
+        case 'last-year':
+            start = new Date(now.getFullYear() - 1, 0, 1);
+            end = new Date(now.getFullYear() - 1, 11, 31);
+            break;
+
+        default:
+            console.warn(`[setQuickPeriod] 알 수 없는 기간: ${period}`);
+            return;
+    }
+
+    // 날짜를 YYYY-MM-DD 형식으로 변환
+    const formatDateForInput = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    startInput.value = formatDateForInput(start);
+    endInput.value = formatDateForInput(end);
+}
+
+/**
  * 숫자를 천단위 구분자로 포맷
  * @param {number} num - 숫자
  * @returns {string} 포맷된 문자열
@@ -515,6 +577,7 @@ if (typeof window !== 'undefined') {
         parseUrlParams,
         objectToUrlParams,
         formatDateTime,
+        setQuickPeriod,
         formatNumber,
         delay,
         randomInt,
@@ -552,6 +615,7 @@ export default {
     parseUrlParams,
     objectToUrlParams,
     formatDateTime,
+    setQuickPeriod,
     formatNumber,
     delay,
     randomInt,
