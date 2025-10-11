@@ -356,10 +356,10 @@ export const getSecurityLogs = async (req, res) => {
 
     const [rows] = await db.execute(query, params);
 
-    // JSON 파싱
+    // JSON 파싱 (MySQL JSON 타입은 이미 객체로 반환됨)
     const logs = rows.map(row => ({
       ...row,
-      data: row.data ? JSON.parse(row.data) : null
+      data: row.data || null
     }));
 
     res.json({
