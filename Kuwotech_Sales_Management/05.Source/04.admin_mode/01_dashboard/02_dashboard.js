@@ -52,6 +52,9 @@ import {
     formatAchievementRate
 } from '../../01.common/21_kpi_calculator.js';
 
+// Logger 임포트
+import logger from '../../01.common/23_logger.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -98,7 +101,7 @@ async function initDashboard() {
         try {
             await loadDashboardData();
         } catch (error) {
-            console.error('[관리자 대시보드] 데이터 로드 실패, 빈 데이터로 표시:', error);
+            logger.error('[관리자 대시보드] 데이터 로드 실패, 빈 데이터로 표시:', error);
             // 데이터 로드 실패 시 빈 객체로 초기화
             dashboardData = createEmptyKPIData();
         }
@@ -113,7 +116,7 @@ async function initDashboard() {
         isInitialized = true;
 
     } catch (error) {
-        console.error('[관리자 대시보드] 초기화 실패:', error);
+        logger.error('[관리자 대시보드] 초기화 실패:', error);
         hideLoading();
         showToast('대시보드 로드 중 오류가 발생했습니다.', 'error');
 
@@ -159,7 +162,7 @@ async function loadDashboardData() {
         }
 
     } catch (error) {
-        console.error('[관리자 대시보드] 데이터 로드 실패:', error);
+        logger.error('[관리자 대시보드] 데이터 로드 실패:', error);
         showToast('KPI 데이터를 불러오는 중 오류가 발생했습니다.', 'error');
         throw error;
     }
@@ -175,7 +178,7 @@ async function loadDashboardData() {
 
 function displayKPICardsWithGlass() {
     if (!dashboardData) {
-        console.warn('[KPI 카드] 데이터가 없습니다. 빈 데이터로 표시합니다.');
+        logger.warn('[KPI 카드] 데이터가 없습니다. 빈 데이터로 표시합니다.');
         dashboardData = createEmptyKPIData();
     }
 
@@ -344,7 +347,7 @@ function displayKPICardsWithGlass() {
 function renderKPISection(sectionId, kpiConfig) {
     const container = document.getElementById(sectionId);
     if (!container) {
-        console.error(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
+        logger.error(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
         return;
     }
 
@@ -361,7 +364,7 @@ function renderKPISection(sectionId, kpiConfig) {
         container.innerHTML = '';
         container.appendChild(kpiGrid.render());
     } catch (error) {
-        console.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
+        logger.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error);
         container.innerHTML = '<p class="error-message">카드 렌더링 실패</p>';
     }
 }
@@ -477,7 +480,7 @@ async function showRankingModal(type) {
         hideLoading();
 
     } catch (error) {
-        console.error('[순위 모달] 로드 실패:', error);
+        logger.error('[순위 모달] 로드 실패:', error);
         hideLoading();
         showToast('순위 데이터를 불러오는 중 오류가 발생했습니다.', 'error');
     }
@@ -525,7 +528,7 @@ async function refreshDashboard() {
         hideLoading();
         showToast('데이터가 새로고침되었습니다.', 'success');
     } catch (error) {
-        console.error('[관리자 대시보드] 새로고침 실패:', error);
+        logger.error('[관리자 대시보드] 새로고침 실패:', error);
         hideLoading();
         showToast('새로고침 중 오류가 발생했습니다.', 'error');
     }

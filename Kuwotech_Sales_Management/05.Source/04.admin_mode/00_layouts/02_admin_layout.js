@@ -43,6 +43,9 @@ import {
     setupMenuEvents
 } from '../../01.common/18_layout_common.js';
 
+// Logger 임포트
+import logger from '../../01.common/23_logger.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -118,13 +121,13 @@ async function initAdminMode() {
                         sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
                     }
                 } catch (e) {
-                    console.error('[관리자모드] loginData 파싱 실패:', e);
+                    logger.error('[관리자모드] loginData 파싱 실패:', e);
                 }
             }
         }
         
         if (!userJson) {
-            console.error('[관리자모드] 사용자 정보 없음 - 로그인 페이지로 이동');
+            logger.error('[관리자모드] 사용자 정보 없음 - 로그인 페이지로 이동');
             window.location.href = '../../02.login/01_login.html';
             return;
         }
@@ -139,18 +142,18 @@ async function initAdminMode() {
                     user.name = savedName;
                 } else {
                     user.name = '사용자';  // 기본값
-                    console.warn('[관리자모드] 사용자 이름 없음 - 기본값 사용');
+                    logger.warn('[관리자모드] 사용자 이름 없음 - 기본값 사용');
                 }
             }
         } catch (error) {
-            console.error('[관리자모드] 사용자 정보 파싱 실패:', error);
+            logger.error('[관리자모드] 사용자 정보 파싱 실패:', error);
             window.location.href = '../../02.login/01_login.html';
             return;
         }
         
         // 역할 확인 ("관리자" 한글로 체크)
         if (user.role !== '관리자') {
-            console.error('[관리자모드] 권한 없음 - role:', user.role);
+            logger.error('[관리자모드] 권한 없음 - role:', user.role);
             showToast('관리자 권한이 필요합니다.', 'error');
             setTimeout(() => {
                 window.location.href = '../../02.login/01_login.html';
@@ -167,7 +170,7 @@ async function initAdminMode() {
             // 이름만 span으로 감싸서 스타일 적용
             userGreeting.innerHTML = `관리자 <span class="user-name-highlight">${userName}</span>님 수고하십니다.`;
         } else {
-            console.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
+            logger.error('[UI] user-greeting 요소를 찾을 수 없습니다!');
         }
         
         // 3. 공통 모듈 초기화 (관리자 테마)
@@ -234,7 +237,7 @@ async function initAdminMode() {
         showToast(`안녕하세요, ${user.name}님! 관리자 모드입니다.`, 'success');
         
     } catch (error) {
-        console.error('[관리자모드] 초기화 실패:', error);
+        logger.error('[관리자모드] 초기화 실패:', error);
         showToast('시스템 초기화 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -252,7 +255,7 @@ function setupMobileMenuToggle() {
     const overlay = document.getElementById('sidebar-overlay');
 
     if (!mobileMenuBtn || !sidebar || !overlay) {
-        console.warn('[모바일 메뉴] 햄버거 메뉴 요소를 찾을 수 없습니다.');
+        logger.warn('[모바일 메뉴] 햄버거 메뉴 요소를 찾을 수 없습니다.');
         return;
     }
 
@@ -308,7 +311,7 @@ function showExcelUploadMenu() {
 
     const excelMenu = document.getElementById('excel-upload-menu');
     if (!excelMenu) {
-        console.error('[메뉴 표시] excel-upload-menu 요소를 찾을 수 없습니다.');
+        logger.error('[메뉴 표시] excel-upload-menu 요소를 찾을 수 없습니다.');
         return;
     }
 
@@ -364,7 +367,7 @@ function setupSystemMonitoring() {
         setInterval(() => {
             const memUsage = window.performance.memory.usedJSHeapSize / 1048576;
             if (memUsage > 100) {
-                console.warn(`[시스템] 메모리 사용량 높음: ${memUsage.toFixed(2)} MB`);
+                logger.warn(`[시스템] 메모리 사용량 높음: ${memUsage.toFixed(2)} MB`);
             }
         }, 30000); // 30초마다 체크
     }
@@ -448,7 +451,7 @@ async function loadPage(page) {
         hideLoading();
         
     } catch (error) {
-        console.error(`[페이지 로드 실패] ${page}:`, error);
+        logger.error(`[페이지 로드 실패] ${page}:`, error);
         hideLoading();
         
         // 에러 페이지 표시
@@ -502,13 +505,13 @@ async function renderPage(container, html, mapping, page) {
                     resolve();
                 };
                 script.onerror = () => {
-                    console.warn(`[스크립트 로드 실패] ${scriptPath}`);
+                    logger.warn(`[스크립트 로드 실패] ${scriptPath}`);
                     resolve(); // 스크립트 없어도 계속 진행
                 };
                 document.body.appendChild(script);
             });
         } catch (error) {
-            console.warn(`[스크립트 로드 오류] ${scriptPath}:`, error);
+            logger.warn(`[스크립트 로드 오류] ${scriptPath}:`, error);
         }
     }
     
@@ -564,7 +567,7 @@ export async function navigateTo(page) {
         activateMenu(page);
         await loadPage(page);
     } else {
-        console.error(`[네비게이션 오류] 알 수 없는 페이지: ${page}`);
+        logger.error(`[네비게이션 오류] 알 수 없는 페이지: ${page}`);
     }
 }
 

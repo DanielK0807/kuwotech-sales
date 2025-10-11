@@ -24,7 +24,7 @@
 // [SECTION: 공통 모듈 임포트]
 // ============================================
 
-import { 
+import {
     showToast,
     showLoading,
     hideLoading,
@@ -34,6 +34,7 @@ import {
 
 import { ExcelDataLoader } from '../../06.database/10_excel_data_loader.js';
 import { getDB } from '../../06.database/01_database_manager.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -78,9 +79,9 @@ async function initExcelUpload() {
         setupEventListeners();
         
     } catch (error) {
-        console.error('========================================');
-        console.error('[엑셀 업로드] 초기화 실패:', error);
-        console.error('========================================');
+        logger.error('========================================');
+        logger.error('[엑셀 업로드] 초기화 실패:', error);
+        logger.error('========================================');
         showToast('페이지 초기화 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -125,8 +126,8 @@ async function loadCurrentStatus() {
         }
 
     } catch (error) {
-        console.error('[현재 상태] 로드 실패:', error);
-        console.error('[현재 상태] 에러 스택:', error.stack);
+        logger.error('[현재 상태] 로드 실패:', error);
+        logger.error('[현재 상태] 에러 스택:', error.stack);
         document.getElementById('current-count').textContent = '-';
         document.getElementById('last-upload').textContent = '-';
         document.getElementById('storage-status').innerHTML = `
@@ -157,7 +158,7 @@ function setupEventListeners() {
             fileInput.click();
         });
     } else {
-        console.error('[이벤트 설정] 파일 선택 버튼 또는 input을 찾을 수 없음!', {
+        logger.error('[이벤트 설정] 파일 선택 버튼 또는 input을 찾을 수 없음!', {
             selectFileBtn,
             fileInput
         });
@@ -273,7 +274,7 @@ async function handleFileSelect(file) {
         
     } catch (error) {
         hideLoading();
-        console.error('[파일 선택] 오류:', error);
+        logger.error('[파일 선택] 오류:', error);
         showToast('파일 선택 중 오류가 발생했습니다: ' + error.message, 'error');
     }
 }
@@ -329,7 +330,7 @@ async function previewExcelData(file) {
         displayPreview(jsonData, foundSheetName);
         
     } catch (error) {
-        console.error('[미리보기] 오류:', error);
+        logger.error('[미리보기] 오류:', error);
         throw error;
     }
 }
@@ -596,7 +597,7 @@ async function uploadToDatabase() {
         
     } catch (error) {
         hideLoading();
-        console.error('[데이터베이스 업로드] 오류:', error);
+        logger.error('[데이터베이스 업로드] 오류:', error);
         showToast('업로드 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -815,7 +816,7 @@ async function applyChanges(result) {
 
     } catch (error) {
         hideLoading();
-        console.error('[변경사항 적용] 오류:', error);
+        logger.error('[변경사항 적용] 오류:', error);
         showToast('변경사항 적용 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -926,7 +927,7 @@ async function loadUploadHistory() {
         `;
 
     } catch (error) {
-        console.error('[업로드 이력] 로드 실패:', error);
+        logger.error('[업로드 이력] 로드 실패:', error);
         document.getElementById('history-list').innerHTML = '<div class="no-data">이력을 불러올 수 없습니다.</div>';
     }
 }
