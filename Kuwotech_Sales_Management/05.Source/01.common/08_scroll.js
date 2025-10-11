@@ -7,6 +7,7 @@
 
 import { SCROLL_CONFIG, ANIMATION_CONFIG } from './01_global_config.js';
 import { throttle, debounce } from './02_utils.js';
+import logger from './23_logger.js';
 
 // ============================================
 // [SECTION: 스크롤 상태 관리]
@@ -111,7 +112,7 @@ export function smoothScrollTo(target, options = {}) {
         } else {
             targetElement = document.querySelector(target);
             if (!targetElement) {
-                console.warn(`[스크롤] 요소를 찾을 수 없음: ${target}`);
+                logger.warn(`[스크롤] 요소를 찾을 수 없음: ${target}`);
                 return;
             }
         }
@@ -314,7 +315,7 @@ export function setupInfiniteScroll(container, callback, options = {}) {
         : container;
     
     if (!element) {
-        console.warn('[스크롤] 무한 스크롤 컨테이너를 찾을 수 없음');
+        logger.warn('[스크롤] 무한 스크롤 컨테이너를 찾을 수 없음');
         return;
     }
     
@@ -349,7 +350,7 @@ export function setupInfiniteScroll(container, callback, options = {}) {
                     page++;
                 }
             } catch (error) {
-                console.error('[무한 스크롤 오류]:', error);
+                logger.error('[무한 스크롤 오류]:', error);
                 hasMore = false;
             } finally {
                 isLoading = false;
@@ -545,7 +546,7 @@ export function setupScrollSpy(navSelector, sectionSelector, options = {}) {
     const sections = document.querySelectorAll(sectionSelector);
     
     if (!navItems.length || !sections.length) {
-        console.warn('[스크롤 스파이] 요소를 찾을 수 없음');
+        logger.warn('[스크롤 스파이] 요소를 찾을 수 없음');
         return;
     }
     

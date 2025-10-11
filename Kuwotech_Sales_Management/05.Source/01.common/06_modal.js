@@ -7,6 +7,7 @@
 
 import { MODAL_CONFIG, ANIMATION_CONFIG } from './01_global_config.js';
 import { generateId } from './02_utils.js';
+import logger from './23_logger.js';
 
 // ============================================
 // [SECTION: 모달 상태 관리]
@@ -864,7 +865,7 @@ function showModal(options = {}) {
                                     resolve(false);
                                 }
                             }).catch(err => {
-                                console.error('Modal button onClick error:', err);
+                                logger.error('Modal button onClick error:', err);
                                 resolve(null);
                             });
                             return null; // 모달 유지

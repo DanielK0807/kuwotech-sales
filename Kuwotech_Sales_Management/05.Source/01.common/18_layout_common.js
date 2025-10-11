@@ -8,6 +8,8 @@
  * ============================================
  */
 
+import logger from './23_logger.js';
+
 // ============================================
 // [SECTION: 글래스모핀 모달 생성]
 // ============================================
@@ -214,11 +216,11 @@ export function setupGlobalEvents(loadPageFn, isInitializedRef, options = {}) {
 
     // 에러 처리
     window.addEventListener('error', (e) => {
-        console.error('[전역 에러]:', e.error);
+        logger.error('[전역 에러]:', e.error);
 
         // 관리자에게 상세 에러 표시
         if (isAdmin && user && user.role === '관리자') {
-            console.error('[에러 상세]', {
+            logger.error('[에러 상세]', {
                 message: e.error?.message,
                 stack: e.error?.stack,
                 file: e.filename,
@@ -235,7 +237,7 @@ export function setupGlobalEvents(loadPageFn, isInitializedRef, options = {}) {
     });
 
     window.addEventListener('unhandledrejection', (e) => {
-        console.error('[Promise 거부]:', e.reason);
+        logger.error('[Promise 거부]:', e.reason);
         if (!e.reason?.message?.includes('Failed to fetch')) {
             if (typeof showToast === 'function') {
                 showToast('비동기 처리 중 오류가 발생했습니다.', 'error');
@@ -279,7 +281,7 @@ export function setupLogoutButton(handleLogoutFn, showToastFn, user) {
         });
 
     } else {
-        console.error('[로그아웃 버튼] 버튼 요소를 찾을 수 없습니다!');
+        logger.error('[로그아웃 버튼] 버튼 요소를 찾을 수 없습니다!');
     }
 }
 

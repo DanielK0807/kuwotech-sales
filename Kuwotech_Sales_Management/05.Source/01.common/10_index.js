@@ -8,6 +8,8 @@
 // [섹션: 기존 모듈 임포트]
 // ============================================
 
+import logger from './23_logger.js';
+
 // 전역 설정
 import { GlobalConfig, KUWOTECH_CONFIG, initGlobalConfig } from './01_global_config.js';
 
@@ -138,9 +140,9 @@ export async function initCommonModules(options = {}) {
         }));
         
         return true;
-        
+
     } catch (error) {
-        console.error('[공통모듈] 초기화 실패:', error);
+        logger.error('[공통모듈] 초기화 실패:', error);
         return false;
     }
 }

@@ -5,6 +5,8 @@
 // 설명: 모든 공통 모듈을 한 곳에서 import할 수 있는 인덱스 파일
 // ============================================
 
+import logger from './23_logger.js';
+
 // 전역 설정
 export * from './01_global_config.js';
 export { default as GlobalConfig } from './01_global_config.js';
@@ -152,14 +154,14 @@ export async function initializeCommonModules(options = {}) {
             
             if (isConnected) {
             } else {
-                console.warn('⚠️ API 매니저 초기화 완료 (서버 연결 실패 - 재연결 시도 중)');
+                logger.warn('⚠️ API 매니저 초기화 완료 (서버 연결 실패 - 재연결 시도 중)');
             }
         }
-        
+
         return true;
-        
+
     } catch (error) {
-        console.error('❌ 공통 모듈 초기화 실패:', error);
+        logger.error('❌ 공통 모듈 초기화 실패:', error);
         return false;
     }
 }

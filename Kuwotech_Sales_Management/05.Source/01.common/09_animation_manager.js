@@ -5,6 +5,8 @@
    설명: 통합 애니메이션 관리 시스템
 ============================================ */
 
+import logger from './23_logger.js';
+
 /**
  * 애니메이션 매니저
  * 모든 애니메이션을 중앙에서 관리
@@ -204,7 +206,7 @@ class AnimationManager {
     animate(element, animationName, options = {}) {
         return new Promise((resolve) => {
             if (!element || !this.animations[animationName]) {
-                console.warn(`Animation "${animationName}" not found`);
+                logger.warn(`Animation "${animationName}" not found`);
                 resolve();
                 return;
             }

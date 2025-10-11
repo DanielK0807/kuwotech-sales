@@ -5,6 +5,8 @@
    설명: 모든 UI 컴포넌트의 기본 클래스
 ============================================ */
 
+import logger from './23_logger.js';
+
 /**
  * 베이스 컴포넌트 클래스
  * 모든 컴포넌트가 상속받는 기본 클래스
@@ -226,9 +228,9 @@ class BaseComponent {
         const targetElement = typeof target === 'string' 
             ? document.querySelector(target) 
             : target;
-        
+
         if (!targetElement) {
-            console.error('Mount target not found');
+            logger.error('Mount target not found');
             return;
         }
         

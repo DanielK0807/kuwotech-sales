@@ -7,6 +7,7 @@
  */
 
 import { GlobalConfig, showToast, showModal } from './10_index.js';
+import logger from './23_logger.js';
 
 /**
  * 이메일 형식 검증 (간단한 boolean 체크)
@@ -146,7 +147,7 @@ export async function checkCompanyNameDuplicate(companyName, excludeKey = null) 
         return await response.json();
 
     } catch (error) {
-        console.error('[거래처명 중복 체크 오류]', error);
+        logger.error('[거래처명 중복 체크 오류]', error);
         showToast('거래처명 중복 체크 중 오류가 발생했습니다.', 'error');
         return { success: false, isDuplicate: false, companies: [] };
     }
@@ -181,7 +182,7 @@ export async function checkBusinessNumberDuplicate(businessNumber, excludeKey = 
         return await response.json();
 
     } catch (error) {
-        console.error('[사업자등록번호 중복 체크 오류]', error);
+        logger.error('[사업자등록번호 중복 체크 오류]', error);
         showToast('사업자등록번호 중복 체크 중 오류가 발생했습니다.', 'error');
         return { success: false, isDuplicate: false, companies: [] };
     }

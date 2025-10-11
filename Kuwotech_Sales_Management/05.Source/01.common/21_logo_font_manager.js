@@ -7,6 +7,8 @@
  * ============================================
  */
 
+import logger from './23_logger.js';
+
 // ============================================
 // [SECTION: 상수 정의]
 // ============================================
@@ -124,7 +126,7 @@ class LogoManager {
             document.querySelector(container) : container;
 
         if (!element) {
-            console.error(`❌ 로고 컨테이너를 찾을 수 없습니다: ${container}`);
+            logger.error(`❌ 로고 컨테이너를 찾을 수 없습니다: ${container}`);
             return null;
         }
 
@@ -223,12 +225,12 @@ class FontManager {
                 return true;
             } else {
                 // Font Loading API를 지원하지 않는 브라우저
-                console.warn('⚠️ Font Loading API 미지원 - CSS로 폰트 로드 대체');
+                logger.warn('⚠️ Font Loading API 미지원 - CSS로 폰트 로드 대체');
                 await this._loadFontsViaCSS();
                 return true;
             }
         } catch (error) {
-            console.error('❌ 폰트 로드 실패:', error);
+            logger.error('❌ 폰트 로드 실패:', error);
             this.loaded = false;
             return false;
         }
@@ -279,7 +281,7 @@ class FontManager {
             document.querySelector(element) : element;
 
         if (!el) {
-            console.error('❌ 요소를 찾을 수 없습니다:', element);
+            logger.error('❌ 요소를 찾을 수 없습니다:', element);
             return;
         }
 
@@ -359,7 +361,7 @@ export async function initLogoAndFont(options = {}) {
         return true;
 
     } catch (error) {
-        console.error('❌ 로고 및 폰트 시스템 초기화 실패:', error);
+        logger.error('❌ 로고 및 폰트 시스템 초기화 실패:', error);
         return false;
     }
 }

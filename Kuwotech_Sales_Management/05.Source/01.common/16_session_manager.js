@@ -5,6 +5,7 @@
  */
 
 import StorageManager from './15_storage_manager.js';
+import logger from './23_logger.js';
 
 class SessionManager {
     constructor() {
@@ -106,7 +107,7 @@ class SessionManager {
         if (window.Toast) {
             window.Toast.show(message, 'warning');
         } else {
-            console.warn(message);
+            logger.warn(message);
         }
     }
     
@@ -234,7 +235,7 @@ class SessionManager {
             
             return false;
         } catch (error) {
-            console.error('세션 복원 실패:', error);
+            logger.error('세션 복원 실패:', error);
             return false;
         }
     }
@@ -254,7 +255,7 @@ class SessionManager {
             this.updateActivity();
             return true;
         } catch (error) {
-            console.error('세션 갱신 실패:', error);
+            logger.error('세션 갱신 실패:', error);
             return false;
         }
     }
@@ -277,9 +278,14 @@ class SessionManager {
         const token = this.getToken();
         const isValid = this.isTokenValid();
         const timeSinceActivity = Date.now() - this.lastActivity;
-        
-        console.group('Session Debug Info');
-        console.groupEnd();
+
+        logger.debug('Session Debug Info', {
+            user,
+            hasToken: !!token,
+            isValid,
+            timeSinceActivity,
+            lastActivity: new Date(this.lastActivity).toLocaleString()
+        });
     }
 }
 

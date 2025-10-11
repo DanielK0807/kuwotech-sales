@@ -5,6 +5,8 @@
    설명: UI 사양서 기반 동적 레이아웃 관리
 ============================================ */
 
+import logger from './23_logger.js';
+
 /**
  * 브레이크포인트 매니저
  * UI 사양서 기반 반응형 디자인 시스템
@@ -533,7 +535,7 @@ class BreakpointManager {
             try {
                 callback(data);
             } catch (error) {
-                console.error('[BreakpointManager] 리스너 에러:', error);
+                logger.error('[BreakpointManager] 리스너 에러:', error);
             }
         });
     }

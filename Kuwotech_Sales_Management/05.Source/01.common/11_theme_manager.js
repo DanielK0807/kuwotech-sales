@@ -3,6 +3,8 @@
  * 로그인, 영업담당, 관리자 테마 색상 관리
  */
 
+import logger from './23_logger.js';
+
 class ThemeManager {
     constructor() {
         this.themes = {
@@ -246,7 +248,7 @@ class ThemeManager {
     applyTheme(themeName) {
         const theme = this.themes[themeName];
         if (!theme) {
-            console.error(`테마를 찾을 수 없습니다: ${themeName}`);
+            logger.error(`테마를 찾을 수 없습니다: ${themeName}`);
             return false;
         }
 

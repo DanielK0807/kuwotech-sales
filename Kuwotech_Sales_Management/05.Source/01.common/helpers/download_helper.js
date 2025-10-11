@@ -22,6 +22,7 @@
 // [SECTION: Import]
 // ============================================
 
+import logger from '../23_logger.js';
 import { showToast } from '../14_toast.js';
 import Modal from '../06_modal.js';
 import { DownloadProgress } from '../../06.database/13_download_progress.js';
@@ -55,16 +56,16 @@ class DownloadLogger {
         if (this.logs.length > this.maxLogs) {
             this.logs.shift();
         }
-        
-        // 콘솔 출력
-        const consoleMethod = {
-            'info': 'log',
+
+        // 로거 출력
+        const logMethod = {
+            'info': 'info',
             'warn': 'warn',
             'error': 'error',
-            'success': 'log'
-        }[level] || 'log';
-        
-        console[consoleMethod](`[다운로드 ${level.toUpperCase()}] ${message}`, data);
+            'success': 'info'
+        }[level] || 'info';
+
+        logger[logMethod](`[다운로드 ${level.toUpperCase()}] ${message}`, data);
         
         // localStorage에 저장 (선택적)
         this.saveToLocalStorage();
@@ -78,7 +79,7 @@ class DownloadLogger {
             const recentLogs = this.logs.slice(-50); // 최근 50개만 저장
             localStorage.setItem('downloadLogs', JSON.stringify(recentLogs));
         } catch (error) {
-            console.warn('로그 저장 실패:', error);
+            logger.warn('로그 저장 실패:', error);
         }
     }
     

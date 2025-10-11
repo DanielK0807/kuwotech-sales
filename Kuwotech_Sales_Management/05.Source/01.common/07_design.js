@@ -3,6 +3,8 @@
  * 반투명 + blur 효과를 활용한 모던 UI 디자인
  */
 
+import logger from './23_logger.js';
+
 class GlassmorphismManager {
     constructor() {
         this.styles = {
@@ -425,10 +427,10 @@ class GlassmorphismManager {
      */
     applyGlassmorphism(element, type = 'basic') {
         if (!element) return;
-        
+
         const style = this.styles[type];
         if (!style) {
-            console.warn(`Unknown glassmorphism type: ${type}`);
+            logger.warn(`Unknown glassmorphism type: ${type}`);
             return;
         }
 
@@ -440,10 +442,10 @@ class GlassmorphismManager {
      */
     addAnimation(element, animationType) {
         if (!element) return;
-        
+
         const animation = this.animations[animationType];
         if (!animation) {
-            console.warn(`Unknown animation type: ${animationType}`);
+            logger.warn(`Unknown animation type: ${animationType}`);
             return;
         }
 

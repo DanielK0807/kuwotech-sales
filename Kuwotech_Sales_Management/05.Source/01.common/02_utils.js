@@ -6,6 +6,7 @@
 // ============================================
 
 import { formatNumber } from './03_format.js';
+import logger from './23_logger.js';
 
 /**
  * 고유 ID 생성
@@ -192,7 +193,7 @@ export function setStorage(key, value) {
         const serializedValue = JSON.stringify(value);
         localStorage.setItem(key, serializedValue);
     } catch (error) {
-        console.error('Storage save error:', error);
+        logger.error('Storage save error:', error);
     }
 }
 
@@ -207,7 +208,7 @@ export function getStorage(key, defaultValue = null) {
         const item = localStorage.getItem(key);
         return item ? JSON.parse(item) : defaultValue;
     } catch (error) {
-        console.error('Storage load error:', error);
+        logger.error('Storage load error:', error);
         return defaultValue;
     }
 }
@@ -220,7 +221,7 @@ export function removeStorage(key) {
     try {
         localStorage.removeItem(key);
     } catch (error) {
-        console.error('Storage remove error:', error);
+        logger.error('Storage remove error:', error);
     }
 }
 
@@ -246,7 +247,7 @@ export function parseJSON(jsonString, defaultValue = null) {
         }
         return jsonString;
     } catch (e) {
-        console.warn('[parseJSON] JSON 파싱 실패:', e);
+        logger.warn('[parseJSON] JSON 파싱 실패:', e);
         return defaultValue;
     }
 }
@@ -311,7 +312,7 @@ export function setQuickPeriod(period, startInputId = 'start-date', endInputId =
     const endInput = document.getElementById(endInputId);
 
     if (!startInput || !endInput) {
-        console.warn(`[setQuickPeriod] Input 요소를 찾을 수 없음: ${startInputId}, ${endInputId}`);
+        logger.warn(`[setQuickPeriod] Input 요소를 찾을 수 없음: ${startInputId}, ${endInputId}`);
         return;
     }
 
@@ -345,7 +346,7 @@ export function setQuickPeriod(period, startInputId = 'start-date', endInputId =
             break;
 
         default:
-            console.warn(`[setQuickPeriod] 알 수 없는 기간: ${period}`);
+            logger.warn(`[setQuickPeriod] 알 수 없는 기간: ${period}`);
             return;
     }
 
@@ -473,7 +474,7 @@ export async function copyToClipboard(text) {
         await navigator.clipboard.writeText(text);
         return true;
     } catch (error) {
-        console.error('Clipboard copy error:', error);
+        logger.error('Clipboard copy error:', error);
         return false;
     }
 }
@@ -500,7 +501,7 @@ export function handleApiError(error, context = '', showToast = true) {
     const errorMessage = error?.message || error?.error || '알 수 없는 오류가 발생했습니다';
     const fullMessage = context ? `${context} 중 오류: ${errorMessage}` : errorMessage;
 
-    console.error(`[API Error]${context ? ` ${context}:` : ''}`, error);
+    logger.error(`[API Error]${context ? ` ${context}:` : ''}`, error);
 
     if (showToast && window.Toast) {
         window.Toast.error(fullMessage);
@@ -525,7 +526,7 @@ export function getCurrentUser() {
         const user = JSON.parse(userJson);
         return user;
     } catch (error) {
-        console.error('사용자 정보 파싱 오류:', error);
+        logger.error('사용자 정보 파싱 오류:', error);
         return null;
     }
 }

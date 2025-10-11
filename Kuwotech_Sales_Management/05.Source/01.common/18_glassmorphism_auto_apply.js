@@ -4,11 +4,13 @@
  * ============================================
  * 파일: 01.common/18_glassmorphism_auto_apply.js
  * 작성일: 2025-09-30
- * 
+ *
  * 목적: 대시보드 및 모든 페이지에 Enhanced 3D 글래스모피즘 자동 적용
  * 참조: 14_최신_색상_규칙_및_글래스모피즘_가이드.md
  * ============================================
  */
+
+import logger from './23_logger.js';
 
 class GlassmorphismAutoApply {
     constructor() {
@@ -355,8 +357,11 @@ class GlassmorphismAutoApply {
      * 디버그 모드
      */
     debug() {
-        console.group('🔍 Glassmorphism Debug Info');
-        console.groupEnd();
+        logger.debug('🔍 Glassmorphism Debug Info', {
+            initialized: this.initialized,
+            currentMode: this.currentMode,
+            pageType: document.body.dataset.pageType || document.body.dataset.page
+        });
     }
 }
 

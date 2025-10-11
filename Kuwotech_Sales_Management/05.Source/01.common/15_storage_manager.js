@@ -4,6 +4,8 @@
  * 버전: 1.0.0
  */
 
+import logger from './23_logger.js';
+
 class StorageManager {
     constructor(prefix = '') {
         this.prefix = prefix;
@@ -40,7 +42,7 @@ class StorageManager {
             this.storage.setItem(this.getKey(key), data);
             return true;
         } catch (error) {
-            console.error('[StorageManager] 저장 실패:', error);
+            logger.error('[StorageManager] 저장 실패:', error);
             return false;
         }
     }
@@ -61,7 +63,7 @@ class StorageManager {
                 return data;
             }
         } catch (error) {
-            console.error('[StorageManager] 조회 실패:', error);
+            logger.error('[StorageManager] 조회 실패:', error);
             return null;
         }
     }
@@ -74,7 +76,7 @@ class StorageManager {
             this.storage.removeItem(this.getKey(key));
             return true;
         } catch (error) {
-            console.error('[StorageManager] 제거 실패:', error);
+            logger.error('[StorageManager] 제거 실패:', error);
             return false;
         }
     }
@@ -96,7 +98,7 @@ class StorageManager {
             }
             return true;
         } catch (error) {
-            console.error('[StorageManager] 클리어 실패:', error);
+            logger.error('[StorageManager] 클리어 실패:', error);
             return false;
         }
     }

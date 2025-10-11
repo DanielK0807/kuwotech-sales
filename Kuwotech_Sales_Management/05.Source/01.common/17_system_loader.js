@@ -5,6 +5,8 @@
    설명: 새로운 컴포넌트 시스템 통합 로드
 ============================================ */
 
+import logger from './23_logger.js';
+
 /**
  * 시스템 통합 로더
  * 모든 매니저와 컴포넌트를 순차적으로 로드
@@ -53,9 +55,9 @@ class SystemLoader {
             }));
             
             return true;
-            
+
         } catch (error) {
-            console.error('[시스템 로더] 초기화 실패:', error);
+            logger.error('[시스템 로더] 초기화 실패:', error);
             throw error;
         }
     }

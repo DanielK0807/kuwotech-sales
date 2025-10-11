@@ -5,6 +5,8 @@
    설명: 새로운 매니저 시스템 통합 로더
 ============================================ */
 
+import logger from './23_logger.js';
+
 /**
  * 매니저 시스템 통합 로더
  * 테마, 브레이크포인트, 애니메이션 매니저 통합 초기화
@@ -21,7 +23,7 @@ class ManagerLoader {
      */
     async init(options = {}) {
         if (this.initialized) {
-            console.warn('Manager systems already initialized');
+            logger.warn('Manager systems already initialized');
             return;
         }
         
@@ -72,9 +74,9 @@ class ManagerLoader {
             
             
             return this.managers;
-            
+
         } catch (error) {
-            console.error('[매니저 시스템] 초기화 실패:', error);
+            logger.error('[매니저 시스템] 초기화 실패:', error);
             throw error;
         }
     }
