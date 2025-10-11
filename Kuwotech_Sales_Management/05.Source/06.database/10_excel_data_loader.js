@@ -15,6 +15,7 @@ import { getDB } from './01_database_manager.js';
 import { logChange } from './06_change_history.js';
 import { createBackup } from './07_backup.js';
 import { showToast, showLoading, hideLoading } from '../01.common/20_common_index.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [SECTION: 엑셀 컬럼 매핑]
@@ -132,7 +133,7 @@ export class ExcelDataLoader {
             
         } catch (error) {
             hideLoading();
-            console.error('[ExcelDataLoader] 파일 로드 실패:', error);
+            logger.error('[ExcelDataLoader] 파일 로드 실패:', error);
             throw error;
         }
     }
@@ -231,7 +232,7 @@ export class ExcelDataLoader {
         }
         
         if (!worksheet) {
-            console.warn('[ExcelDataLoader] 직원 데이터 시트를 찾을 수 없습니다.');
+            logger.warn('[ExcelDataLoader] 직원 데이터 시트를 찾을 수 없습니다.');
             return;
         }
         
@@ -417,14 +418,14 @@ export class ExcelDataLoader {
 
                 } catch (error) {
                     errorCount++;
-                    console.error(`[거래처 저장 오류] ${company.keyValue}:`, error);
+                    logger.error(`[거래처 저장 오류] ${company.keyValue}:`, error);
                     this.errors.push(`거래처 ${company.finalCompanyName} 저장 실패: ${error.message}`);
                 }
             }
 
 
         } catch (error) {
-            console.error('[ExcelDataLoader] DB 저장 실패:', error);
+            logger.error('[ExcelDataLoader] DB 저장 실패:', error);
             throw error;
         }
     }
@@ -479,7 +480,7 @@ export class ExcelDataLoader {
 
                 } catch (error) {
                     errorCount++;
-                    console.error(`[직원 저장 오류] ${employee.name}:`, error);
+                    logger.error(`[직원 저장 오류] ${employee.name}:`, error);
                     this.warnings.push(`직원 ${employee.name} 저장 실패: ${error.message}`);
                 }
             }
@@ -489,7 +490,7 @@ export class ExcelDataLoader {
             sessionStorage.setItem('employees_data', JSON.stringify(this.loadedData.employees));
 
         } catch (error) {
-            console.error('[ExcelDataLoader] 직원 DB 저장 실패:', error);
+            logger.error('[ExcelDataLoader] 직원 DB 저장 실패:', error);
             throw error;
         }
     }

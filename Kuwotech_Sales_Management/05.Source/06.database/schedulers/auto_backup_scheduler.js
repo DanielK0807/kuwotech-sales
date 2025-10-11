@@ -12,6 +12,7 @@
 import { createBackup, exportBackupToExcel, cleanOldBackups } from '../07_backup.js';
 import { showToast } from '../../01.common/14_toast.js';
 import GlobalConfig from '../../01.common/01_global_config.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 자동 백업 스케줄러 클래스]
@@ -182,7 +183,7 @@ export class AutoBackupScheduler {
             }
             
         } catch (error) {
-            console.error(`[자동 백업] ${type} 백업 실패:`, error);
+            logger.error(`[자동 백업] ${type} 백업 실패:`, error);
             
             // 에러 알림
             if (GlobalConfig.AUTO_BACKUP.SHOW_NOTIFICATION) {
@@ -260,7 +261,7 @@ export class AutoBackupScheduler {
             
             
         } catch (error) {
-            console.error(`[자동 백업] ${type} 백업 정리 실패:`, error);
+            logger.error(`[자동 백업] ${type} 백업 정리 실패:`, error);
         }
     }
     
@@ -303,7 +304,7 @@ export class AutoBackupScheduler {
             localStorage.setItem('autoBackupSettings', JSON.stringify(settings));
             
         } catch (error) {
-            console.error('[자동 백업] 설정 저장 실패:', error);
+            logger.error('[자동 백업] 설정 저장 실패:', error);
         }
     }
     
@@ -323,7 +324,7 @@ export class AutoBackupScheduler {
             }
             
         } catch (error) {
-            console.error('[자동 백업] 설정 로드 실패:', error);
+            logger.error('[자동 백업] 설정 로드 실패:', error);
         }
     }
     
@@ -388,7 +389,7 @@ export class AutoBackupScheduler {
             return backup;
             
         } catch (error) {
-            console.error('[자동 백업] 수동 백업 실패:', error);
+            logger.error('[자동 백업] 수동 백업 실패:', error);
             showToast('백업 중 오류가 발생했습니다', 'error');
             throw error;
         }
@@ -449,7 +450,7 @@ export async function initAutoBackup() {
         return scheduler;
         
     } catch (error) {
-        console.error('[자동 백업] 초기화 실패:', error);
+        logger.error('[자동 백업] 초기화 실패:', error);
         throw error;
     }
 }

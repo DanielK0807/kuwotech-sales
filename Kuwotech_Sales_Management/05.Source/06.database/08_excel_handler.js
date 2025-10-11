@@ -14,6 +14,7 @@ import { showToast } from '../01.common/06_toast.js';
 import { showModal } from '../01.common/05_modal.js';
 import { formatCurrency, formatNumber } from '../01.common/03_format.js';
 import GlobalConfig from '../01.common/00_global_config.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 엑셀 업로드 UI]
@@ -204,7 +205,7 @@ async function processExcelUpload(file, modal) {
             }
             
             if (validation.warnings.length > 0) {
-                console.warn('경고 사항:', validation.warnings);
+                logger.warn('경고 사항:', validation.warnings);
             }
         }
         
@@ -228,7 +229,7 @@ async function processExcelUpload(file, modal) {
         }
         
     } catch (error) {
-        console.error('엑셀 업로드 실패:', error);
+        logger.error('엑셀 업로드 실패:', error);
         showToast('업로드 실패: ' + error.message, 'error');
     }
 }
@@ -333,7 +334,7 @@ function setupDownloadEventHandlers(modal) {
             modal.close();
             
         } catch (error) {
-            console.error('다운로드 실패:', error);
+            logger.error('다운로드 실패:', error);
             showToast('다운로드 실패: ' + error.message, 'error');
         }
     };

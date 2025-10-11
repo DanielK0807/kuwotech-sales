@@ -12,6 +12,7 @@
 // ============================================
 
 import { getDB } from './01_database_manager.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 변경 이력 기록]
@@ -195,7 +196,7 @@ export async function getChangeHistory(filter = {}) {
     return [];
 
   } catch (error) {
-    console.error('[변경 이력 조회 실패]', error);
+    logger.error('[변경 이력 조회 실패]', error);
     return [];
   }
 }
@@ -227,7 +228,7 @@ function formatHistoryRecord(record) {
       formatted.metadataParsed = JSON.parse(record.metadata);
     }
   } catch (error) {
-    console.warn('[JSON 파싱 실패]', error);
+    logger.warn('[JSON 파싱 실패]', error);
   }
   
   // 작업 라벨
@@ -285,7 +286,7 @@ export async function getChangeStatistics(filter = {}) {
     };
 
   } catch (error) {
-    console.error('[변경 통계 실패]', error);
+    logger.error('[변경 통계 실패]', error);
     return {
       totalChanges: 0,
       byOperation: {},
@@ -338,7 +339,7 @@ async function logImportantAction(operation, tableName, recordId, user) {
   };
   
   // 콘솔 로깅
-  console.warn('[중요 작업]', logEntry);
+  logger.warn('[중요 작업]', logEntry);
   
   // 추가 알림 (필요시)
   if (operation === 'HARD_DELETE') {
@@ -375,7 +376,7 @@ function getCurrentUser() {
       return userData.user || userData;
     }
   } catch (error) {
-    console.warn('[사용자 정보 없음]', error);
+    logger.warn('[사용자 정보 없음]', error);
   }
   
   return {

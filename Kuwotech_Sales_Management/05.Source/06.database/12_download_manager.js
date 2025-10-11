@@ -35,6 +35,7 @@ import { showToast } from '../01.common/14_toast.js';
 import GlobalConfig from '../01.common/01_global_config.js';
 import { DownloadProgress } from './13_download_progress.js';
 import { getCompanyDisplayName } from '../01.common/02_utils.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션 2: 상수 정의]
@@ -299,7 +300,7 @@ class DownloadManager {
             return { success: true };
             
         } catch (error) {
-            console.error('[다운로드 실패]', error);
+            logger.error('[다운로드 실패]', error);
             
             if (this.progress) {
                 this.progress.hide();
@@ -461,7 +462,7 @@ class DownloadManager {
             // REST API를 통해 직원 목록 조회
             return await db.getAllEmployees();
         } catch (error) {
-            console.warn('[직원 조회 실패] 거래처에서 담당자 추출:', error);
+            logger.warn('[직원 조회 실패] 거래처에서 담당자 추출:', error);
 
             // 백업: 거래처에서 담당자 목록 추출
             const companies = await this.getAllCompanies();

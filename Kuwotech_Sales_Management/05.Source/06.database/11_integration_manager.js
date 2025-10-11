@@ -23,6 +23,7 @@ import {
     exportBackupToFile
 } from './07_backup.js';
 import { AutoBackupScheduler, initAutoBackup } from './schedulers/auto_backup_scheduler.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 통합 관리 클래스]
@@ -69,7 +70,7 @@ export class IntegrationManager {
             }));
             
         } catch (error) {
-            console.error('[통합관리] 초기화 실패:', error);
+            logger.error('[통합관리] 초기화 실패:', error);
             throw error;
         }
     }
@@ -222,7 +223,7 @@ export class IntegrationManager {
             }, 100);
             
         } catch (error) {
-            console.error('[통합관리] 엑셀 동기화 실패:', error);
+            logger.error('[통합관리] 엑셀 동기화 실패:', error);
         }
     }
     
@@ -402,11 +403,11 @@ export class IntegrationManager {
                 const reports = await db.getAllReports();
                 return reports.length;
             } else {
-                console.warn(`[통합관리] 알 수 없는 스토어: ${storeName}`);
+                logger.warn(`[통합관리] 알 수 없는 스토어: ${storeName}`);
                 return 0;
             }
         } catch (error) {
-            console.error(`[통합관리] ${storeName} 개수 조회 실패:`, error);
+            logger.error(`[통합관리] ${storeName} 개수 조회 실패:`, error);
             return 0;
         }
     }

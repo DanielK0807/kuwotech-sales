@@ -15,6 +15,7 @@ import { getDB } from './01_database_manager.js';
 import { formatDate, formatCurrency, formatNumber } from '../01.common/03_format.js';
 import { showToast, showModal, showLoading, hideLoading } from '../01.common/10_index.js';
 import GlobalConfig from '../01.common/00_global_config.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 보고서 템플릿]
@@ -247,7 +248,7 @@ async function saveReport(data, type) {
         }
 
     } catch (error) {
-        console.error('[보고서 저장 실패]:', error);
+        logger.error('[보고서 저장 실패]:', error);
         showToast('보고서 저장 실패: ' + error.message, 'error');
     } finally {
         hideLoading();
@@ -354,7 +355,7 @@ async function generatePDF(data, type) {
         showToast('PDF가 생성되었습니다', 'success');
         
     } catch (error) {
-        console.error('[PDF 생성 실패]:', error);
+        logger.error('[PDF 생성 실패]:', error);
         showToast('PDF 생성 실패', 'error');
     } finally {
         hideLoading();

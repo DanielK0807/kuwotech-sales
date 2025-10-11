@@ -15,6 +15,7 @@ import { createBackup } from './07_backup.js';
 import { logChange } from './06_change_history.js';
 import { getCompanyDisplayName } from '../01.common/02_utils.js';
 import { formatNumber, formatDate } from '../01.common/03_format.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 엑셀 컬럼 정의]
@@ -100,7 +101,7 @@ export async function parseExcelFile(file) {
         resolve(cleanedData);
         
       } catch (error) {
-        console.error('[엑셀 파싱 실패]', error);
+        logger.error('[엑셀 파싱 실패]', error);
         reject(error);
       }
     };
@@ -348,7 +349,7 @@ export async function syncExcelToDb(excelData, options = {}) {
         try {
           await db.deleteClient(company.keyValue);
         } catch (error) {
-          console.warn(`[삭제 실패] ${company.keyValue}:`, error.message);
+          logger.warn(`[삭제 실패] ${company.keyValue}:`, error.message);
         }
       }
     }
@@ -377,7 +378,7 @@ export async function syncExcelToDb(excelData, options = {}) {
           addedCount++;
         }
       } catch (error) {
-        console.warn(`[저장 실패] ${company.keyValue}:`, error.message);
+        logger.warn(`[저장 실패] ${company.keyValue}:`, error.message);
         skippedCount++;
       }
     }
@@ -407,7 +408,7 @@ export async function syncExcelToDb(excelData, options = {}) {
     return syncResult;
 
   } catch (error) {
-    console.error('[엑셀 → DB 동기화 실패]', error);
+    logger.error('[엑셀 → DB 동기화 실패]', error);
     throw error;
   }
 }
@@ -583,7 +584,7 @@ export async function syncDbToExcel(options = {}) {
     return result;
     
   } catch (error) {
-    console.error('[DB → 엑셀 실패]', error);
+    logger.error('[DB → 엑셀 실패]', error);
     throw error;
   }
 }
@@ -654,7 +655,7 @@ function getCurrentUser() {
       return userData.user || userData;
     }
   } catch (error) {
-    console.warn('[사용자 정보 없음]', error);
+    logger.warn('[사용자 정보 없음]', error);
   }
   
   return {

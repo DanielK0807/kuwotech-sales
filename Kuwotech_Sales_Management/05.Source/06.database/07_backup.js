@@ -12,6 +12,7 @@
 // ============================================
 
 import { getDB } from './01_database_manager.js';
+import logger from '../01.common/23_logger.js';
 
 // ============================================
 // [섹션: 백업 생성]
@@ -43,7 +44,7 @@ export async function createBackup(options = {}) {
     }
 
   } catch (error) {
-    console.error('[백업 생성 실패]', error);
+    logger.error('[백업 생성 실패]', error);
     return {
       success: false,
       message: error.message || '백업 생성 중 오류가 발생했습니다.'
@@ -77,7 +78,7 @@ export async function restoreBackup(backupData) {
     }
 
   } catch (error) {
-    console.error('[백업 복원 실패]', error);
+    logger.error('[백업 복원 실패]', error);
     return {
       success: false,
       message: error.message || '백업 복원 중 오류가 발생했습니다.'
