@@ -9,6 +9,7 @@
 // GlobalConfig에서 중앙 환경 감지 함수 import
 import { getApiBaseUrl } from '../01.common/01_global_config.js';
 import logger from '../01.common/23_logger.js';
+import errorHandler, { DatabaseError, NetworkError, AuthError } from '../01.common/24_error_handler.js';
 
 // ============================================
 // [SECTION: API 설정]
@@ -79,7 +80,17 @@ export class DatabaseManager {
                 throw new Error(response.message || response.error?.message || '로그인 실패');
             }
         } catch (error) {
-            logger.error('Login error:', error);
+            await errorHandler.handle(
+                new AuthError('로그인 요청 실패', error, {
+                    userMessage: '로그인 처리 중 오류가 발생했습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'login',
+                        username: name
+                    }
+                }),
+                { showToUser: false }
+            );
             throw error;
         }
     }
@@ -102,7 +113,18 @@ export class DatabaseManager {
                 skipRetry: true // 401 에러 재시도 방지
             });
         } catch (error) {
-            logger.error('Logout error:', error);
+            await errorHandler.handle(
+                new NetworkError('로그아웃 API 요청 실패', error, {
+                    userMessage: '서버 로그아웃 처리에 실패했습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'logout',
+                        userId: this.user?.id
+                    },
+                    severity: 'LOW'
+                }),
+                { showToUser: false }
+            );
             // 에러가 발생해도 로컬 세션은 정리
         } finally {
             this.token = null;
@@ -167,7 +189,17 @@ export class DatabaseManager {
 
             throw new Error('Token refresh failed');
         } catch (error) {
-            logger.error('Token refresh error:', error);
+            await errorHandler.handle(
+                new AuthError('토큰 갱신 실패', error, {
+                    userMessage: '인증이 만료되었습니다. 다시 로그인해주세요.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'refreshToken'
+                    },
+                    severity: 'HIGH'
+                }),
+                { showToUser: false }
+            );
             this.isRefreshing = false;
 
             // 로그아웃 중이 아닐 때만 로그아웃 호출
@@ -195,7 +227,17 @@ export class DatabaseManager {
             logger.warn('⚠️ 예상과 다른 응답 구조:', response);
             return [];
         } catch (error) {
-            logger.error('Error fetching employees by role:', error);
+            await errorHandler.handle(
+                new DatabaseError('역할별 직원 조회 실패', error, {
+                    userMessage: '직원 목록을 불러올 수 없습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'getEmployeesByRole',
+                        role
+                    }
+                }),
+                { showToUser: false }
+            );
             return [];
         }
     }
@@ -232,7 +274,17 @@ export class DatabaseManager {
             // 백엔드는 { success: true, employee: {...} } 형태로 반환
             return response;
         } catch (error) {
-            logger.error('Error fetching employee by name:', error);
+            await errorHandler.handle(
+                new DatabaseError('직원 정보 조회 실패', error, {
+                    userMessage: '직원 정보를 불러올 수 없습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'getEmployeeByName',
+                        name
+                    }
+                }),
+                { showToUser: false }
+            );
             throw error;
         }
     }
@@ -433,7 +485,17 @@ export class DatabaseManager {
      */
     async getMyKPI() {
         if (!this.user || !this.user.name) {
-            logger.error('❌ 로그인된 사용자 정보 없음');
+            await errorHandler.handle(
+                new AuthError('사용자 정보 없음', null, {
+                    userMessage: '로그인된 사용자 정보가 없습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'getMyKPI'
+                    },
+                    severity: 'MEDIUM'
+                }),
+                { showToUser: false }
+            );
             return null;
         }
 
@@ -603,7 +665,18 @@ export class DatabaseManager {
 
             return userData;
         } catch (error) {
-            logger.error('Error fetching user data:', error);
+            await errorHandler.handle(
+                new DatabaseError('사용자 데이터 조회 실패', error, {
+                    userMessage: '사용자 데이터를 불러올 수 없습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'getUserData',
+                        employeeId,
+                        role
+                    }
+                }),
+                { showToUser: false }
+            );
             return userData;
         }
     }
@@ -745,9 +818,31 @@ export class DatabaseManager {
 
         } catch (error) {
             if (error.name === 'AbortError') {
+                const timeoutError = new NetworkError('API 요청 시간 초과', error, {
+                    userMessage: '요청 시간이 초과되었습니다. 다시 시도해주세요.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'request',
+                        endpoint,
+                        timeout: API_CONFIG.TIMEOUT
+                    }
+                });
+                await errorHandler.handle(timeoutError, { showToUser: false });
                 throw new Error('요청 시간 초과');
             }
-            logger.error('API Request Error:', error);
+
+            await errorHandler.handle(
+                new NetworkError('API 요청 실패', error, {
+                    userMessage: 'API 요청 중 오류가 발생했습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'request',
+                        endpoint,
+                        method: options.method || 'GET'
+                    }
+                }),
+                { showToUser: false }
+            );
             throw error;
         }
     }
