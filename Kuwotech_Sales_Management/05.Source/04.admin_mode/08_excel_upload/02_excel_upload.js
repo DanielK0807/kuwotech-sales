@@ -33,7 +33,7 @@ import {
 } from '../../01.common/20_common_index.js';
 
 import { ExcelDataLoader } from '../../06.database/10_excel_data_loader.js';
-import { getDB } from '../../06.database/02_schema.js';
+import { getDB } from '../../06.database/01_database_manager.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -109,68 +109,55 @@ async function initExcelUpload() {
 
 async function loadCurrentStatus() {
     try {
+        console.log('[현재 상태] DatabaseManager 가져오기...');
         const db = await getDB();
-        
-        // 거래처 수 조회
-        const tx = db.transaction(['companies'], 'readonly');
-        const store = tx.objectStore('companies');
-        const countRequest = store.count();
-        
-        const count = await new Promise((resolve, reject) => {
-            countRequest.onsuccess = () => resolve(countRequest.result);
-            countRequest.onerror = () => reject(countRequest.error);
-        });
-        
+        console.log('[현재 상태] DatabaseManager:', db);
+        console.log('[현재 상태] baseURL:', db.baseURL);
+
+        // REST API를 사용하여 거래처 수 조회
+        console.log('[현재 상태] getAllClients() 호출...');
+        const companies = await db.getAllClients();
+        console.log('[현재 상태] 거래처 수:', companies.length);
+        console.log('[현재 상태] 첫 3개 거래처:', companies.slice(0, 3));
+
+        const count = companies.length;
+
         document.getElementById('current-count').textContent = `${formatNumber(count)}개사`;
-        
-        // 마지막 업로드 시간 (changeHistory에서)
-        try {
-            const historyTx = db.transaction(['changeHistory'], 'readonly');
-            const historyStore = historyTx.objectStore('changeHistory');
-            const historyIndex = historyStore.index('timestamp');
-            
-            // 가장 최근 기록 조회
-            const cursorRequest = historyIndex.openCursor(null, 'prev'); // 역순
-            
-            const lastHistory = await new Promise((resolve) => {
-                cursorRequest.onsuccess = (e) => {
-                    const cursor = e.target.result;
-                    if (cursor) {
-                        resolve(cursor.value);
-                    } else {
-                        resolve(null);
-                    }
-                };
-                cursorRequest.onerror = () => resolve(null);
-            });
-            
-            if (lastHistory) {
-                const lastDate = new Date(lastHistory.timestamp);
-                document.getElementById('last-upload').textContent = formatDate(lastDate);
-                document.getElementById('storage-status').innerHTML = `
-                    <span class="color-success">
-                        <i class="fas fa-check-circle"></i> 데이터 있음
-                    </span>
-                `;
-            } else {
-                document.getElementById('last-upload').textContent = '데이터 없음';
-                document.getElementById('storage-status').innerHTML = `
-                    <span class="color-warning">
-                        <i class="fas fa-exclamation-circle"></i> 데이터 없음
-                    </span>
-                `;
-            }
-        } catch (historyError) {
-            console.warn('[현재 상태] 이력 조회 실패:', historyError);
-            document.getElementById('last-upload').textContent = '-';
-            document.getElementById('storage-status').textContent = '확인 불가';
+
+        // 마지막 업로드 시간 표시 (REST API에서는 변경 이력이 없으므로 간단하게 처리)
+        if (count > 0) {
+            // 가장 최근에 업데이트된 거래처의 날짜 찾기
+            const sortedCompanies = companies
+                .filter(c => c.updatedAt)
+                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+            const lastUpdate = sortedCompanies.length > 0 ? sortedCompanies[0].updatedAt : null;
+
+            document.getElementById('last-upload').textContent = lastUpdate ? formatDate(new Date(lastUpdate)) : formatDate(new Date());
+            document.getElementById('storage-status').innerHTML = `
+                <span class="color-success">
+                    <i class="fas fa-check-circle"></i> 데이터 있음
+                </span>
+            `;
+        } else {
+            document.getElementById('last-upload').textContent = '데이터 없음';
+            document.getElementById('storage-status').innerHTML = `
+                <span class="color-warning">
+                    <i class="fas fa-exclamation-circle"></i> 데이터 없음
+                </span>
+            `;
         }
-        
+
     } catch (error) {
         console.error('[현재 상태] 로드 실패:', error);
+        console.error('[현재 상태] 에러 스택:', error.stack);
         document.getElementById('current-count').textContent = '-';
         document.getElementById('last-upload').textContent = '-';
-        document.getElementById('storage-status').textContent = '확인 불가';
+        document.getElementById('storage-status').innerHTML = `
+            <span class="color-danger">
+                <i class="fas fa-exclamation-circle"></i> 확인 불가: ${error.message}
+            </span>
+        `;
     }
 }
 
@@ -887,14 +874,7 @@ async function applyChanges(result) {
             previewDiv.style.display = 'none';
             previewDiv.innerHTML = '';
         }
-        
-        // 미리보기 제거
-        const previewDiv = document.getElementById('excel-preview');
-        if (previewDiv) {
-            previewDiv.style.display = 'none';
-            previewDiv.innerHTML = '';
-        }
-        
+
     } catch (error) {
         hideLoading();
         console.error('[변경사항 적용] 오류:', error);
@@ -994,56 +974,18 @@ function showValidationErrors(validation) {
 async function loadUploadHistory() {
     try {
         const historyList = document.getElementById('history-list');
-        
-        const db = await getDB();
-        const tx = db.transaction(['changeHistory'], 'readonly');
-        const store = tx.objectStore('changeHistory');
-        const index = store.index('timestamp');
-        
-        // 최근 10개 기록 가져오기 (역순)
-        const history = [];
-        const cursorRequest = index.openCursor(null, 'prev');
-        
-        await new Promise((resolve) => {
-            let count = 0;
-            cursorRequest.onsuccess = (e) => {
-                const cursor = e.target.result;
-                if (cursor && count < 10) {
-                    history.push(cursor.value);
-                    count++;
-                    cursor.continue();
-                } else {
-                    resolve();
-                }
-            };
-            cursorRequest.onerror = () => resolve();
-        });
-        
-        if (history && history.length > 0) {
-            let html = '';
 
-            history.forEach(record => {
-                const date = new Date(record.timestamp);
-                const operation = record.operation || 'UPDATE';
-                const tableName = record.tableName || 'companies';
+        // REST API에서는 변경 이력을 추적하지 않으므로 간단하게 처리
+        // 추후 서버에서 이력 API가 제공되면 해당 엔드포인트 사용 가능
 
-                html += `
-                    <div class="history-item bg-white-05 p-md border-radius-sm mb-sm">
-                        <div class="history-time text-sm mb-xs" style="color: rgba(255, 255, 255, 0.7);">
-                            <i class="fas fa-clock"></i> ${formatDate(date)}
-                        </div>
-                        <div class="history-details text-white">
-                            <strong>${operation}</strong> - ${tableName}
-                            ${record.recordId ? `(${record.recordId})` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-
-            historyList.innerHTML = html;
-        } else {
-            historyList.innerHTML = '<div class="no-data">업로드 이력이 없습니다.</div>';
-        }
+        historyList.innerHTML = `
+            <div class="no-data text-center p-lg">
+                <i class="fas fa-info-circle text-lg mb-sm" style="color: rgba(255, 255, 255, 0.5);"></i>
+                <div style="color: rgba(255, 255, 255, 0.7);">
+                    업로드 이력 기능은 준비 중입니다.
+                </div>
+            </div>
+        `;
 
     } catch (error) {
         console.error('[업로드 이력] 로드 실패:', error);

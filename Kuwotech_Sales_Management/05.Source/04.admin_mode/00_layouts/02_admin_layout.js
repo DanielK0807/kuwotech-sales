@@ -323,17 +323,18 @@ function setupMobileMenuToggle() {
  */
 function showExcelUploadMenu() {
     console.log('[메뉴 표시] 강정환 관리자 전용 엑셀 업로드 메뉴 표시');
-    
+
     const excelMenu = document.getElementById('excel-upload-menu');
     if (!excelMenu) {
         console.error('[메뉴 표시] excel-upload-menu 요소를 찾을 수 없습니다.');
         return;
     }
-    
-    // 메뉴 표시
+
+    // hidden 클래스 제거 및 메뉴 표시
+    excelMenu.classList.remove('hidden');
     excelMenu.style.display = 'flex';
-    
-    console.log('[메뉴 표시] 엑셀 업로드 메뉴 표시 완료');
+
+    console.log('[메뉴 표시] 엑셀 업로드 메뉴 표시 완료 - user.name:', user?.name);
 }
 
 // ============================================

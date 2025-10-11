@@ -386,15 +386,15 @@
 <!-- ✅ 인라인 스타일 (영업담당 테마용 + 아코디언) -->
 <style>
     /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
-    html {
-        height: 100% !important;
-        overflow: hidden !important;
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
     }
 
     body {
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        height: 100% !important;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     /* === 레이아웃 === */
@@ -411,7 +411,7 @@
         position: sticky !important;
         top: 0 !important;
         z-index: 1000 !important;
-        padding: var(--spacing-xl) 0 !important;
+        padding: var(--spacing-md) 0 !important;
         margin-bottom: var(--spacing-2xl) !important;
         background: rgba(15, 42, 29, 0.98) !important;
         backdrop-filter: blur(20px) saturate(180%) !important;

@@ -3,7 +3,7 @@
  * KUWOTECH 영업관리 시스템 - Excel Data Loader
  * Created by: Claude AI Assistant
  * Date: 2025-01-27
- * Description: 엑셀 파일을 읽어서 IndexedDB에 저장하는 통합 로더
+ * Description: 엑셀 파일을 읽어서 Railway MySQL에 저장하는 통합 로더 (REST API)
  * ============================================
  */
 
@@ -11,7 +11,7 @@
 // [SECTION: Import Modules]
 // ============================================
 
-import { getDB, withTransaction } from './02_schema.js';
+import { getDB } from './01_database_manager.js';
 import { logChange } from './06_change_history.js';
 import { createBackup } from './07_backup.js';
 import { showToast, showLoading, hideLoading } from '../01.common/20_common_index.js';
@@ -211,8 +211,8 @@ export class ExcelDataLoader {
         }
         
         console.log(`[ExcelDataLoader] ${this.loadedData.companies.length}개 거래처 데이터 파싱 완료`);
-        
-        // IndexedDB에 저장
+
+        // Railway MySQL에 저장 (REST API)
         if (this.loadedData.companies.length > 0) {
             await this.saveCompaniesToDB();
         }
@@ -266,8 +266,8 @@ export class ExcelDataLoader {
         }
         
         console.log(`[ExcelDataLoader] ${this.loadedData.employees.length}명 직원 데이터 파싱 완료`);
-        
-        // IndexedDB에 저장
+
+        // Railway MySQL에 저장 (REST API)
         if (this.loadedData.employees.length > 0) {
             await this.saveEmployeesToDB();
         }
@@ -373,61 +373,71 @@ export class ExcelDataLoader {
     }
     
     /**
-     * IndexedDB에 거래처 데이터 저장
+     * Railway MySQL에 거래처 데이터 저장 (REST API)
      */
     async saveCompaniesToDB() {
         try {
             const db = await getDB();
-            
-            await withTransaction(['companies', 'changeHistory'], 'readwrite', async (tx) => {
-                const companiesStore = tx.objectStore('companies');
-                const historyStore = tx.objectStore('changeHistory');
-                
-                // 기존 데이터 클리어 옵션 (필요시)
-                // await companiesStore.clear();
-                
-                let addedCount = 0;
-                let updatedCount = 0;
-                
-                for (const company of this.loadedData.companies) {
-                    try {
-                        // 기존 데이터 확인
-                        const existing = await this.getExisting(companiesStore, company.keyValue);
-                        
-                        if (existing) {
-                            // 업데이트
-                            await companiesStore.put({
-                                ...existing,
-                                ...company,
-                                updatedAt: new Date().toISOString()
-                            });
-                            updatedCount++;
-                        } else {
-                            // 새로 추가
-                            await companiesStore.add(company);
-                            addedCount++;
-                        }
-                        
-                        // 변경 이력 기록
-                        await historyStore.add({
-                            tableName: 'companies',
-                            operation: existing ? 'UPDATE' : 'CREATE',
-                            recordId: company.keyValue,
-                            beforeData: existing || null,
-                            afterData: company,
-                            timestamp: new Date().toISOString(),
-                            userId: sessionStorage.getItem('userId') || 'SYSTEM'
-                        });
-                        
-                    } catch (error) {
-                        console.error(`[거래처 저장 오류] ${company.keyValue}:`, error);
-                        this.errors.push(`거래처 ${company.finalCompanyName} 저장 실패`);
-                    }
-                }
-                
-                console.log(`[ExcelDataLoader] 거래처 DB 저장 완료 - 추가: ${addedCount}, 수정: ${updatedCount}`);
+
+            console.log('[ExcelDataLoader] 기존 거래처 데이터 조회 중...');
+            // 기존 데이터 조회
+            const existingCompanies = await db.getAllClients();
+
+            // keyValue로 빠른 검색을 위한 맵 생성
+            const existingMap = new Map();
+            existingCompanies.forEach(c => {
+                existingMap.set(c.keyValue, c);
             });
-            
+
+            let addedCount = 0;
+            let updatedCount = 0;
+            let errorCount = 0;
+
+            console.log(`[ExcelDataLoader] ${this.loadedData.companies.length}개 거래처 저장 시작...`);
+
+            for (const company of this.loadedData.companies) {
+                try {
+                    // 백엔드 API 스키마에 맞게 필드명 변환
+                    const companyData = {
+                        keyValue: company.keyValue,
+                        finalCompanyName: company.finalCompanyName,
+                        isClosed: company.isClosedBusiness ? 'Y' : 'N', // boolean → Y/N
+                        ceoOrDentist: company.ceoOrDentist || null,
+                        customerRegion: company.customerRegion || null,
+                        businessStatus: company.transactionStatus || '활성',
+                        department: company.department || null,
+                        internalManager: company.internalManager || null,
+                        jcwContribution: company.ceoContribution || null, // 정철웅기여
+                        companyContribution: company.companyContribution || null,
+                        accountsReceivable: company.accountsReceivable || 0,
+                        // 백엔드 API에서 지원하지 않는 필드들은 제외
+                        // salesProduct, lastPaymentDate, lastPaymentAmount 등은 추후 추가 필요
+                    };
+
+                    // 기존 데이터 확인
+                    const existing = existingMap.get(company.keyValue);
+
+                    if (existing) {
+                        // 업데이트
+                        await db.updateClient(company.keyValue, companyData);
+                        updatedCount++;
+                        console.log(`[ExcelDataLoader] 업데이트: ${company.finalCompanyName}`);
+                    } else {
+                        // 새로 추가
+                        await db.createClient(companyData);
+                        addedCount++;
+                        console.log(`[ExcelDataLoader] 추가: ${company.finalCompanyName}`);
+                    }
+
+                } catch (error) {
+                    errorCount++;
+                    console.error(`[거래처 저장 오류] ${company.keyValue}:`, error);
+                    this.errors.push(`거래처 ${company.finalCompanyName} 저장 실패: ${error.message}`);
+                }
+            }
+
+            console.log(`[ExcelDataLoader] 거래처 DB 저장 완료 - 추가: ${addedCount}, 수정: ${updatedCount}, 실패: ${errorCount}`);
+
         } catch (error) {
             console.error('[ExcelDataLoader] DB 저장 실패:', error);
             throw error;
@@ -435,90 +445,73 @@ export class ExcelDataLoader {
     }
     
     /**
-     * IndexedDB에 직원 데이터 저장
+     * Railway MySQL에 직원 데이터 저장 (REST API)
      */
     async saveEmployeesToDB() {
         try {
             const db = await getDB();
-            
-            await withTransaction(['employees', 'changeHistory'], 'readwrite', async (tx) => {
-                const employeesStore = tx.objectStore('employees');
-                const historyStore = tx.objectStore('changeHistory');
-                
-                let addedCount = 0;
-                let updatedCount = 0;
-                
-                for (const employee of this.loadedData.employees) {
-                    try {
-                        // 기존 데이터 확인 (이름과 사번으로)
-                        const existing = await this.getExistingEmployee(employeesStore, employee);
-                        
-                        if (existing) {
-                            // 업데이트
-                            await employeesStore.put({
-                                ...existing,
-                                ...employee,
-                                id: existing.id, // ID 유지
-                                updatedAt: new Date().toISOString()
-                            });
-                            updatedCount++;
-                        } else {
-                            // 새로 추가
-                            await employeesStore.add(employee);
-                            addedCount++;
-                        }
-                        
-                        // 변경 이력 기록 (데이터베이스 스키마에 맞춰 id 필드 사용)
-                        await historyStore.add({
-                            tableName: 'employees',
-                            operation: existing ? 'UPDATE' : 'CREATE',
-                            recordId: employee.id,
-                            beforeData: existing || null,
-                            afterData: employee,
-                            timestamp: new Date().toISOString(),
-                            userId: sessionStorage.getItem('userId') || 'SYSTEM'
-                        });
-                        
-                    } catch (error) {
-                        console.error(`[직원 저장 오류] ${employee.name}:`, error);
-                        this.warnings.push(`직원 ${employee.name} 저장 실패`);
-                    }
-                }
-                
-                console.log(`[ExcelDataLoader] 직원 DB 저장 완료 - 추가: ${addedCount}, 수정: ${updatedCount}`);
-                
-                // 세션스토리지에도 저장 (로그인 프로세스 호환성)
-                sessionStorage.setItem('employees_data', JSON.stringify(this.loadedData.employees));
+
+            console.log('[ExcelDataLoader] 기존 직원 데이터 조회 중...');
+            // 기존 데이터 조회
+            const existingEmployees = await db.getAllEmployees();
+
+            // 이름으로 빠른 검색을 위한 맵 생성
+            const existingMap = new Map();
+            existingEmployees.forEach(e => {
+                existingMap.set(e.name, e);
             });
-            
+
+            let addedCount = 0;
+            let updatedCount = 0;
+            let errorCount = 0;
+
+            console.log(`[ExcelDataLoader] ${this.loadedData.employees.length}명 직원 저장 시작...`);
+
+            for (const employee of this.loadedData.employees) {
+                try {
+                    // 백엔드 API 스키마에 맞게 데이터 준비
+                    const employeeData = {
+                        name: employee.name,
+                        department: employee.department || '미지정',
+                        position: employee.position || null,
+                        joinDate: employee.joinDate || null,
+                        email: employee.email || null,
+                        contact: employee.contact || null,
+                        role: employee.role || '미지정',
+                        isActive: employee.isActive !== false
+                    };
+
+                    // 기존 데이터 확인 (이름으로)
+                    const existing = existingMap.get(employee.name);
+
+                    if (existing) {
+                        // 업데이트
+                        await db.updateEmployee(existing.id, employeeData);
+                        updatedCount++;
+                        console.log(`[ExcelDataLoader] 업데이트: ${employee.name}`);
+                    } else {
+                        // 새로 추가
+                        await db.createEmployee(employeeData);
+                        addedCount++;
+                        console.log(`[ExcelDataLoader] 추가: ${employee.name}`);
+                    }
+
+                } catch (error) {
+                    errorCount++;
+                    console.error(`[직원 저장 오류] ${employee.name}:`, error);
+                    this.warnings.push(`직원 ${employee.name} 저장 실패: ${error.message}`);
+                }
+            }
+
+            console.log(`[ExcelDataLoader] 직원 DB 저장 완료 - 추가: ${addedCount}, 수정: ${updatedCount}, 실패: ${errorCount}`);
+
+            // 세션스토리지에도 저장 (로그인 프로세스 호환성)
+            sessionStorage.setItem('employees_data', JSON.stringify(this.loadedData.employees));
+
         } catch (error) {
             console.error('[ExcelDataLoader] 직원 DB 저장 실패:', error);
             throw error;
         }
-    }
-    
-    /**
-     * 기존 데이터 조회
-     */
-    getExisting(store, keyValue) {
-        return new Promise((resolve, reject) => {
-            const request = store.get(keyValue);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-    }
-    
-    /**
-     * 기존 직원 조회
-     */
-    getExistingEmployee(store, employee) {
-        return new Promise((resolve, reject) => {
-            // 이름으로 검색
-            const index = store.index('name');
-            const request = index.get(employee.name);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
     }
     
     /**

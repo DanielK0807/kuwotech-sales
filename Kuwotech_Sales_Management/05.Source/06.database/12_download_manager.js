@@ -1,23 +1,24 @@
 /**
  * ============================================
- * KUWOTECH 영업관리 시스템 - 통합 다운로드 매니저
+ * KUWOTECH 영업관리 시스템 - 통합 다운로드 매니저 (Railway MySQL)
  * ============================================
- * 
+ *
  * @파일명: 12_download_manager.js
  * @작성자: System
  * @작성일: 2025-09-30
- * @버전: 1.0
- * 
+ * @버전: 2.0
+ *
  * @설명:
  * 영업담당모드와 관리자모드의 모든 사이드메뉴에서 체계적이고
  * 일관된 다운로드 기능을 제공하는 통합 매니저
- * 
+ * Railway MySQL REST API를 사용하여 데이터 조회
+ *
  * @주요기능:
  * - 역할별 다운로드 권한 관리
  * - 다양한 다운로드 타입 지원 (거래처, 보고서, KPI, 백업)
  * - 엑셀/PPT 파일 생성
  * - 다운로드 진행 상태 표시
- * - 다운로드 이력 관리
+ * - REST API 기반 데이터 조회
  */
 
 // ============================================
@@ -26,10 +27,9 @@
 
 // 전역 라이브러리 사용 (CDN에서 로드됨)
 // window.XLSX - 엑셀 라이브러리
-// window.idb.openDB - IndexedDB 라이브러리
 const XLSX = window.XLSX;
-const { openDB } = window.idb;
 
+import { getDB } from './01_database_manager.js';
 import { formatCurrency, formatNumber, formatDate, formatDateKorean, formatPhone } from '../01.common/03_format.js';
 import { showToast } from '../01.common/14_toast.js';
 import GlobalConfig from '../01.common/01_global_config.js';
@@ -221,11 +221,12 @@ class DownloadManager {
     
     /**
      * [메서드: 데이터베이스 초기화]
+     * Railway MySQL REST API DatabaseManager 가져오기
      */
     async initDB() {
         if (this.db) return this.db;
-        
-        this.db = await openDB(GlobalConfig.DB_NAME, GlobalConfig.DB_VERSION);
+
+        this.db = await getDB();
         return this.db;
     }
     
@@ -382,28 +383,30 @@ class DownloadManager {
     
     /**
      * [메서드: 내 거래처 조회]
+     * REST API를 사용하여 내 담당 거래처 조회
      */
     async getMyCompanies(userName) {
         const db = await this.initDB();
-        const tx = db.transaction('companies', 'readonly');
-        const store = tx.objectStore('companies');
-        const all = await store.getAll();
-        
-        // 내부담당자가 userName인 거래처만 필터링
+
+        // REST API를 통해 내 거래처 조회
+        const all = await db.getMyClients();
+
+        // 내부담당자가 userName인 거래처만 필터링 (백엔드에서 필터링되지 않은 경우 대비)
         return all.filter(company => company.internalManager === userName);
     }
     
     /**
      * [메서드: 내 보고서 조회]
+     * REST API를 사용하여 내 보고서 조회
      */
     async getMyReports(userName, dateRange = null) {
         const db = await this.initDB();
-        const tx = db.transaction('reports', 'readonly');
-        const store = tx.objectStore('reports');
-        const all = await store.getAll();
-        
-        let filtered = all.filter(report => report.author === userName);
-        
+
+        // REST API를 통해 내 보고서 조회
+        const all = await db.getMyReports();
+
+        let filtered = all.filter(report => report.author === userName || report.submittedBy === userName);
+
         // 날짜 범위 필터링
         if (dateRange) {
             filtered = filtered.filter(report => {
@@ -413,29 +416,27 @@ class DownloadManager {
                 return visitDate >= startDate && visitDate <= endDate;
             });
         }
-        
+
         return filtered;
     }
-    
+
     /**
      * [메서드: 전체 거래처 조회]
+     * REST API를 사용하여 전체 거래처 조회
      */
     async getAllCompanies() {
         const db = await this.initDB();
-        const tx = db.transaction('companies', 'readonly');
-        const store = tx.objectStore('companies');
-        return await store.getAll();
+        return await db.getAllClients();
     }
-    
+
     /**
      * [메서드: 전체 보고서 조회]
+     * REST API를 사용하여 전체 보고서 조회
      */
     async getAllReports(dateRange = null) {
         const db = await this.initDB();
-        const tx = db.transaction('reports', 'readonly');
-        const store = tx.objectStore('reports');
-        let all = await store.getAll();
-        
+        let all = await db.getAllReports();
+
         // 날짜 범위 필터링
         if (dateRange) {
             all = all.filter(report => {
@@ -445,39 +446,40 @@ class DownloadManager {
                 return visitDate >= startDate && visitDate <= endDate;
             });
         }
-        
+
         return all;
     }
-    
+
     /**
      * [메서드: 전체 직원 조회]
+     * REST API를 사용하여 전체 직원 조회
      */
     async getAllEmployees() {
         const db = await this.initDB();
-        
-        // employees 테이블이 있으면 조회
-        if (db.objectStoreNames.contains('employees')) {
-            const tx = db.transaction('employees', 'readonly');
-            const store = tx.objectStore('employees');
-            return await store.getAll();
+
+        try {
+            // REST API를 통해 직원 목록 조회
+            return await db.getAllEmployees();
+        } catch (error) {
+            console.warn('[직원 조회 실패] 거래처에서 담당자 추출:', error);
+
+            // 백업: 거래처에서 담당자 목록 추출
+            const companies = await this.getAllCompanies();
+            const managers = new Set();
+
+            companies.forEach(company => {
+                if (company.internalManager) {
+                    managers.add(company.internalManager);
+                }
+            });
+
+            return Array.from(managers).map(name => ({
+                name: name,
+                department: '영업팀',
+                role: 'sales',
+                status: 'active'
+            }));
         }
-        
-        // 없으면 거래처에서 담당자 목록 추출
-        const companies = await this.getAllCompanies();
-        const managers = new Set();
-        
-        companies.forEach(company => {
-            if (company.internalManager) {
-                managers.add(company.internalManager);
-            }
-        });
-        
-        return Array.from(managers).map(name => ({
-            name: name,
-            department: '영업팀',
-            role: 'sales',
-            status: 'active'
-        }));
     }
     
     /**
@@ -635,31 +637,19 @@ class DownloadManager {
     
     /**
      * [메서드: 시스템 설정 조회]
+     * REST API를 사용하여 시스템 설정 조회 (추후 구현)
      */
     async getSystemSettings() {
-        const db = await this.initDB();
-        
-        if (db.objectStoreNames.contains('settings')) {
-            const tx = db.transaction('settings', 'readonly');
-            const store = tx.objectStore('settings');
-            return await store.getAll();
-        }
-        
+        console.log('[시스템 설정] 추후 구현 예정');
         return [];
     }
-    
+
     /**
      * [메서드: 변경 이력 조회]
+     * REST API를 사용하여 변경 이력 조회 (추후 구현)
      */
     async getChangeHistory() {
-        const db = await this.initDB();
-        
-        if (db.objectStoreNames.contains('changeHistory')) {
-            const tx = db.transaction('changeHistory', 'readonly');
-            const store = tx.objectStore('changeHistory');
-            return await store.getAll();
-        }
-        
+        console.log('[변경 이력] 추후 구현 예정');
         return [];
     }
     
@@ -1057,27 +1047,16 @@ class DownloadManager {
     
     /**
      * [메서드: 다운로드 이력 저장]
+     * REST API를 사용하여 다운로드 이력 저장 (추후 구현)
      */
     async saveDownloadHistory(downloadType, userName) {
-        const db = await this.initDB();
-        
-        // downloadHistory 테이블이 없으면 생성 스킵
-        if (!db.objectStoreNames.contains('downloadHistory')) {
-            return;
-        }
-        
-        const tx = db.transaction('downloadHistory', 'readwrite');
-        const store = tx.objectStore('downloadHistory');
-        
-        const history = {
-            downloadType: downloadType,
-            userName: userName,
+        console.log('[다운로드 이력]', {
+            downloadType,
+            userName,
             downloadedAt: new Date().toISOString(),
             status: 'success'
-        };
-        
-        await store.add(history);
-        await tx.done;
+        });
+        // 추후 백엔드에서 /api/download-history 엔드포인트 제공 시 구현
     }
 }
 

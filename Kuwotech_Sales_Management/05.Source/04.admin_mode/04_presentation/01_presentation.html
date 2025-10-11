@@ -33,136 +33,178 @@
         </div>
     </header>
 
-    <!-- 필터 영역 -->
-    <section class="filter-area glass-card glass-3d-element">
-        <div class="filter-row">
-            <div class="filter-group">
-                <label class="filter-label">기간</label>
-                <div class="radio-group">
-                    <label class="radio-label">
-                        <input type="radio" name="period" value="weekly" checked>
-                        <span>금주</span>
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="period" value="monthly">
-                        <span>월간</span>
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="period" value="yearly">
-                        <span>년간</span>
-                    </label>
+    <!-- 실적보고 섹션 -->
+    <section class="performance-report-section glass-card glass-3d-element">
+        <div class="section-header">
+            <h3 class="section-title performance-title">📊 실적보고</h3>
+            <div class="section-toggle-buttons">
+                <button class="btn-section-toggle" data-section="performance" data-action="expand">상세보기</button>
+                <button class="btn-section-toggle" data-section="performance" data-action="collapse">접기</button>
+            </div>
+        </div>
+
+        <!-- 필터 영역 -->
+        <div class="performance-filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">기간</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="period" value="weekly" checked>
+                            <span>금주</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="period" value="monthly">
+                            <span>월간</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="period" value="yearly">
+                            <span>년간</span>
+                        </label>
+                    </div>
                 </div>
             </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label" for="departmentFilter">담당부서</label>
+                    <select id="departmentFilter" class="glass-input">
+                        <option value="">전체</option>
+                        <!-- 동적으로 로드됨 -->
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="employeeFilter">내부담당자</label>
+                    <select id="employeeFilter" class="glass-input">
+                        <option value="">전체</option>
+                        <!-- 동적으로 로드됨 -->
+                    </select>
+                </div>
+
+                <button id="btnApplyFilter" class="btn-primary glass-button">
+                    📊 조회하기
+                </button>
+            </div>
         </div>
 
-        <div class="filter-row">
-            <div class="filter-group">
-                <label class="filter-label" for="departmentFilter">담당부서</label>
-                <select id="departmentFilter" class="glass-input">
-                    <option value="">전체</option>
-                    <!-- 동적으로 로드됨 -->
-                </select>
-            </div>
-
-            <div class="filter-group">
-                <label class="filter-label" for="employeeFilter">내부담당자</label>
-                <select id="employeeFilter" class="glass-input">
-                    <option value="">전체</option>
-                    <!-- 동적으로 로드됨 -->
-                </select>
-            </div>
-
-            <button id="btnApplyFilter" class="btn-primary glass-button">
-                📊 조회하기
+        <!-- 필터 토글 버튼 -->
+        <div class="filter-toggle-container" style="display: none;">
+            <button class="btn-filter-toggle" id="btnPerformanceFilterToggle">
+                <span class="filter-toggle-text">접기</span>
             </button>
         </div>
-    </section>
 
-    <!-- 기간 표시 -->
-    <section class="period-display glass-card">
-        <p class="period-text">
-            📅 기간: <span id="periodRange">-</span>
-        </p>
-    </section>
-
-    <!-- 보고서 테이블 -->
-    <section class="report-table-section glass-card glass-3d-element">
-        <div class="table-wrapper">
-            <table class="report-table" id="reportTable">
-                <thead>
-                    <tr>
-                        <th>보고서<br>제출일</th>
-                        <th>담당<br>부서</th>
-                        <th>내부<br>담당자</th>
-                        <th>거래처명</th>
-                        <th>대표이사<br>(치과의사)</th>
-                        <th>목표<br>수금금액</th>
-                        <th>실제<br>수금금액</th>
-                        <th>달성률</th>
-                        <th>목표<br>매출금액</th>
-                        <th>실제<br>매출금액</th>
-                        <th>달성률</th>
-                        <th>영업활동<br>(특이사항)</th>
-                        <th>이행<br>여부</th>
-                        <th>누적<br>매출액</th>
-                        <th>누적<br>수금액</th>
-                    </tr>
-                </thead>
-                <tbody id="reportTableBody">
-                    <!-- 동적으로 생성 -->
-                </tbody>
-            </table>
+        <!-- 기간 표시 -->
+        <div class="performance-period-display">
+            <p class="period-text">
+                📅 기간: <span id="periodRange">-</span>
+            </p>
         </div>
-    </section>
 
-    <!-- 요약 영역 -->
-    <section class="summary-area glass-card glass-3d-element">
-        <h3>💰 전체 총합</h3>
-        <div class="summary-grid">
-            <div class="summary-item">
-                <span class="summary-label">담당자:</span>
-                <span class="summary-value" id="totalEmployees">0명</span>
+        <!-- 보고서 테이블 -->
+        <div class="performance-table-section">
+            <div class="table-wrapper">
+                <table class="report-table" id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>보고서<br>제출일</th>
+                            <th>담당<br>부서</th>
+                            <th>내부<br>담당자</th>
+                            <th>거래처명</th>
+                            <th>대표이사<br>(치과의사)</th>
+                            <th>목표<br>수금금액</th>
+                            <th>실제<br>수금금액</th>
+                            <th>달성률</th>
+                            <th>목표<br>매출금액</th>
+                            <th>실제<br>매출금액</th>
+                            <th>달성률</th>
+                            <th>영업활동<br>(특이사항)</th>
+                            <th>이행<br>여부</th>
+                            <th>누적<br>매출액</th>
+                            <th>누적<br>수금액</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <!-- 동적으로 생성 -->
+                    </tbody>
+                </table>
             </div>
-            <div class="summary-item">
-                <span class="summary-label">보고서:</span>
-                <span class="summary-value" id="totalReports">0건</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">목표수금:</span>
-                <span class="summary-value" id="totalTargetCollection">0원</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">실제수금:</span>
-                <span class="summary-value" id="totalActualCollection">0원</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">수금달성률:</span>
-                <span class="summary-value" id="collectionRate">0%</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">목표매출:</span>
-                <span class="summary-value" id="totalTargetSales">0원</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">실제매출:</span>
-                <span class="summary-value" id="totalActualSales">0원</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-label">매출달성률:</span>
-                <span class="summary-value" id="salesRate">0%</span>
+        </div>
+
+        <!-- 요약 영역 -->
+        <div class="performance-summary">
+            <h4>💰 전체 총합</h4>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-label">담당자:</span>
+                    <span class="summary-value" id="totalEmployees">0명</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">보고서:</span>
+                    <span class="summary-value" id="totalReports">0건</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">목표수금:</span>
+                    <span class="summary-value" id="totalTargetCollection">0원</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">실제수금:</span>
+                    <span class="summary-value" id="totalActualCollection">0원</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">수금달성률:</span>
+                    <span class="summary-value" id="collectionRate">0%</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">목표매출:</span>
+                    <span class="summary-value" id="totalTargetSales">0원</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">실제매출:</span>
+                    <span class="summary-value" id="totalActualSales">0원</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">매출달성률:</span>
+                    <span class="summary-value" id="salesRate">0%</span>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- 비교보고 섹션 -->
     <section class="comparison-report-section glass-card glass-3d-element">
-        <h3 class="section-title">📊 비교보고</h3>
+        <div class="section-header">
+            <h3 class="section-title">📊 비교보고</h3>
+            <div class="section-toggle-buttons">
+                <button class="btn-section-toggle" data-section="comparison" data-action="expand">상세보기</button>
+                <button class="btn-section-toggle" data-section="comparison" data-action="collapse">접기</button>
+            </div>
+        </div>
 
         <!-- 필터 영역 -->
         <div class="comparison-filters">
+            <!-- 1순위: 날짜 범위 선택 + 기간확정 버튼 -->
             <div class="filter-row">
                 <div class="filter-group">
-                    <label class="filter-label">기간 유형</label>
+                    <label class="filter-label" for="comparisonStartDate">🗓️ 시작일</label>
+                    <input type="text" id="comparisonStartDate" class="glass-input date-picker" placeholder="날짜를 선택하세요" readonly>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label" for="comparisonEndDate">🗓️ 종료일</label>
+                    <input type="text" id="comparisonEndDate" class="glass-input date-picker" placeholder="날짜를 선택하세요" readonly>
+                </div>
+
+                <button id="btnConfirmPeriod" class="btn-confirm-period glass-button">
+                    ✅ 기간확정
+                </button>
+            </div>
+
+            <!-- 2순위: 기간 유형 (주간/월간/연간) -->
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">📊 기간 유형 (표시 방식)</label>
                     <div class="radio-group">
                         <label class="radio-label">
                             <input type="radio" name="comparisonPeriod" value="weekly" checked>
@@ -180,9 +222,10 @@
                 </div>
             </div>
 
+            <!-- 3순위: 담당부서/내부담당자 -->
             <div class="filter-row">
                 <div class="filter-group">
-                    <label class="filter-label" for="comparisonDepartment">담당부서</label>
+                    <label class="filter-label" for="comparisonDepartment">🏢 담당부서</label>
                     <select id="comparisonDepartment" class="glass-input">
                         <option value="">전체</option>
                         <!-- 동적으로 로드됨 -->
@@ -190,7 +233,7 @@
                 </div>
 
                 <div class="filter-group">
-                    <label class="filter-label" for="comparisonEmployee">내부담당자</label>
+                    <label class="filter-label" for="comparisonEmployee">👤 내부담당자</label>
                     <select id="comparisonEmployee" class="glass-input">
                         <option value="">전체</option>
                         <!-- 동적으로 로드됨 -->
@@ -198,22 +241,32 @@
                 </div>
             </div>
 
-            <!-- 날짜 범위 선택 -->
+            <!-- 추가 옵션 -->
             <div class="filter-row">
                 <div class="filter-group">
-                    <label class="filter-label" for="comparisonStartDate">시작일</label>
-                    <input type="text" id="comparisonStartDate" class="glass-input date-picker" placeholder="날짜를 선택하세요" readonly>
+                    <label class="radio-label" style="cursor: pointer;">
+                        <input type="checkbox" id="includeZeroReports" style="width: 18px; height: 18px; cursor: pointer;">
+                        <span>실적 0인 보고서도 포함</span>
+                    </label>
+                    <span class="filter-hint" style="font-size: var(--font-xs); color: var(--text-secondary); margin-top: 4px;">
+                        ℹ️ 체크 시 수금액과 매출액이 모두 0인 보고서도 표시됩니다
+                    </span>
                 </div>
+            </div>
 
-                <div class="filter-group">
-                    <label class="filter-label" for="comparisonEndDate">종료일</label>
-                    <input type="text" id="comparisonEndDate" class="glass-input date-picker" placeholder="날짜를 선택하세요" readonly>
-                </div>
-
-                <button id="btnComparisonSearch" class="btn-primary glass-button">
+            <!-- 4순위: 비교 조회 버튼 -->
+            <div class="filter-row">
+                <button id="btnComparisonSearch" class="btn-primary glass-button" style="width: 100%;">
                     📈 비교 조회
                 </button>
             </div>
+        </div>
+
+        <!-- 필터 토글 버튼 -->
+        <div class="comparison-filter-toggle-container" style="display: none;">
+            <button class="btn-comparison-filter-toggle" id="btnComparisonFilterToggle">
+                <span class="filter-toggle-text">접기</span>
+            </button>
         </div>
 
         <!-- 선택된 기간 표시 -->
@@ -233,19 +286,28 @@
 
             <!-- 조회 후 여기에 테이블이 동적으로 생성됨 -->
             <div id="comparisonTableContainer" style="display: none;">
+                <!-- 집계 방식 안내 -->
+                <div id="comparisonAggregationInfo" style="display: none; padding: var(--spacing-md); margin-bottom: var(--spacing-md); background: rgba(16, 185, 129, 0.08); border-radius: var(--radius-md); border-left: 4px solid #10b981; font-size: var(--font-sm); color: var(--text-primary); text-align: center;">
+                    <!-- 동적으로 채워짐 -->
+                </div>
+
+                <!-- 상세 표시 토글 버튼 -->
+                <div id="comparisonGroupingToggle" style="display: none; text-align: center; margin-bottom: var(--spacing-md);">
+                    <button id="btnToggleGrouping" class="btn-grouping-toggle" style="padding: var(--spacing-sm) var(--spacing-lg); background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.3) 100%); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); color: #10b981; font-size: var(--font-sm); font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-family: var(--font-primary);">
+                        <span id="groupingToggleText" style="font-family: var(--font-primary);">🏢 부서별 상세 표시</span>
+                    </button>
+                </div>
+
                 <div class="table-wrapper">
-                    <table class="report-table" id="comparisonTable">
+                    <table class="report-table comparison-aggregated-table" id="comparisonTable">
                         <thead>
                             <tr>
-                                <th>보고서<br>제출일</th>
-                                <th>담당<br>부서</th>
-                                <th>내부<br>담당자</th>
-                                <th>거래처명</th>
+                                <th colspan="2">기간 / 담당자</th>
                                 <th>실제<br>수금금액</th>
                                 <th>실제<br>매출금액</th>
                                 <th>수금<br>달성률</th>
                                 <th>매출<br>달성률</th>
-                                <th>영업활동<br>(특이사항)</th>
+                                <th>보고서<br>수</th>
                             </tr>
                         </thead>
                         <tbody id="comparisonTableBody">
@@ -280,20 +342,50 @@
         </div>
     </section>
 
+    <!-- 영업담당자별 통계 섹션 (독립적인 카드) -->
+    <section class="employee-stats-section glass-card glass-3d-element">
+        <div class="employee-report-stats" id="employeeReportStats" style="display: none;">
+            <div class="section-header">
+                <h4 id="employeeStatsTitle">👥 영업담당자별 보고서 제출현황</h4>
+                <div class="section-toggle-buttons">
+                    <button class="btn-section-toggle" data-section="employee" data-action="expand">상세보기</button>
+                    <button class="btn-section-toggle" data-section="employee" data-action="collapse">접기</button>
+                </div>
+            </div>
+            <div class="stats-table-container">
+                <table class="stats-table" id="statsTable">
+                    <thead>
+                        <tr>
+                            <th>담당자</th>
+                            <th>부서</th>
+                            <th>총 보고서</th>
+                            <th>미실행</th>
+                            <th>일부완료</th>
+                            <th>완료</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody">
+                        <!-- 동적으로 생성 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
 </div>
 
 <!-- 인라인 스타일 -->
 <style>
     /* CRITICAL: 헤더 고정을 위한 html/body 설정 */
-    html {
-        height: 100% !important;
-        overflow: hidden !important;
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
     }
 
     body {
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        height: 100% !important;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     /* 메인 컨테이너 */
@@ -310,7 +402,7 @@
         position: sticky !important;
         top: 0 !important;
         z-index: 1000 !important;
-        padding: var(--spacing-xl) 0 !important;
+        padding: var(--spacing-md) 0 !important;
         margin-bottom: var(--spacing-2xl) !important;
         background: rgba(2, 16, 36, 0.98) !important;
         backdrop-filter: blur(20px) saturate(180%) !important;
@@ -459,6 +551,32 @@
         box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
 
+    /* 기간확정 버튼 스타일 */
+    .btn-confirm-period {
+        padding: var(--spacing-md) var(--spacing-2xl);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-confirm-period:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-confirm-period:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
     /* 기간 표시 */
     .period-display {
         padding: var(--spacing-md) var(--spacing-xl);
@@ -583,6 +701,67 @@
         width: 110px;
         min-width: 110px;
         max-width: 110px;
+    }
+
+    /* 왼쪽 5개 컬럼 고정 (보고서 제출일 ~ 대표이사) */
+    .report-table th:nth-child(1),
+    .report-table td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    .report-table td:nth-child(1) {
+        background: var(--bg-primary);
+    }
+
+    .report-table th:nth-child(2),
+    .report-table td:nth-child(2) {
+        position: sticky;
+        left: 110px;
+        z-index: 5;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    .report-table td:nth-child(2) {
+        background: var(--bg-primary);
+    }
+
+    .report-table th:nth-child(3),
+    .report-table td:nth-child(3) {
+        position: sticky;
+        left: 210px;
+        z-index: 5;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    .report-table td:nth-child(3) {
+        background: var(--bg-primary);
+    }
+
+    .report-table th:nth-child(4),
+    .report-table td:nth-child(4) {
+        position: sticky;
+        left: 310px;
+        z-index: 5;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    .report-table td:nth-child(4) {
+        background: var(--bg-primary);
+    }
+
+    .report-table th:nth-child(5),
+    .report-table td:nth-child(5) {
+        position: sticky;
+        left: 410px;
+        z-index: 5;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    .report-table td:nth-child(5) {
+        background: var(--bg-primary);
     }
 
     /* 그룹 헤더 */
@@ -1105,6 +1284,678 @@
 
     .flatpickr-day.today {
         border-color: #10b981;  /* 초록색 */
+    }
+
+    /* ============================================ */
+    /* 섹션 토글 버튼 공통 스타일 */
+    /* ============================================ */
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-md);
+        gap: var(--spacing-lg);
+    }
+
+    /* 섹션 컨텐츠 기본 숨김 */
+    .performance-filters,
+    .performance-period-display,
+    .performance-table-section,
+    .performance-summary,
+    .comparison-filters,
+    .comparison-period-display,
+    .comparison-result-area,
+    .stats-table-container {
+        display: none;
+    }
+
+    .section-toggle-buttons {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        flex-shrink: 0;
+    }
+
+    .btn-section-toggle {
+        display: inline-flex;
+        align-items: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-md);
+        font-size: var(--font-sm);
+        font-weight: var(--font-weight-medium);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-section-toggle:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-section-toggle:active {
+        transform: translateY(0);
+    }
+
+    /* 상세보기 버튼 - 성공 색상 */
+    .btn-section-toggle[data-action="expand"] {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.3) 100%);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #10b981;
+        font-family: var(--font-primary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .btn-section-toggle[data-action="expand"]:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.4) 100%);
+        border-color: rgba(16, 185, 129, 0.6);
+        color: #059669;
+    }
+
+    /* 접기 버튼 - 경고 색상 */
+    .btn-section-toggle[data-action="collapse"] {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.3) 100%);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #ef4444;
+        font-family: var(--font-primary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .btn-section-toggle[data-action="collapse"]:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.4) 100%);
+        border-color: rgba(239, 68, 68, 0.6);
+        color: #dc2626;
+    }
+
+    /* ============================================ */
+    /* 필터 토글 버튼 스타일 */
+    /* ============================================ */
+
+    .filter-toggle-container {
+        display: flex;
+        justify-content: center;
+        margin: 1rem 0;
+        padding: 0.5rem 0;
+    }
+
+    .btn-filter-toggle {
+        padding: 0.5rem 1.5rem;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(79, 70, 229, 0.15) 100%);
+        color: #6366f1;
+        font-family: var(--font-primary);
+        font-weight: var(--font-weight-medium);
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-filter-toggle:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(79, 70, 229, 0.25) 100%);
+        border-color: rgba(99, 102, 241, 0.6);
+        color: #4f46e5;
+        transform: translateY(-1px);
+    }
+
+    .btn-filter-toggle .filter-toggle-text {
+        font-size: 0.875rem;
+    }
+
+    /* 비교보고 필터 토글 버튼 - 초록색 테마 */
+    .comparison-filter-toggle-container {
+        display: flex;
+        justify-content: center;
+        margin: 1rem 0;
+        padding: 0.5rem 0;
+    }
+
+    .btn-comparison-filter-toggle {
+        padding: 0.5rem 1.5rem;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.15) 100%);
+        color: #10b981;
+        font-family: var(--font-primary);
+        font-weight: var(--font-weight-medium);
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-comparison-filter-toggle:hover {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.25) 100%);
+        border-color: rgba(16, 185, 129, 0.6);
+        color: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-comparison-filter-toggle .filter-toggle-text {
+        font-size: 0.875rem;
+    }
+
+    /* ============================================ */
+    /* 실적보고 섹션 스타일 */
+    /* ============================================ */
+
+    .performance-report-section {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.02) 0%, rgba(249, 115, 22, 0.04) 100%) !important;  /* 오렌지색 그라데이션 배경 */
+        border: 2px solid rgba(251, 146, 60, 0.2) !important;  /* 오렌지색 테두리 */
+        box-shadow: 0 4px 12px rgba(251, 146, 60, 0.1) !important;  /* 오렌지색 그림자 */
+    }
+
+    .performance-title {
+        font-size: var(--font-2xl);
+        font-weight: var(--font-weight-bold);
+        color: #fb923c;  /* 오렌지색 */
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+        padding-bottom: var(--spacing-md);
+        border-bottom: 2px solid rgba(251, 146, 60, 0.3);  /* 오렌지색 */
+    }
+
+    .performance-filters {
+        background: rgba(251, 146, 60, 0.03);  /* 오렌지색 */
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .performance-period-display {
+        text-align: center;
+        padding: var(--spacing-md);
+        background: rgba(251, 146, 60, 0.05);  /* 오렌지색 */
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .performance-period-display .period-text {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .performance-period-display .period-text span {
+        color: #fb923c;  /* 오렌지색 */
+        font-weight: var(--font-weight-bold);
+    }
+
+    .performance-table-section {
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .performance-summary {
+        margin-top: var(--spacing-xl);
+        padding: var(--spacing-lg);
+        background: rgba(251, 146, 60, 0.03);  /* 오렌지색 */
+        border-radius: var(--radius-lg);
+        border-left: 4px solid #fb923c;  /* 오렌지색 */
+    }
+
+    .performance-summary h4 {
+        font-size: var(--font-lg);
+        font-weight: var(--font-weight-bold);
+        color: #fb923c;  /* 오렌지색 */
+        margin-bottom: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .performance-summary .summary-value {
+        color: #fb923c !important;  /* 오렌지색 */
+    }
+
+    /* ============================================ */
+    /* 영업담당자별 통계 섹션 (독립적인 카드) */
+    /* ============================================ */
+
+    .employee-stats-section {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(37, 99, 235, 0.04) 100%) !important;  /* 파란색 그라데이션 배경 */
+        border: 2px solid rgba(59, 130, 246, 0.2) !important;  /* 파란색 테두리 */
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1) !important;  /* 파란색 그림자 */
+    }
+
+    /* ============================================ */
+    /* 담당자별 보고서 통계 스타일 (간단) */
+    /* ============================================ */
+
+    .employee-stats-simple {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .employee-stats-simple h3 {
+        font-size: var(--font-xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .stats-grid-simple {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--spacing-md);
+    }
+
+    .stat-card-simple {
+        background: rgba(59, 130, 246, 0.05);
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card-simple:hover {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .stat-card-simple .stat-employee-name {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+        margin-bottom: var(--spacing-sm);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .stat-card-simple .stat-department {
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-md);
+        opacity: 0.8;
+    }
+
+    .stat-card-simple .stat-count {
+        font-size: var(--font-2xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
+        line-height: 1;
+    }
+
+    .stat-card-simple .stat-label {
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        margin-top: var(--spacing-xs);
+    }
+
+    /* 반응형 - 간단 통계 */
+    @media (max-width: 1400px) {
+        .stats-grid-simple {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .stats-grid-simple {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid-simple {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid-simple {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ============================================ */
+    /* 영업담당자별 보고서 통계 스타일 */
+    /* ============================================ */
+
+    .employee-report-stats {
+        padding: var(--spacing-lg);
+        background: rgba(59, 130, 246, 0.03);
+        border-radius: var(--radius-lg);
+        border-left: 4px solid #3b82f6;
+    }
+
+    .employee-report-stats h4 {
+        font-size: var(--font-lg);
+        font-weight: var(--font-weight-bold);
+        color: #3b82f6;
+        margin-bottom: var(--spacing-lg);
+        text-align: center;
+    }
+
+    .stats-table-container {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: 400px;  /* 최대 높이 설정으로 스크롤 가능 */
+    }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(59, 130, 246, 0.02);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+    }
+
+    .stats-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(59, 130, 246, 0.15);
+    }
+
+    .stats-table th {
+        padding: var(--spacing-md);
+        text-align: center;
+        font-weight: var(--font-weight-bold);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        font-size: var(--font-sm);
+        background: rgba(59, 130, 246, 0.15);  /* 스크롤 시 배경 보호 */
+    }
+
+    .stats-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .stats-table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.08);
+    }
+
+    .stats-table td {
+        padding: var(--spacing-md);
+        text-align: center;
+        border: 1px solid rgba(59, 130, 246, 0.15);
+        color: var(--text-primary);
+        font-size: var(--font-sm);
+    }
+
+    .stats-table td.employee-name {
+        font-weight: var(--font-weight-bold);
+        color: #3b82f6;
+        text-align: left;
+    }
+
+    .stats-table td.department {
+        color: var(--text-secondary);
+        text-align: left;
+    }
+
+    .stats-table td.total {
+        font-weight: var(--font-weight-bold);
+        color: #3b82f6;
+    }
+
+    .stats-table td.not-started {
+        color: #94a3b8;
+    }
+
+    .stats-table td.partial {
+        color: #f59e0b;
+    }
+
+    .stats-table td.completed {
+        color: #10b981;
+    }
+
+    /* ============================================ */
+    /* 보고서 행 상세보기 스타일 */
+    /* ============================================ */
+
+    /* 보고서 행 호버 효과 */
+    .report-row.clickable:hover {
+        background: rgba(251, 146, 60, 0.1) !important;  /* 오렌지색 */
+    }
+
+    /* 상세보기 버튼 */
+    .btn-detail-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-xs) var(--spacing-md);
+        background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: var(--font-xs);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(251, 146, 60, 0.3);
+    }
+
+    .btn-detail-toggle:hover {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(251, 146, 60, 0.5);
+    }
+
+    .btn-detail-toggle:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(251, 146, 60, 0.3);
+    }
+
+    .btn-detail-toggle.expanded {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-detail-toggle.expanded:hover {
+        background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        box-shadow: 0 4px 8px rgba(107, 114, 128, 0.5);
+    }
+
+    /* 상세 정보 행 */
+    .report-detail-row {
+        background: rgba(251, 146, 60, 0.03) !important;  /* 오렌지색 */
+        border-left: 4px solid #fb923c !important;  /* 오렌지색 */
+        transition: all 0.3s ease;
+    }
+
+    .report-detail-row.collapsed {
+        display: none;
+    }
+
+    .report-detail-row.expanded {
+        display: table-row;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 상세 정보 컨테이너 */
+    .report-detail-container {
+        padding: var(--spacing-xl);
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: var(--radius-lg);
+    }
+
+    /* 상세 정보 그리드 */
+    .report-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .report-detail-section {
+        background: rgba(251, 146, 60, 0.05);  /* 오렌지색 */
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        border-left: 3px solid #fb923c;  /* 오렌지색 */
+    }
+
+    .report-detail-section h4 {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
+        color: #fb923c;  /* 오렌지색 */
+        margin-bottom: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .report-detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .report-detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .report-detail-label {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        font-weight: var(--font-weight-medium);
+    }
+
+    .report-detail-value {
+        font-size: var(--font-sm);
+        color: var(--text-primary);
+        font-weight: var(--font-weight-bold);
+    }
+
+    .report-detail-value.amount {
+        color: #fb923c;  /* 오렌지색 */
+    }
+
+    /* 영업활동 섹션 */
+    .report-detail-activity {
+        grid-column: 1 / -1;
+        background: rgba(251, 146, 60, 0.05);  /* 오렌지색 */
+        padding: var(--spacing-lg);
+        border-radius: var(--spacing-md);
+        border-left: 3px solid #fb923c;  /* 오렌지색 */
+    }
+
+    .report-detail-activity h4 {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
+        color: #fb923c;  /* 오렌지색 */
+        margin-bottom: var(--spacing-md);
+    }
+
+    .report-detail-activity-content {
+        background: rgba(0, 0, 0, 0.2);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-sm);
+        white-space: pre-wrap;
+        line-height: 1.6;
+        color: var(--text-primary);
+        font-size: var(--font-sm);
+    }
+
+    /* 반응형 */
+    @media (max-width: 1024px) {
+        .report-detail-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .report-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ============================================ */
+    /* 비교보고 집계 테이블 스타일 */
+    /* ============================================ */
+
+    .comparison-aggregated-table th {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.8)) !important;
+    }
+
+    .comparison-aggregated-table tbody tr:hover {
+        background: rgba(16, 185, 129, 0.05) !important;
+    }
+
+    /* 집계 테이블 컬럼 너비 */
+    .comparison-aggregated-table th:nth-child(1),
+    .comparison-aggregated-table td:nth-child(1) {
+        min-width: 250px;
+        text-align: left !important;
+        padding-left: var(--spacing-lg) !important;
+        font-weight: var(--font-weight-bold);
+        color: #10b981;
+    }
+
+    .comparison-aggregated-table th:nth-child(2),
+    .comparison-aggregated-table td:nth-child(2) {
+        min-width: 150px;
+        text-align: right !important;
+    }
+
+    .comparison-aggregated-table th:nth-child(3),
+    .comparison-aggregated-table td:nth-child(3) {
+        min-width: 150px;
+        text-align: right !important;
+    }
+
+    .comparison-aggregated-table th:nth-child(4),
+    .comparison-aggregated-table td:nth-child(4) {
+        min-width: 100px;
+        text-align: center !important;
+    }
+
+    .comparison-aggregated-table th:nth-child(5),
+    .comparison-aggregated-table td:nth-child(5) {
+        min-width: 100px;
+        text-align: center !important;
+    }
+
+    .comparison-aggregated-table th:nth-child(6),
+    .comparison-aggregated-table td:nth-child(6) {
+        min-width: 100px;
+        text-align: center !important;
+    }
+
+    .comparison-aggregated-table .text-center {
+        text-align: center !important;
     }
 </style>
 

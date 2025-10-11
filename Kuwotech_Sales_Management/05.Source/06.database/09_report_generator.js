@@ -1,15 +1,17 @@
 /**
- * KUWOTECH 영업관리 시스템 - 보고서 생성 모듈
+ * KUWOTECH 영업관리 시스템 - 보고서 생성 모듈 (Railway MySQL)
  * Created by: Daniel.K
  * Date: 2025-09-27
  * Description: 보고서 생성, 편집, PDF 출력 기능
+ *
+ * Railway MySQL REST API를 사용하여 보고서 관리
  */
 
 // ============================================
 // [섹션: Import]
 // ============================================
 
-import { getDB } from './02_schema.js';
+import { getDB } from './01_database_manager.js';
 import { formatDate, formatCurrency, formatNumber } from '../01.common/03_format.js';
 import { showToast, showModal, showLoading, hideLoading } from '../01.common/10_index.js';
 import GlobalConfig from '../01.common/00_global_config.js';
@@ -217,36 +219,36 @@ function setupReportFormHandlers(modal, type) {
 
 /**
  * [기능: 보고서 저장]
+ * Railway MySQL REST API를 사용하여 보고서 저장
  */
 async function saveReport(data, type) {
     showLoading('보고서 저장 중...');
-    
+
     try {
         const db = await getDB();
-        const transaction = db.transaction(['reports'], 'readwrite');
-        const store = transaction.objectStore('reports');
-        
+
         const report = {
             ...data,
             type: type,
-            id: generateReportId(),
+            reportId: generateReportId(),
             createdAt: new Date().toISOString(),
             createdBy: getCurrentUser(),
             status: 'draft'
         };
-        
-        await store.add(report);
-        
+
+        // REST API를 통해 보고서 생성
+        await db.createReport(report);
+
         showToast('보고서가 저장되었습니다', 'success');
-        
+
         // 목록 새로고침
         if (typeof window.loadReportList === 'function') {
             window.loadReportList();
         }
-        
+
     } catch (error) {
         console.error('[보고서 저장 실패]:', error);
-        showToast('보고서 저장 실패', 'error');
+        showToast('보고서 저장 실패: ' + error.message, 'error');
     } finally {
         hideLoading();
     }

@@ -91,7 +91,6 @@
                             <th class="th-w-40">
                                 <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
                             </th>
-                            <th class="th-w-80">ID</th>
                             <th class="th-w-100">이름</th>
                             <th class="th-w-120">부서</th>
                             <th class="th-w-120">입사일</th>
@@ -131,15 +130,15 @@
 
 <style>
     /* === CRITICAL: 헤더 고정을 위한 html/body 설정 (대시보드와 동일) === */
-    html {
-        height: 100% !important;
-        overflow: hidden !important;
+    html, body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
     }
 
     body {
-        overflow-x: hidden !important;
-        overflow-y: auto !important; /* 스크롤 컨테이너 명시 */
-        height: 100% !important;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     /* === 헤더 스타일 (대시보드와 동일) === */
@@ -147,7 +146,7 @@
         position: sticky !important;
         top: 0 !important;
         z-index: 1000 !important;
-        padding: var(--spacing-xl) 0 !important;
+        padding: var(--spacing-md) 0 !important;
         margin-bottom: var(--spacing-2xl) !important;
         background: rgba(2, 16, 36, 0.98) !important; /* 관리자 색상 유지 */
         backdrop-filter: blur(20px) saturate(180%) !important;

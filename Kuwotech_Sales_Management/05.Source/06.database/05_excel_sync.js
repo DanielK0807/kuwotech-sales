@@ -1,14 +1,16 @@
 /**
- * KUWOTECH 영업관리 시스템 - 엑셀 동기화
+ * KUWOTECH 영업관리 시스템 - 엑셀 동기화 (Railway MySQL)
  * Created by: Daniel.K
  * Date: 2025
+ *
+ * Railway MySQL 데이터베이스와 엑셀 간 동기화
  */
 
 // ============================================
 // [섹션: Import]
 // ============================================
 
-import { getDB, withTransaction } from './02_schema.js';
+import { getDB } from './01_database_manager.js';
 import { createBackup } from './07_backup.js';
 import { logChange } from './06_change_history.js';
 import { getCompanyDisplayName } from '../01.common/02_utils.js';
@@ -300,11 +302,11 @@ function parseExcelDate(value) {
 }
 
 // ============================================
-// [섹션: IndexedDB 동기화]
+// [섹션: Railway MySQL 동기화]
 // ============================================
 
 /**
- * [기능: 엑셀 → IndexedDB 동기화]
+ * [기능: 엑셀 → Railway MySQL 동기화]
  * @param {Array} excelData - 엑셀 데이터
  * @param {Object} options - 동기화 옵션
  * @returns {Promise<Object>} 동기화 결과
@@ -314,96 +316,104 @@ export async function syncExcelToDb(excelData, options = {}) {
     mode = 'replace', // replace: 전체 교체, merge: 병합, append: 추가
     createBackup: shouldBackup = true
   } = options;
-  
+
   try {
+    const db = await getDB();
+
     // 데이터 검증
     const validation = validateExcelData(excelData);
-    
+
     if (!validation.valid && !options.force) {
       throw new Error(`데이터 검증 실패: ${validation.errors.length}개 오류`);
     }
-    
+
     // 백업 생성
     if (shouldBackup) {
       console.log('[백업 생성 중...]');
       await createBackup();
     }
-    
-    // 동기화 실행
-    const result = await withTransaction(['companies'], 'readwrite', async (tx) => {
-      const store = tx.objectStore('companies');
-      
-      let addedCount = 0;
-      let updatedCount = 0;
-      let skippedCount = 0;
-      
-      if (mode === 'replace') {
-        // 기존 데이터 전체 삭제
-        await promisifyRequest(store.clear());
-        console.log('[기존 데이터] 삭제 완료');
-      }
-      
-      // 데이터 저장
-      for (const row of validation.data) {
-        const company = mapExcelToCompany(row);
-        
+
+    let addedCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
+
+    // 기존 데이터 조회 (merge 모드에서만 필요)
+    let existingCompanies = [];
+    let existingMap = new Map();
+
+    if (mode === 'merge') {
+      existingCompanies = await db.getAllClients();
+      existingCompanies.forEach(c => {
+        existingMap.set(c.keyValue, c);
+      });
+    } else if (mode === 'replace') {
+      // replace 모드: 모든 기존 데이터 삭제
+      console.log('[기존 데이터] 삭제 시작...');
+      existingCompanies = await db.getAllClients();
+      for (const company of existingCompanies) {
         try {
-          if (mode === 'merge') {
-            // 기존 데이터 확인
-            const existing = await promisifyRequest(store.get(company.keyValue));
-            
-            if (existing) {
-              // 병합
-              const merged = mergeCompanyData(existing, company);
-              await promisifyRequest(store.put(merged));
-              updatedCount++;
-            } else {
-              await promisifyRequest(store.add(company));
-              addedCount++;
-            }
-          } else {
-            // replace 또는 append
-            await promisifyRequest(store.put(company));
-            addedCount++;
-          }
+          await db.deleteClient(company.keyValue);
         } catch (error) {
-          console.warn(`[저장 실패] ${company.keyValue}:`, error.message);
-          skippedCount++;
+          console.warn(`[삭제 실패] ${company.keyValue}:`, error.message);
         }
       }
-      
-      return {
-        addedCount,
-        updatedCount,
-        skippedCount
-      };
-    });
-    
-    // 변경 이력 기록
+      console.log('[기존 데이터] 삭제 완료');
+    }
+
+    // 데이터 저장
+    for (const row of validation.data) {
+      const company = mapExcelToCompany(row);
+
+      try {
+        if (mode === 'merge') {
+          // 기존 데이터 확인
+          const existing = existingMap.get(company.keyValue);
+
+          if (existing) {
+            // 병합
+            const merged = mergeCompanyData(existing, company);
+            await db.updateClient(company.keyValue, merged);
+            updatedCount++;
+          } else {
+            await db.createClient(company);
+            addedCount++;
+          }
+        } else {
+          // replace 또는 append - 새로 추가
+          await db.createClient(company);
+          addedCount++;
+        }
+      } catch (error) {
+        console.warn(`[저장 실패] ${company.keyValue}:`, error.message);
+        skippedCount++;
+      }
+    }
+
+    // 변경 이력 기록 (백엔드에서 자동 처리)
     await logChange({
       tableName: 'companies',
       operation: 'EXCEL_SYNC',
       recordId: 'BULK',
       beforeData: { mode },
-      afterData: result
+      afterData: { addedCount, updatedCount, skippedCount }
     });
-    
+
     const syncResult = {
       success: true,
       mode: mode,
       totalRows: excelData.length,
       validRows: validation.validRows,
-      added: result.addedCount,
-      updated: result.updatedCount,
-      skipped: result.skippedCount,
+      added: addedCount,
+      updated: updatedCount,
+      skipped: skippedCount,
       errors: validation.errors,
       warnings: validation.warnings
     };
-    
+
     console.log(`[엑셀 → DB] 동기화 완료`, syncResult);
-    
+
     return syncResult;
-    
+
   } catch (error) {
     console.error('[엑셀 → DB 동기화 실패]', error);
     throw error;
@@ -459,11 +469,11 @@ function mergeCompanyData(existing, newData) {
 }
 
 // ============================================
-// [섹션: IndexedDB → 엑셀 내보내기]
+// [섹션: Railway MySQL → 엑셀 내보내기]
 // ============================================
 
 /**
- * [기능: IndexedDB → 엑셀 내보내기]
+ * [기능: Railway MySQL → 엑셀 내보내기]
  * @param {Object} options - 내보내기 옵션
  * @returns {Promise<Object>} 내보내기 결과
  */
@@ -473,29 +483,29 @@ export async function syncDbToExcel(options = {}) {
     includeHistory = false,
     fileName = null
   } = options;
-  
+
   try {
     const db = await getDB();
-    
+
     // 데이터 수집
     console.log('[데이터 수집 중...]');
-    
-    // 1. 거래처 데이터
-    const companies = await getAllData(db, 'companies');
+
+    // 1. 거래처 데이터 (REST API 사용)
+    const companies = await db.getAllClients();
     console.log(`거래처: ${companies.length}개`);
-    
-    // 2. 보고서 데이터
+
+    // 2. 보고서 데이터 (REST API 사용)
     let reports = [];
     if (includeReports) {
-      reports = await getAllData(db, 'reports');
+      reports = await db.getAllReports();
       console.log(`보고서: ${reports.length}개`);
     }
-    
-    // 3. 변경 이력
+
+    // 3. 변경 이력 (추후 구현 예정)
     let changeHistory = [];
     if (includeHistory) {
-      changeHistory = await getAllData(db, 'changeHistory');
-      console.log(`변경이력: ${changeHistory.length}개`);
+      console.log('[변경이력] 기능은 추후 구현 예정');
+      // 추후 백엔드에서 /api/history 엔드포인트 제공 시 구현
     }
     
     // 엑셀 워크북 생성
@@ -618,48 +628,6 @@ function mapCompanyToExcel(company) {
   };
 }
 
-// NOTE: mapReportToExcel 함수는 아래에 정의됨 (중복 제거)
-
-/**
- * [기능: 모든 데이터 가져오기]
- */
-async function getAllData(db, storeName) {
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([storeName], 'readonly');
-    const store = transaction.objectStore(storeName);
-    const request = store.getAll();
-    
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-/**
- * [기능: 현재 사용자 정보]
- */
-function getCurrentUser() {
-  return {
-    name: localStorage.getItem('userName') || 'SYSTEM',
-    id: localStorage.getItem('userId') || 'SYSTEM'
-  };
-}
-    [EXCEL_COLUMNS.REPRESENTATIVE]: company.representative,
-    [EXCEL_COLUMNS.INTERNAL_MANAGER]: company.internalManager,
-    [EXCEL_COLUMNS.EXTERNAL_MANAGER]: company.externalManager,
-    [EXCEL_COLUMNS.BUSINESS_STATUS]: company.businessStatus,
-    [EXCEL_COLUMNS.ACCUMULATED_SALES]: company.accumulatedSales,
-    [EXCEL_COLUMNS.ACCUMULATED_COLLECTION]: company.accumulatedCollection,
-    [EXCEL_COLUMNS.ACCOUNTS_RECEIVABLE]: company.accountsReceivable,
-    [EXCEL_COLUMNS.LAST_PAYMENT_DATE]: formatDate(company.lastPaymentDate),
-    [EXCEL_COLUMNS.LAST_PAYMENT_AMOUNT]: company.lastPaymentAmount,
-    [EXCEL_COLUMNS.SALES_PRODUCT]: company.salesProduct,
-    [EXCEL_COLUMNS.BUSINESS_ACTIVITY]: company.businessActivity,
-    [EXCEL_COLUMNS.REMARKS]: company.remarks,
-    [EXCEL_COLUMNS.CREATED_AT]: formatDate(company.createdAt),
-    [EXCEL_COLUMNS.UPDATED_AT]: formatDate(company.updatedAt),
-    [EXCEL_COLUMNS.UPDATED_BY]: company.updatedBy
-  };
-}
 
 /**
  * [기능: 보고서 객체 → 엑셀 행 변환]
@@ -689,25 +657,6 @@ function mapReportToExcel(report) {
 // ============================================
 
 /**
- * [기능: Promise 변환]
- */
-function promisifyRequest(request) {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-/**
- * [기능: 전체 데이터 조회]
- */
-async function getAllData(db, storeName) {
-  const tx = db.transaction(storeName, 'readonly');
-  const store = tx.objectStore(storeName);
-  return await promisifyRequest(store.getAll());
-}
-
-/**
  * [기능: 현재 사용자]
  */
 function getCurrentUser() {
@@ -728,6 +677,6 @@ function getCurrentUser() {
   };
 }
 
-// [내용: 엑셀 동기화]
+// [내용: 엑셀 동기화 - Railway MySQL]
 // 테스트: 파싱, 검증, 동기화, 내보내기
-// #데이터베이스 #엑셀 #동기화
+// #데이터베이스 #엑셀 #동기화 #Railway

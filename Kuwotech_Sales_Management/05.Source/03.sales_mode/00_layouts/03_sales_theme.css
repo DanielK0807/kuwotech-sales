@@ -20,9 +20,8 @@ html {
 
 body.theme-sales,
 body[data-mode="sales"] {
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  min-height: 100vh !important;
+  overflow: hidden !important;
+  height: 100vh !important;
   position: relative;
 }
 
@@ -408,11 +407,10 @@ body[data-mode="sales"] {
 .main-container {
   display: flex;
   margin-top: var(--header-height, 96px);  /* UI 사양서: 헤더 높이만큼 마진 */
-  min-height: calc(100vh - var(--header-height, 96px));
+  height: calc(100vh - var(--header-height, 96px));
   background: var(--bg-primary);
   position: relative;
-  overflow-x: hidden;
-  overflow-y: visible;
+  overflow: hidden;
 }
 
 .sales-content {
@@ -420,7 +418,7 @@ body[data-mode="sales"] {
   flex: 1;
   padding: var(--spacing-xl, 30px);
   background: var(--bg-primary);
-  overflow-y: visible;
+  overflow-y: auto;
   position: relative;
   min-height: calc(100vh - var(--header-height, 96px));
   transition: margin-left var(--animation-duration, 0.3s);  /* UI 사양서: 반응형 전환 */

@@ -352,7 +352,6 @@ function createEmployeeRow(employee) {
                    ${isChecked ? 'checked' : ''}
                    onchange="toggleEmployeeSelection('${employee.id}')">
         </td>
-        <td>${employee.id ? employee.id.substring(0, 8) : '-'}</td>
         <td><strong>${employee.name}</strong></td>
         <td>${employee.department || '-'}</td>
         <td>${employee.hireDate ? formatDate(employee.hireDate) : '-'}</td>

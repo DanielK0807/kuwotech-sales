@@ -1,14 +1,17 @@
 /**
- * KUWOTECH 영업관리 시스템 - 변경 이력 관리
+ * KUWOTECH 영업관리 시스템 - 변경 이력 관리 (Railway MySQL)
  * Created by: Daniel.K
  * Date: 2025
+ *
+ * 변경 이력은 백엔드 API에서 자동으로 처리됩니다.
+ * company_history 테이블에 자동 기록됨
  */
 
 // ============================================
 // [섹션: Import]
 // ============================================
 
-import { getDB, withTransaction } from './02_schema.js';
+import { getDB } from './01_database_manager.js';
 
 // ============================================
 // [섹션: 변경 이력 기록]
@@ -16,68 +19,17 @@ import { getDB, withTransaction } from './02_schema.js';
 
 /**
  * [기능: 변경 이력 기록]
+ * 백엔드 API에서 자동으로 처리되므로 이 함수는 호환성을 위해 유지
  * @param {Object} changeData - 변경 데이터
- * @returns {Promise<number>} 이력 ID
+ * @returns {Promise<number>} 이력 ID (항상 null 반환)
  */
 export async function logChange(changeData) {
-  const {
-    tableName,
-    operation,
-    recordId,
-    beforeData,
-    afterData,
-    metadata = {}
-  } = changeData;
-  
-  try {
-    const user = getCurrentUser();
-    
-    // 변경 이력 레코드 생성
-    const changeRecord = {
-      timestamp: new Date().toISOString(),
-      userId: user.id,
-      userName: user.name,
-      userRole: user.role,
-      tableName: tableName,
-      operation: operation, // CREATE, UPDATE, DELETE, CONFIRM, SYNC, EXPORT, etc.
-      recordId: recordId,
-      beforeData: beforeData ? JSON.stringify(beforeData) : null,
-      afterData: afterData ? JSON.stringify(afterData) : null,
-      changes: getChangedFields(beforeData, afterData),
-      changeCount: 0,
-      metadata: JSON.stringify(metadata),
-      ipAddress: getClientIP(),
-      userAgent: navigator.userAgent,
-      sessionId: getSessionId()
-    };
-    
-    // 변경 필드 수 계산
-    if (changeRecord.changes) {
-      const changesArray = JSON.parse(changeRecord.changes);
-      changeRecord.changeCount = changesArray.length;
-    }
-    
-    // DB에 저장
-    const result = await withTransaction(['changeHistory'], 'readwrite', async (tx) => {
-      const store = tx.objectStore('changeHistory');
-      const id = await promisifyRequest(store.add(changeRecord));
-      return id;
-    });
-    
-    console.log(`[변경 이력] ${operation} - ${tableName}:${recordId} (ID: ${result})`);
-    
-    // 중요 작업은 추가 로깅
-    if (isImportantOperation(operation)) {
-      await logImportantAction(operation, tableName, recordId, user);
-    }
-    
-    return result;
-    
-  } catch (error) {
-    console.error('[변경 이력 기록 실패]', error);
-    // 변경 이력 실패는 원본 작업에 영향 없음
-    return null;
-  }
+  // 백엔드 API에서 company_history 테이블에 자동 기록되므로
+  // 프론트엔드에서는 별도 처리 불필요
+
+  console.log('[변경 이력] 백엔드 API에서 자동 처리됨:', changeData.operation, '-', changeData.tableName);
+
+  return null;
 }
 
 /**
@@ -233,84 +185,20 @@ function getFieldLabel(field) {
 
 /**
  * [기능: 변경 이력 조회]
+ * Railway MySQL에서 변경 이력 조회 (추후 구현)
  * @param {Object} filter - 필터 조건
  * @returns {Promise<Array>} 변경 이력
  */
 export async function getChangeHistory(filter = {}) {
   try {
-    const db = await getDB();
-    const tx = db.transaction(['changeHistory'], 'readonly');
-    const store = tx.objectStore('changeHistory');
-    
-    let results = [];
-    
-    // 인덱스 사용
-    if (filter.userId) {
-      const index = store.index('userId');
-      results = await promisifyRequest(index.getAll(filter.userId));
-      
-    } else if (filter.tableName) {
-      const index = store.index('tableName');
-      results = await promisifyRequest(index.getAll(filter.tableName));
-      
-    } else if (filter.operation) {
-      const index = store.index('operation');
-      results = await promisifyRequest(index.getAll(filter.operation));
-      
-    } else {
-      results = await promisifyRequest(store.getAll());
-    }
-    
-    // 날짜 필터
-    if (filter.dateRange) {
-      const { startDate, endDate } = filter.dateRange;
-      results = results.filter(record => {
-        const timestamp = new Date(record.timestamp);
-        return timestamp >= new Date(startDate) && timestamp <= new Date(endDate);
-      });
-    }
-    
-    // recordId 필터
-    if (filter.recordId) {
-      results = results.filter(record => record.recordId === filter.recordId);
-    }
-    
-    // 작업 타입 필터
-    if (filter.operationTypes) {
-      results = results.filter(record => 
-        filter.operationTypes.includes(record.operation)
-      );
-    }
-    
-    // 정렬 (최신순)
-    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    // 페이징
-    if (filter.pagination) {
-      const { page = 1, pageSize = 50 } = filter.pagination;
-      const start = (page - 1) * pageSize;
-      const end = start + pageSize;
-      
-      const totalCount = results.length;
-      results = results.slice(start, end);
-      
-      return {
-        data: results.map(formatHistoryRecord),
-        pagination: {
-          page,
-          pageSize,
-          totalCount,
-          totalPages: Math.ceil(totalCount / pageSize)
-        }
-      };
-    }
-    
-    console.log(`[변경 이력] ${results.length}개 조회`);
-    return results.map(formatHistoryRecord);
-    
+    // 백엔드 API에 변경 이력 조회 엔드포인트가 구현되면 사용
+    // 현재는 빈 배열 반환
+    console.log('[변경 이력] 조회 기능은 추후 구현 예정');
+    return [];
+
   } catch (error) {
     console.error('[변경 이력 조회 실패]', error);
-    throw error;
+    return [];
   }
 }
 
@@ -380,16 +268,17 @@ function getOperationLabel(operation) {
 
 /**
  * [기능: 변경 이력 통계]
+ * Railway MySQL에서 변경 이력 통계 (추후 구현)
  * @param {Object} filter - 필터 조건
  * @returns {Promise<Object>} 통계 데이터
  */
 export async function getChangeStatistics(filter = {}) {
   try {
-    const history = await getChangeHistory(filter);
-    const list = history.data || history;
-    
-    const stats = {
-      totalChanges: list.length,
+    // 백엔드 API에 변경 이력 통계 엔드포인트가 구현되면 사용
+    console.log('[변경 통계] 기능은 추후 구현 예정');
+
+    return {
+      totalChanges: 0,
       byOperation: {},
       byTable: {},
       byUser: {},
@@ -397,55 +286,18 @@ export async function getChangeStatistics(filter = {}) {
       recentChanges: [],
       mostChangedRecords: []
     };
-    
-    const recordChangeCounts = {};
-    
-    list.forEach(record => {
-      // 작업별
-      stats.byOperation[record.operation] = 
-        (stats.byOperation[record.operation] || 0) + 1;
-      
-      // 테이블별
-      stats.byTable[record.tableName] = 
-        (stats.byTable[record.tableName] || 0) + 1;
-      
-      // 사용자별
-      stats.byUser[record.userName] = 
-        (stats.byUser[record.userName] || 0) + 1;
-      
-      // 날짜별
-      const date = new Date(record.timestamp).toISOString().split('T')[0];
-      stats.byDate[date] = (stats.byDate[date] || 0) + 1;
-      
-      // 레코드별 변경 횟수
-      const recordKey = `${record.tableName}:${record.recordId}`;
-      recordChangeCounts[recordKey] = (recordChangeCounts[recordKey] || 0) + 1;
-    });
-    
-    // 최근 변경 (최대 10개)
-    stats.recentChanges = list.slice(0, 10).map(record => ({
-      timestamp: record.timestampFormatted,
-      user: record.userName,
-      operation: record.operationLabel,
-      table: record.tableName,
-      recordId: record.recordId,
-      changeCount: record.changeCount
-    }));
-    
-    // 가장 많이 변경된 레코드
-    stats.mostChangedRecords = Object.entries(recordChangeCounts)
-      .map(([key, count]) => {
-        const [table, recordId] = key.split(':');
-        return { table, recordId, changeCount: count };
-      })
-      .sort((a, b) => b.changeCount - a.changeCount)
-      .slice(0, 10);
-    
-    return stats;
-    
+
   } catch (error) {
     console.error('[변경 통계 실패]', error);
-    throw error;
+    return {
+      totalChanges: 0,
+      byOperation: {},
+      byTable: {},
+      byUser: {},
+      byDate: {},
+      recentChanges: [],
+      mostChangedRecords: []
+    };
   }
 }
 

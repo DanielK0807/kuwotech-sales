@@ -1,24 +1,26 @@
 /**
- * KUWOTECH 영업관리 시스템 - 통합 관리자
+ * KUWOTECH 영업관리 시스템 - 통합 관리자 (Railway MySQL)
  * Created by: System Administrator
  * Date: 2025-01-28
  * Description: 모든 데이터베이스 모듈 통합 관리
+ *
+ * Railway MySQL REST API를 사용하여 데이터 관리
  */
 
 // ============================================
 // [섹션: 모듈 통합 Import]
 // ============================================
 
-import { initDatabase as initDB, getDB } from './02_schema.js';
+import { initDatabase as initDB, getDB } from './01_database_manager.js';
 import { CompanyCRUD } from './03_crud.js';
 import { ReportCRUD } from './04_report_crud.js';
 import { syncExcelToDb, syncDbToExcel } from './05_excel_sync.js';
 import { logChange } from './06_change_history.js';
-import { 
-    createBackup, 
-    restoreBackup, 
+import {
+    createBackup,
+    restoreBackup,
     listBackups,
-    exportBackupToFile 
+    exportBackupToFile
 } from './07_backup.js';
 import { AutoBackupScheduler, initAutoBackup } from './schedulers/auto_backup_scheduler.js';
 
@@ -362,36 +364,35 @@ export class IntegrationManager {
     
     /**
      * [기능: 시스템 상태 조회]
+     * Railway MySQL REST API를 사용하여 시스템 상태 확인
      */
     async getSystemStatus() {
         if (!this.isInitialized) {
             return { status: 'not_initialized' };
         }
-        
+
         try {
             const db = await getDB();
-            
-            // 각 스토어의 레코드 수 확인
+
+            // REST API를 통해 레코드 수 확인
             const companiesCount = await this.getStoreCount('companies');
             const reportsCount = await this.getStoreCount('reports');
-            const backupsCount = await this.getStoreCount('backups');
-            
+
             return {
                 status: 'ready',
                 database: {
-                    name: db.name,
-                    version: db.version,
-                    stores: db.objectStoreNames.length
+                    name: 'Railway MySQL',
+                    type: 'REST API',
+                    endpoint: db.baseURL
                 },
                 records: {
                     companies: companiesCount,
-                    reports: reportsCount,
-                    backups: backupsCount
+                    reports: reportsCount
                 },
                 backup: this.getBackupStatus(),
                 config: this.getConfig()
             };
-            
+
         } catch (error) {
             return {
                 status: 'error',
@@ -399,20 +400,29 @@ export class IntegrationManager {
             };
         }
     }
-    
+
     /**
-     * [기능: 스토어 레코드 수 조회]
+     * [기능: 레코드 수 조회]
+     * REST API를 사용하여 데이터 개수 확인
      */
     async getStoreCount(storeName) {
         const db = await getDB();
-        const tx = db.transaction([storeName], 'readonly');
-        const store = tx.objectStore(storeName);
-        const request = store.count();
-        
-        return new Promise((resolve, reject) => {
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+
+        try {
+            if (storeName === 'companies') {
+                const companies = await db.getAllClients();
+                return companies.length;
+            } else if (storeName === 'reports') {
+                const reports = await db.getAllReports();
+                return reports.length;
+            } else {
+                console.warn(`[통합관리] 알 수 없는 스토어: ${storeName}`);
+                return 0;
+            }
+        } catch (error) {
+            console.error(`[통합관리] ${storeName} 개수 조회 실패:`, error);
+            return 0;
+        }
     }
 }
 
@@ -463,8 +473,8 @@ export default {
 };
 
 /**
- * [내용: 통합 관리자]
- * 모든 데이터베이스 모듈을 통합 관리
+ * [내용: 통합 관리자 - Railway MySQL]
+ * 모든 데이터베이스 모듈을 통합 관리 (REST API 기반)
  * 테스트: 초기화, CRUD, 백업, 동기화
- * #통합관리 #시스템초기화
+ * #통합관리 #시스템초기화 #Railway
  */

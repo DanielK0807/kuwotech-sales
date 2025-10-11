@@ -214,11 +214,17 @@ export class DatabaseManager {
      * [기능: 모든 직원 조회]
      */
     async getAllEmployees(filters = {}) {
+        // limit이 없으면 10000으로 설정하여 모든 데이터 가져오기
+        if (!filters.limit) {
+            filters.limit = 10000;
+        }
+
         const query = new URLSearchParams(filters).toString();
         const url = `${ENDPOINTS.EMPLOYEES}${query ? '?' + query : ''}`;
 
         const response = await this.request(url);
-        return response.data?.employees || [];
+        // 백엔드는 { success: true, employees: [...] } 형태로 반환
+        return response.employees || [];
     }
 
     /**
@@ -229,7 +235,8 @@ export class DatabaseManager {
             method: 'POST',
             body: JSON.stringify(employeeData)
         });
-        return response.data;
+        // 백엔드는 { success: true, ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -240,7 +247,8 @@ export class DatabaseManager {
             method: 'PUT',
             body: JSON.stringify(employeeData)
         });
-        return response.data;
+        // 백엔드는 { success: true, ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -261,11 +269,17 @@ export class DatabaseManager {
      * [기능: 모든 거래처 조회]
      */
     async getAllClients(filters = {}) {
+        // limit이 없으면 10000으로 설정하여 모든 데이터 가져오기
+        if (!filters.limit) {
+            filters.limit = 10000;
+        }
+
         const query = new URLSearchParams(filters).toString();
         const url = `${ENDPOINTS.CLIENTS}${query ? '?' + query : ''}`;
 
         const response = await this.request(url);
-        return response.data?.companies || [];
+        // 백엔드는 { success: true, companies: [...], total: xxx } 형태로 반환
+        return response.companies || [];
     }
 
     /**
@@ -273,7 +287,8 @@ export class DatabaseManager {
      */
     async getMyClients() {
         const response = await this.request(`${ENDPOINTS.CLIENTS}/my`);
-        return response.data?.companies || [];
+        // 백엔드는 { success: true, companies: [...] } 형태로 반환
+        return response.companies || [];
     }
 
     /**
@@ -281,7 +296,8 @@ export class DatabaseManager {
      */
     async getClientById(id) {
         const response = await this.request(`${ENDPOINTS.CLIENTS}/${id}`);
-        return response.data;
+        // 백엔드는 { success: true, company: {...} } 형태로 반환
+        return response.company;
     }
 
     /**
@@ -292,7 +308,8 @@ export class DatabaseManager {
             method: 'POST',
             body: JSON.stringify(clientData)
         });
-        return response.data;
+        // 백엔드는 { success: true, keyValue: ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -303,7 +320,8 @@ export class DatabaseManager {
             method: 'PUT',
             body: JSON.stringify(clientData)
         });
-        return response.data;
+        // 백엔드는 { success: true, affected: ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -324,11 +342,17 @@ export class DatabaseManager {
      * [기능: 모든 보고서 조회]
      */
     async getAllReports(filters = {}) {
+        // limit이 없으면 10000으로 설정하여 모든 데이터 가져오기
+        if (!filters.limit) {
+            filters.limit = 10000;
+        }
+
         const query = new URLSearchParams(filters).toString();
         const url = `${ENDPOINTS.REPORTS}${query ? '?' + query : ''}`;
 
         const response = await this.request(url);
-        return response.data?.reports || [];
+        // 백엔드는 { success: true, reports: [...] } 형태로 반환
+        return response.reports || [];
     }
 
     /**
@@ -336,7 +360,8 @@ export class DatabaseManager {
      */
     async getMyReports() {
         const response = await this.request(`${ENDPOINTS.REPORTS}/my`);
-        return response.data?.reports || [];
+        // 백엔드는 { success: true, reports: [...] } 형태로 반환
+        return response.reports || [];
     }
 
     /**
@@ -347,7 +372,8 @@ export class DatabaseManager {
             method: 'POST',
             body: JSON.stringify(reportData)
         });
-        return response.data;
+        // 백엔드는 { success: true, ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -358,7 +384,8 @@ export class DatabaseManager {
             method: 'PUT',
             body: JSON.stringify(reportData)
         });
-        return response.data;
+        // 백엔드는 { success: true, ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -369,7 +396,8 @@ export class DatabaseManager {
             method: 'PUT',
             body: JSON.stringify({ comment })
         });
-        return response.data;
+        // 백엔드는 { success: true, ... } 형태로 반환
+        return response;
     }
 
     /**
@@ -382,7 +410,8 @@ export class DatabaseManager {
             method: 'PUT',
             body: JSON.stringify({ comment })
         });
-        return response.data;
+        // 백엔드는 { success: true, ... } 형태로 반환
+        return response;
     }
 
     // ============================================
@@ -399,7 +428,8 @@ export class DatabaseManager {
         }
 
         const response = await this.request(`${ENDPOINTS.KPI}/sales/${encodeURIComponent(this.user.name)}`);
-        return response.data;
+        // 백엔드는 { success: true, data: {...} } 형태로 반환
+        return response.data || response;
     }
 
     /**
@@ -407,7 +437,8 @@ export class DatabaseManager {
      */
     async getAllKPI() {
         const response = await this.request(`${ENDPOINTS.KPI}/admin`);
-        return response.data;
+        // 백엔드는 { success: true, data: {...} } 형태로 반환
+        return response.data || response;
     }
 
     // ============================================
@@ -438,12 +469,12 @@ export class DatabaseManager {
         const endpoint = this.getEndpoint(storeName);
         const response = await this.request(endpoint);
 
-        let results = response.data || [];
-
-        // 배열에서 데이터 추출 (companies, employees 등)
-        if (response.data?.companies) results = response.data.companies;
-        else if (response.data?.employees) results = response.data.employees;
-        else if (response.data?.reports) results = response.data.reports;
+        // 백엔드는 { success: true, companies: [...] } 형태로 반환 (data 래퍼 없음)
+        let results = [];
+        if (response.companies) results = response.companies;
+        else if (response.employees) results = response.employees;
+        else if (response.reports) results = response.reports;
+        else results = response.data || [];
 
         // 필터 적용
         if (filter && typeof filter === 'function') {
