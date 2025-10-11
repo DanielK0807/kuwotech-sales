@@ -523,7 +523,10 @@ window.showAddEmployee = function() {
 window.viewEmployee = function(id) {
     const employee = employees.find(emp => emp.id === id);
     if (!employee) return;
-    
+
+    // 역할 표시 (role1과 role2 결합)
+    const roles = [employee.role1, employee.role2].filter(r => r).join(', ') || '-';
+
     const modal = new Modal({
         size: 'lg',
         title: '직원 상세 정보',
@@ -531,31 +534,22 @@ window.viewEmployee = function(id) {
             <div class="employee-detail p-20">
                 <div class="grid-2col gap-20">
                     <div>
-                        <h3 class="mb-15">기본 정보</h3>
-                        <p><strong>ID:</strong> ${employee.id}</p>
-                        <p><strong>이름:</strong> ${employee.name}</p>
-                        <p><strong>이메일:</strong> ${employee.email}</p>
-                        <p><strong>전화번호:</strong> ${formatPhone(employee.phone)}</p>
+                        <h3 class="mb-15 text-white font-weight-600 text-shadow" style="font-size: 15px;">기본 정보</h3>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>이름:</strong> ${employee.name}</p>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>이메일:</strong> ${employee.email || '-'}</p>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>전화번호:</strong> ${formatPhone(employee.phone) || '-'}</p>
                     </div>
                     <div>
-                        <h3 class="mb-15">직무 정보</h3>
-                        <p><strong>역할:</strong> ${employee.role}</p>
-                        <p><strong>부서:</strong> ${employee.department}</p>
-                        <p><strong>입사일:</strong> ${formatDateKorean(employee.hireDate)}</p>
-                        <p><strong>상태:</strong>
+                        <h3 class="mb-15 text-white font-weight-600 text-shadow" style="font-size: 15px;">직무 정보</h3>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>역할:</strong> ${roles}</p>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>부서:</strong> ${employee.department || '-'}</p>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>입사일:</strong> ${formatDateKorean(employee.hireDate) || '-'}</p>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>담당 거래처:</strong> ${employee.companyCount}개</p>
+                        <p class="text-white text-shadow mb-8" style="font-size: 13px;"><strong>상태:</strong>
                             <span class="glass-badge ${employee.status === 'active' ? 'success' : 'warning'}">
-                                ${employee.status === 'active' ? '활성' : '비활성'}
+                                ${employee.status === 'active' ? '재직' : '퇴사'}
                             </span>
                         </p>
-                    </div>
-                </div>
-
-                <div class="mt-30">
-                    <h3 class="mb-15">활동 내역</h3>
-                    <div class="glass-panel p-15">
-                        <p>• 최근 로그인: 2025-01-27 09:30:00</p>
-                        <p>• 이번 달 실적: 15건 처리</p>
-                        <p>• 관리 거래처: 8개사</p>
                     </div>
                 </div>
             </div>
@@ -567,7 +561,7 @@ window.viewEmployee = function(id) {
             }
         ]
     });
-    
+
     modal.open();
 };
 
