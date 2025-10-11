@@ -402,6 +402,70 @@ export function getCompanyDisplayName(company) {
 }
 
 /**
+ * 표준 API 에러 처리
+ * @param {Error} error - 에러 객체
+ * @param {string} context - 에러 발생 컨텍스트 (예: '거래처 로드')
+ * @param {boolean} showToast - Toast 알림 표시 여부 (기본값: true)
+ */
+export function handleApiError(error, context = '', showToast = true) {
+    const errorMessage = error?.message || error?.error || '알 수 없는 오류가 발생했습니다';
+    const fullMessage = context ? `${context} 중 오류: ${errorMessage}` : errorMessage;
+
+    console.error(`[API Error]${context ? ` ${context}:` : ''}`, error);
+
+    if (showToast && window.Toast) {
+        window.Toast.error(fullMessage);
+    }
+
+    return {
+        success: false,
+        error: errorMessage,
+        context
+    };
+}
+
+/**
+ * 현재 로그인된 사용자 정보 가져오기
+ * @returns {Object|null} 사용자 객체 또는 null
+ */
+export function getCurrentUser() {
+    try {
+        const userJson = sessionStorage.getItem('user');
+        if (!userJson) return null;
+
+        const user = JSON.parse(userJson);
+        return user;
+    } catch (error) {
+        console.error('사용자 정보 파싱 오류:', error);
+        return null;
+    }
+}
+
+/**
+ * 인증 체크 - 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+ * @param {string} redirectUrl - 리다이렉트할 로그인 페이지 URL (기본값: ../../02.login/01_login.html)
+ * @param {boolean} showToast - Toast 알림 표시 여부 (기본값: true)
+ * @returns {Object|null} 인증된 사용자 객체 또는 null (리다이렉트 시)
+ */
+export function ensureAuthenticated(redirectUrl = '../../02.login/01_login.html', showToast = true) {
+    const user = getCurrentUser();
+
+    if (!user) {
+        if (showToast && window.Toast) {
+            window.Toast.error('로그인이 필요합니다');
+        }
+
+        setTimeout(() => {
+            window.location.href = redirectUrl;
+        }, 1000);
+
+        return null;
+    }
+
+    return user;
+}
+
+/**
  * 전역 유틸리티 객체로 노출
  */
 if (typeof window !== 'undefined') {
@@ -433,7 +497,10 @@ if (typeof window !== 'undefined') {
         getFileExtension,
         formatBytes,
         copyToClipboard,
-        getCompanyDisplayName
+        getCompanyDisplayName,
+        handleApiError,
+        getCurrentUser,
+        ensureAuthenticated
     };
 }
 
@@ -466,5 +533,8 @@ export default {
     getFileExtension,
     formatBytes,
     copyToClipboard,
-    getCompanyDisplayName
+    getCompanyDisplayName,
+    handleApiError,
+    getCurrentUser,
+    ensureAuthenticated
 };
