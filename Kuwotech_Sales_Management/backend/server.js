@@ -185,8 +185,11 @@ app.use('/api/master', masterRoutes);
 // 제품 라우트
 app.use('/api/products', productsRoutes);
 
-// 디버그 라우트 (개발용)
-app.use('/api/debug', debugRoutes);
+// 디버그 라우트 (개발 환경에서만)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/debug', debugRoutes);
+  console.log('🐛 디버그 라우트 활성화됨 (개발 환경)');
+}
 
 // ============================================
 // 기본 라우트

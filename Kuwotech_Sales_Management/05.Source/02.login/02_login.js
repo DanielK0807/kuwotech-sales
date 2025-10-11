@@ -45,8 +45,6 @@ const elements = {
  * [기능: 페이지 초기화]
  */
 function initLoginPage() {
-    console.log('🔐 로그인 페이지 초기화 시작');
-
     // DOM 요소 가져오기
     elements.employeeNameInput = document.getElementById('employeeName');
     elements.roleGroup = document.getElementById('roleGroup');
@@ -58,8 +56,6 @@ function initLoginPage() {
 
     // 이벤트 리스너 등록
     attachEventListeners();
-
-    console.log('✅ 로그인 페이지 초기화 완료');
 }
 
 /**
@@ -89,8 +85,6 @@ function attachEventListeners() {
 
     // 폼 제출 이벤트
     elements.loginForm.addEventListener('submit', handleLogin);
-
-    console.log('✅ 이벤트 리스너 등록 완료');
 }
 
 // ============================================
@@ -108,8 +102,6 @@ async function handleNameSubmit() {
         return;
     }
 
-    console.log(`👤 이름 확인 중: ${name}`);
-
     // 로딩 상태
     elements.loginButton.disabled = true;
     elements.loginButton.textContent = '확인 중...';
@@ -117,8 +109,6 @@ async function handleNameSubmit() {
     try {
         // API를 통해 직원 정보 가져오기 (이름으로 조회)
         const response = await dbManager.getEmployeeByName(name);
-
-        console.log(`📊 직원 조회 응답:`, response);
 
         if (!response || !response.employee) {
             showToast('존재하지 않는 직원입니다', 'error');
@@ -141,8 +131,6 @@ async function handleNameSubmit() {
 
         currentEmployee = employee;
         isNameVerified = true;
-
-        console.log(`✅ 직원 확인 완료:`, currentEmployee);
 
         // 역할 선택 UI 표시
         showRoleSelection(employee);
@@ -175,8 +163,6 @@ function showRoleSelection(employee) {
     if (employee.role1) roles.push(employee.role1);
     if (employee.role2 && employee.role2 !== employee.role1) roles.push(employee.role2);
 
-    console.log(`📋 직원 역할:`, roles);
-
     if (roles.length === 0) {
         showToast('역할이 지정되지 않은 직원입니다', 'error');
         resetForm();
@@ -198,7 +184,6 @@ function showRoleSelection(employee) {
                 </label>
             </div>
         `;
-        console.log(`✅ 단일 역할 자동 선택: ${selectedRole}`);
         elements.loginButton.disabled = false;
     }
     // 역할이 2개인 경우: 선택 가능하게 표시
@@ -223,14 +208,12 @@ function showRoleSelection(employee) {
         roleRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
                 selectedRole = e.target.value;
-                console.log(`✅ 역할 선택됨: ${selectedRole}`);
                 elements.loginButton.disabled = false;
             });
         });
 
         // 첫 번째 역할 자동 선택
         selectedRole = roles[0];
-        console.log(`✅ 기본 역할 선택: ${selectedRole}`);
         elements.loginButton.disabled = false;
     }
 }
@@ -267,8 +250,6 @@ function resetForm() {
     elements.passwordInput.value = '';
     elements.loginButton.disabled = true;
     elements.loginButton.textContent = '확인';
-
-    console.log('🔄 폼 초기화');
 }
 
 // ============================================
@@ -305,15 +286,8 @@ async function handleLogin(event) {
     elements.loginButton.textContent = '로그인 중...';
 
     try {
-        console.log('🔐 로그인 시도:', {
-            name: name,
-            role: selectedRole
-        });
-
         // API 로그인 요청
         const user = await dbManager.login(name, password, selectedRole);
-
-        console.log('✅ 로그인 성공:', user);
 
         // 선택한 역할 저장
         localStorage.setItem('selectedRole', selectedRole);
