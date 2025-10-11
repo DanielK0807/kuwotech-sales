@@ -16,6 +16,7 @@
 import ApiManager from '../../01.common/13_api_manager.js';
 import { getCompanyDisplayName, parseJSON } from '../../01.common/02_utils.js';
 import { formatNumber, formatDate } from '../../01.common/03_format.js';
+import logger from '../../01.common/23_logger.js';
 
 // =====================================================
 // API Manager 초기화
@@ -84,14 +85,14 @@ async function initReportCheckPage() {
     // 초기 데이터 로드
     await loadReportsData();
   } catch (error) {
-    console.error('❌ [Report Check] 초기화 실패:', error);
-    console.error('   스택:', error.stack);
+    logger.error('❌ [Report Check] 초기화 실패:', error);
+    logger.error('   스택:', error.stack);
 
     // 초기화 실패해도 이벤트 리스너는 등록 시도
     try {
       initEventListeners();
     } catch (listenerError) {
-      console.error('❌ [Report Check] 이벤트 리스너 등록 실패:', listenerError);
+      logger.error('❌ [Report Check] 이벤트 리스너 등록 실패:', listenerError);
     }
 
     // 에러 표시
@@ -163,14 +164,14 @@ function initEventListeners() {
     if (elements.btnSearch) {
       elements.btnSearch.addEventListener('click', handleSearch);
     } else {
-      console.error('[Report Check]   - 검색 버튼 요소 없음 ✗');
+      logger.error('[Report Check]   - 검색 버튼 요소 없음 ✗');
     }
 
     // 새로고침 버튼
     if (elements.btnRefresh) {
       elements.btnRefresh.addEventListener('click', handleRefresh);
     } else {
-      console.error('[Report Check]   - 새로고침 버튼 요소 없음 ✗');
+      logger.error('[Report Check]   - 새로고침 버튼 요소 없음 ✗');
     }
 
     // 엔터키로 검색
@@ -193,7 +194,7 @@ function initEventListeners() {
     }
 
   } catch (error) {
-    console.error('[Report Check] 이벤트 리스너 등록 중 오류:', error);
+    logger.error('[Report Check] 이벤트 리스너 등록 중 오류:', error);
     throw error;
   }
 }
@@ -228,7 +229,7 @@ async function loadReportsData() {
         new Date(b.submitDate) - new Date(a.submitDate)
       );
     } else {
-      console.warn('[Report Check] 보고서 목록 로드 실패:', response.message);
+      logger.warn('[Report Check] 보고서 목록 로드 실패:', response.message);
       state.reportsData = [];
 
       // 개발용: 목업 데이터 사용
@@ -246,8 +247,8 @@ async function loadReportsData() {
 
     showLoading(false);
   } catch (error) {
-    console.error('❌ [Report Check] 데이터 로드 실패:', error);
-    console.error('   에러 스택:', error.stack);
+    logger.error('❌ [Report Check] 데이터 로드 실패:', error);
+    logger.error('   에러 스택:', error.stack);
     showLoading(false);
 
     // 개발용: 목업 데이터 사용
@@ -277,11 +278,11 @@ async function loadCompanies() {
       // 거래처 드롭다운 채우기
       populateCompanyFilter();
     } else {
-      console.warn('[Report Check] 거래처 목록 로드 실패:', response.message);
+      logger.warn('[Report Check] 거래처 목록 로드 실패:', response.message);
       state.companies = [];
     }
   } catch (error) {
-    console.error('❌ [Report Check] 거래처 목록 로드 실패:', error);
+    logger.error('❌ [Report Check] 거래처 목록 로드 실패:', error);
     state.companies = [];
   }
 }
@@ -291,7 +292,7 @@ async function loadCompanies() {
  */
 function populateCompanyFilter() {
   if (!elements.filterCompany) {
-    console.warn('[Report Check] 거래처 필터 요소 없음');
+    logger.warn('[Report Check] 거래처 필터 요소 없음');
     return;
   }
 
@@ -321,7 +322,7 @@ function populateCompanyFilter() {
 function transformReportsData(apiData) {
 
   if (!apiData || !Array.isArray(apiData)) {
-    console.warn('[Report Check] 유효하지 않은 데이터:', apiData);
+    logger.warn('[Report Check] 유효하지 않은 데이터:', apiData);
     return [];
   }
 
@@ -372,7 +373,7 @@ function transformReportsData(apiData) {
 
       return transformed;
     } catch (error) {
-      console.error(`[Report Check] 보고서 #${index + 1} 변환 실패:`, error, report);
+      logger.error(`[Report Check] 보고서 #${index + 1} 변환 실패:`, error, report);
       // 실패한 보고서는 건너뛰지 않고 기본값으로 반환
       return {
         reportId: report.reportId || 'unknown',
@@ -556,7 +557,7 @@ function handleRefresh() {
     }
 
   } catch (error) {
-    console.error('[Report Check] ❌ 새로고침 중 오류:', error);
+    logger.error('[Report Check] ❌ 새로고침 중 오류:', error);
     if (window.Toast) {
       window.Toast.error('새로고침 중 오류가 발생했습니다');
     }
@@ -618,7 +619,7 @@ function renderReportList() {
     if (reportElement) {
       elements.reportList.appendChild(reportElement);
     } else {
-      console.warn('[Report Check] 보고서 요소 생성 실패:', report.reportId);
+      logger.warn('[Report Check] 보고서 요소 생성 실패:', report.reportId);
     }
   });
 }
@@ -628,7 +629,7 @@ function createReportElement(report) {
   const reportItem = clone.querySelector('.report-item');
 
   if (!reportItem) {
-    console.error('[Report Check] 템플릿에서 .report-item을 찾을 수 없습니다');
+    logger.error('[Report Check] 템플릿에서 .report-item을 찾을 수 없습니다');
     return null;
   }
 
@@ -868,7 +869,7 @@ function addDynamicCollectionRow(reportItem, report) {
 
   const container = reportItem.querySelector('.collection-section .dynamic-input-rows');
   if (!container) {
-    console.error('[Report Check] 수금 동적 입력줄 컨테이너를 찾을 수 없습니다');
+    logger.error('[Report Check] 수금 동적 입력줄 컨테이너를 찾을 수 없습니다');
     return;
   }
 
@@ -899,7 +900,7 @@ function addDynamicSalesRow(reportItem, report) {
 
   const container = reportItem.querySelector('.sales-section .dynamic-input-rows');
   if (!container) {
-    console.error('[Report Check] 매출 동적 입력줄 컨테이너를 찾을 수 없습니다');
+    logger.error('[Report Check] 매출 동적 입력줄 컨테이너를 찾을 수 없습니다');
     return;
   }
 
@@ -1144,7 +1145,7 @@ function getStatus(entries, actual, planned) {
 function renderActualItems(container, entries, type, report) {
 
   if (!container) {
-    console.error('[Report Check] ❌ renderActualItems: container가 null입니다');
+    logger.error('[Report Check] ❌ renderActualItems: container가 null입니다');
     return;
   }
 
@@ -1236,14 +1237,14 @@ async function handleAddCollection(reportItem, report) {
 
   // 유효성 검사
   if (!amount || amount <= 0) {
-    console.warn('[Report Check] 금액 검증 실패:', amount);
+    logger.warn('[Report Check] 금액 검증 실패:', amount);
     if (window.Toast) window.Toast.warning('실적금액을 입력해주세요');
     amountInput.focus();
     return;
   }
 
   if (!date) {
-    console.warn('[Report Check] 날짜 검증 실패:', date);
+    logger.warn('[Report Check] 날짜 검증 실패:', date);
     if (window.Toast) window.Toast.warning('수금일을 선택해주세요');
     dateInput.focus();
     return;
@@ -1303,7 +1304,7 @@ async function handleAddCollection(reportItem, report) {
   if (collectionItemsEl) {
     renderActualItems(collectionItemsEl, report.collection.entries, 'collection', report);
   } else {
-    console.error('[Report Check] ❌ collection-actual-items 요소를 찾을 수 없음');
+    logger.error('[Report Check] ❌ collection-actual-items 요소를 찾을 수 없음');
   }
 
   // ✅ 미이행 금액 업데이트
@@ -1313,7 +1314,7 @@ async function handleAddCollection(reportItem, report) {
   if (collectionRemainingEl) {
     collectionRemainingEl.textContent = formatNumber(collectionRemaining);
   } else {
-    console.error('[Report Check] ❌ collection-remaining-amount 요소를 찾을 수 없음');
+    logger.error('[Report Check] ❌ collection-remaining-amount 요소를 찾을 수 없음');
   }
 
   updateCompleteDates(reportItem, report);
@@ -1577,7 +1578,7 @@ async function saveReportData(report) {
       throw new Error(response.message || '저장 실패');
     }
   } catch (error) {
-    console.error('[Report Check] 보고서 저장 에러:', error);
+    logger.error('[Report Check] 보고서 저장 에러:', error);
     if (window.Toast) {
       window.Toast.error('저장에 실패했습니다: ' + error.message);
     }
@@ -1636,7 +1637,7 @@ async function handleDeleteReport(reportItem, report) {
       throw new Error(response.message || '삭제 실패');
     }
   } catch (error) {
-    console.error('[Report Check] 보고서 삭제 에러:', error);
+    logger.error('[Report Check] 보고서 삭제 에러:', error);
     if (window.Toast) {
       window.Toast.error('삭제에 실패했습니다: ' + error.message);
     } else {
@@ -1681,7 +1682,7 @@ async function handleConfirmCollection(reportItem, report) {
       }
     }
   } catch (error) {
-    console.error('[Report Check] 수금 확인 처리 에러:', error);
+    logger.error('[Report Check] 수금 확인 처리 에러:', error);
     if (window.Toast) {
       window.Toast.error('확인 처리 중 오류가 발생했습니다.');
     }
@@ -1724,7 +1725,7 @@ async function handleConfirmSales(reportItem, report) {
       }
     }
   } catch (error) {
-    console.error('[Report Check] 매출 확인 처리 에러:', error);
+    logger.error('[Report Check] 매출 확인 처리 에러:', error);
     if (window.Toast) {
       window.Toast.error('확인 처리 중 오류가 발생했습니다.');
     }

@@ -8,6 +8,7 @@ import ApiManager from '../../01.common/13_api_manager.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import { formatCurrency, formatPercent, formatNumber } from '../../01.common/03_format.js';
 import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // API Manager 초기화
@@ -129,7 +130,7 @@ function cacheElements() {
                 });
 
             } catch (error) {
-                console.error('[Report Write] ❌ Flatpickr 초기화 오류:', error);
+                logger.error('[Report Write] ❌ Flatpickr 초기화 오류:', error);
                 // 오류 시 폴백
                 elements.reportDate.value = today;
                 elements.reportDate.setAttribute('type', 'date');
@@ -137,13 +138,13 @@ function cacheElements() {
             }
         } else {
             // Flatpickr 라이브러리가 없으면 기본 date input 방식으로 폴백
-            console.warn('[Report Write] ⚠️ Flatpickr 라이브러리를 찾을 수 없습니다 - 기본 date input 사용');
+            logger.warn('[Report Write] ⚠️ Flatpickr 라이브러리를 찾을 수 없습니다 - 기본 date input 사용');
             elements.reportDate.value = today;
             elements.reportDate.setAttribute('type', 'date');
             elements.reportDate.removeAttribute('readonly');
         }
     } else {
-        console.error('[Report Write] ❌ reportDate 요소를 찾을 수 없습니다');
+        logger.error('[Report Write] ❌ reportDate 요소를 찾을 수 없습니다');
     }
     elements.companySelect = document.getElementById('companySelect');
     elements.verifyCompanyBtn = document.getElementById('verifyCompanyBtn');
@@ -209,7 +210,7 @@ async function initializePage() {
 
         // ⚠️ CRITICAL: id 필드 검증
         if (!state.currentUser.id) {
-            console.error('[Report Write] ❌ 사용자 정보에 id가 없습니다:', state.currentUser);
+            logger.error('[Report Write] ❌ 사용자 정보에 id가 없습니다:', state.currentUser);
             if (window.Toast) {
                 window.Toast.error('세션 정보가 올바르지 않습니다. 다시 로그인해주세요.');
             }
@@ -234,7 +235,7 @@ async function initializePage() {
         await loadEmployeeGoals();
 
     } catch (error) {
-        console.error('[Report Write] 초기화 실패:', error);
+        logger.error('[Report Write] 초기화 실패:', error);
         if (window.Toast) {
             window.Toast.error('페이지 초기화에 실패했습니다');
         }
@@ -298,12 +299,12 @@ async function loadProducts() {
         if (response.success) {
             state.products = response.data || [];
         } else {
-            console.error('[Report Write] 제품 목록 로드 실패:', response.message);
+            logger.error('[Report Write] 제품 목록 로드 실패:', response.message);
             state.products = [];
         }
 
     } catch (error) {
-        console.error('[Report Write] 제품 목록 로드 오류:', error);
+        logger.error('[Report Write] 제품 목록 로드 오류:', error);
         state.products = [];
     }
 }
@@ -325,13 +326,13 @@ async function loadUserCompanies() {
                 companyAutocompleteManager.updateDataSource(state.companies);
             }
         } else {
-            console.warn('[Report Write] ⚠️ 거래처 목록 로드 실패:', response.message);
+            logger.warn('[Report Write] ⚠️ 거래처 목록 로드 실패:', response.message);
             if (window.Toast) {
                 window.Toast.warning(`거래처 목록을 불러오지 못했습니다: ${response.message}`);
             }
         }
     } catch (error) {
-        console.error('[Report Write] ❌ 거래처 목록 로드 에러:', error);
+        logger.error('[Report Write] ❌ 거래처 목록 로드 에러:', error);
         if (window.Toast) {
             window.Toast.error('거래처 목록을 불러올 수 없습니다');
         }
@@ -348,7 +349,7 @@ let companyAutocompleteManager = null;
  */
 function initCompanyAutocomplete() {
     if (!elements.companySelect || !elements.companyAutocompleteList) {
-        console.warn('[Report Write] 자동완성 요소를 찾을 수 없습니다');
+        logger.warn('[Report Write] 자동완성 요소를 찾을 수 없습니다');
         return;
     }
 
@@ -445,7 +446,7 @@ async function loadEmployeeGoals() {
 
         // 사용자 ID 확인
         if (!state.currentUser || !state.currentUser.id) {
-            console.error('[Report Write] ❌ 사용자 ID가 없습니다');
+            logger.error('[Report Write] ❌ 사용자 ID가 없습니다');
             elements.goalDisplaySection.style.display = 'none';
             return;
         }
@@ -486,7 +487,7 @@ async function loadEmployeeGoals() {
             });
         }
     } catch (error) {
-        console.error('[Report Write] 직원 실적 로드 에러:', error);
+        logger.error('[Report Write] 직원 실적 로드 에러:', error);
         // 에러 발생 시 목표 섹션 숨김
         elements.goalDisplaySection.style.display = 'none';
     }
@@ -530,7 +531,7 @@ async function loadCompanyGoals(companyId) {
             });
         }
     } catch (error) {
-        console.error('[Report Write] 거래처 실적 로드 에러:', error);
+        logger.error('[Report Write] 거래처 실적 로드 에러:', error);
         // 에러 발생 시 직원 전체 실적으로 폴백
         await loadEmployeeGoals();
     }
@@ -868,7 +869,7 @@ function handleModalActivityTypeChange(event) {
     const template = document.getElementById(templateId);
 
     if (!template) {
-        console.error(`템플릿을 찾을 수 없습니다: ${templateId}`);
+        logger.error(`템플릿을 찾을 수 없습니다: ${templateId}`);
         return;
     }
 
@@ -1172,7 +1173,7 @@ async function handleSubmit(event) {
         }
 
     } catch (error) {
-        console.error('[Report Write] 보고서 제출 에러:', error);
+        logger.error('[Report Write] 보고서 제출 에러:', error);
 
         if (window.Toast) {
             window.Toast.error('보고서 저장에 실패했습니다: ' + error.message);
@@ -1389,7 +1390,7 @@ async function collectFormData() {
                         state.products.push(response.data);
                     }
                 } catch (error) {
-                    console.error(`[Report Write] 제품 추가 실패: ${normalizedName}`, error);
+                    logger.error(`[Report Write] 제품 추가 실패: ${normalizedName}`, error);
                     // 실패해도 계속 진행 (보고서 작성은 허용)
                 }
             }
@@ -1504,7 +1505,7 @@ async function runInitialization() {
         await initializePage();
 
     } catch (error) {
-        console.error('[Report Write] 초기화 중 오류 발생:', error);
+        logger.error('[Report Write] 초기화 중 오류 발생:', error);
         if (window.Toast) {
             window.Toast.error('페이지 초기화에 실패했습니다');
         }

@@ -21,6 +21,7 @@ import { showToast } from '../../../01.common/14_toast.js';
 import Modal from '../../../01.common/06_modal.js';
 import { formatDate } from '../../../01.common/03_format.js';
 import { setQuickPeriod } from '../../../01.common/02_utils.js';
+import logger from '../../../01.common/23_logger.js';
 
 // ============================================
 // [섹션 2: 다운로드 버튼 초기화]
@@ -30,7 +31,7 @@ export function initDownloadButton() {
     const myReportsSection = document.querySelector('.my-reports');
     
     if (!myReportsSection) {
-        console.warn('[보고서 다운로드] 내 보고서 섹션을 찾을 수 없습니다');
+        logger.warn('[보고서 다운로드] 내 보고서 섹션을 찾을 수 없습니다');
         return;
     }
     
@@ -122,7 +123,7 @@ async function handleQuickDownload() {
         });
         
     } catch (error) {
-        console.error('[보고서 다운로드] 실패:', error);
+        logger.error('[보고서 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 }
@@ -310,7 +311,7 @@ async function handleCustomDownload(modal) {
         });
         
     } catch (error) {
-        console.error('[보고서 다운로드] 실패:', error);
+        logger.error('[보고서 다운로드] 실패:', error);
         showToast('다운로드 중 오류가 발생했습니다', 'error');
     }
 }
