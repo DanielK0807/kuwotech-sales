@@ -8,6 +8,7 @@
 import Storage from './15_storage_manager.js';
 import { detectEnvironment, getApiBaseUrl } from './01_global_config.js';
 import logger from './23_logger.js';
+import errorHandler, { NetworkError, ValidationError } from './24_error_handler.js';
 
 // ============================================
 // API 설정
@@ -121,18 +122,24 @@ class ApiManager {
      * 초기화
      */
     async init() {
-        
+
         // API 헬스 체크
         const isConnected = await this.checkServerConnection();
-        
+
         if (isConnected) {
             this.startMonitoring();
         } else {
-            logger.error('❌ [API Manager] 백엔드 서버 연결 실패');
+            await errorHandler.handle(
+                new NetworkError('백엔드 서버 연결 실패', null, {
+                    userMessage: '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.',
+                    context: { module: 'api_manager', action: 'init', baseURL: this.config.baseURL }
+                }),
+                { showToUser: false } // UI는 showConnectionError()에서 처리
+            );
             this.showConnectionError();
             this.startReconnection();
         }
-        
+
         return isConnected;
     }
 
@@ -175,7 +182,18 @@ class ApiManager {
             this.serverStatus.lastCheck = new Date();
 
             if (!silent) {
-                logger.error('❌ [API Manager] 서버 연결 실패:', error.message);
+                await errorHandler.handle(
+                    new NetworkError('서버 연결 실패', error, {
+                        userMessage: '서버에 연결할 수 없습니다.',
+                        context: {
+                            module: 'api_manager',
+                            action: 'checkServerConnection',
+                            baseURL: this.config.baseURL,
+                            errorType: error.name
+                        }
+                    }),
+                    { showToUser: false } // Silent check, UI handled elsewhere
+                );
             }
 
             return false;
@@ -206,11 +224,27 @@ class ApiManager {
      * 재연결 시도
      */
     async startReconnection() {
-        
+
         const reconnectInterval = setInterval(async () => {
             if (this.serverStatus.reconnectAttempts >= this.serverStatus.maxReconnectAttempts) {
                 clearInterval(reconnectInterval);
-                logger.error(`❌ [API Manager] 최대 재연결 시도 횟수(${this.serverStatus.maxReconnectAttempts}) 초과`);
+                await errorHandler.handle(
+                    new NetworkError(
+                        `최대 재연결 시도 횟수(${this.serverStatus.maxReconnectAttempts}) 초과`,
+                        null,
+                        {
+                            userMessage: '서버 연결을 복구할 수 없습니다. 서버 상태를 확인해주세요.',
+                            context: {
+                                module: 'api_manager',
+                                action: 'startReconnection',
+                                attempts: this.serverStatus.reconnectAttempts,
+                                maxAttempts: this.serverStatus.maxReconnectAttempts
+                            },
+                            severity: 'HIGH'
+                        }
+                    ),
+                    { showToUser: false } // UI는 showMaxReconnectError()에서 처리
+                );
                 this.showMaxReconnectError();
                 return;
             }
@@ -532,8 +566,14 @@ class ApiManager {
             }
         }
 
-        // 모든 재시도 실패
-        this.handleError(lastError);
+        // 모든 재시도 실패 - ErrorHandler로 처리
+        await this.handleError(lastError, {
+            module: 'api_manager',
+            action: 'request',
+            endpoint,
+            method: finalConfig.method || 'GET',
+            retryAttempts: this.retryConfig.maxRetries
+        });
         throw lastError;
     }
 
@@ -606,36 +646,56 @@ class ApiManager {
     }
 
     /**
-     * 에러 처리
+     * 에러 처리 (ErrorHandler 통합)
      */
-    handleError(error) {
-        logger.error('API 에러:', error);
+    async handleError(error, context = {}) {
+        // NetworkError로 변환
+        let appError = error;
 
-        // HTTP 400 에러 상세 정보 출력
-        if (error.status === 400 && error.data) {
-            logger.error('❌ 400 에러 상세:', error.data);
-            logger.error('에러 메시지:', error.data.message || error.data.error);
-            logger.error('상세 정보:', error.data);
+        if (!(error instanceof NetworkError)) {
+            // HTTP 에러 상세 정보 로깅
+            if (error.status === 400 && error.data) {
+                logger.error('❌ 400 에러 상세:', error.data);
+            }
+
+            if (error.status === 500 && error.data) {
+                logger.error('❌ 500 서버 에러 상세:', error.data);
+            }
+
+            // 적절한 에러 타입으로 변환
+            if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+                appError = new NetworkError('네트워크 연결 실패', error, {
+                    userMessage: '네트워크 연결을 확인해주세요.',
+                    context
+                });
+                this.showConnectionError();
+            } else if (error.name === 'AbortError') {
+                appError = new NetworkError('요청 시간 초과', error, {
+                    userMessage: '요청 시간이 초과되었습니다. 다시 시도해주세요.',
+                    context
+                });
+            } else {
+                appError = new NetworkError(
+                    error.message || 'API 요청 실패',
+                    error,
+                    {
+                        userMessage: error.data?.message || 'API 요청 중 오류가 발생했습니다.',
+                        context: {
+                            ...context,
+                            status: error.status,
+                            statusText: error.statusText,
+                            data: error.data
+                        }
+                    }
+                );
+            }
         }
 
-        // HTTP 500 에러 상세 정보 출력
-        if (error.status === 500 && error.data) {
-            logger.error('❌ 500 서버 에러 상세:', error.data);
-            logger.error('에러 메시지:', error.data.message || error.data.error);
-            logger.error('스택 트레이스:', error.data.stack || error.data.details);
-            logger.error('상세 정보:', error.data);
-        }
-
-        // 네트워크 에러
-        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-            error.message = '네트워크 연결을 확인해주세요.';
-            this.showConnectionError();
-        }
-
-        // 타임아웃 에러
-        if (error.name === 'AbortError') {
-            error.message = '요청 시간이 초과되었습니다.';
-        }
+        // ErrorHandler로 처리
+        return await errorHandler.handle(appError, {
+            showToUser: true,
+            context
+        });
     }
 
     // ============================================
@@ -759,7 +819,14 @@ class ApiManager {
      */
     async getEmployeesByRole(role) {
         if (!role) {
-            throw new Error('역할(role)은 필수 매개변수입니다.');
+            throw new ValidationError(
+                '역할(role)은 필수 매개변수입니다.',
+                null,
+                {
+                    userMessage: '직원 역할을 지정해주세요.',
+                    context: { module: 'api_manager', action: 'getEmployeesByRole', field: 'role' }
+                }
+            );
         }
         return this.get(`/auth/employees-by-role/${encodeURIComponent(role)}`);
     }
@@ -908,7 +975,19 @@ class ApiManager {
         });
 
         if (!response.ok) {
-            throw new Error('파일 다운로드 실패');
+            throw new NetworkError(
+                '파일 다운로드 실패',
+                null,
+                {
+                    userMessage: '파일을 다운로드할 수 없습니다.',
+                    context: {
+                        module: 'api_manager',
+                        action: 'downloadFile',
+                        fileId,
+                        status: response.status
+                    }
+                }
+            );
         }
 
         return response.blob();
