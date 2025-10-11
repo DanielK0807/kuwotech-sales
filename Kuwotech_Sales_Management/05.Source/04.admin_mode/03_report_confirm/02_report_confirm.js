@@ -17,6 +17,7 @@ import { USER_ROLES, STATUS_MAP, REPORT_TYPE_MAP } from '../../01.common/05_cons
 import { formatCurrency, formatDate } from '../../01.common/03_format.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // 전역 변수 및 상수
@@ -139,7 +140,7 @@ async function loadReports() {
             reportsData = response.data;
         } else if (response && typeof response === 'object') {
             // 객체인 경우 모든 키 확인
-            console.warn('⚠️ 응답 형식이 예상과 다름');
+            logger.warn('⚠️ 응답 형식이 예상과 다름');
             const keys = Object.keys(response);
 
             // 각 키의 값이 배열인지 확인
@@ -151,10 +152,10 @@ async function loadReports() {
             }
 
             if (reportsData.length === 0) {
-                console.error('❌ 배열 데이터를 찾을 수 없음');
+                logger.error('❌ 배열 데이터를 찾을 수 없음');
             }
         } else {
-            console.error('❌ 알 수 없는 응답 형식');
+            logger.error('❌ 알 수 없는 응답 형식');
             reportsData = [];
         }
 
@@ -165,15 +166,15 @@ async function loadReports() {
 
         return true;
     } catch (error) {
-        console.error('❌ 보고서 로드 에러:', error);
-        console.error('에러 이름:', error.name);
-        console.error('에러 메시지:', error.message);
-        console.error('에러 스택:', error.stack);
+        logger.error('❌ 보고서 로드 에러:', error);
+        logger.error('에러 이름:', error.name);
+        logger.error('에러 메시지:', error.message);
+        logger.error('에러 스택:', error.stack);
 
         // HTTP 에러 상세 정보
         if (error.status) {
-            console.error(`❌ HTTP ${error.status} 에러:`, error.statusText);
-            console.error('에러 응답 데이터:', error.data);
+            logger.error(`❌ HTTP ${error.status} 에러:`, error.statusText);
+            logger.error('에러 응답 데이터:', error.data);
         }
 
         alert('보고서 데이터를 불러오는데 실패했습니다:\n' + error.message + '\n\n브라우저 콘솔(F12)에서 상세 정보를 확인하세요.');
@@ -201,13 +202,13 @@ async function loadEmployees() {
                 canUploadExcel: emp.canUploadExcel
             }));
         } else {
-            console.warn('⚠️ 직원 데이터 형식 오류, 보고서에서 추출');
+            logger.warn('⚠️ 직원 데이터 형식 오류, 보고서에서 추출');
             extractEmployeesFromReports();
         }
 
         return true;
     } catch (error) {
-        console.error('❌ 직원 로드 에러:', error);
+        logger.error('❌ 직원 로드 에러:', error);
         // 직원 데이터 로드 실패시 보고서에서 추출
         extractEmployeesFromReports();
         return true;
@@ -236,13 +237,13 @@ async function loadCompanies() {
         if (response.success && response.companies && Array.isArray(response.companies)) {
             allCompanies = response.companies;
         } else {
-            console.warn('⚠️ 거래처 데이터 형식 오류');
+            logger.warn('⚠️ 거래처 데이터 형식 오류');
             allCompanies = [];
         }
 
         return true;
     } catch (error) {
-        console.error('❌ 거래처 로드 에러:', error);
+        logger.error('❌ 거래처 로드 에러:', error);
         allCompanies = [];
         return true;
     }
@@ -258,7 +259,7 @@ let companyAutocompleteManagerInDetail = null;
  */
 function initCompanyAutocompleteInDetail(inputElement, autocompleteList) {
     if (!inputElement || !autocompleteList) {
-        console.warn('[Report Confirm] 자동완성 요소를 찾을 수 없습니다');
+        logger.warn('[Report Confirm] 자동완성 요소를 찾을 수 없습니다');
         return;
     }
 
@@ -558,7 +559,7 @@ function renderReportDetail(reportId) {
                 activityListEl.innerHTML = '<p class="activity-no-data">활동 내역이 없습니다</p>';
             }
         } catch (e) {
-            console.error('활동내역 파싱 에러:', e);
+            logger.error('활동내역 파싱 에러:', e);
             activityListEl.innerHTML = '<p class="activity-no-data">-</p>';
         }
     }
@@ -591,9 +592,9 @@ function showLoading(show) {
     const mainLayout = document.getElementById('mainLayout');
 
     if (!loadingState || !mainLayout) {
-        console.error('❌ DOM 요소를 찾을 수 없습니다!');
-        console.error('loadingState:', loadingState);
-        console.error('mainLayout:', mainLayout);
+        logger.error('❌ DOM 요소를 찾을 수 없습니다!');
+        logger.error('loadingState:', loadingState);
+        logger.error('mainLayout:', mainLayout);
         return;
     }
 
@@ -689,7 +690,7 @@ async function handleSaveComment() {
             return;
         }
     } catch (e) {
-        console.error('user 데이터 파싱 실패:', e);
+        logger.error('user 데이터 파싱 실패:', e);
         alert('❌ 사용자 정보를 읽을 수 없습니다. 다시 로그인해주세요.');
         return;
     }
@@ -734,7 +735,7 @@ async function handleSaveComment() {
             throw new Error(response.message || '저장 실패');
         }
     } catch (error) {
-        console.error('❌ 의견 저장 에러:', error);
+        logger.error('❌ 의견 저장 에러:', error);
         alert('의견 저장에 실패했습니다: ' + error.message);
     }
 }
@@ -767,7 +768,7 @@ async function initializePage() {
 
         // 보고서가 없어도 UI는 표시
         if (!reportsLoaded || allReports.length === 0) {
-            console.warn('⚠️ 보고서 데이터가 없습니다');
+            logger.warn('⚠️ 보고서 데이터가 없습니다');
             showLoading(false);
 
             // 빈 상태로 UI 렌더링 (에러 처리 포함)
@@ -789,8 +790,8 @@ async function initializePage() {
 
         showLoading(false);
     } catch (error) {
-        console.error('❌ 초기화 중 에러:', error);
-        console.error('에러 스택:', error.stack);
+        logger.error('❌ 초기화 중 에러:', error);
+        logger.error('에러 스택:', error.stack);
         showLoading(false);
         alert('페이지 초기화 중 오류가 발생했습니다:\n\n' + error.message + '\n\n브라우저 콘솔(F12)을 확인하세요.');
     }
@@ -804,8 +805,8 @@ function safeRender(funcName, renderFunc) {
     try {
         renderFunc();
     } catch (error) {
-        console.error(`❌ ${funcName} 렌더링 에러:`, error);
-        console.error('에러 스택:', error.stack);
+        logger.error(`❌ ${funcName} 렌더링 에러:`, error);
+        logger.error('에러 스택:', error.stack);
         // 개별 렌더 함수 에러는 전체 페이지를 중단시키지 않음
     }
 }
@@ -861,7 +862,7 @@ async function main() {
         if (typeof apiManager.init === 'function') {
             isConnected = await apiManager.init();
         } else {
-            console.error('❌ API Manager init 함수를 찾을 수 없습니다');
+            logger.error('❌ API Manager init 함수를 찾을 수 없습니다');
             showLoading(false);
             alert('❌ API Manager 초기화 함수를 찾을 수 없습니다.\n\n페이지를 새로고침해주세요.');
             isInitializing = false;
@@ -870,7 +871,7 @@ async function main() {
 
         // 서버 연결 실패 시 중단
         if (!isConnected) {
-            console.error('❌ 백엔드 서버에 연결할 수 없습니다');
+            logger.error('❌ 백엔드 서버에 연결할 수 없습니다');
             showLoading(false);
             // API Manager가 이미 에러 배너를 표시하므로 추가 alert는 불필요
             isInitializing = false;
@@ -884,8 +885,8 @@ async function main() {
         isInitialized = true;
 
     } catch (error) {
-        console.error('❌ 페이지 로드 에러:', error);
-        console.error('에러 스택:', error.stack);
+        logger.error('❌ 페이지 로드 에러:', error);
+        logger.error('에러 스택:', error.stack);
         showLoading(false);
         alert('페이지 초기화에 실패했습니다:\n\n' + error.message + '\n\n브라우저 콘솔(F12)을 확인하세요.');
     } finally {

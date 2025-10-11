@@ -6,6 +6,7 @@ import ApiManager from '../../01.common/13_api_manager.js';
 import { showToast } from '../../01.common/20_common_index.js';
 import { formatCurrency, formatDate, formatDateRange, formatNumber } from '../../01.common/03_format.js';
 import { GlobalConfig } from '../../01.common/01_global_config.js';
+import logger from '../../01.common/23_logger.js';
 
 // ============================================
 // 전역 변수
@@ -68,7 +69,7 @@ async function loadMasterData() {
         const authToken = localStorage.getItem('authToken');
 
         if (!authToken) {
-            console.error('❌ [마스터데이터] 인증 토큰이 없습니다');
+            logger.error('❌ [마스터데이터] 인증 토큰이 없습니다');
             showToast('로그인이 필요합니다', 'error');
             return;
         }
@@ -93,11 +94,11 @@ async function loadMasterData() {
             if (departmentsData.success && Array.isArray(departmentsData.departments)) {
                 populateDepartmentSelect(departmentsData.departments);
             } else {
-                console.warn('⚠️ [담당부서] 응답 형식 오류:', departmentsData);
+                logger.warn('⚠️ [담당부서] 응답 형식 오류:', departmentsData);
             }
         } else {
             const errorData = await departmentsResponse.json().catch(() => ({}));
-            console.error('❌ [담당부서] 로드 실패:', departmentsResponse.status, errorData);
+            logger.error('❌ [담당부서] 로드 실패:', departmentsResponse.status, errorData);
             showToast(`부서 목록 로드 실패: ${errorData.message || departmentsResponse.statusText}`, 'error');
         }
 
@@ -117,15 +118,15 @@ async function loadMasterData() {
             if (employeesData.success && Array.isArray(employeesData.employees)) {
                 populateEmployeeSelect(employeesData.employees);
             } else {
-                console.warn('⚠️ [직원] 응답 형식 오류:', employeesData);
+                logger.warn('⚠️ [직원] 응답 형식 오류:', employeesData);
             }
         } else {
             const errorData = await employeesResponse.json().catch(() => ({}));
-            console.error('❌ [직원] 로드 실패:', employeesResponse.status, errorData);
+            logger.error('❌ [직원] 로드 실패:', employeesResponse.status, errorData);
 
             // 403 에러인 경우 권한 부족 메시지
             if (employeesResponse.status === 403) {
-                console.warn('⚠️ [직원] 권한 부족: 관리자 권한이 필요할 수 있습니다');
+                logger.warn('⚠️ [직원] 권한 부족: 관리자 권한이 필요할 수 있습니다');
                 showToast('직원 목록 조회 권한이 없습니다', 'warning');
             } else {
                 showToast(`직원 목록 로드 실패: ${errorData.message || employeesResponse.statusText}`, 'error');
@@ -133,7 +134,7 @@ async function loadMasterData() {
         }
 
     } catch (error) {
-        console.error('❌ [마스터데이터] 로드 중 예외 발생:', error);
+        logger.error('❌ [마스터데이터] 로드 중 예외 발생:', error);
         showToast('마스터 데이터 로드 중 오류가 발생했습니다', 'error');
     }
 }
@@ -342,7 +343,7 @@ function handleSectionToggle(event) {
     }
 
     if (!contentElements || contentElements.length === 0) {
-        console.warn(`[섹션토글] ${section} 섹션의 컨텐츠 요소를 찾을 수 없습니다`);
+        logger.warn(`[섹션토글] ${section} 섹션의 컨텐츠 요소를 찾을 수 없습니다`);
         return;
     }
 
@@ -491,7 +492,7 @@ async function loadReports() {
         renderEmployeeReportStats();
 
     } catch (error) {
-        console.error('❌ 보고서 로드 실패:', error);
+        logger.error('❌ 보고서 로드 실패:', error);
         showToast('보고서 데이터를 불러오는데 실패했습니다.', 'error');
     }
 }
@@ -524,7 +525,7 @@ async function loadTodayReports() {
         }
 
     } catch (error) {
-        console.error('❌ [올해누적보고서] 로드 실패:', error);
+        logger.error('❌ [올해누적보고서] 로드 실패:', error);
         todayReports = [];
     }
 }
@@ -552,10 +553,10 @@ async function loadCompanies() {
                 companiesMap[company.keyValue] = company;
             });
         } else {
-            console.warn('⚠️ 거래처 정보 응답 형식 오류:', response);
+            logger.warn('⚠️ 거래처 정보 응답 형식 오류:', response);
         }
     } catch (error) {
-        console.error('❌ 거래처 정보 로드 실패:', error);
+        logger.error('❌ 거래처 정보 로드 실패:', error);
     }
 }
 
@@ -1284,7 +1285,7 @@ function initComparisonDatePickers() {
 
                 comparisonFilters.startDate = defaultRange.start;
             } catch (error) {
-                console.error('[비교보고] ❌ 시작일 Flatpickr 초기화 오류:', error);
+                logger.error('[비교보고] ❌ 시작일 Flatpickr 초기화 오류:', error);
                 // 오류 시 폴백
                 startDateEl.value = defaultRange.start;
                 startDateEl.setAttribute('type', 'date');
@@ -1293,14 +1294,14 @@ function initComparisonDatePickers() {
             }
         } else {
             // Flatpickr 라이브러리가 없으면 기본 date input 방식으로 폴백
-            console.warn('[비교보고] ⚠️ Flatpickr 라이브러리를 찾을 수 없습니다 - 기본 date input 사용');
+            logger.warn('[비교보고] ⚠️ Flatpickr 라이브러리를 찾을 수 없습니다 - 기본 date input 사용');
             startDateEl.value = defaultRange.start;
             startDateEl.setAttribute('type', 'date');
             startDateEl.removeAttribute('readonly');
             comparisonFilters.startDate = defaultRange.start;
         }
     } else {
-        console.error('[비교보고] ❌ comparisonStartDate 요소를 찾을 수 없습니다');
+        logger.error('[비교보고] ❌ comparisonStartDate 요소를 찾을 수 없습니다');
     }
 
     // 종료일 달력 초기화
@@ -1331,7 +1332,7 @@ function initComparisonDatePickers() {
 
                 comparisonFilters.endDate = defaultRange.end;
             } catch (error) {
-                console.error('[비교보고] ❌ 종료일 Flatpickr 초기화 오류:', error);
+                logger.error('[비교보고] ❌ 종료일 Flatpickr 초기화 오류:', error);
                 // 오류 시 폴백
                 endDateEl.value = defaultRange.end;
                 endDateEl.setAttribute('type', 'date');
@@ -1346,7 +1347,7 @@ function initComparisonDatePickers() {
             comparisonFilters.endDate = defaultRange.end;
         }
     } else {
-        console.error('[비교보고] ❌ comparisonEndDate 요소를 찾을 수 없습니다');
+        logger.error('[비교보고] ❌ comparisonEndDate 요소를 찾을 수 없습니다');
     }
 
     // 초기 기간 표시 업데이트
@@ -1413,7 +1414,7 @@ function updateComparisonPeriodDisplay() {
     const periodRangeEl = document.getElementById('comparisonPeriodRange');
 
     if (!periodRangeEl) {
-        console.error('[비교보고] ❌ comparisonPeriodRange 요소를 찾을 수 없습니다');
+        logger.error('[비교보고] ❌ comparisonPeriodRange 요소를 찾을 수 없습니다');
         return;
     }
 
@@ -1487,7 +1488,7 @@ async function handleComparisonSearch() {
     try {
         await loadComparisonReports();
     } catch (error) {
-        console.error('[비교보고] ❌ 조회 실패:', error);
+        logger.error('[비교보고] ❌ 조회 실패:', error);
         showToast('비교보고 조회 중 오류가 발생했습니다', 'error');
     }
 }
@@ -1617,7 +1618,7 @@ async function loadComparisonReports() {
         showToast(`비교보고 ${comparisonReports.length}건 조회 완료`, 'success');
 
     } catch (error) {
-        console.error('[비교보고] ❌ 데이터 로드 실패:', error);
+        logger.error('[비교보고] ❌ 데이터 로드 실패:', error);
         throw error;
     }
 }
@@ -2001,7 +2002,7 @@ function renderComparisonByDepartment() {
 
 
     if (departmentEmployees.length === 0) {
-        console.warn(`[부서별집계] ⚠️ "${selectedDept}" 부서에 등록된 직원이 없습니다`);
+        logger.warn(`[부서별집계] ⚠️ "${selectedDept}" 부서에 등록된 직원이 없습니다`);
         return html;
     }
 
@@ -2179,7 +2180,7 @@ function renderEmployeeReportStats() {
     });
 
     if (!statsContainer || !statsTableBody || !statsTitle) {
-        console.error('❌ [영업담당자통계] DOM 요소를 찾을 수 없습니다');
+        logger.error('❌ [영업담당자통계] DOM 요소를 찾을 수 없습니다');
         return;
     }
 
@@ -2272,7 +2273,7 @@ function renderEmployeeReportStats() {
         statsContainer.style.display = 'block';
     } else {
         // 영업담당자가 없으면 숨김
-        console.warn('⚠️ [영업담당자통계] 영업담당자가 없음 - 숨김 처리');
+        logger.warn('⚠️ [영업담당자통계] 영업담당자가 없음 - 숨김 처리');
         statsContainer.style.display = 'none';
     }
 
