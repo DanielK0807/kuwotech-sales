@@ -9,6 +9,7 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import { formatCurrency, formatPercent, formatNumber } from '../../01.common/03_format.js';
 import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
 import logger from '../../01.common/23_logger.js';
+import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
 
 // ============================================
 // API Manager 초기화
@@ -359,7 +360,7 @@ function initCompanyAutocomplete() {
     }
 
     // AutocompleteManager 생성
-    companyAutocompleteManager = new window.AutocompleteManager({
+    companyAutocompleteManager = new AutocompleteManager({
         inputElement: elements.companySelect,
         listElement: elements.companyAutocompleteList,
         dataSource: state.companies,
