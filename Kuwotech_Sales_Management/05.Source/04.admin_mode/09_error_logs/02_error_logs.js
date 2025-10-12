@@ -28,10 +28,30 @@ const init = async () => {
  */
 const setupEventListeners = () => {
   // 새로고침 버튼
-  document.getElementById('refresh-btn')?.addEventListener('click', async () => {
-    await loadErrorLogs();
-    showToast('오류 내역을 새로고침했습니다.', 'success');
-  });
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      console.log('[오류사항] 새로고침 버튼 클릭');
+
+      // 버튼 비활성화
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = '새로고침 중...';
+
+      try {
+        await loadErrorLogs();
+        showToast('오류 내역을 새로고침했습니다.', 'success');
+      } catch (error) {
+        console.error('[오류사항] 새로고침 실패:', error);
+        showToast('새로고침에 실패했습니다.', 'error');
+      } finally {
+        // 버튼 다시 활성화
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = '새로고침';
+      }
+    });
+  } else {
+    console.warn('[오류사항] 새로고침 버튼을 찾을 수 없습니다.');
+  }
 
   // 모달 닫기
   document.getElementById('close-modal')?.addEventListener('click', () => {
@@ -59,12 +79,19 @@ const loadErrorLogs = async () => {
       offset: 0
     });
 
-    if (response.success && response.data) {
-      errorLogs = response.data.errors || [];
-      console.log(`[오류사항] ${errorLogs.length}건의 오류 내역 로드 완료`);
+    console.log('[오류사항] API 응답:', response);
+
+    // API 응답 형식 확인 (success 필드가 있는 경우와 없는 경우 모두 처리)
+    if (response && (response.success !== false)) {
+      // response.data가 있으면 사용, 없으면 response 자체를 사용
+      const data = response.data || response;
+      errorLogs = data.errors || [];
+      const total = data.total || errorLogs.length;
+
+      console.log(`[오류사항] ${errorLogs.length}건의 오류 내역 로드 완료 (전체: ${total}건)`);
 
       // 통계 업데이트
-      updateStats(response.data.total);
+      updateStats(total);
 
       // 테이블 렌더링
       renderErrorTable();
@@ -84,6 +111,9 @@ const loadErrorLogs = async () => {
         </tr>
       `;
     }
+
+    // 에러를 다시 throw해서 호출자가 알 수 있도록
+    throw error;
   }
 };
 
