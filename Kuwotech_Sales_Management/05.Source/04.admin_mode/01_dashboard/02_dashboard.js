@@ -495,6 +495,7 @@ async function showRankingModal(type) {
                 <div class="ranking-modal-content glass-modal glass-layered glass-shimmer">
                     <div class="ranking-modal-header bg-layer-2">
                         <h2 class="text-on-layer-2">${title}</h2>
+                        <p class="text-on-layer-2" style="font-size: 14px; margin-top: 8px; opacity: 0.9;">영업담당 인원: ${rankings.length}명</p>
                         <button class="ranking-modal-close glass-button" onclick="closeRankingModal()">✕</button>
                     </div>
                     <div class="ranking-modal-body">
