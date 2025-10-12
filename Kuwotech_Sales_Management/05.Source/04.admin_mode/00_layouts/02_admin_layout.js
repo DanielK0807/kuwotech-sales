@@ -94,10 +94,17 @@ const pageFileMap = {
         file: '01_settings',
         script: '02_settings.js'
     },
-    'excel-upload': { 
+    'excel-upload': {
         folder: '08_excel_upload',
         file: '01_excel_upload',
         script: '02_excel_upload.js',
+        adminOnly: true,
+        specificUser: '강정환'
+    },
+    'error-logs': {
+        folder: '09_error_logs',
+        file: '01_error_logs',
+        script: '02_error_logs.js',
         adminOnly: true,
         specificUser: '강정환'
     }
@@ -380,6 +387,24 @@ function showExcelUploadMenu() {
 
 }
 
+/**
+ * 강정환 관리자 전용 오류사항 메뉴 표시
+ */
+function showErrorLogsMenu() {
+
+    const errorLogsMenu = document.getElementById('error-logs-menu');
+    if (!errorLogsMenu) {
+        // UI 요소 누락은 로그만 남기고 계속 진행
+        logger.warn('[메뉴 표시] error-logs-menu 요소를 찾을 수 없습니다.');
+        return;
+    }
+
+    // hidden 클래스 제거 및 메뉴 표시
+    errorLogsMenu.classList.remove('hidden');
+    errorLogsMenu.style.display = 'flex';
+
+}
+
 // ============================================
 // [SECTION: 관리자 전용 기능]
 // ============================================
@@ -388,14 +413,15 @@ async function initAdminFeatures() {
     // 강정환 관리자 전용 메뉴 표시
     if (user && user.name === '강정환') {
         showExcelUploadMenu();
+        showErrorLogsMenu();
     }
-    
+
     // 관리자 알림 설정
     setupAdminNotifications();
-    
+
     // 시스템 모니터링
     setupSystemMonitoring();
-    
+
     // 단축키 설정
     setupAdminShortcuts();
 }

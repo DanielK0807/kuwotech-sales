@@ -293,6 +293,26 @@ const createBackupsTable = async (connection) => {
 };
 
 // ==========================================
+// 9. error_logs 테이블 생성
+// ==========================================
+const createErrorLogsTable = async (connection) => {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS error_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      userName VARCHAR(100) COMMENT '사용자 이름',
+      userRole VARCHAR(50) COMMENT '사용자 역할',
+      errorMessage TEXT NOT NULL COMMENT '에러 메시지',
+      errorStack TEXT COMMENT '에러 스택',
+      pageUrl VARCHAR(500) COMMENT '발생 페이지',
+      browserInfo VARCHAR(200) COMMENT '브라우저 정보',
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '발생 시간',
+      INDEX idx_timestamp (timestamp),
+      INDEX idx_userName (userName)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+};
+
+// ==========================================
 // 제품 마스터 데이터 삽입 (37개)
 // ==========================================
 const insertProducts = async (connection) => {
@@ -717,7 +737,14 @@ export const initializeDatabase = async () => {
       console.log('   ✅ backups 생성 완료');
     }
 
-    // 9. 트리거 생성
+    // 9. error_logs 테이블 확인 및 생성
+    if (!(await checkTableExists(connection, 'error_logs'))) {
+      console.log('   📦 error_logs 테이블 생성 중...');
+      await createErrorLogsTable(connection);
+      console.log('   ✅ error_logs 생성 완료');
+    }
+
+    // 10. 트리거 생성
     console.log('   📦 트리거 생성 중...');
     await createTriggers(connection);
     console.log('   ✅ 트리거 생성 완료');

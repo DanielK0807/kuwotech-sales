@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>오류사항 확인</title>
+    <style>
+      .error-logs-container {
+        padding: 20px;
+      }
+
+      .error-logs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .error-logs-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--text-primary);
+      }
+
+      .error-stats {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        background: var(--card-bg);
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 5px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--primary-color);
+      }
+
+      .error-table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .error-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .error-table th {
+        background: var(--primary-color);
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .error-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+      }
+
+      .error-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .error-message {
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+
+      .error-message:hover {
+        color: var(--primary-color);
+        text-decoration: underline;
+      }
+
+      .error-timestamp {
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+
+      .no-errors {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+      }
+
+      .btn-refresh {
+        padding: 8px 16px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .btn-refresh:hover {
+        background: var(--primary-hover);
+      }
+
+      /* 모달 스타일 */
+      .error-detail-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .error-detail-modal.active {
+        display: flex;
+      }
+
+      .error-detail-content {
+        background: white;
+        border-radius: 8px;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+        padding: 24px;
+      }
+
+      .error-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #eee;
+      }
+
+      .error-detail-title {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .error-detail-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-secondary);
+      }
+
+      .error-detail-section {
+        margin-bottom: 16px;
+      }
+
+      .error-detail-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+
+      .error-detail-value {
+        font-size: 14px;
+        color: var(--text-primary);
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 4px;
+      }
+
+      .error-stack {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 4px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="error-logs-container">
+      <!-- 헤더 -->
+      <div class="error-logs-header">
+        <h1 class="error-logs-title">🔍 오류사항 확인</h1>
+        <button class="btn-refresh" id="refresh-btn">새로고침</button>
+      </div>
+
+      <!-- 통계 -->
+      <div class="error-stats">
+        <div class="stat-card">
+          <div class="stat-label">전체 오류</div>
+          <div class="stat-value" id="total-errors">0</div>
+        </div>
+      </div>
+
+      <!-- 에러 테이블 -->
+      <div class="error-table-container">
+        <table class="error-table">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>발생시간</th>
+              <th>사용자</th>
+              <th>역할</th>
+              <th>오류 메시지</th>
+              <th>페이지</th>
+            </tr>
+          </thead>
+          <tbody id="error-table-body">
+            <tr>
+              <td colspan="6" class="loading">오류 내역을 불러오는 중...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 에러 상세 모달 -->
+    <div class="error-detail-modal" id="error-detail-modal">
+      <div class="error-detail-content">
+        <div class="error-detail-header">
+          <h2 class="error-detail-title">오류 상세 정보</h2>
+          <button class="error-detail-close" id="close-modal">×</button>
+        </div>
+        <div id="error-detail-body"></div>
+      </div>
+    </div>
+
+    <script type="module" src="./02_error_logs.js"></script>
+  </body>
+</html>

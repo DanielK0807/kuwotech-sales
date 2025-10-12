@@ -320,6 +320,44 @@ class ErrorHandler {
     }
 
     /**
+     * 에러를 서버로 전송 (백그라운드)
+     */
+    async sendErrorToServer(appError, context = {}) {
+        try {
+            // 사용자 정보 가져오기 (localStorage에서)
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userName = user.name || '알 수 없음';
+            const userRole = user.role || '알 수 없음';
+
+            // 에러 정보 구성
+            const errorData = {
+                userName,
+                userRole,
+                errorMessage: `[${appError.type}] ${appError.message}`,
+                errorStack: appError.originalError?.stack || appError.stack || null,
+                pageUrl: window.location.href,
+                browserInfo: navigator.userAgent
+            };
+
+            // API로 전송 (비동기, 에러 발생해도 무시)
+            const response = await fetch('/api/errors/log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(errorData)
+            });
+
+            if (response.ok) {
+                logger.debug('[에러 핸들러] 에러 로그 서버 전송 완료');
+            }
+        } catch (error) {
+            // 서버 전송 실패해도 사용자 경험에 영향 없도록 무시
+            logger.debug('[에러 핸들러] 에러 로그 서버 전송 실패 (무시):', error);
+        }
+    }
+
+    /**
      * 에러 로깅
      */
     logError(appError, context = {}) {
@@ -344,6 +382,11 @@ class ErrorHandler {
                 logger.debug(`[${appError.type}] ${appError.message}`, logData);
                 break;
         }
+
+        // 에러를 서버로 자동 전송 (백그라운드, 비동기)
+        this.sendErrorToServer(appError, context).catch(() => {
+            // 전송 실패해도 무시 (이미 sendErrorToServer 내부에서 처리됨)
+        });
     }
 
     /**
