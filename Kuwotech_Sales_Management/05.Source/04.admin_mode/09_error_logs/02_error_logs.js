@@ -4,7 +4,7 @@
  * ============================================
  */
 
-import API from '../../01.common/01_api_config.js';
+import ApiManager from '../../01.common/13_api_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
 
 // 전역 변수
@@ -53,11 +53,10 @@ const loadErrorLogs = async () => {
   try {
     console.log('[오류사항] 에러 로그 조회 시작');
 
-    const response = await API.get('/errors', {
-      params: {
-        limit: 100,
-        offset: 0
-      }
+    const apiManager = ApiManager.getInstance();
+    const response = await apiManager.get('/errors', {
+      limit: 100,
+      offset: 0
     });
 
     if (response.success && response.data) {
