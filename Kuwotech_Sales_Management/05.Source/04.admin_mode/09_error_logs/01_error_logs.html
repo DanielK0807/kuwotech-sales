@@ -121,6 +121,24 @@
         background: var(--primary-hover);
       }
 
+      .btn-refresh:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      /* 로딩 스피너 애니메이션 */
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .btn-refresh.loading::before {
+        content: '⏳ ';
+        animation: spin 1s linear infinite;
+        display: inline-block;
+      }
+
       /* 모달 스타일 */
       .error-detail-modal {
         display: none;
