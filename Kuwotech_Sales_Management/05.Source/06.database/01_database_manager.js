@@ -267,10 +267,13 @@ export class DatabaseManager {
      * [기능: 이름으로 직원 조회]
      * @param {string} name - 직원 이름
      * @returns {Promise<Object>} 직원 정보 { success: true, employee: {...} }
+     * @note 로그인 전 단계에서 호출되므로 비인증 요청(skipAuth: true)
      */
     async getEmployeeByName(name) {
         try {
-            const response = await this.request(`${ENDPOINTS.EMPLOYEES}/${encodeURIComponent(name)}`);
+            const response = await this.request(`${ENDPOINTS.EMPLOYEES}/${encodeURIComponent(name)}`, {
+                skipAuth: true  // 비인증 호출 (로그인 전 단계)
+            });
             // 백엔드는 { success: true, employee: {...} } 형태로 반환
             return response;
         } catch (error) {
@@ -280,6 +283,35 @@ export class DatabaseManager {
                     context: {
                         module: 'database_manager',
                         action: 'getEmployeeByName',
+                        name
+                    }
+                }),
+                { showToUser: false }
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * [기능: 로그인 전 직원 프리체크]
+     * @param {string} name - 직원 이름
+     * @returns {Promise<Object>} 최소한의 직원 정보 { success: true, employee: { name, status, role1, role2 } }
+     * @note 로그인 페이지 전용 공개 엔드포인트 - 인증 불필요
+     */
+    async preCheckEmployee(name) {
+        try {
+            const response = await this.request(`${ENDPOINTS.EMPLOYEES}/precheck/${encodeURIComponent(name)}`, {
+                skipAuth: true  // 비인증 호출 (공개 엔드포인트)
+            });
+            // 백엔드는 { success: true, employee: { name, status, role1, role2 } } 형태로 반환
+            return response;
+        } catch (error) {
+            await errorHandler.handle(
+                new DatabaseError('직원 프리체크 실패', error, {
+                    userMessage: error.message || '직원 정보를 확인할 수 없습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'preCheckEmployee',
                         name
                     }
                 }),
@@ -760,6 +792,10 @@ export class DatabaseManager {
 
     /**
      * [기능: HTTP 요청 헬퍼]
+     * @param {string} endpoint - API 엔드포인트
+     * @param {Object} options - 요청 옵션
+     * @param {boolean} options.skipAuth - true면 인증 헤더를 붙이지 않음 (비인증 호출)
+     * @param {boolean} options.skipRetry - true면 401 발생 시 토큰 갱신을 시도하지 않음
      */
     async request(endpoint, options = {}) {
         const url = endpoint.startsWith('http')
@@ -774,8 +810,8 @@ export class DatabaseManager {
             }
         };
 
-        // 인증 토큰 추가
-        if (this.token) {
+        // 인증 토큰 추가 (skipAuth가 true면 추가하지 않음)
+        if (this.token && !options.skipAuth) {
             config.headers['Authorization'] = `Bearer ${this.token}`;
         }
 
@@ -791,13 +827,13 @@ export class DatabaseManager {
             clearTimeout(timeoutId);
 
             // 401 Unauthorized - 토큰 갱신 시도
-            // 단, 인증 엔드포인트(/auth/login, /auth/logout, /auth/refresh)는 제외
+            // 단, 인증 엔드포인트(/auth/login, /auth/logout, /auth/refresh)나 비인증 호출(skipAuth)은 제외
             const isAuthEndpoint = endpoint.includes('/auth/login') ||
                                    endpoint.includes('/auth/logout') ||
                                    endpoint.includes('/auth/refresh');
 
-            // skipRetry 옵션이 있거나, 인증 엔드포인트이거나, 이미 갱신/로그아웃 중이면 재시도하지 않음
-            if (response.status === 401 && !options.skipRetry && !isAuthEndpoint && !this.isRefreshing && !this.isLoggingOut) {
+            // skipRetry, skipAuth 옵션이 있거나, 인증 엔드포인트이거나, 이미 갱신/로그아웃 중이면 재시도하지 않음
+            if (response.status === 401 && !options.skipRetry && !options.skipAuth && !isAuthEndpoint && !this.isRefreshing && !this.isLoggingOut) {
                 const refreshed = await this.refreshToken();
 
                 // 토큰 갱신 성공 시에만 재시도

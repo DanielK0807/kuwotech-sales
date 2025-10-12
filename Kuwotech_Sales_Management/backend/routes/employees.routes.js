@@ -6,6 +6,7 @@ import express from 'express';
 import {
   getAllEmployees,
   getEmployeeByName,
+  preCheckEmployeeForLogin,
   createEmployee,
   updateEmployee,
   deleteEmployee,
@@ -22,7 +23,10 @@ router.get('/statistics', authenticate, getEmployeeStatistics);
 // GET /api/employees - 전체 직원 조회 (인증된 사용자)
 router.get('/', authenticate, getAllEmployees);
 
-// GET /api/employees/:name - 특정 직원 조회
+// GET /api/employees/precheck/:name - 로그인 전 직원 프리체크 (공개 엔드포인트, 인증 불필요)
+router.get('/precheck/:name', preCheckEmployeeForLogin);
+
+// GET /api/employees/:name - 특정 직원 조회 (인증된 사용자)
 router.get('/:name', authenticate, getEmployeeByName);
 
 // POST /api/employees - 직원 추가 (관리자만)

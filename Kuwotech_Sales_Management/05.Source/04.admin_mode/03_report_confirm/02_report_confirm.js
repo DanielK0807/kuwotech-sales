@@ -18,6 +18,7 @@ import { formatCurrency, formatDate } from '../../01.common/03_format.js';
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
 import logger from '../../01.common/23_logger.js';
+import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
 
 // ============================================
 // 전역 변수 및 상수
@@ -269,7 +270,7 @@ function initCompanyAutocompleteInDetail(inputElement, autocompleteList) {
     }
 
     // AutocompleteManager 생성
-    companyAutocompleteManagerInDetail = new window.AutocompleteManager({
+    companyAutocompleteManagerInDetail = new AutocompleteManager({
         inputElement,
         listElement: autocompleteList,
         dataSource: allCompanies,

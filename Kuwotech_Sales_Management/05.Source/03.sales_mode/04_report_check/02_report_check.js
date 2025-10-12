@@ -17,6 +17,7 @@ import ApiManager from '../../01.common/13_api_manager.js';
 import { getCompanyDisplayName, parseJSON } from '../../01.common/02_utils.js';
 import { formatNumber, formatDate } from '../../01.common/03_format.js';
 import logger from '../../01.common/23_logger.js';
+import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
 
 // =====================================================
 // API Manager 초기화
@@ -31,7 +32,9 @@ const state = {
   reportsData: [], // 전체 보고서 데이터
   filteredReports: [], // 필터링된 보고서 데이터
   expandedReportId: null, // 현재 확장된 보고서 ID
-  companies: [] // 거래처 목록
+  companies: [], // 거래처 목록
+  selectedCompany: null, // 선택된 거래처 (자동완성용)
+  companyAutocomplete: null // AutocompleteManager 인스턴스
 };
 
 // =====================================================
@@ -288,7 +291,7 @@ async function loadCompanies() {
 }
 
 /**
- * 거래처 필터 드롭다운 채우기
+ * 거래처 자동완성 초기화
  */
 function populateCompanyFilter() {
   if (!elements.filterCompany) {
@@ -296,8 +299,11 @@ function populateCompanyFilter() {
     return;
   }
 
-  // 기존 옵션 제거 (전체 제외)
-  elements.filterCompany.innerHTML = '<option value="">전체</option>';
+  const autocompleteList = document.getElementById('filterCompanyAutocomplete');
+  if (!autocompleteList) {
+    logger.error('[Report Check] 자동완성 리스트 요소 없음');
+    return;
+  }
 
   // 거래처명 기준 정렬
   const sortedCompanies = [...state.companies].sort((a, b) => {
@@ -306,14 +312,24 @@ function populateCompanyFilter() {
     return nameA.localeCompare(nameB);
   });
 
-  // 거래처 옵션 추가
-  sortedCompanies.forEach(company => {
-    const option = document.createElement('option');
-    option.value = company.keyValue; // 거래처 ID
-    option.textContent = getCompanyDisplayName(company);
-    elements.filterCompany.appendChild(option);
+  // AutocompleteManager 초기화
+  state.companyAutocomplete = new AutocompleteManager({
+    inputElement: elements.filterCompany,
+    listElement: autocompleteList,
+    dataSource: sortedCompanies,
+    getDisplayText: (company) => getCompanyDisplayName(company),
+    onSelect: (company) => {
+      const companyName = getCompanyDisplayName(company);
+      elements.filterCompany.value = companyName;
+      state.selectedCompany = company;
+      logger.info('[Report Check] 거래처 선택:', companyName);
+    },
+    maxResults: 10,
+    placeholder: '검색 결과가 없습니다',
+    highlightSearch: true
   });
 
+  logger.info('[Report Check] 거래처 자동완성 초기화 완료:', sortedCompanies.length, '개');
 }
 
 /**
@@ -508,13 +524,19 @@ function calculateActual(entries) {
 // =====================================================
 function handleSearch() {
   const typeFilter = elements.filterType.value;
-  const companyFilter = elements.filterCompany.value;
+  const companyInput = elements.filterCompany.value.trim();
   const statusFilter = elements.filterStatus.value;
 
+  logger.info('[Report Check] 검색 조건:', { type: typeFilter, company: companyInput, status: statusFilter });
 
   state.filteredReports = state.reportsData.filter(report => {
     const matchType = !typeFilter || report.type === typeFilter;
-    const matchCompany = !companyFilter || report.companyId === companyFilter;
+
+    // 거래처명 필터링: 입력된 텍스트가 보고서의 거래처명에 포함되는지 확인
+    const matchCompany = !companyInput ||
+      (report.companyName && report.companyName.toLowerCase().includes(companyInput.toLowerCase())) ||
+      (state.selectedCompany && report.companyId === state.selectedCompany.keyValue);
+
     const matchStatus = !statusFilter || report.status === statusFilter;
     return matchType && matchCompany && matchStatus;
   });
@@ -544,9 +566,15 @@ function handleRefresh() {
     if (elements.filterType) {
       elements.filterType.value = '';
     }
+    if (elements.filterCompany) {
+      elements.filterCompany.value = '';
+    }
     if (elements.filterStatus) {
       elements.filterStatus.value = '';
     }
+
+    // 선택된 거래처 초기화
+    state.selectedCompany = null;
 
     // 데이터 리로드
     loadReportsData();

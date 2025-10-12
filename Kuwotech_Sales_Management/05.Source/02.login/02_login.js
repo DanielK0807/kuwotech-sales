@@ -46,6 +46,20 @@ const elements = {
  * [기능: 페이지 초기화]
  */
 function initLoginPage() {
+    // 로그인 페이지 진입 시 모든 인증 정보 클리어 (만료된 토큰 제거)
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('loginData');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('selectedRole');
+    sessionStorage.clear();
+
+    // DatabaseManager 인스턴스의 토큰도 클리어
+    if (dbManager) {
+        dbManager.token = null;
+        dbManager.user = null;
+    }
+
     // DOM 요소 가져오기
     elements.employeeNameInput = document.getElementById('employeeName');
     elements.roleGroup = document.getElementById('roleGroup');
@@ -108,8 +122,8 @@ async function handleNameSubmit() {
     elements.loginButton.textContent = '확인 중...';
 
     try {
-        // API를 통해 직원 정보 가져오기 (이름으로 조회)
-        const response = await dbManager.getEmployeeByName(name);
+        // 로그인 전용 공개 프리체크 API 호출 (최소한의 정보만 조회)
+        const response = await dbManager.preCheckEmployee(name);
 
         if (!response || !response.employee) {
             showToast('존재하지 않는 직원입니다', 'error');
@@ -121,7 +135,7 @@ async function handleNameSubmit() {
 
         const employee = response.employee;
 
-        // 퇴사한 직원 체크
+        // 백엔드에서 이미 퇴사 체크를 하지만, 프론트에서도 한 번 더 확인
         if (employee.status === '퇴사' || employee.status === 'inactive') {
             showToast('퇴사한 직원은 로그인할 수 없습니다', 'error');
             elements.loginButton.textContent = '확인';
@@ -146,8 +160,21 @@ async function handleNameSubmit() {
         showToast(`${employee.name}님, 역할과 비밀번호를 입력해주세요`, 'success');
 
     } catch (error) {
-        logger.error('❌ 직원 조회 실패:', error);
-        showToast('직원 정보를 확인할 수 없습니다', 'error');
+        logger.error('❌ 직원 프리체크 실패:', error);
+
+        // 에러 메시지 처리 (403 Forbidden은 퇴사한 직원)
+        let errorMessage = '직원 정보를 확인할 수 없습니다';
+        if (error.message) {
+            if (error.message.includes('퇴사')) {
+                errorMessage = '퇴사한 직원은 로그인할 수 없습니다';
+            } else if (error.message.includes('존재하지')) {
+                errorMessage = '존재하지 않는 직원입니다';
+            } else {
+                errorMessage = error.message;
+            }
+        }
+
+        showToast(errorMessage, 'error');
         elements.loginButton.textContent = '확인';
         elements.loginButton.disabled = false;
         elements.employeeNameInput.focus();

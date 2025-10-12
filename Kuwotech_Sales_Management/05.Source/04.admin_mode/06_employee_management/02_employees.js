@@ -122,6 +122,7 @@ async function loadEmployeeData() {
         }
 
         const employeeData = await employeeResponse.json();
+        logger.info('[직원 데이터 응답]', {
             success: employeeData.success,
             employeesCount: employeeData.employees?.length,
             firstEmployee: employeeData.employees?.[0]
@@ -223,6 +224,7 @@ async function updateStatistics() {
 
         const { totalEmployees, salesEmployees, adminEmployees, activeEmployees } = data.statistics;
 
+        logger.info('[통계 데이터]', {
             totalEmployees,
             salesEmployees,
             adminEmployees,
@@ -299,23 +301,39 @@ function animateValue(elementId, start, end, duration) {
 // 직원 테이블 렌더링
 // ===================
 function renderEmployeeTable() {
+    logger.info('[테이블 렌더링] 시작', {
+        employees: employees.length,
+        filteredEmployees: filteredEmployees.length,
+        currentPage,
+        itemsPerPage
+    });
+
     const tbody = document.getElementById('employeeTableBody');
+    if (!tbody) {
+        logger.error('[테이블 렌더링] tbody 엘리먼트를 찾을 수 없습니다');
+        return;
+    }
+
     tbody.innerHTML = '';
-    
+
     // 페이지네이션 계산
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const pageEmployees = filteredEmployees.slice(startIndex, endIndex);
-    
+
+    logger.info('[테이블 렌더링] 페이지 직원 수:', pageEmployees.length);
+
     // 테이블 행 생성
     pageEmployees.forEach(employee => {
         const row = createEmployeeRow(employee);
         tbody.appendChild(row);
     });
-    
+
+    logger.info('[테이블 렌더링] 완료 - 행 개수:', tbody.children.length);
+
     // 페이지 정보 업데이트
     updatePagination();
-    
+
     // 선택 상태 업데이트
     updateBulkActionsVisibility();
 }

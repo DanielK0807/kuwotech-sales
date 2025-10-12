@@ -90,6 +90,61 @@ export const getEmployeeByName = async (req, res) => {
   }
 };
 
+// GET /api/employees/precheck/:name - 로그인 전 직원 프리체크 (공개 엔드포인트)
+export const preCheckEmployeeForLogin = async (req, res) => {
+  try {
+    const { name } = req.params;
+    const db = await getDB();
+
+    console.log('[로그인 프리체크] 요청:', { name });
+
+    // 최소한의 정보만 조회 (name, status, role1, role2)
+    const [employees] = await db.execute(`
+      SELECT name, status, role1, role2
+      FROM employees
+      WHERE name = ?
+    `, [name]);
+
+    if (employees.length === 0) {
+      console.log('[로그인 프리체크] 직원 없음:', name);
+      return res.status(404).json({
+        success: false,
+        message: '존재하지 않는 직원입니다.'
+      });
+    }
+
+    const employee = employees[0];
+
+    // 퇴사한 직원 체크
+    if (employee.status === '퇴사' || employee.status === 'inactive') {
+      console.log('[로그인 프리체크] 퇴사한 직원:', name);
+      return res.status(403).json({
+        success: false,
+        message: '퇴사한 직원은 로그인할 수 없습니다.'
+      });
+    }
+
+    console.log('[로그인 프리체크] 성공:', { name, status: employee.status });
+
+    res.json({
+      success: true,
+      employee: {
+        name: employee.name,
+        status: employee.status,
+        role1: employee.role1,
+        role2: employee.role2
+      }
+    });
+
+  } catch (error) {
+    console.error('[로그인 프리체크] 오류:', error);
+    res.status(500).json({
+      success: false,
+      message: '직원 정보 확인 중 오류가 발생했습니다.'
+    });
+  }
+};
+
 // PUT /api/employees/:id - 직원 정보 수정
 export const updateEmployee = async (req, res) => {
   try {

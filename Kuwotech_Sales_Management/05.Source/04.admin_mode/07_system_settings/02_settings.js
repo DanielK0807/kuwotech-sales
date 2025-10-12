@@ -324,8 +324,8 @@ window.changePassword = async function() {
             title: '비밀번호 변경',
             content: `
                 <div class="settings-confirm-container">
-                    <p>비밀번호를 변경하시겠습니까?</p>
-                    <p class="settings-note-text">
+                    <p style="font-size: 13px; color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">비밀번호를 변경하시겠습니까?</p>
+                    <p class="settings-note-text" style="font-size: 12px; color: #FFFFFF; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);">
                         보안을 위해 변경 후 다시 로그인해야 합니다.
                     </p>
                 </div>

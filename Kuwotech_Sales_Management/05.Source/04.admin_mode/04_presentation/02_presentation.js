@@ -1297,8 +1297,23 @@ function initComparisonDatePickers() {
             logger.warn('[비교보고] ⚠️ Flatpickr 라이브러리를 찾을 수 없습니다 - 기본 date input 사용');
             startDateEl.value = defaultRange.start;
             startDateEl.setAttribute('type', 'date');
-            startDateEl.removeAttribute('readonly');
+            startDateEl.setAttribute('max', today);
             comparisonFilters.startDate = defaultRange.start;
+
+            // 네이티브 date input change 이벤트 리스너 추가
+            startDateEl.addEventListener('change', (e) => {
+                comparisonFilters.startDate = e.target.value;
+                updateComparisonPeriodDisplay();
+
+                // 시작일이 종료일보다 늦으면 종료일도 업데이트
+                if (comparisonFilters.endDate && e.target.value > comparisonFilters.endDate) {
+                    const endDateInput = document.getElementById('comparisonEndDate');
+                    if (endDateInput) {
+                        endDateInput.value = e.target.value;
+                        comparisonFilters.endDate = e.target.value;
+                    }
+                }
+            });
         }
     } else {
         logger.error('[비교보고] ❌ comparisonStartDate 요소를 찾을 수 없습니다');
@@ -1343,8 +1358,23 @@ function initComparisonDatePickers() {
             // Flatpickr 라이브러리가 없으면 기본 date input 방식으로 폴백
             endDateEl.value = defaultRange.end;
             endDateEl.setAttribute('type', 'date');
-            endDateEl.removeAttribute('readonly');
+            endDateEl.setAttribute('max', today);
             comparisonFilters.endDate = defaultRange.end;
+
+            // 네이티브 date input change 이벤트 리스너 추가
+            endDateEl.addEventListener('change', (e) => {
+                comparisonFilters.endDate = e.target.value;
+                updateComparisonPeriodDisplay();
+
+                // 종료일이 시작일보다 이르면 시작일도 업데이트
+                if (comparisonFilters.startDate && e.target.value < comparisonFilters.startDate) {
+                    const startDateInput = document.getElementById('comparisonStartDate');
+                    if (startDateInput) {
+                        startDateInput.value = e.target.value;
+                        comparisonFilters.startDate = e.target.value;
+                    }
+                }
+            });
         }
     } else {
         logger.error('[비교보고] ❌ comparisonEndDate 요소를 찾을 수 없습니다');
@@ -1369,10 +1399,6 @@ function handleConfirmPeriod() {
     if (endDateInput && endDateInput.value) {
         comparisonFilters.endDate = endDateInput.value;
     }
-
-        startDate: comparisonFilters.startDate,
-        endDate: comparisonFilters.endDate
-    });
 
     // 날짜 검증
     if (!comparisonFilters.startDate || !comparisonFilters.endDate) {
@@ -1418,10 +1444,6 @@ function updateComparisonPeriodDisplay() {
         return;
     }
 
-        startDate: comparisonFilters.startDate,
-        endDate: comparisonFilters.endDate
-    });
-
     if (comparisonFilters.startDate && comparisonFilters.endDate) {
         const periodText = formatDateRange(comparisonFilters.startDate, comparisonFilters.endDate);
         periodRangeEl.textContent = periodText;
@@ -1462,14 +1484,6 @@ async function handleComparisonSearch() {
     comparisonFilters.department = document.getElementById('comparisonDepartment')?.value || '';
     comparisonFilters.employee = document.getElementById('comparisonEmployee')?.value || '';
     comparisonFilters.includeZeroReports = document.getElementById('includeZeroReports')?.checked || false;
-
-        department: comparisonFilters.department,
-        employee: comparisonFilters.employee,
-        includeZeroReports: comparisonFilters.includeZeroReports,
-        period: comparisonFilters.period,
-        startDate: comparisonFilters.startDate,
-        endDate: comparisonFilters.endDate
-    });
 
     // 날짜 검증
     if (!comparisonFilters.startDate || !comparisonFilters.endDate) {
@@ -1541,12 +1555,6 @@ async function loadComparisonReports() {
         // API에 department나 submittedBy 파라미터를 전달했다면 클라이언트 필터링 스킵
         const apiFilteredByDepartment = params.department !== undefined;
         const apiFilteredByEmployee = params.submittedBy !== undefined;
-
-            API부서필터: apiFilteredByDepartment,
-            API담당자필터: apiFilteredByEmployee,
-            클라이언트부서필터필요: comparisonFilters.department && !apiFilteredByDepartment,
-            클라이언트담당자필터필요: comparisonFilters.employee && !apiFilteredByEmployee
-        });
 
         let beforeClientFilterCount = comparisonReports.length;
 
@@ -1746,14 +1754,6 @@ function groupReportsByDepartment(reports) {
         const employeeInfo = employeesMap[report.submittedBy] || {};
         const department = employeeInfo.department || report.department || '미분류';
 
-        if (index < 3) { // 처음 3개만 로그
-                작성자: report.submittedBy,
-                보고서부서필드: report.department,
-                매핑된부서: employeeInfo.department,
-                최종부서: department
-            });
-        }
-
         if (!grouped[department]) {
             grouped[department] = {
                 department: department,
@@ -1774,9 +1774,6 @@ function groupReportsByDepartment(reports) {
         grouped[department].employees[employee].reports.push(report);
         grouped[department].reports.push(report);
     });
-
-        `${dept}: ${group.reports.length}건 (직원 ${Object.keys(group.employees).length}명)`
-    ).join(', '));
 
     return grouped;
 }
@@ -1852,11 +1849,6 @@ function renderComparisonTable() {
 
     let html = '';
     let aggregationInfo = '';
-
-        employee: comparisonFilters.employee,
-        department: comparisonFilters.department,
-        period: comparisonFilters.period
-    });
 
     // 필터 조건에 따라 다른 렌더링 방식 적용
     if (comparisonFilters.employee) {
@@ -2174,11 +2166,6 @@ function renderEmployeeReportStats() {
     const statsTableBody = document.getElementById('statsTableBody');
     const statsTitle = document.getElementById('employeeStatsTitle');
 
-        statsContainer: !!statsContainer,
-        statsTableBody: !!statsTableBody,
-        statsTitle: !!statsTitle
-    });
-
     if (!statsContainer || !statsTableBody || !statsTitle) {
         logger.error('❌ [영업담당자통계] DOM 요소를 찾을 수 없습니다');
         return;
@@ -2269,8 +2256,14 @@ function renderEmployeeReportStats() {
 
         statsTableBody.innerHTML = html;
 
-        // display 설정
+        // display 설정 - 컨테이너와 테이블 모두 표시
         statsContainer.style.display = 'block';
+
+        // ✅ 테이블 컨테이너도 명시적으로 표시 (CSS 기본 숨김 override)
+        const statsTableContainer = document.querySelector('.stats-table-container');
+        if (statsTableContainer) {
+            statsTableContainer.style.display = 'block';
+        }
     } else {
         // 영업담당자가 없으면 숨김
         logger.warn('⚠️ [영업담당자통계] 영업담당자가 없음 - 숨김 처리');

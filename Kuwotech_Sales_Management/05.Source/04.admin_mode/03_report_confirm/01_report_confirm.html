@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>실적보고서 확인 (관리자) - KUWOTECH 영업관리 시스템</title>
 
-    <!-- ✅ 스타일시트 (순서 중요 - 변수 → 공통 → 글래스모피즘 → 테마 색상) -->
+    <!-- ✅ 스타일시트 (순서 중요 - 변수 → 폰트 → 공통 → 글래스모피즘 → 테마 색상) -->
     <link rel="stylesheet" href="../../07.styles/00_root.css">
     <link rel="stylesheet" href="../../07.styles/01_variables.css">
+    <link rel="stylesheet" href="../../07.styles/09_fonts.css">
     <link rel="stylesheet" href="../../07.styles/02_common.css">
     <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
     <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
@@ -237,7 +238,7 @@
                 </section>
 
                 <!-- 관리자 의견 작성 -->
-                <section class="detail-section glass-card">
+                <section class="detail-section glass-card admin-comment-section">
                     <h3 class="detail-section-title">📝 관리자 의견</h3>
                     <div class="comment-input-area">
                         <textarea
@@ -956,6 +957,56 @@
 
     .autocomplete-no-results:hover {
         background: transparent;
+    }
+
+    /* === 관리자 의견 섹션 (Accent Color 강조) === */
+    .admin-comment-section {
+        background: linear-gradient(
+            135deg,
+            rgba(0, 230, 118, 0.08),
+            rgba(0, 230, 118, 0.04)
+        ) !important;
+        border: 2px solid rgba(0, 230, 118, 0.3) !important;
+        box-shadow:
+            0 0 20px rgba(0, 230, 118, 0.15),
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        transition: all 0.3s ease;
+    }
+
+    .admin-comment-section:hover {
+        border-color: rgba(0, 230, 118, 0.5) !important;
+        box-shadow:
+            0 0 30px rgba(0, 230, 118, 0.25),
+            0 12px 40px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        transform: translateY(-2px);
+    }
+
+    .admin-comment-section .detail-section-title {
+        color: var(--accent-color);
+        text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    }
+
+    .admin-comment-section .comment-textarea:focus {
+        border-color: var(--accent-color) !important;
+        box-shadow:
+            0 0 0 3px rgba(0, 230, 118, 0.2),
+            0 0 20px rgba(0, 230, 118, 0.15) !important;
+    }
+
+    .admin-comment-section .glass-button.secondary {
+        background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+        color: #212121;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    .admin-comment-section .glass-button.secondary:hover {
+        background: linear-gradient(135deg, #00C853 0%, #00B248 100%);
+        box-shadow:
+            0 4px 12px rgba(0, 230, 118, 0.4),
+            0 0 20px rgba(0, 230, 118, 0.3);
     }
 
     /* === 반응형 === */

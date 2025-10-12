@@ -99,10 +99,15 @@
         </div>
         <div class="filter-group">
             <label>거래처명:</label>
-            <select id="filterCompany" class="glass-input">
-                <option value="">전체</option>
-                <!-- JavaScript로 동적 생성됨 -->
-            </select>
+            <div class="company-autocomplete-wrapper">
+                <input
+                    type="text"
+                    id="filterCompany"
+                    class="glass-input company-autocomplete-input"
+                    placeholder="거래처명 입력 (자동완성)"
+                    autocomplete="off">
+                <div id="filterCompanyAutocomplete" class="autocomplete-list hidden"></div>
+            </div>
         </div>
         <div class="filter-group">
             <label>상태:</label>
@@ -533,12 +538,14 @@
         width: 95%;
         margin-left: auto;
         margin-right: auto;
+        overflow: visible; /* ✅ 자동완성 드롭다운이 보이도록 */
     }
 
     .filter-group {
         display: flex;
         align-items: center;
         gap: var(--spacing-sm);
+        overflow: visible; /* ✅ 자동완성 드롭다운이 보이도록 */
     }
 
     .filter-group label {
@@ -1498,13 +1505,74 @@
         display: contents;
     }
 
+    /* === 거래처 자동완성 스타일 === */
+    .company-autocomplete-wrapper {
+        position: relative;
+        display: flex;
+        flex: 1;
+        overflow: visible; /* ✅ 자동완성 드롭다운이 보이도록 */
+    }
+
+    .company-autocomplete-input {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.98); /* ✅ 하얀색 배경 */
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: var(--radius-md);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        z-index: 9999; /* ✅ z-index 증가: 모든 요소 위에 표시 */
+        margin-top: var(--spacing-xs);
+    }
+
+    .autocomplete-item {
+        padding: var(--spacing-md);
+        cursor: pointer;
+        color: #1f2937; /* ✅ 진한 회색 글씨 */
+        font-size: var(--font-md);
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* ✅ 테두리 색상 조정 */
+    }
+
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+
+    .autocomplete-item:hover {
+        background: rgba(16, 185, 129, 0.15); /* ✅ 호버 배경 밝게 조정 */
+    }
+
+    .autocomplete-item strong {
+        color: #059669; /* ✅ 강조 텍스트 색상 조정 */
+        font-weight: 700;
+    }
+
+    .autocomplete-no-results {
+        color: #6b7280; /* ✅ 회색 텍스트 */
+        font-style: italic;
+        cursor: default;
+    }
+
+    .autocomplete-no-results:hover {
+        background: transparent;
+    }
+
     /* ============================================
        유틸리티 클래스 (인라인 스타일 리팩토링)
        ============================================ */
 
     /* 숨김 상태 (JavaScript로 토글됨) */
     .hidden {
-        display: none;
+        display: none !important;
     }
 
     /* Flexbox 레이아웃 */
