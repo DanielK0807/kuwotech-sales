@@ -89,14 +89,6 @@ async function loadReportsWithFeedback() {
             logger.error('❌ response.data:', response?.data);
         }
 
-
-        if (reports.length > 0) {
-                reportId: r.reportId,
-                adminComment: r.adminComment,
-                hasComment: !!r.adminComment
-            })));
-        }
-
         // 관리자 의견이 있는 보고서만 필터링 (adminComment 필드 사용)
         allReportsWithFeedback = reports.filter(report => {
             const hasComment = report.adminComment && report.adminComment.trim().length > 0;
