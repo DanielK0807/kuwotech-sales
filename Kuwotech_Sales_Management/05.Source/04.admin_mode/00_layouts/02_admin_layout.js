@@ -119,31 +119,41 @@ async function initAdminMode() {
         
         // 1. 사용자 인증 확인 - 여러 소스에서 시도
         let userJson = sessionStorage.getItem('user');
-        
+
         // sessionStorage에 없으면 localStorage에서도 확인
         if (!userJson) {
-            const loginData = localStorage.getItem('loginData');
-            if (loginData) {
-                try {
-                    const data = JSON.parse(loginData);
-                    if (data.user) {
-                        userJson = JSON.stringify(data.user);
-                        sessionStorage.setItem('user', userJson);  // sessionStorage에도 저장
+            // 먼저 localStorage의 'user' 키 확인 (직접 저장된 경우)
+            userJson = localStorage.getItem('user');
+
+            // 그래도 없으면 'loginData' 키 확인 (중첩된 경우)
+            if (!userJson) {
+                const loginData = localStorage.getItem('loginData');
+                if (loginData) {
+                    try {
+                        const data = JSON.parse(loginData);
+                        if (data.user) {
+                            userJson = JSON.stringify(data.user);
+                        }
+                    } catch (e) {
+                        await errorHandler.handle(
+                            new AuthError('로그인 데이터 파싱 실패', e, {
+                                userMessage: '로그인 정보를 확인할 수 없습니다.',
+                                context: {
+                                    module: 'admin_layout',
+                                    action: 'initAdminMode',
+                                    source: 'localStorage'
+                                },
+                                severity: 'MEDIUM'
+                            }),
+                            { showToUser: false }
+                        );
                     }
-                } catch (e) {
-                    await errorHandler.handle(
-                        new AuthError('로그인 데이터 파싱 실패', e, {
-                            userMessage: '로그인 정보를 확인할 수 없습니다.',
-                            context: {
-                                module: 'admin_layout',
-                                action: 'initAdminMode',
-                                source: 'localStorage'
-                            },
-                            severity: 'MEDIUM'
-                        }),
-                        { showToUser: false }
-                    );
                 }
+            }
+
+            // localStorage에서 찾은 경우 sessionStorage에도 저장
+            if (userJson) {
+                sessionStorage.setItem('user', userJson);
             }
         }
         
