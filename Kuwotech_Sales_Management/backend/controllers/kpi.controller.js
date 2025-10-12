@@ -252,18 +252,21 @@ export const getTotalSalesRanking = async (req, res) => {
 
         console.log('[KPI API] 전체매출 기여도 순위 조회');
 
-        // VIEW 대신 kpi_sales 테이블 직접 쿼리 (음수 기여도 포함)
+        // employees 테이블과 JOIN하여 영업담당만 필터링 (role1 또는 role2가 '영업담당')
         const [rankings] = await connection.execute(
             `SELECT
-                id,
-                employeeName,
-                담당거래처,
-                누적매출금액,
-                전체매출기여도,
-                전체매출기여도순위 as \`rank\`,
-                lastUpdated
-            FROM kpi_sales
-            ORDER BY 전체매출기여도순위 ASC`
+                k.id,
+                k.employeeName,
+                k.담당거래처,
+                k.누적매출금액,
+                k.전체매출기여도,
+                k.전체매출기여도순위 as \`rank\`,
+                k.lastUpdated
+            FROM kpi_sales k
+            INNER JOIN employees e ON k.id = e.id
+            WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
+                AND e.status = '재직'
+            ORDER BY k.전체매출기여도순위 ASC`
         );
 
         res.json({
@@ -307,18 +310,21 @@ export const getMainProductRanking = async (req, res) => {
 
         console.log('[KPI API] 주요제품매출 기여도 순위 조회');
 
-        // VIEW 대신 kpi_sales 테이블 직접 쿼리 (음수 기여도 포함)
+        // employees 테이블과 JOIN하여 영업담당만 필터링 (role1 또는 role2가 '영업담당')
         const [rankings] = await connection.execute(
             `SELECT
-                id,
-                employeeName,
-                주요제품판매거래처,
-                주요제품매출액,
-                주요제품매출기여도,
-                주요제품매출기여도순위 as \`rank\`,
-                lastUpdated
-            FROM kpi_sales
-            ORDER BY 주요제품매출기여도순위 ASC`
+                k.id,
+                k.employeeName,
+                k.주요제품판매거래처,
+                k.주요제품매출액,
+                k.주요제품매출기여도,
+                k.주요제품매출기여도순위 as \`rank\`,
+                k.lastUpdated
+            FROM kpi_sales k
+            INNER JOIN employees e ON k.id = e.id
+            WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
+                AND e.status = '재직'
+            ORDER BY k.주요제품매출기여도순위 ASC`
         );
 
         res.json({
