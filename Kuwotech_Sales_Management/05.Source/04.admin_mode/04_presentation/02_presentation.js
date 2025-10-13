@@ -2256,18 +2256,11 @@ function renderEmployeeReportStats() {
 
         statsTableBody.innerHTML = html;
 
-        // display 설정 - 컨테이너와 테이블 모두 표시
-        statsContainer.style.display = 'block';
-
-        // ✅ 테이블 컨테이너도 명시적으로 표시 (CSS 기본 숨김 override)
-        const statsTableContainer = document.querySelector('.stats-table-container');
-        if (statsTableContainer) {
-            statsTableContainer.style.display = 'block';
-        }
+        // ✅ 데이터는 렌더링하되, 화면 표시는 CSS 기본값(숨김) 유지
+        // 사용자가 "상세보기" 버튼을 클릭할 때만 표시됨
     } else {
-        // 영업담당자가 없으면 숨김
-        logger.warn('⚠️ [영업담당자통계] 영업담당자가 없음 - 숨김 처리');
-        statsContainer.style.display = 'none';
+        // 영업담당자가 없으면 데이터 없음
+        logger.warn('⚠️ [영업담당자통계] 영업담당자가 없음');
     }
 
 }
