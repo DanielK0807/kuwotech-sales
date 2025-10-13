@@ -1605,11 +1605,11 @@ async function openCompanyDetailModal(keyValue) {
                         </div>
                         <div class="form-group">
                             <label>마지막결제일</label>
-                            <input type="text" class="form-control readonly-bg" value="${formatDate(company.lastPaymentDate) || '-'}" readonly>
+                            <input type="date" id="modal-last-payment-date" class="form-control" value="${company.lastPaymentDate ? company.lastPaymentDate.split('T')[0] : ''}" ${disabledAttr}>
                         </div>
                         <div class="form-group">
                             <label>마지막총결재금액</label>
-                            <input type="text" class="form-control readonly-bg" value="${company.lastPaymentAmount ? formatCurrency(company.lastPaymentAmount, true) : '-'}" readonly>
+                            <input type="text" id="modal-last-payment-amount" class="form-control" value="${company.lastPaymentAmount ? formatNumber(company.lastPaymentAmount) : '0'}" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')" ${disabledAttr}>
                         </div>
                         <div class="form-group">
                             <label>누적수금금액</label>
@@ -1820,7 +1820,9 @@ async function openCompanyDetailModal(keyValue) {
                             jcwContribution: document.getElementById('modal-jcw-contribution')?.value || null,
                             companyContribution: document.getElementById('modal-company-contribution')?.value || null,
                             detailedAddress: document.getElementById('modal-detailed-address')?.value.trim() || null,
-                            referralSource: document.getElementById('modal-referral-source')?.value.trim() || null
+                            referralSource: document.getElementById('modal-referral-source')?.value.trim() || null,
+                            lastPaymentDate: document.getElementById('modal-last-payment-date')?.value || null,
+                            lastPaymentAmount: parseFloat(document.getElementById('modal-last-payment-amount')?.value.replace(/,/g, '')) || null
                         };
 
                         try {
