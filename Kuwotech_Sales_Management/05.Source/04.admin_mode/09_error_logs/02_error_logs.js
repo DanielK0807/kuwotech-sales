@@ -1,7 +1,7 @@
 /**
  * ============================================
  * 오류사항 확인 페이지
- * v2.0 - 해결/미해결 상태 관리 및 필터링 기능 추가
+ * v2.1 - 삭제 기능 추가
  * ============================================
  */
 
@@ -14,7 +14,7 @@ let lastRefreshTime = null;
 let currentFilter = 'all'; // all, resolved, unresolved
 let currentUser = null; // 현재 로그인한 사용자
 
-console.log('🔍 [오류사항 페이지] v2.0 로드됨 - 해결/미해결 상태 관리');
+console.log('🔍 [오류사항 페이지] v2.1 로드됨 - 삭제 기능 포함');
 
 /**
  * 페이지 초기화
@@ -222,10 +222,19 @@ const renderErrorTable = () => {
           ? '<span class="status-badge resolved">✅ 해결</span>'
           : '<span class="status-badge unresolved">⚠️ 미해결</span>';
 
+        // 관리 버튼들
+        let actionButtons = '<div class="action-buttons">';
+
         // 해결 버튼 (미해결인 경우만)
-        const resolveBtn = error.resolved === 0
-          ? `<button class="btn-resolve" onclick="showResolveDialog(${error.id})">해결 처리</button>`
-          : `<span style="color: #28a745; font-size: 12px;">처리 완료</span>`;
+        if (error.resolved === 0) {
+          actionButtons += `<button class="btn-resolve" onclick="showResolveDialog(${error.id})">해결 처리</button>`;
+        } else {
+          actionButtons += `<span style="color: #28a745; font-size: 12px;">처리 완료</span>`;
+        }
+
+        // 삭제 버튼 (모든 오류에 표시)
+        actionButtons += `<button class="btn-delete" onclick="confirmDelete(${error.id})">삭제</button>`;
+        actionButtons += '</div>';
 
         return `
           <tr>
@@ -240,7 +249,7 @@ const renderErrorTable = () => {
               </div>
             </td>
             <td>${pageUrl}</td>
-            <td>${resolveBtn}</td>
+            <td>${actionButtons}</td>
           </tr>
         `;
       })
@@ -383,6 +392,52 @@ window.confirmResolve = async (errorId) => {
   } catch (error) {
     console.error('[오류사항] 해결 처리 실패:', error);
     showToast('❌ 해결 처리 중 오류가 발생했습니다.', 'error');
+  }
+};
+
+/**
+ * 삭제 확인 다이얼로그
+ */
+window.confirmDelete = async (errorId) => {
+  const error = errorLogs.find((e) => e.id === errorId);
+  if (!error) return;
+
+  const errorPreview = error.errorMessage.length > 50
+    ? error.errorMessage.substring(0, 50) + '...'
+    : error.errorMessage;
+
+  const confirmed = confirm(
+    `정말로 이 오류 로그를 삭제하시겠습니까?\n\n` +
+    `오류 메시지: ${errorPreview}\n` +
+    `발생 시간: ${formatTimestamp(error.timestamp)}\n\n` +
+    `이 작업은 되돌릴 수 없습니다.`
+  );
+
+  if (confirmed) {
+    await deleteError(errorId);
+  }
+};
+
+/**
+ * 에러 로그 삭제 실행
+ */
+const deleteError = async (errorId) => {
+  try {
+    const apiManager = ApiManager.getInstance();
+    const response = await apiManager.request(`/errors/${errorId}`, {
+      method: 'DELETE'
+    });
+
+    console.log('[오류사항] 삭제 완료:', response);
+
+    showToast('🗑️ 오류 로그가 삭제되었습니다.', 'success');
+
+    // 목록 새로고침
+    await loadErrorLogs();
+
+  } catch (error) {
+    console.error('[오류사항] 삭제 실패:', error);
+    showToast('❌ 삭제 중 오류가 발생했습니다.', 'error');
   }
 };
 

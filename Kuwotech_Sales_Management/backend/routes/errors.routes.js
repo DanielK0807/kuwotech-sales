@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { logError, getErrors, markAsResolved } from '../controllers/errors.controller.js';
+import { logError, getErrors, markAsResolved, deleteError } from '../controllers/errors.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -16,5 +16,8 @@ router.get('/', authenticate, getErrors);
 
 // PATCH /api/errors/:id/resolve - 에러 해결 처리 (인증 필요 - 관리자만)
 router.patch('/:id/resolve', authenticate, markAsResolved);
+
+// DELETE /api/errors/:id - 에러 로그 삭제 (인증 필요 - 관리자만)
+router.delete('/:id', authenticate, deleteError);
 
 export default router;

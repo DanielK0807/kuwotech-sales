@@ -179,3 +179,45 @@ export const markAsResolved = async (req, res) => {
     });
   }
 };
+
+// DELETE /api/errors/:id - 에러 로그 삭제
+export const deleteError = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const db = await getDB();
+
+    // 에러 로그가 존재하는지 확인
+    const [existing] = await db.execute(
+      'SELECT id, errorMessage FROM error_logs WHERE id = ?',
+      [id]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: '해당 에러 로그를 찾을 수 없습니다.'
+      });
+    }
+
+    // 에러 로그 삭제
+    await db.execute('DELETE FROM error_logs WHERE id = ?', [id]);
+
+    console.log(`🗑️ 에러 로그 삭제 완료: ID ${id}`);
+
+    res.json({
+      success: true,
+      message: '에러 로그가 삭제되었습니다.',
+      data: {
+        id: parseInt(id)
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ 에러 로그 삭제 실패:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '에러 로그 삭제 중 오류가 발생했습니다.'
+    });
+  }
+};
