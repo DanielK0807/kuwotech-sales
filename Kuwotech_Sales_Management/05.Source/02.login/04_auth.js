@@ -97,11 +97,11 @@ export class AuthManager {
             
             if (response.success) {
                 // 로그인 성공
-                this.handleLoginSuccess(response.user, response.token);
-                
+                this.handleLoginSuccess(response.user, response.token, response.accessLogId);
+
                 // 성공 토스트 메시지 표시
                 showToast(`환영합니다, ${response.user.name}님!`, 'success');
-                
+
                 return {
                     success: true,
                     user: response.user,
@@ -160,12 +160,13 @@ export class AuthManager {
             // DatabaseManager의 login 메서드 사용
             const user = await this.dbManager.login(username, password);
 
-            // 로그인 성공 시 user 객체 반환
+            // 로그인 성공 시 user 객체와 accessLogId 반환
             if (user) {
                 return {
                     success: true,
                     user: user,
-                    token: this.dbManager.token // DatabaseManager가 저장한 토큰
+                    token: this.dbManager.token, // DatabaseManager가 저장한 토큰
+                    accessLogId: this.dbManager.accessLogId // 접속 로그 ID (웹사용기록)
                 };
             } else {
                 return {
@@ -283,7 +284,7 @@ export class AuthManager {
     // [로그인 성공 처리]
     // ============================================
     
-    handleLoginSuccess(user, token) {
+    handleLoginSuccess(user, token, accessLogId) {
         // 사용자 정보 저장 (민감한 정보 제외)
         this.currentUser = {
             id: user.id,
@@ -292,29 +293,34 @@ export class AuthManager {
             department: user.department,
             email: user.email
         };
-        
+
         this.isAuthenticated = true;
-        
+
         // 세션 저장
         this.saveSession(this.currentUser, token);
-        
+
         // ✅ FIX: 사용자 정보를 별도로 저장 (sales_layout.js와 admin_layout.js에서 사용)
         sessionStorage.setItem('user', JSON.stringify(this.currentUser));
         localStorage.setItem('userName', this.currentUser.name); // 이름 별도 저장
         localStorage.setItem('userRole', this.currentUser.role); // 역할 별도 저장
-        
+
+        // 📊 웹사용기록: accessLogId 저장 (로그아웃 시 사용)
+        if (accessLogId) {
+            sessionStorage.setItem('accessLogId', accessLogId);
+        }
+
         // 로그인 시도 초기화
         this.loginAttempts.delete(user.id);
-        
+
         // 로그인 시간 기록
         this.recordLoginTime();
-        
+
         // 보안 로그
         this.logSecurityEvent('LOGIN_SUCCESS', {
             userId: user.id,
             timestamp: new Date().toISOString()
         });
-        
+
     }
     
     // ============================================
@@ -525,9 +531,12 @@ export class AuthManager {
     
     async logout() {
 
+        // 📊 웹사용기록: accessLogId 가져오기
+        const accessLogId = sessionStorage.getItem('accessLogId');
+
         // DatabaseManager를 통한 로그아웃
         try {
-            await this.dbManager.logout();
+            await this.dbManager.logout(accessLogId);
         } catch (error) {
             // ErrorHandler를 통한 에러 처리
             await errorHandler.handle(

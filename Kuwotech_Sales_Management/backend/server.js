@@ -36,6 +36,7 @@ import masterRoutes from './routes/master.routes.js';
 import productsRoutes from './routes/products.routes.js';
 import debugRoutes from './routes/debug.routes.js';
 import errorsRoutes from './routes/errors.routes.js';
+import accessLogsRoutes from './routes/access-logs.routes.js';
 
 // ============================================
 // 환경 변수 로드
@@ -188,6 +189,9 @@ app.use('/api/products', productsRoutes);
 
 // 에러 로그 라우트
 app.use('/api/errors', errorsRoutes);
+
+// 웹사용기록 (접속 로그) 라우트
+app.use('/api/access-logs', accessLogsRoutes);
 
 // 디버그 라우트 (개발 환경에서만)
 if (process.env.NODE_ENV !== 'production') {

@@ -41,6 +41,7 @@ export class DatabaseManager {
         this.baseURL = API_CONFIG.BASE_URL;
         this.token = localStorage.getItem('authToken');
         this.user = this.getCurrentUser();
+        this.accessLogId = null; // 📊 웹사용기록: 접속 로그 ID
         this.isRefreshing = false; // 토큰 갱신 중복 방지 플래그
         this.isLoggingOut = false; // 로그아웃 중복 방지 플래그
     }
@@ -65,6 +66,7 @@ export class DatabaseManager {
             if (response.success) {
                 this.token = response.token;
                 this.user = response.user;
+                this.accessLogId = response.accessLogId; // 📊 웹사용기록: 접속 로그 ID 저장
 
                 // localStorage에 영구 저장 (API Manager가 사용)
                 localStorage.setItem('authToken', this.token);
@@ -97,8 +99,9 @@ export class DatabaseManager {
 
     /**
      * [기능: 로그아웃]
+     * @param {number} accessLogId - 접속 로그 ID (웹사용기록용)
      */
-    async logout() {
+    async logout(accessLogId) {
         // 이미 로그아웃 중이면 중복 호출 방지
         if (this.isLoggingOut) {
             return;
@@ -110,6 +113,7 @@ export class DatabaseManager {
             // 로그아웃 API 호출 (실패해도 로컬 데이터는 삭제)
             await this.request(`${ENDPOINTS.AUTH}/logout`, {
                 method: 'POST',
+                body: JSON.stringify({ accessLogId }), // 📊 웹사용기록: 접속 로그 ID 전송
                 skipRetry: true // 401 에러 재시도 방지
             });
         } catch (error) {
@@ -129,6 +133,7 @@ export class DatabaseManager {
         } finally {
             this.token = null;
             this.user = null;
+            this.accessLogId = null; // 📊 웹사용기록: 접속 로그 ID 초기화
             this.isLoggingOut = false;
 
             // localStorage에서 영구 저장된 데이터 삭제
@@ -138,6 +143,7 @@ export class DatabaseManager {
 
             // sessionStorage에서 임시 저장된 사용자 정보 삭제
             sessionStorage.removeItem('user');
+            sessionStorage.removeItem('accessLogId'); // 📊 웹사용기록: 접속 로그 ID 삭제
 
         }
     }

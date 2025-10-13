@@ -80,6 +80,19 @@ export const login = async (req, res) => {
       [name]
     );
 
+    // 📊 웹사용기록: access_logs 테이블에 로그인 기록 추가
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+
+    const [accessLogResult] = await db.execute(
+      `INSERT INTO access_logs (userId, userName, userRole, loginTime, ipAddress, userAgent)
+       VALUES (?, ?, ?, NOW(), ?, ?)`,
+      [employee.id, employee.name, selectedRole, ipAddress, userAgent]
+    );
+
+    const accessLogId = accessLogResult.insertId;
+    console.log(`📝 접속 로그 기록 완료: ID ${accessLogId}`);
+
     // JWT 토큰 생성
     const token = generateToken({
       ...employee,
@@ -91,6 +104,7 @@ export const login = async (req, res) => {
       success: true,
       message: '로그인 성공',
       token,
+      accessLogId, // 로그아웃 시 사용할 접속 로그 ID
       user: {
         id: employee.id, // ✅ FIX: id 필드 추가 (goals API에서 사용)
         name: employee.name,
@@ -114,11 +128,38 @@ export const login = async (req, res) => {
 
 // POST /api/auth/logout
 export const logout = async (req, res) => {
-  // JWT는 stateless이므로 클라이언트에서 토큰 삭제
-  res.json({
-    success: true,
-    message: '로그아웃 성공'
-  });
+  try {
+    const { accessLogId } = req.body;
+
+    // 📊 웹사용기록: accessLogId가 있으면 로그아웃 시간과 세션 시간 기록
+    if (accessLogId) {
+      const db = await getDB();
+
+      await db.execute(
+        `UPDATE access_logs
+         SET logoutTime = NOW(),
+             sessionDuration = TIMESTAMPDIFF(SECOND, loginTime, NOW())
+         WHERE id = ?`,
+        [accessLogId]
+      );
+
+      console.log(`📝 로그아웃 기록 완료: ID ${accessLogId}`);
+    }
+
+    // JWT는 stateless이므로 클라이언트에서 토큰 삭제
+    res.json({
+      success: true,
+      message: '로그아웃 성공'
+    });
+
+  } catch (error) {
+    console.error('로그아웃 오류:', error);
+    // 로그아웃은 실패해도 클라이언트가 진행할 수 있도록 200 응답
+    res.json({
+      success: true,
+      message: '로그아웃 성공'
+    });
+  }
 };
 
 // GET /api/auth/me

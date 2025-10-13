@@ -107,6 +107,13 @@ const pageFileMap = {
         script: '02_error_logs.js',
         adminOnly: true,
         specificUser: '강정환'
+    },
+    'access-logs': {
+        folder: '10_access_logs',
+        file: '01_access_logs',
+        script: '02_access_logs.js',
+        adminOnly: true,
+        specificUser: '강정환'
     }
 };
 
@@ -415,6 +422,24 @@ function showErrorLogsMenu() {
 
 }
 
+/**
+ * 강정환 관리자 전용 웹사용기록 메뉴 표시
+ */
+function showAccessLogsMenu() {
+
+    const accessLogsMenu = document.getElementById('access-logs-menu');
+    if (!accessLogsMenu) {
+        // UI 요소 누락은 로그만 남기고 계속 진행
+        logger.warn('[메뉴 표시] access-logs-menu 요소를 찾을 수 없습니다.');
+        return;
+    }
+
+    // hidden 클래스 제거 및 메뉴 표시
+    accessLogsMenu.classList.remove('hidden');
+    accessLogsMenu.style.display = 'flex';
+
+}
+
 // ============================================
 // [SECTION: 관리자 전용 기능]
 // ============================================
@@ -424,6 +449,7 @@ async function initAdminFeatures() {
     if (user && user.name === '강정환') {
         showExcelUploadMenu();
         showErrorLogsMenu();
+        showAccessLogsMenu();
     }
 
     // 관리자 알림 설정

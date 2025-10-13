@@ -388,6 +388,30 @@ const migrateErrorLogsAddResolved = async (connection) => {
 };
 
 // ==========================================
+// 10. access_logs 테이블 생성 (웹사용기록)
+// ==========================================
+const createAccessLogsTable = async (connection) => {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS access_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      userId VARCHAR(36) COMMENT '사용자 ID (employees.id)',
+      userName VARCHAR(100) NOT NULL COMMENT '사용자 이름',
+      userRole VARCHAR(50) COMMENT '사용자 역할',
+      loginTime DATETIME NOT NULL COMMENT '로그인 시간',
+      logoutTime DATETIME DEFAULT NULL COMMENT '로그아웃 시간',
+      sessionDuration INT DEFAULT NULL COMMENT '세션 시간 (초)',
+      ipAddress VARCHAR(50) COMMENT 'IP 주소',
+      userAgent TEXT COMMENT '브라우저 정보',
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_userId (userId),
+      INDEX idx_userName (userName),
+      INDEX idx_loginTime (loginTime),
+      FOREIGN KEY (userId) REFERENCES employees(id) ON UPDATE CASCADE ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  `);
+};
+
+// ==========================================
 // 제품 마스터 데이터 삽입 (37개)
 // ==========================================
 const insertProducts = async (connection) => {
@@ -823,7 +847,14 @@ export const initializeDatabase = async () => {
     console.log('   📦 error_logs 해결 상태 마이그레이션 중...');
     await migrateErrorLogsAddResolved(connection);
 
-    // 10. 트리거 생성
+    // 10. access_logs 테이블 확인 및 생성
+    if (!(await checkTableExists(connection, 'access_logs'))) {
+      console.log('   📦 access_logs 테이블 생성 중...');
+      await createAccessLogsTable(connection);
+      console.log('   ✅ access_logs 생성 완료');
+    }
+
+    // 11. 트리거 생성
     console.log('   📦 트리거 생성 중...');
     await createTriggers(connection);
     console.log('   ✅ 트리거 생성 완료');
