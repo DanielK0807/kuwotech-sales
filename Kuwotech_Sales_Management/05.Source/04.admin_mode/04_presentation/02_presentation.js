@@ -2281,15 +2281,15 @@ if (document.readyState === 'loading') {
 // ============================================
 
 /**
- * ✅ pageLoaded 이벤트 리스너 - 페이지 재로드 시 이벤트 리스너 재연결
+ * ✅ pageLoaded 이벤트 리스너 - 페이지 재로드 시 전체 초기화
  */
 window.addEventListener('pageLoaded', (event) => {
     const { page } = event.detail || {};
 
     if (page === 'presentation') {
-        // 페이지 재로드 시 이벤트 리스너 재연결
+        // 페이지 재로드 시 전체 초기화 (데이터 로드 + 이벤트 리스너 재연결)
         setTimeout(() => {
-            setupEventListeners();
-        }, 100);  // DOM이 완전히 렌더링된 후 재연결
+            init();
+        }, 100);  // DOM이 완전히 렌더링된 후 초기화
     }
 });
