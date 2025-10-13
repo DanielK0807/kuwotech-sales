@@ -21,6 +21,11 @@
 
     <!-- 파비콘 -->
     <link rel="icon" type="image/png" href="../../../02.Fonts_Logos/logo.png">
+
+    <!-- ✅ Flatpickr (날짜 선택기) - head에서 먼저 로드 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
 </head>
 <body class="theme-sales viewport-3d" data-page-type="report-write" data-mode="sales">
 
@@ -1506,11 +1511,6 @@
         }
     }
 </style>
-
-<!-- ✅ Flatpickr (날짜 선택기) - 모듈 스크립트 바로 전에 로드 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
 
 <!-- JavaScript 모듈 -->
 <script type="module" src="./02_report_write.js"></script>
