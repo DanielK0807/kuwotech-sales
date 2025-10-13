@@ -72,12 +72,13 @@ export const getErrors = async (req, res) => {
     const total = countResult[0].total;
 
     // 에러 로그 조회 (최신순)
-    const [errors] = await db.execute(
+    // LIMIT/OFFSET은 prepared statement placeholder를 사용할 수 없으므로 query() 사용
+    // limit과 offset은 Number.isInteger()로 검증되었으므로 SQL Injection 안전
+    const [errors] = await db.query(
       `SELECT id, userName, userRole, errorMessage, errorStack, pageUrl, browserInfo, timestamp
        FROM error_logs
        ORDER BY timestamp DESC
-       LIMIT ? OFFSET ?`,
-      [limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`
     );
 
     console.log(`📊 에러 로그 조회: ${errors.length}건 (전체 ${total}건)`);
