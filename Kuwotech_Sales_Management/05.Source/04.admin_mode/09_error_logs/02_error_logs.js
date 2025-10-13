@@ -328,5 +328,11 @@ const escapeHtml = (text) => {
   return div.innerHTML;
 };
 
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', init);
+// 페이지 로드 시 초기화 (동적 로드 대응)
+if (document.readyState === 'loading') {
+  // 아직 로딩 중이면 이벤트 리스너 등록
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  // 이미 로드되었으면 바로 실행 (관리자 레이아웃에서 동적 로드된 경우)
+  init();
+}
