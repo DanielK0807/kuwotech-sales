@@ -300,25 +300,44 @@ export function startSessionMonitoring() {
     sessionManager.startSessionTimer();
 }
 
-export function handleLogout() {
-    
+export async function handleLogout() {
+
     // 현재 로그인 데이터 백업 (역할선택 단계로 돌아가기 위해)
     const user = sessionManager.getUser();
-    
+
+    // 📊 웹사용기록: 로그아웃 시간 기록을 위해 API 호출
+    const accessLogId = sessionStorage.getItem('accessLogId');
+    if (accessLogId) {
+        try {
+            // 백엔드에 로그아웃 시간 기록
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ accessLogId })
+            });
+            logger.info('로그아웃 시간 기록 완료');
+        } catch (error) {
+            logger.error('로그아웃 시간 기록 실패:', error);
+            // 에러가 있어도 로그아웃은 계속 진행
+        }
+    }
+
     // 세션 클리어
     sessionManager.clear();
     sessionManager.stopSessionTimer();
-    
+
     // ✅ Stage 5에서 저장한 user 데이터도 삭제
     sessionStorage.removeItem('user');
-    
+
     // 역할선택 단계(Stage 3)로 돌아가기 위해 필요한 데이터 복원
     if (user) {
         // Stage 0, 1, 2는 완료된 것으로 표시
         sessionStorage.setItem('stage0_completed', 'true');
         sessionStorage.setItem('stage1_completed', 'true');
         sessionStorage.setItem('stage2_completed', 'true');
-        
+
         // Stage 0 데이터 (회사 인증) 복원
         if (user.companyCode) {
             sessionStorage.setItem('stage0_data', JSON.stringify({
@@ -326,15 +345,15 @@ export function handleLogout() {
             }));
             sessionStorage.setItem('stage0_verified', 'true');
         }
-        
+
         // Stage 2 데이터 (엑셀 업로드) 복원
         if (user.employeesData || user.fileName) {
             sessionStorage.setItem('stage2_verified', 'true');
             sessionStorage.setItem('employees_data', user.employeesData || '[]');
         }
-        
+
     }
-    
+
     // 로그인 페이지로 리다이렉트 (자동으로 Stage 3으로 이동됨)
     window.location.href = '../../02.login/01_login.html';
 }

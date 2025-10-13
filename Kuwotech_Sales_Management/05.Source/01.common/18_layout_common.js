@@ -274,8 +274,8 @@ export function setupLogoutButton(handleLogoutFn, showToastFn, user) {
             if (confirmed) {
                 showToastFn('로그아웃 중...', 'info');
 
-                setTimeout(() => {
-                    handleLogoutFn(); // 세션 매니저의 로그아웃 처리
+                setTimeout(async () => {
+                    await handleLogoutFn(); // 세션 매니저의 로그아웃 처리 (비동기)
                 }, 500);
             }
         });
