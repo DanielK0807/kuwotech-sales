@@ -1010,6 +1010,39 @@ class ApiManager {
     async addProduct(productName, category = '일반제품') {
         return this.post('/products', { productName, category });
     }
+
+    // ============================================
+    // KPI 관련 API
+    // ============================================
+
+    /**
+     * 영업담당 개인 KPI 조회
+     * @param {string} employeeId - 직원 ID 또는 이름
+     */
+    async getSalesKPI(employeeId) {
+        return this.get(`/kpi/sales/${encodeURIComponent(employeeId)}`);
+    }
+
+    /**
+     * 전사 KPI 조회
+     */
+    async getAdminKPI() {
+        return this.get('/kpi/admin');
+    }
+
+    /**
+     * 전체매출 기여도 순위 조회
+     */
+    async getTotalSalesRanking() {
+        return this.get('/kpi/admin/ranking/total');
+    }
+
+    /**
+     * 주요제품매출 기여도 순위 조회
+     */
+    async getMainProductRanking() {
+        return this.get('/kpi/admin/ranking/main');
+    }
 }
 
 // ============================================

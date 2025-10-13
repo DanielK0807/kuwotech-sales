@@ -38,59 +38,75 @@ const createTriggers = async () => {
     console.log('1️⃣  기존 트리거 삭제 중...');
     try {
       await connection.execute('DROP TRIGGER IF EXISTS update_company_after_report_approval');
+      await connection.execute('DROP TRIGGER IF EXISTS trigger_update_company_on_approval');
+      await connection.execute('DROP TRIGGER IF EXISTS trigger_update_company_on_confirmation');
       console.log('   ✅ 기존 트리거 삭제 완료\n');
     } catch (error) {
       console.log('   ⏭️  기존 트리거 없음\n');
     }
 
-    // 트리거 생성
+    // 트리거 생성 (영업담당자 확정 시)
     console.log('2️⃣  새 트리거 생성 중...');
     await connection.execute(`
-      CREATE TRIGGER update_company_after_report_approval
+      CREATE TRIGGER trigger_update_company_on_confirmation
       AFTER UPDATE ON reports
       FOR EACH ROW
       BEGIN
-        -- 보고서가 승인 상태로 변경되었을 때만 실행
-        IF NEW.status = '승인' AND OLD.status != '승인' THEN
+        DECLARE final_collection DECIMAL(15,2);
+        DECLARE final_sales DECIMAL(15,2);
+        DECLARE vat_included BOOLEAN;
+        DECLARE product_list TEXT;
+        DECLARE activity_summary TEXT;
+        DECLARE confirmation_date DATE;
 
+        -- confirmationData가 변경되었을 때만 실행 (영업담당자가 확정)
+        -- 그리고 actualSalesAmount가 0보다 클 때만 실행
+        IF (NEW.confirmationData IS NOT NULL AND
+            (OLD.confirmationData IS NULL OR NEW.confirmationData != OLD.confirmationData) AND
+            COALESCE(NEW.actualSalesAmount, 0) > 0) THEN
+
+          -- 1. 기존 테이블 필드에서 값 추출
+          SET final_collection = COALESCE(NEW.actualCollectionAmount, 0);
+          SET final_sales = COALESCE(NEW.actualSalesAmount, 0);
+          SET vat_included = COALESCE(NEW.includeVAT, FALSE);
+          SET product_list = NEW.soldProducts;
+          SET activity_summary = NEW.activityNotes;
+
+          -- 확정 날짜: processedDate가 있으면 사용, 없으면 현재 날짜
+          SET confirmation_date = COALESCE(NEW.processedDate, CURDATE());
+
+          -- 2. companies 테이블 업데이트
           UPDATE companies
           SET
-            -- 1. 판매제품 추가 (기존 제품과 신규 제품 병합)
-            salesProduct = CASE
-              WHEN salesProduct IS NULL OR salesProduct = '' THEN NEW.soldProducts
-              WHEN NEW.soldProducts IS NOT NULL AND NEW.soldProducts != '' THEN
-                CONCAT(salesProduct, ',', NEW.soldProducts)
-              ELSE salesProduct
-            END,
+            -- 판매제품 목록 업데이트
+            salesProduct = IF(
+              product_list IS NOT NULL AND product_list != '',
+              CONCAT(
+                COALESCE(salesProduct, ''),
+                IF(salesProduct IS NOT NULL AND salesProduct != '', ', ', ''),
+                product_list
+              ),
+              salesProduct
+            ),
 
-            -- 2. 마지막 결제 정보 갱신
-            lastPaymentDate = IFNULL(NEW.processedDate, CURDATE()),
-            lastPaymentAmount = NEW.actualSalesAmount,
+            -- 최종결제일/금액 (매출금액 확정 날짜와 금액)
+            lastPaymentDate = confirmation_date,
+            lastPaymentAmount = final_sales,
 
-            -- 3. 누적 수금금액 합산
-            accumulatedCollection = accumulatedCollection + IFNULL(NEW.actualCollectionAmount, 0),
+            -- 누적 수금금액
+            accumulatedCollection = COALESCE(accumulatedCollection, 0) + final_collection,
 
-            -- 4. 누적 매출금액 합산 (부가세 처리)
-            accumulatedSales = accumulatedSales +
-              CASE
-                WHEN NEW.includeVAT = TRUE THEN IFNULL(NEW.actualSalesAmount, 0) / 1.1
-                ELSE IFNULL(NEW.actualSalesAmount, 0)
-              END,
+            -- 누적 매출금액 (부가세 처리)
+            accumulatedSales = COALESCE(accumulatedSales, 0) +
+              IF(vat_included = 1, ROUND(final_sales / 1.1, 0), final_sales),
 
-            -- 5. 영업활동(특이사항) 추가
-            businessActivity = CASE
-              WHEN businessActivity IS NULL OR businessActivity = '' THEN
-                CONCAT('[', DATE_FORMAT(IFNULL(NEW.processedDate, CURDATE()), '%Y-%m-%d'), '] ',
-                       IFNULL(NEW.activityNotes, ''))
-              WHEN NEW.activityNotes IS NOT NULL AND NEW.activityNotes != '' THEN
-                CONCAT(businessActivity, '\n',
-                       '[', DATE_FORMAT(IFNULL(NEW.processedDate, CURDATE()), '%Y-%m-%d'), '] ',
-                       NEW.activityNotes)
-              ELSE businessActivity
-            END,
-
-            -- 6. 수정일시 갱신
-            updatedAt = NOW()
+            -- 영업활동(특이사항) 추가
+            activityNotes = CONCAT(
+              COALESCE(activityNotes, ''),
+              IF(activityNotes IS NOT NULL AND activityNotes != '', '\\n---\\n', ''),
+              '[', DATE_FORMAT(confirmation_date, '%Y-%m-%d'), '] ',
+              COALESCE(activity_summary, '')
+            )
 
           WHERE keyValue = NEW.companyId;
 
@@ -102,7 +118,7 @@ const createTriggers = async () => {
     // 트리거 확인
     console.log('3️⃣  생성된 트리거 확인...');
     const [triggers] = await connection.execute(`
-      SHOW TRIGGERS WHERE \`Trigger\` = 'update_company_after_report_approval'
+      SHOW TRIGGERS WHERE \`Trigger\` = 'trigger_update_company_on_confirmation'
     `);
 
     if (triggers.length > 0) {
@@ -116,16 +132,16 @@ const createTriggers = async () => {
     console.log('\n' + '='.repeat(60));
     console.log('🎉 트리거 생성 완료!');
     console.log('='.repeat(60));
-    console.log('트리거명: update_company_after_report_approval');
+    console.log('트리거명: trigger_update_company_on_confirmation');
     console.log('동작: reports 테이블 UPDATE 후');
-    console.log('조건: status가 "승인"으로 변경될 때');
+    console.log('조건: 영업담당자가 confirmationData 확정할 때');
     console.log('\n자동 업데이트 항목:');
     console.log('  1. ✅ salesProduct (판매제품 추가)');
-    console.log('  2. ✅ lastPaymentDate (마지막결제일)');
-    console.log('  3. ✅ lastPaymentAmount (마지막총결재금액)');
+    console.log('  2. ✅ lastPaymentDate (확정 날짜)');
+    console.log('  3. ✅ lastPaymentAmount (확정 매출금액 - actualSalesAmount)');
     console.log('  4. ✅ accumulatedCollection (누적수금금액 합산)');
     console.log('  5. ✅ accumulatedSales (누적매출금액 합산, 부가세처리)');
-    console.log('  6. ✅ businessActivity (영업활동 추가)');
+    console.log('  6. ✅ activityNotes (영업활동 추가)');
     console.log('='.repeat(60) + '\n');
 
   } catch (error) {

@@ -35,10 +35,62 @@
         </div>
     </header>
 
-    <!-- 실적보고 섹션 -->
+    <!-- 실적보고(개인별) 섹션 -->
+    <section class="individual-performance-section glass-card glass-3d-element">
+        <div class="section-header">
+            <h3 class="section-title individual-title">👤 실적보고(개인별)</h3>
+            <div class="section-toggle-buttons">
+                <button class="btn-section-toggle" data-section="individual" data-action="expand">상세보기</button>
+                <button class="btn-section-toggle" data-section="individual" data-action="collapse">접기</button>
+            </div>
+        </div>
+
+        <!-- 필터 영역 -->
+        <div class="individual-filters">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label class="filter-label">기간</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="individualPeriod" value="weekly" checked>
+                            <span>주간</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="individualPeriod" value="monthly">
+                            <span>월간</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="individualPeriod" value="yearly">
+                            <span>년간</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="btnIndividualSearch" class="btn-primary glass-button">
+                    📊 조회하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 기간 표시 -->
+        <div class="individual-period-display">
+            <p class="period-text">
+                📅 기간: <span id="individualPeriodRange">-</span>
+            </p>
+        </div>
+
+        <!-- 카드 컨테이너 -->
+        <div class="individual-cards-container">
+            <div class="employee-cards-grid" id="employeeCardsGrid">
+                <!-- 동적으로 생성 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 실적보고(상세) 섹션 -->
     <section class="performance-report-section glass-card glass-3d-element">
         <div class="section-header">
-            <h3 class="section-title performance-title">📊 실적보고</h3>
+            <h3 class="section-title performance-title">📊 실적보고(상세)</h3>
             <div class="section-toggle-buttons">
                 <button class="btn-section-toggle" data-section="performance" data-action="expand">상세보기</button>
                 <button class="btn-section-toggle" data-section="performance" data-action="collapse">접기</button>
@@ -170,6 +222,41 @@
                     <span class="summary-label">매출달성률:</span>
                     <span class="summary-value" id="salesRate">0%</span>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 최종결제일 보고 섹션 -->
+    <section class="last-payment-section glass-card glass-3d-element collapsed">
+        <div class="section-header">
+            <h3 class="section-title last-payment-title">📅 최종결제일 보고</h3>
+            <div class="section-toggle-buttons">
+                <button class="btn-section-toggle" data-section="last-payment" data-action="expand">상세보기</button>
+                <button class="btn-section-toggle" data-section="last-payment" data-action="collapse">접기</button>
+            </div>
+        </div>
+
+        <!-- 차트 영역 -->
+        <div class="last-payment-chart-container" style="display: none;">
+            <canvas id="lastPaymentChart"></canvas>
+        </div>
+
+        <!-- 통계 영역 -->
+        <div class="last-payment-stats" style="display: none;">
+            <div class="stat-box stat-within">
+                <span class="stat-box-label">1년 이내 거래처</span>
+                <span class="stat-box-value" id="withinYearCount">0개</span>
+                <span class="stat-box-amount" id="withinYearAmount">₩0</span>
+            </div>
+            <div class="stat-box stat-over">
+                <span class="stat-box-label">1년 이전 거래처</span>
+                <span class="stat-box-value" id="overYearCount">0개</span>
+                <span class="stat-box-amount" id="overYearAmount">₩0</span>
+            </div>
+            <div class="stat-box stat-nodata">
+                <span class="stat-box-label">자료 없음</span>
+                <span class="stat-box-value" id="noDataCount">0개</span>
+                <span class="stat-box-amount" id="noDataAmount">₩0</span>
             </div>
         </div>
     </section>
@@ -639,6 +726,30 @@
         border: 1px solid var(--border-primary);
         white-space: nowrap;
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.8));
+    }
+
+    /* ============================================ */
+    /* 컬럼 그룹별 색상 구분 */
+    /* ============================================ */
+
+    /* 수금 그룹 (6-8번 컬럼) - 오렌지색 */
+    .report-table th:nth-child(6),   /* 목표수금금액 */
+    .report-table th:nth-child(7),   /* 실제수금금액 */
+    .report-table th:nth-child(8) {  /* 달성률 */
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.8), rgba(249, 115, 22, 0.8)) !important;
+    }
+
+    /* 매출 그룹 (9-11번 컬럼) - 초록색 */
+    .report-table th:nth-child(9),   /* 목표매출금액 */
+    .report-table th:nth-child(10),  /* 실제매출금액 */
+    .report-table th:nth-child(11) { /* 달성률 */
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.8)) !important;
+    }
+
+    /* 누적 그룹 (14-15번 컬럼) - 보라색 */
+    .report-table th:nth-child(14),  /* 누적매출액 */
+    .report-table th:nth-child(15) { /* 누적수금액 */
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(124, 58, 237, 0.8)) !important;
     }
 
     .report-table tbody tr {
@@ -1302,10 +1413,15 @@
     }
 
     /* 섹션 컨텐츠 기본 숨김 */
+    .individual-filters,
+    .individual-period-display,
+    .individual-cards-container,
     .performance-filters,
     .performance-period-display,
     .performance-table-section,
     .performance-summary,
+    .last-payment-chart-container,
+    .last-payment-stats,
     .comparison-filters,
     .comparison-period-display,
     .comparison-result-area,
@@ -1450,7 +1566,210 @@
     }
 
     /* ============================================ */
-    /* 실적보고 섹션 스타일 */
+    /* 실적보고(개인별) 섹션 스타일 */
+    /* ============================================ */
+
+    .individual-performance-section {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.02) 0%, rgba(124, 58, 237, 0.04) 100%) !important;  /* 보라색 그라데이션 배경 */
+        border: 2px solid rgba(139, 92, 246, 0.2) !important;  /* 보라색 테두리 */
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1) !important;  /* 보라색 그림자 */
+    }
+
+    .individual-title {
+        font-size: var(--font-2xl);
+        font-weight: var(--font-weight-bold);
+        color: #8b5cf6;  /* 보라색 */
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+        padding-bottom: var(--spacing-md);
+        border-bottom: 2px solid rgba(139, 92, 246, 0.3);  /* 보라색 */
+    }
+
+    .individual-filters {
+        background: rgba(139, 92, 246, 0.03);  /* 보라색 */
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .individual-period-display {
+        text-align: center;
+        padding: var(--spacing-md);
+        background: rgba(139, 92, 246, 0.05);  /* 보라색 */
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .individual-period-display .period-text {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .individual-period-display .period-text span {
+        color: #8b5cf6;  /* 보라색 */
+        font-weight: var(--font-weight-bold);
+    }
+
+    .individual-cards-container {
+        margin-top: var(--spacing-lg);
+    }
+
+    /* 직원 카드 그리드 */
+    .employee-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);  /* 1행에 3개 */
+        gap: var(--spacing-lg);
+        padding: var(--spacing-md);
+    }
+
+    /* 개별 직원 카드 */
+    .employee-card {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.12) 100%);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+    }
+
+    .employee-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    /* 카드 헤더 (이름/부서) */
+    .employee-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-md);
+        border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .employee-card-name {
+        font-size: var(--font-lg);
+        font-weight: var(--font-weight-bold);
+        color: #8b5cf6;
+    }
+
+    .employee-card-department {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        background: rgba(139, 92, 246, 0.15);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
+    }
+
+    /* 카드 데이터 행 */
+    .employee-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm) 0;
+        margin-bottom: var(--spacing-sm);
+        border-radius: var(--radius-sm);
+    }
+
+    /* 1행 - 수금 그룹 (오렌지색) */
+    .employee-card-row.collection-group {
+        background: rgba(251, 146, 60, 0.08);
+        padding: var(--spacing-md);
+        border-left: 3px solid #fb923c;
+    }
+
+    /* 2행 - 매출 그룹 (초록색) */
+    .employee-card-row.sales-group {
+        background: rgba(16, 185, 129, 0.08);
+        padding: var(--spacing-md);
+        border-left: 3px solid #10b981;
+    }
+
+    /* 3행 - 누적 그룹 (보라색) */
+    .employee-card-row.cumulative-group {
+        background: rgba(139, 92, 246, 0.08);
+        padding: var(--spacing-md);
+        border-left: 3px solid #8b5cf6;
+    }
+
+    /* 각 행의 데이터 그룹 */
+    .card-row-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        flex: 1;
+    }
+
+    .card-row-label {
+        font-size: var(--font-xs);
+        color: var(--text-secondary);
+        font-weight: var(--font-weight-medium);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-row-value {
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
+        color: var(--text-primary);
+    }
+
+    /* 수금 그룹 색상 */
+    .collection-group .card-row-label {
+        color: #f97316;
+    }
+
+    .collection-group .card-row-value {
+        color: #fb923c;
+    }
+
+    /* 매출 그룹 색상 */
+    .sales-group .card-row-label {
+        color: #059669;
+    }
+
+    .sales-group .card-row-value {
+        color: #10b981;
+    }
+
+    /* 누적 그룹 색상 */
+    .cumulative-group .card-row-label {
+        color: #7c3aed;
+    }
+
+    .cumulative-group .card-row-value {
+        color: #8b5cf6;
+    }
+
+    /* 달성률 스타일 */
+    .card-row-value.rate {
+        font-size: var(--font-xl);
+        font-weight: var(--font-weight-bold);
+    }
+
+    /* 반응형 - 개인별 카드 */
+    @media (max-width: 1200px) {
+        .employee-cards-grid {
+            grid-template-columns: repeat(2, 1fr);  /* 1행에 2개 */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .employee-cards-grid {
+            grid-template-columns: 1fr;  /* 1행에 1개 */
+        }
+    }
+
+    /* ============================================ */
+    /* 실적보고(상세) 섹션 스타일 */
     /* ============================================ */
 
     .performance-report-section {
@@ -1523,6 +1842,156 @@
 
     .performance-summary .summary-value {
         color: #fb923c !important;  /* 오렌지색 */
+    }
+
+    /* ============================================ */
+    /* 최종결제일 보고 섹션 스타일 */
+    /* ============================================ */
+
+    .last-payment-section {
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.02) 0%, rgba(219, 39, 119, 0.04) 100%) !important;  /* 핑크색 그라데이션 배경 */
+        border: 2px solid rgba(236, 72, 153, 0.2) !important;  /* 핑크색 테두리 */
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.1) !important;  /* 핑크색 그림자 */
+    }
+
+    .last-payment-title {
+        font-size: var(--font-2xl);
+        font-weight: var(--font-weight-bold);
+        color: #ec4899;  /* 핑크색 */
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+        padding-bottom: var(--spacing-md);
+        border-bottom: 2px solid rgba(236, 72, 153, 0.3);  /* 핑크색 */
+    }
+
+    .last-payment-chart-container {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        background: rgba(236, 72, 153, 0.03);  /* 핑크색 */
+        border-radius: var(--radius-lg);
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .last-payment-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+        padding: var(--spacing-lg);
+    }
+
+    .stat-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-box.stat-within {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.12) 100%);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .stat-box.stat-within:hover {
+        border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .stat-box.stat-over {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.12) 100%);
+        border: 2px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .stat-box.stat-over:hover {
+        border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .stat-box.stat-nodata {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(75, 85, 99, 0.12) 100%);
+        border: 2px solid rgba(107, 114, 128, 0.3);
+    }
+
+    .stat-box.stat-nodata:hover {
+        border-color: rgba(107, 114, 128, 0.5);
+    }
+
+    .stat-box-label {
+        font-size: var(--font-sm);
+        font-weight: var(--font-weight-medium);
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-box-value {
+        font-size: var(--font-3xl);
+        font-weight: var(--font-weight-bold);
+        line-height: 1;
+    }
+
+    .stat-within .stat-box-value {
+        color: #10b981;  /* 초록색 */
+    }
+
+    .stat-over .stat-box-value {
+        color: #f59e0b;  /* 주황색 */
+    }
+
+    .stat-nodata .stat-box-value {
+        color: #6b7280;  /* 회색 */
+    }
+
+    .stat-box-amount {
+        font-size: var(--font-lg);
+        font-weight: var(--font-weight-bold);
+        font-family: var(--font-primary);
+    }
+
+    .stat-within .stat-box-amount {
+        color: #059669;  /* 진한 초록색 */
+    }
+
+    .stat-over .stat-box-amount {
+        color: #d97706;  /* 진한 주황색 */
+    }
+
+    .stat-nodata .stat-box-amount {
+        color: #4b5563;  /* 진한 회색 */
+    }
+
+    /* 반응형 - 최종결제일 보고 */
+    @media (max-width: 768px) {
+        .last-payment-stats {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .stat-box {
+            flex-direction: row;
+            justify-content: space-between;
+            padding: var(--spacing-lg);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .last-payment-chart-container {
+            min-height: 300px;
+        }
     }
 
     /* ============================================ */
@@ -1969,6 +2438,19 @@
             <button class="modal-close" onclick="window.closeReportModal()">&times;</button>
         </div>
         <div class="modal-body" id="modalBody">
+            <!-- 동적으로 채워짐 -->
+        </div>
+    </div>
+</div>
+
+<!-- 최종결제일 상세 모달 -->
+<div id="lastPaymentModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="lastPaymentModalTitle">거래처 목록</h2>
+            <button class="modal-close" onclick="window.closeLastPaymentModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="lastPaymentModalBody">
             <!-- 동적으로 채워짐 -->
         </div>
     </div>

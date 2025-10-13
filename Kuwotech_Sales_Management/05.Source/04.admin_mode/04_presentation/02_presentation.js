@@ -1,5 +1,13 @@
 // ============================================
 // 보고서 발표 페이지
+// Last Updated: 2025-10-14
+//
+// 주요 변경사항:
+// - 실적보고(개인별) 섹션의 누적매출/누적수금 데이터를
+//   companies 테이블 집계에서 kpi_sales 테이블로 변경
+// - kpi_sales 테이블은 회사 데이터 변동 시 자동 업데이트됨
+// - 누적 금액: kpi_sales 테이블 (기간 무관 - 1월 1일~현재)
+// - 목표/실제 금액: reports 테이블 (선택한 기간 내 보고서)
 // ============================================
 
 import ApiManager from '../../01.common/13_api_manager.js';
@@ -243,6 +251,9 @@ function setupEventListeners() {
     const btnRefresh = document.getElementById('btnRefresh');
     btnRefresh?.addEventListener('click', handleRefresh);
 
+    // 개인별 실적 이벤트 리스너
+    setupIndividualPerformanceListeners();
+
     // 비교보고 이벤트 리스너
     setupComparisonEventListeners();
 
@@ -274,6 +285,487 @@ function setupComparisonEventListeners() {
     // 계층적 그룹화 토글 버튼
     const btnToggleGrouping = document.getElementById('btnToggleGrouping');
     btnToggleGrouping?.addEventListener('click', handleToggleGrouping);
+}
+
+/**
+ * 개인별 실적 이벤트 리스너 등록
+ */
+function setupIndividualPerformanceListeners() {
+    // 조회 버튼
+    const btnIndividualSearch = document.getElementById('btnIndividualSearch');
+    btnIndividualSearch?.addEventListener('click', handleIndividualSearch);
+}
+
+/**
+ * 모든 영업담당자의 KPI 데이터 가져오기
+ * @returns {Map} employeeName -> KPI 데이터
+ */
+async function fetchAllEmployeeKPI() {
+    const kpiMap = new Map();
+
+    // 영업담당자 목록 추출
+    const salesEmployees = Object.entries(employeesMap)
+        .filter(([name, info]) => info.role1 === '영업담당' || info.role2 === '영업담당')
+        .map(([name, info]) => name);
+
+    console.log(`[KPI Fetch] 영업담당자 ${salesEmployees.length}명의 KPI 데이터 가져오기 시작`);
+
+    // 각 영업담당자의 KPI 데이터 가져오기 (병렬 처리)
+    const promises = salesEmployees.map(async (employeeName) => {
+        try {
+            const response = await apiManager.getSalesKPI(employeeName);
+
+            if (response && response.success && response.data) {
+                const kpiData = response.data;
+
+                // 누적 금액 추출 (한글 필드명)
+                const cumulativeCollection = Number(kpiData['누적수금금액']) || 0;
+                const cumulativeSales = Number(kpiData['누적매출금액']) || 0;
+
+                kpiMap.set(employeeName, {
+                    누적수금금액: cumulativeCollection,
+                    누적매출금액: cumulativeSales,
+                    ...kpiData // 전체 KPI 데이터도 저장
+                });
+
+                console.log(`[KPI Fetch] ✅ ${employeeName}: 누적수금 ${cumulativeCollection.toLocaleString()}원, 누적매출 ${cumulativeSales.toLocaleString()}원`);
+            } else {
+                console.warn(`[KPI Fetch] ⚠️ ${employeeName}: KPI 데이터 없음`);
+                // KPI 데이터가 없어도 0으로 설정
+                kpiMap.set(employeeName, {
+                    누적수금금액: 0,
+                    누적매출금액: 0
+                });
+            }
+        } catch (error) {
+            console.error(`[KPI Fetch] ❌ ${employeeName} KPI 조회 실패:`, error);
+            // 에러 발생 시에도 0으로 설정
+            kpiMap.set(employeeName, {
+                누적수금금액: 0,
+                누적매출금액: 0
+            });
+        }
+    });
+
+    // 모든 요청이 완료될 때까지 대기
+    await Promise.all(promises);
+
+    console.log(`[KPI Fetch] ✅ 완료: ${kpiMap.size}명의 KPI 데이터 로드됨`);
+    return kpiMap;
+}
+
+/**
+ * 개인별 조회 버튼 핸들러
+ */
+async function handleIndividualSearch() {
+    // 선택된 기간 가져오기
+    const selectedRadio = document.querySelector('input[name="individualPeriod"]:checked');
+    const selectedPeriod = selectedRadio?.value || 'weekly';
+
+    console.log('='.repeat(80));
+    console.log('🔍 [개인별실적 조회 시작]');
+    console.log('='.repeat(80));
+    console.log(`선택한 기간: ${selectedPeriod}`);
+
+    try {
+        // ✅ 선택한 기간에 맞는 보고서를 API에서 직접 가져오기
+        const today = new Date();
+        let startDate, endDate;
+
+        if (selectedPeriod === 'weekly') {
+            const day = today.getDay();
+            const diff = day === 0 ? -6 : 1 - day;
+            startDate = new Date(today);
+            startDate.setDate(today.getDate() + diff);
+            endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+        } else if (selectedPeriod === 'monthly') {
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        } else if (selectedPeriod === 'yearly') {
+            startDate = new Date(today.getFullYear(), 0, 1);
+            endDate = new Date(today.getFullYear(), 11, 31);
+        }
+
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+
+        console.log(`📅 조회 기간: ${startDateStr} ~ ${endDateStr}`);
+        console.log(`⏳ API 호출 중...`);
+
+        // API 호출
+        const response = await apiManager.getReports({
+            startDate: startDateStr,
+            endDate: endDateStr
+        });
+
+        // 데이터 파싱
+        let periodReports = [];
+        if (response && response.data && Array.isArray(response.data.reports)) {
+            periodReports = response.data.reports;
+        } else if (Array.isArray(response)) {
+            periodReports = response;
+        }
+
+        console.log(`✅ API 응답: ${periodReports.length}개 보고서`);
+        console.log(`전체 거래처: ${Object.keys(companiesMap).length}개`);
+        console.log(`전체 직원: ${Object.keys(employeesMap).length}명`);
+
+        // ✅ KPI 데이터 가져오기 (누적매출금액, 누적수금금액)
+        console.log('\n📊 KPI 데이터 가져오는 중...');
+        const kpiDataMap = await fetchAllEmployeeKPI();
+        console.log(`✅ KPI 데이터 ${kpiDataMap.size}개 로드 완료`);
+
+        // ✅ 디버깅용: window 객체에 데이터 노출
+        window.DEBUG_companiesMap = companiesMap;
+        window.DEBUG_employeesMap = employeesMap;
+        window.DEBUG_periodReports = periodReports;
+        window.DEBUG_kpiDataMap = kpiDataMap;
+
+        // 거래처 담당자 목록
+        const managers = new Set();
+        Object.values(companiesMap).forEach(c => {
+            if (c.internalManager) managers.add(c.internalManager);
+        });
+        console.log(`\n📋 거래처 DB의 담당자 (${managers.size}명):`, Array.from(managers).sort());
+
+        // 영업담당자 목록
+        const salesEmployees = Object.entries(employeesMap)
+            .filter(([name, info]) => info.role1 === '영업담당' || info.role2 === '영업담당')
+            .map(([name, info]) => name);
+        console.log(`\n👥 영업담당자 목록 (${salesEmployees.length}명):`, salesEmployees.sort());
+
+        console.log('='.repeat(80));
+
+        // 기간 표시 업데이트
+        updateIndividualPeriodDisplay(selectedPeriod);
+
+        // 카드 렌더링 (API에서 가져온 periodReports와 KPI 데이터 사용)
+        renderIndividualPerformanceCards(selectedPeriod, periodReports, kpiDataMap);
+
+    } catch (error) {
+        console.error('❌ [개인별실적] API 호출 실패:', error);
+        showToast('보고서 데이터를 불러오는데 실패했습니다.', 'error');
+    }
+}
+
+/**
+ * 개인별 기간 표시 업데이트
+ */
+function updateIndividualPeriodDisplay(period) {
+    const periodRangeElement = document.getElementById('individualPeriodRange');
+    if (!periodRangeElement) return;
+
+    const today = new Date();
+    let startDate, endDate, periodText;
+
+    if (period === 'weekly') {
+        // 주간: 이번 주 월요일 ~ 일요일
+        const day = today.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() + diff);
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        periodText = `${formatDate(startDate)} ~ ${formatDate(endDate)} (주간)`;
+    } else if (period === 'monthly') {
+        // 월간: 이번 달 1일 ~ 말일
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        periodText = `${formatDate(startDate)} ~ ${formatDate(endDate)} (월간)`;
+    } else if (period === 'yearly') {
+        // 년간: 올해 1월 1일 ~ 12월 31일
+        startDate = new Date(today.getFullYear(), 0, 1);
+        endDate = new Date(today.getFullYear(), 11, 31);
+        periodText = `${formatDate(startDate)} ~ ${formatDate(endDate)} (년간)`;
+    }
+
+    periodRangeElement.textContent = periodText;
+}
+
+/**
+ * 개인별 실적 카드 렌더링
+ */
+function renderIndividualPerformanceCards(period = 'weekly', periodReports = [], kpiDataMap = new Map()) {
+    const cardsGrid = document.getElementById('employeeCardsGrid');
+    if (!cardsGrid) return;
+
+    // 기간 범위 계산
+    const today = new Date();
+    let startDate, endDate;
+
+    if (period === 'weekly') {
+        const day = today.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() + diff);
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+    } else if (period === 'monthly') {
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (period === 'yearly') {
+        startDate = new Date(today.getFullYear(), 0, 1);
+        endDate = new Date(today.getFullYear(), 11, 31);
+    }
+
+    // ✅ API에서 가져온 periodReports 사용 (allReports 대신)
+    console.log(`📊 집계할 보고서: ${periodReports.length}개`);
+
+    // 직원별 데이터 집계 (KPI 데이터 포함)
+    const employeeData = aggregateEmployeeData(periodReports, startDate, endDate, kpiDataMap);
+
+    logger.info(`[개인별실적] 렌더링할 직원 데이터:`, employeeData);
+
+    // 카드 HTML 생성
+    if (employeeData.length > 0) {
+        const cardsHTML = employeeData.map(emp => createEmployeeCard(emp)).join('');
+        cardsGrid.innerHTML = cardsHTML;
+        console.log(`✅ ${employeeData.length}개 카드 렌더링 완료`);
+        logger.info(`[개인별실적] ${employeeData.length}개 카드 렌더링 완료`);
+    } else {
+        cardsGrid.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">직원 데이터가 없습니다</p>';
+        console.warn('⚠️ 렌더링할 직원 데이터가 없습니다');
+        logger.warn('[개인별실적] 렌더링할 직원 데이터가 없습니다');
+    }
+}
+
+/**
+ * 직원별 데이터 집계
+ * @param {Array} reports - 보고서 목록
+ * @param {Date} startDate - 시작일
+ * @param {Date} endDate - 종료일
+ * @param {Map} kpiDataMap - KPI 데이터 (employeeName -> KPI 데이터)
+ */
+function aggregateEmployeeData(reports, startDate, endDate, kpiDataMap = new Map()) {
+    const employeeMap = new Map();
+
+    logger.info(`[개인별실적] ========== 집계 시작 ==========`);
+    logger.info(`[개인별실적] 기간: ${startDate.toISOString().split('T')[0]} ~ ${endDate.toISOString().split('T')[0]}`);
+    logger.info(`[개인별실적] 전체 보고서 수: ${reports.length}`);
+    logger.info(`[개인별실적] KPI 데이터: ${kpiDataMap.size}명`);
+
+    // 영업담당자만 초기화 (관리자 제외)
+    Object.entries(employeesMap).forEach(([employeeName, employeeInfo]) => {
+        // 영업담당자만 카드 표시 (role1 또는 role2가 '영업담당'인 경우)
+        if (employeeInfo.role1 === '영업담당' || employeeInfo.role2 === '영업담당') {
+            employeeMap.set(employeeName, {
+                employeeName: employeeName,
+                department: employeeInfo.department || '미지정',
+                targetCollection: 0,
+                actualCollection: 0,
+                targetSales: 0,
+                actualSales: 0,
+                cumulativeCollection: 0,
+                cumulativeSales: 0
+            });
+        }
+    });
+
+    // ✅ 핵심 수정: KPI 테이블에서 누적 데이터 가져오기 (기간 무관 - 1월 1일~현재)
+    logger.info(`[개인별실적] KPI 데이터로 누적금액 설정 시작`);
+
+    employeeMap.forEach((empData, employeeName) => {
+        const kpiData = kpiDataMap.get(employeeName);
+
+        if (kpiData) {
+            // KPI 데이터에서 누적 금액 추출
+            empData.cumulativeCollection = Number(kpiData['누적수금금액']) || 0;
+            empData.cumulativeSales = Number(kpiData['누적매출금액']) || 0;
+
+            logger.info(`[개인별실적] ✅ ${employeeName}: KPI 누적수금 ${empData.cumulativeCollection.toLocaleString()}원 | 누적매출 ${empData.cumulativeSales.toLocaleString()}원`);
+        } else {
+            // KPI 데이터가 없으면 0으로 설정
+            empData.cumulativeCollection = 0;
+            empData.cumulativeSales = 0;
+            logger.warn(`[개인별실적] ⚠️ ${employeeName}: KPI 데이터 없음 - 누적금액 0으로 설정`);
+        }
+    });
+
+    logger.info(`[개인별실적] ✅ 누적금액 설정 완료 (${employeeMap.size}명)`);
+
+    // 영업담당자의 직원 목록
+    const salesEmployees = Array.from(employeeMap.keys());
+    logger.info(`[개인별실적] 영업담당자 수: ${salesEmployees.length}`, salesEmployees);
+
+    // 기간 내 보고서 필터링
+    const filteredReports = reports.filter(report => {
+        const reportDate = new Date(report.submittedDate);  // ✅ 실적보고(상세)와 동일: submittedDate 사용
+        return reportDate >= startDate && reportDate <= endDate;
+    });
+
+    logger.info(`[개인별실적] 기간 필터링 후 보고서 수: ${filteredReports.length}`);
+
+    // 필터링된 보고서 중 처음 3개 샘플
+    if (filteredReports.length > 0) {
+        logger.info(`[개인별실적] 필터링된 보고서 샘플 (처음 3개):`,
+            filteredReports.slice(0, 3).map(r => ({
+                submittedBy: r.submittedBy,
+                submittedDate: r.submittedDate,
+                companyId: r.companyId,
+                targetCollectionAmount: r.targetCollectionAmount,
+                actualCollectionAmount: r.actualCollectionAmount,
+                targetSalesAmount: r.targetSalesAmount,
+                actualSalesAmount: r.actualSalesAmount
+            }))
+        );
+    }
+
+    // ✅ 선택한 기간의 보고서에서 목표/실제 금액만 집계 (누적은 이미 위에서 처리)
+    let reportCount = 0;
+    let skippedCount = 0;
+
+    filteredReports.forEach((report, index) => {
+        const employeeName = report.submittedBy;
+
+        // 영업담당자가 아닌 경우 skip
+        if (!employeeMap.has(employeeName)) {
+            skippedCount++;
+            if (skippedCount <= 3) {
+                logger.info(`[개인별실적] Skip: ${employeeName} (영업담당자 아님)`);
+            }
+            return;
+        }
+
+        reportCount++;
+
+        const empData = employeeMap.get(employeeName);
+
+        // 목표 및 실제 금액 집계 (선택한 기간만)
+        const targetCollection = Number(report.targetCollectionAmount) || 0;
+        const actualCollection = Number(report.actualCollectionAmount) || 0;
+        const targetSales = Number(report.targetSalesAmount) || 0;
+        const actualSales = Number(report.actualSalesAmount) || 0;
+
+        if (reportCount <= 3) {
+            logger.info(`[개인별실적] 보고서 #${reportCount} (${employeeName}):`, {
+                targetCollection, actualCollection, targetSales, actualSales
+            });
+        }
+
+        empData.targetCollection += targetCollection;
+        empData.actualCollection += actualCollection;
+        empData.targetSales += targetSales;
+        empData.actualSales += actualSales;
+    });
+
+    logger.info(`[개인별실적] ========== 집계 완료 ==========`);
+    logger.info(`[개인별실적] 집계된 보고서: ${reportCount}개`);
+    logger.info(`[개인별실적] 건너뛴 보고서: ${skippedCount}개 (영업담당자 아님)`);
+
+    // Map을 배열로 변환하고 이름순 정렬
+    const result = Array.from(employeeMap.values()).sort((a, b) =>
+        a.employeeName.localeCompare(b.employeeName, 'ko')
+    );
+
+    // 모든 직원 집계 결과 로그
+    logger.info(`[개인별실적] 최종 집계 결과 (${result.length}명):`,
+        result.map(emp => ({
+            name: emp.employeeName,
+            dept: emp.department,
+            target수금: emp.targetCollection,
+            actual수금: emp.actualCollection,
+            target매출: emp.targetSales,
+            actual매출: emp.actualSales,
+            누적수금: emp.cumulativeCollection,
+            누적매출: emp.cumulativeSales
+        }))
+    );
+
+    return result;
+}
+
+/**
+ * 금액 포맷 (회계 방식 음수 처리)
+ * @param {number} amount - 금액
+ * @returns {{text: string, className: string}} - 포맷된 텍스트와 클래스명
+ */
+function formatAmountWithStyle(amount) {
+    const formatted = formatCurrency(amount, true);
+    if (typeof formatted === 'object' && formatted.text) {
+        return {
+            text: formatted.text,
+            className: formatted.className || ''
+        };
+    }
+    return {
+        text: formatted,
+        className: ''
+    };
+}
+
+/**
+ * 직원 카드 HTML 생성
+ */
+function createEmployeeCard(empData) {
+    // 달성률 계산 (소수점 2자리)
+    const collectionRate = empData.targetCollection > 0
+        ? ((empData.actualCollection / empData.targetCollection) * 100).toFixed(2)
+        : '0.00';
+    const salesRate = empData.targetSales > 0
+        ? ((empData.actualSales / empData.targetSales) * 100).toFixed(2)
+        : '0.00';
+
+    // 금액 포맷 (회계 방식 음수 처리)
+    const targetCollectionFmt = formatAmountWithStyle(empData.targetCollection);
+    const actualCollectionFmt = formatAmountWithStyle(empData.actualCollection);
+    const targetSalesFmt = formatAmountWithStyle(empData.targetSales);
+    const actualSalesFmt = formatAmountWithStyle(empData.actualSales);
+    const cumulativeCollectionFmt = formatAmountWithStyle(empData.cumulativeCollection);
+    const cumulativeSalesFmt = formatAmountWithStyle(empData.cumulativeSales);
+
+    return `
+        <div class="employee-card">
+            <div class="employee-card-header">
+                <div class="employee-card-name">${empData.employeeName}</div>
+                <div class="employee-card-department">${empData.department}</div>
+            </div>
+
+            <!-- 1행: 수금 그룹 -->
+            <div class="employee-card-row collection-group">
+                <div class="card-row-group">
+                    <div class="card-row-label">목표수금</div>
+                    <div class="card-row-value ${targetCollectionFmt.className}">${targetCollectionFmt.text}</div>
+                </div>
+                <div class="card-row-group">
+                    <div class="card-row-label">실제수금</div>
+                    <div class="card-row-value ${actualCollectionFmt.className}">${actualCollectionFmt.text}</div>
+                </div>
+                <div class="card-row-group">
+                    <div class="card-row-label">달성률</div>
+                    <div class="card-row-value rate">${collectionRate}%</div>
+                </div>
+            </div>
+
+            <!-- 2행: 매출 그룹 -->
+            <div class="employee-card-row sales-group">
+                <div class="card-row-group">
+                    <div class="card-row-label">목표매출</div>
+                    <div class="card-row-value ${targetSalesFmt.className}">${targetSalesFmt.text}</div>
+                </div>
+                <div class="card-row-group">
+                    <div class="card-row-label">실제매출</div>
+                    <div class="card-row-value ${actualSalesFmt.className}">${actualSalesFmt.text}</div>
+                </div>
+                <div class="card-row-group">
+                    <div class="card-row-label">달성률</div>
+                    <div class="card-row-value rate">${salesRate}%</div>
+                </div>
+            </div>
+
+            <!-- 3행: 누적 그룹 -->
+            <div class="employee-card-row cumulative-group">
+                <div class="card-row-group">
+                    <div class="card-row-label">누적수금</div>
+                    <div class="card-row-value ${cumulativeCollectionFmt.className}">${cumulativeCollectionFmt.text}</div>
+                </div>
+                <div class="card-row-group">
+                    <div class="card-row-label">누적매출</div>
+                    <div class="card-row-value ${cumulativeSalesFmt.className}">${cumulativeSalesFmt.text}</div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 /**
@@ -334,10 +826,27 @@ function handleSectionToggle(event) {
             ].filter(el => el !== null);
             break;
 
+        case 'individual':
+            sectionElement = document.querySelector('.individual-performance-section');
+            contentElements = [
+                sectionElement?.querySelector('.individual-filters'),
+                sectionElement?.querySelector('.individual-period-display'),
+                sectionElement?.querySelector('.individual-cards-container')
+            ].filter(el => el !== null);
+            break;
+
         case 'employee':
             sectionElement = document.querySelector('.employee-stats-section');
             contentElements = [
                 sectionElement?.querySelector('.stats-table-container')
+            ].filter(el => el !== null);
+            break;
+
+        case 'last-payment':
+            sectionElement = document.querySelector('.last-payment-section');
+            contentElements = [
+                sectionElement?.querySelector('.last-payment-chart-container'),
+                sectionElement?.querySelector('.last-payment-stats')
             ].filter(el => el !== null);
             break;
     }
@@ -351,8 +860,18 @@ function handleSectionToggle(event) {
     if (action === 'expand') {
         // 상세보기 - 모든 컨텐츠 표시
         contentElements.forEach(el => {
-            el.style.display = 'block';
+            // 최종결제일 보고의 stats는 grid로 표시
+            if (section === 'last-payment' && el.classList.contains('last-payment-stats')) {
+                el.style.display = 'grid';
+            } else {
+                el.style.display = 'block';
+            }
         });
+
+        // 섹션의 collapsed 클래스 제거
+        if (sectionElement) {
+            sectionElement.classList.remove('collapsed');
+        }
 
         // 실적보고 섹션인 경우 필터 토글 버튼 표시
         if (section === 'performance') {
@@ -374,6 +893,11 @@ function handleSectionToggle(event) {
         contentElements.forEach(el => {
             el.style.display = 'none';
         });
+
+        // 섹션의 collapsed 클래스 추가
+        if (sectionElement) {
+            sectionElement.classList.add('collapsed');
+        }
 
         // 실적보고 섹션인 경우 필터 토글 버튼 숨김
         if (section === 'performance') {
@@ -491,6 +1015,9 @@ async function loadReports() {
         // 영업담당자 통계 렌더링
         renderEmployeeReportStats();
 
+        // 최종결제일 통계 렌더링
+        renderLastPaymentStats();
+
     } catch (error) {
         logger.error('❌ 보고서 로드 실패:', error);
         showToast('보고서 데이터를 불러오는데 실패했습니다.', 'error');
@@ -535,30 +1062,522 @@ async function loadTodayReports() {
  */
 async function loadCompanies() {
     try {
-        const response = await apiManager.getCompanies();
+        // 전체 거래처 로드 (limit 제한 없이 - 매우 큰 숫자 설정)
+        const response = await apiManager.getCompanies({ limit: 999999 });
+
+        logger.warn(`[거래처로드] API 응답:`, response);
 
         // API Manager는 응답을 그대로 반환
         if (response && response.companies && Array.isArray(response.companies)) {
             response.companies.forEach(company => {
                 companiesMap[company.keyValue] = company;
             });
+            logger.info(`[거래처로드] response.companies 경로: ${response.companies.length}개 로드됨`);
         } else if (response && response.data && Array.isArray(response.data.companies)) {
             // 혹시 response.data에 있을 경우 대비
             response.data.companies.forEach(company => {
                 companiesMap[company.keyValue] = company;
             });
+            logger.info(`[거래처로드] response.data.companies 경로: ${response.data.companies.length}개 로드됨`);
         } else if (Array.isArray(response)) {
             // 배열 형태로 올 경우
             response.forEach(company => {
                 companiesMap[company.keyValue] = company;
             });
+            logger.info(`[거래처로드] 배열 경로: ${response.length}개 로드됨`);
         } else {
             logger.warn('⚠️ 거래처 정보 응답 형식 오류:', response);
         }
+
+        logger.info(`[거래처로드] 최종 companiesMap 크기: ${Object.keys(companiesMap).length}`);
+
+        // 첫 번째 거래처 샘플 로그
+        const firstCompanyKey = Object.keys(companiesMap)[0];
+        if (firstCompanyKey) {
+            const firstCompany = companiesMap[firstCompanyKey];
+            logger.info(`[거래처로드] 첫 번째 거래처 샘플:`, {
+                keyValue: firstCompany.keyValue,
+                finalCompanyName: firstCompany.finalCompanyName,
+                accumulatedCollection: firstCompany.accumulatedCollection,
+                accumulatedSales: firstCompany.accumulatedSales
+            });
+        }
+
     } catch (error) {
         logger.error('❌ 거래처 정보 로드 실패:', error);
     }
 }
+
+// ============================================
+// 최종결제일 보고 관련 함수
+// ============================================
+
+/**
+ * 최종결제일 데이터 집계 (월별)
+ * @returns {Object} 집계된 데이터 { monthlyData, withinYear, overYear, noData }
+ */
+function aggregateLastPaymentData() {
+    const today = new Date();
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+    logger.warn('[최종결제일 집계] 시작:', {
+        오늘날짜: today.toISOString().split('T')[0],
+        현재년월: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`,
+        일년전: oneYearAgo.toISOString().split('T')[0]
+    });
+
+    // 월별 데이터 저장 (최근 12개월)
+    const monthlyData = {};
+
+    // 1년 이내, 1년 이전, 데이터 없음 집계
+    const withinYear = { count: 0, amount: 0, companies: [] };
+    const overYear = { count: 0, amount: 0, companies: [] };
+    const noData = { count: 0, amount: 0, companies: [] };
+
+    // 최근 12개월 키 생성 (현재 월부터 시작)
+    const monthKeys = [];
+    for (let i = 0; i < 12; i++) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1); // 각 월의 1일
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthKeys.push(key);
+        monthlyData[key] = {
+            count: 0,
+            amount: 0,
+            companies: [],
+            label: `${date.getFullYear()}년 ${date.getMonth() + 1}월`,
+            // 디버깅용: 해당 월의 범위
+            startDate: new Date(date.getFullYear(), date.getMonth(), 1),
+            endDate: new Date(date.getFullYear(), date.getMonth() + 1, 0) // 다음 월 0일 = 이번 달 마지막 날
+        };
+    }
+
+    logger.warn('[최종결제일 집계] 생성된 월 키:', monthKeys);
+
+    // 디버깅을 위한 카운터
+    let totalCompanies = 0;
+    let companiesWithDate = 0;
+    let septemberCompanies = 0;
+    let septemberAmount = 0;
+
+    // 모든 거래처 순회
+    Object.values(companiesMap).forEach(company => {
+        totalCompanies++;
+        const lastPaymentDate = company.lastPaymentDate;
+        const lastPaymentAmount = Number(company.lastPaymentAmount) || 0;
+
+        const companyInfo = {
+            keyValue: company.keyValue,
+            name: company.finalCompanyName || company.keyValue,
+            lastPaymentDate: lastPaymentDate,
+            lastPaymentAmount: lastPaymentAmount
+        };
+
+        if (!lastPaymentDate) {
+            // 데이터 없음
+            noData.count++;
+            noData.amount += lastPaymentAmount;
+            noData.companies.push(companyInfo);
+        } else {
+            companiesWithDate++;
+            const paymentDate = new Date(lastPaymentDate);
+
+            // 디버깅: 9월 데이터 추적
+            if (lastPaymentDate.includes('2025.09') || lastPaymentDate.includes('2025-09')) {
+                septemberCompanies++;
+                septemberAmount += lastPaymentAmount;
+                if (septemberCompanies <= 5) {
+                    logger.warn(`[9월 샘플] ${company.keyValue}: ${lastPaymentDate} = ${lastPaymentAmount.toLocaleString()}원`);
+                }
+            }
+
+            if (paymentDate >= oneYearAgo) {
+                // 1년 이내
+                withinYear.count++;
+                withinYear.amount += lastPaymentAmount;
+                withinYear.companies.push(companyInfo);
+
+                // 월별 집계 (최근 12개월 내에만 포함)
+                const monthKey = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}`;
+                if (monthlyData[monthKey]) {
+                    monthlyData[monthKey].count++;
+                    monthlyData[monthKey].amount += lastPaymentAmount;
+                    monthlyData[monthKey].companies.push(companyInfo);
+                }
+                // monthKey가 없으면 1년 이내이지만 최근 12개월 밖 (정상 동작)
+            } else {
+                // 1년 이전
+                overYear.count++;
+                overYear.amount += lastPaymentAmount;
+                overYear.companies.push(companyInfo);
+            }
+        }
+    });
+
+    logger.warn('[최종결제일 집계] 거래처 처리 완료:', {
+        전체거래처: totalCompanies,
+        날짜있음: companiesWithDate,
+        날짜없음: noData.count,
+        '9월거래처': septemberCompanies,
+        '9월금액': Math.round(septemberAmount / 10000) + '만원'
+    });
+
+    // 월별 데이터를 배열로 변환 (과거순 정렬)
+    const monthlyArray = Object.keys(monthlyData)
+        .sort((a, b) => a.localeCompare(b)) // 오름차순 (과거부터 시작: 2024년11월 → 2025년10월)
+        .map(key => ({
+            month: key,
+            ...monthlyData[key]
+        }));
+
+    // 월별 상세 로깅
+    logger.warn('[최종결제일 집계] 월별 상세:',
+        monthlyArray.slice(0, 5).map(m => ({
+            월: m.label,
+            개수: m.count,
+            금액만원: Math.round(m.amount / 10000)
+        }))
+    );
+
+    logger.warn('[최종결제일 집계] 완료:', {
+        withinYearCount: withinYear.count,
+        withinYearAmount: Math.round(withinYear.amount / 10000) + '만원',
+        overYearCount: overYear.count,
+        overYearAmount: Math.round(overYear.amount / 10000) + '만원',
+        noDataCount: noData.count,
+        monthlyDataLength: monthlyArray.length
+    });
+
+    return {
+        monthlyData: monthlyArray,
+        withinYear,
+        overYear,
+        noData
+    };
+}
+
+/**
+ * 최종결제일 통계 표시
+ */
+function renderLastPaymentStats() {
+    const aggregated = aggregateLastPaymentData();
+
+    // 통계 박스 업데이트
+    document.getElementById('withinYearCount').textContent = `${aggregated.withinYear.count}개`;
+    document.getElementById('withinYearAmount').textContent = formatCurrency(aggregated.withinYear.amount);
+
+    document.getElementById('overYearCount').textContent = `${aggregated.overYear.count}개`;
+    document.getElementById('overYearAmount').textContent = formatCurrency(aggregated.overYear.amount);
+
+    document.getElementById('noDataCount').textContent = `${aggregated.noData.count}개`;
+    document.getElementById('noDataAmount').textContent = formatCurrency(aggregated.noData.amount);
+
+    logger.warn('[최종결제일 통계] 렌더링 완료');
+
+    // 차트 렌더링
+    renderLastPaymentChart(aggregated);
+
+    return aggregated;
+}
+
+// 차트 인스턴스 저장 (재렌더링 시 파괴용)
+let lastPaymentChartInstance = null;
+
+/**
+ * 최종결제일 차트 렌더링
+ */
+function renderLastPaymentChart(aggregated) {
+    const canvas = document.getElementById('lastPaymentChart');
+    if (!canvas) {
+        logger.warn('[최종결제일 차트] Canvas 요소를 찾을 수 없습니다');
+        return;
+    }
+
+    // 기존 차트 파괴
+    if (lastPaymentChartInstance) {
+        lastPaymentChartInstance.destroy();
+    }
+
+    // 차트 데이터 준비
+    const labels = [];
+    const counts = [];
+    const amounts = [];
+    const companiesData = []; // 각 막대에 대한 거래처 리스트 저장
+
+    // 최근 12개월 데이터만 표시 (최신부터 과거로)
+    // aggregated.monthlyData는 이미 내림차순 정렬되어 있음 (최신 → 과거)
+    aggregated.monthlyData.forEach(monthData => {
+        labels.push(monthData.label);
+        counts.push(monthData.count);
+        amounts.push(monthData.amount);
+        companiesData.push(monthData.companies);
+    });
+
+    logger.warn('[최종결제일 차트] 데이터:', {
+        labels,
+        counts,
+        amounts: amounts.map(a => Math.round(a / 10000)),
+        totalCompanies: counts.reduce((sum, c) => sum + c, 0),
+        기간확인: {
+            시작월: labels[0],
+            종료월: labels[labels.length - 1]
+        }
+    });
+
+    // 금액을 만원 단위로 변환
+    const amountsInManwon = amounts.map(a => Math.round(a / 10000));
+
+    // Chart.js 생성 - 단일 Y축 (금액)
+    const ctx = canvas.getContext('2d');
+    lastPaymentChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '금액 (만원)',
+                    data: amountsInManwon,
+                    backgroundColor: 'rgba(236, 72, 153, 0.7)',  // 핑크색
+                    borderColor: 'rgba(236, 72, 153, 1)',
+                    borderWidth: 2,
+                    // 막대 위에 레이블 표시용 데이터 저장
+                    counts: counts,
+                    amounts: amounts
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: '최종결제일 기준 거래처 분포 (최근 12개월)',
+                    font: {
+                        size: 18,
+                        weight: 'bold',
+                        family: 'Paperlogy, sans-serif'
+                    },
+                    color: '#ec4899',
+                    padding: {
+                        top: 10,
+                        bottom: 20
+                    }
+                },
+                legend: {
+                    display: false  // 단일 데이터셋이므로 범례 숨김
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        family: 'Paperlogy, sans-serif',
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        family: 'Paperlogy, sans-serif',
+                        size: 13
+                    },
+                    padding: 12,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const amountInManwon = context.parsed.y;
+                            const count = counts[context.dataIndex];
+                            const amount = amounts[context.dataIndex];
+                            return [
+                                `거래처: ${count}개`,
+                                `금액: ${formatCurrency(amount)}`
+                            ];
+                        }
+                    }
+                },
+                // 막대 위에 레이블 표시
+                datalabels: {
+                    display: true,
+                    anchor: 'end',
+                    align: 'top',
+                    font: {
+                        family: 'Paperlogy, sans-serif',
+                        size: 11,
+                        weight: 'bold'
+                    },
+                    color: '#333333',
+                    formatter: function(value, context) {
+                        const count = counts[context.dataIndex];
+                        const amountInManwon = value; // value는 이미 만원 단위
+                        return `${count}개(${amountInManwon.toLocaleString()}만원)`;
+                    },
+                    padding: {
+                        top: 4
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '금액 (만원)',
+                        color: '#333333',  // 검은색 계열
+                        font: {
+                            family: 'Paperlogy, sans-serif',
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            bottom: 10
+                        }
+                    },
+                    ticks: {
+                        color: '#333333',  // 검은색 계열
+                        font: {
+                            family: 'Paperlogy, sans-serif',
+                            size: 12
+                        },
+                        callback: function(value) {
+                            return value.toLocaleString() + '만원';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        lineWidth: 1
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#333333',  // 검은색 계열
+                        font: {
+                            family: 'Paperlogy, sans-serif',
+                            size: 11
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)',
+                        lineWidth: 1
+                    }
+                }
+            },
+            onClick: (event, activeElements) => {
+                if (activeElements.length > 0) {
+                    const dataIndex = activeElements[0].index;
+                    const companies = companiesData[dataIndex];
+                    const periodLabel = labels[dataIndex];
+
+                    showLastPaymentModal(periodLabel, companies);
+                }
+            }
+        },
+        plugins: [{
+            id: 'customDatalabels',
+            afterDatasetsDraw: function(chart) {
+                const ctx = chart.ctx;
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    meta.data.forEach((bar, index) => {
+                        const amountInManwon = dataset.data[index]; // Y축 값 (이미 만원 단위)
+                        const count = dataset.counts[index]; // 거래처 개수
+                        const label = `${count}개(${amountInManwon.toLocaleString()}만원)`;
+
+                        ctx.fillStyle = '#333333';  // 검은색 계열
+                        ctx.font = 'bold 11px Paperlogy, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(label, bar.x, bar.y - 5);
+                    });
+                });
+            }
+        }]
+    });
+
+    logger.info('[최종결제일 차트] 렌더링 완료');
+}
+
+/**
+ * 최종결제일 모달 표시
+ * @param {string} periodLabel - 기간 레이블 (예: "2024년 10월", "1년 이전", "자료 없음")
+ * @param {Array} companies - 거래처 목록
+ */
+function showLastPaymentModal(periodLabel, companies) {
+    const modal = document.getElementById('lastPaymentModal');
+    const modalTitle = document.getElementById('lastPaymentModalTitle');
+    const modalBody = document.getElementById('lastPaymentModalBody');
+
+    // 제목 설정
+    modalTitle.textContent = `${periodLabel} - 거래처 목록 (${companies.length}개)`;
+
+    // 테이블 생성
+    let html = '';
+
+    if (companies.length === 0) {
+        html = '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">해당 기간에 거래처가 없습니다.</p>';
+    } else {
+        html = `
+            <div class="table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">번호</th>
+                            <th style="min-width: 200px;">거래처명</th>
+                            <th style="min-width: 120px;">마지막 결제일</th>
+                            <th style="min-width: 150px;">결제 금액</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        // 금액 기준 내림차순 정렬
+        const sortedCompanies = [...companies].sort((a, b) => b.lastPaymentAmount - a.lastPaymentAmount);
+
+        sortedCompanies.forEach((company, index) => {
+            const paymentDate = company.lastPaymentDate
+                ? formatDate(company.lastPaymentDate)
+                : '-';
+            const amount = formatCurrency(company.lastPaymentAmount);
+
+            html += `
+                <tr>
+                    <td style="text-align: center;">${index + 1}</td>
+                    <td style="text-align: left;">${company.name}</td>
+                    <td style="text-align: center;">${paymentDate}</td>
+                    <td style="text-align: right; font-family: var(--font-primary); font-weight: 600;">${amount}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    modalBody.innerHTML = html;
+
+    // 모달 표시
+    modal.classList.add('show');
+
+    logger.info(`[최종결제일 모달] 표시: ${periodLabel}, ${companies.length}개 거래처`);
+}
+
+/**
+ * 최종결제일 모달 닫기
+ */
+function closeLastPaymentModal() {
+    const modal = document.getElementById('lastPaymentModal');
+    modal.classList.remove('show');
+}
+
+// 전역 함수로 등록 (HTML onclick에서 사용)
+window.closeLastPaymentModal = closeLastPaymentModal;
 
 /**
  * 기간 범위 계산
