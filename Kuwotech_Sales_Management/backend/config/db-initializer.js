@@ -322,39 +322,68 @@ const createErrorLogsTable = async (connection) => {
 // ==========================================
 const migrateErrorLogsAddResolved = async (connection) => {
   try {
+    // 컬럼 존재 여부 확인 헬퍼 함수
+    const columnExists = async (tableName, columnName) => {
+      const [rows] = await connection.execute(
+        `SELECT COUNT(*) as count FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+        [tableName, columnName]
+      );
+      return rows[0].count > 0;
+    };
+
     // resolved 컬럼 추가
-    await connection.execute(`
-      ALTER TABLE error_logs
-      ADD COLUMN IF NOT EXISTS resolved TINYINT(1) DEFAULT 0 COMMENT '해결 여부 (0: 미해결, 1: 해결)'
-    `).catch(() => {});
+    if (!(await columnExists('error_logs', 'resolved'))) {
+      await connection.execute(`
+        ALTER TABLE error_logs
+        ADD COLUMN resolved TINYINT(1) DEFAULT 0 COMMENT '해결 여부 (0: 미해결, 1: 해결)'
+      `);
+      console.log('   ✅ resolved 컬럼 추가 완료');
+    }
 
     // resolvedBy 컬럼 추가
-    await connection.execute(`
-      ALTER TABLE error_logs
-      ADD COLUMN IF NOT EXISTS resolvedBy VARCHAR(100) DEFAULT NULL COMMENT '해결한 사람'
-    `).catch(() => {});
+    if (!(await columnExists('error_logs', 'resolvedBy'))) {
+      await connection.execute(`
+        ALTER TABLE error_logs
+        ADD COLUMN resolvedBy VARCHAR(100) DEFAULT NULL COMMENT '해결한 사람'
+      `);
+      console.log('   ✅ resolvedBy 컬럼 추가 완료');
+    }
 
     // resolvedAt 컬럼 추가
-    await connection.execute(`
-      ALTER TABLE error_logs
-      ADD COLUMN IF NOT EXISTS resolvedAt DATETIME DEFAULT NULL COMMENT '해결 시간'
-    `).catch(() => {});
+    if (!(await columnExists('error_logs', 'resolvedAt'))) {
+      await connection.execute(`
+        ALTER TABLE error_logs
+        ADD COLUMN resolvedAt DATETIME DEFAULT NULL COMMENT '해결 시간'
+      `);
+      console.log('   ✅ resolvedAt 컬럼 추가 완료');
+    }
 
     // resolutionNote 컬럼 추가
-    await connection.execute(`
-      ALTER TABLE error_logs
-      ADD COLUMN IF NOT EXISTS resolutionNote TEXT DEFAULT NULL COMMENT '해결 메모'
-    `).catch(() => {});
+    if (!(await columnExists('error_logs', 'resolutionNote'))) {
+      await connection.execute(`
+        ALTER TABLE error_logs
+        ADD COLUMN resolutionNote TEXT DEFAULT NULL COMMENT '해결 메모'
+      `);
+      console.log('   ✅ resolutionNote 컬럼 추가 완료');
+    }
 
-    // 인덱스 추가
-    await connection.execute(`
-      ALTER TABLE error_logs
-      ADD INDEX IF NOT EXISTS idx_resolved (resolved)
-    `).catch(() => {});
+    // 인덱스 존재 여부 확인 및 추가
+    const [indexCheck] = await connection.execute(
+      `SELECT COUNT(*) as count FROM information_schema.STATISTICS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'error_logs' AND INDEX_NAME = 'idx_resolved'`
+    );
+    if (indexCheck[0].count === 0) {
+      await connection.execute(`
+        ALTER TABLE error_logs
+        ADD INDEX idx_resolved (resolved)
+      `);
+      console.log('   ✅ idx_resolved 인덱스 추가 완료');
+    }
 
     console.log('   ✅ error_logs 해결 상태 컬럼 마이그레이션 완료');
   } catch (error) {
-    console.log('   ⏭️  error_logs 마이그레이션 건너뜀 (이미 적용됨):', error.message);
+    console.log('   ⚠️  error_logs 마이그레이션 오류:', error.message);
   }
 };
 
