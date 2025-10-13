@@ -123,10 +123,10 @@ function initializeFlatpickr() {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Flatpickr 로딩 확인
-    if (typeof flatpickr !== 'undefined') {
+    // Flatpickr 로딩 확인 (모듈 스코프에서 글로벌 window.flatpickr 접근)
+    if (typeof window.flatpickr !== 'undefined') {
         try {
-            state.flatpickrInstance = flatpickr(reportDate, {
+            state.flatpickrInstance = window.flatpickr(reportDate, {
                 locale: 'ko',                    // 한국어
                 dateFormat: 'Y-m-d',             // 날짜 형식 (YYYY-MM-DD)
                 defaultDate: today,              // 기본값: 오늘
