@@ -1605,7 +1605,7 @@ async function openCompanyDetailModal(keyValue) {
                         </div>
                         <div class="form-group">
                             <label>마지막결제일</label>
-                            <input type="text" class="form-control readonly-bg" value="${company.lastPaymentDate || '-'}" readonly>
+                            <input type="text" class="form-control readonly-bg" value="${formatDate(company.lastPaymentDate) || '-'}" readonly>
                         </div>
                         <div class="form-group">
                             <label>마지막총결재금액</label>
