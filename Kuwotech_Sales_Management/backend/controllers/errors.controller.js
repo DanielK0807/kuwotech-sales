@@ -55,7 +55,12 @@ export const logError = async (req, res) => {
 // GET /api/errors - 에러 로그 조회 (관리자 전용)
 export const getErrors = async (req, res) => {
   try {
-    const { limit = 100, offset = 0 } = req.query;
+    // 파라미터 안전하게 파싱 (NaN 방지)
+    const limitParam = parseInt(req.query.limit);
+    const offsetParam = parseInt(req.query.offset);
+
+    const limit = Number.isInteger(limitParam) ? limitParam : 100;
+    const offset = Number.isInteger(offsetParam) ? offsetParam : 0;
 
     const db = await getDB();
 
@@ -71,7 +76,7 @@ export const getErrors = async (req, res) => {
        FROM error_logs
        ORDER BY timestamp DESC
        LIMIT ? OFFSET ?`,
-      [parseInt(limit), parseInt(offset)]
+      [limit, offset]
     );
 
     console.log(`📊 에러 로그 조회: ${errors.length}건 (전체 ${total}건)`);
