@@ -1259,11 +1259,11 @@ function initComparisonDatePickers() {
     // 시작일 달력 초기화
     const startDateEl = document.getElementById('comparisonStartDate');
     if (startDateEl) {
-        // ✅ Flatpickr 라이브러리 확인
-        if (typeof flatpickr !== 'undefined') {
+        // ✅ Flatpickr 라이브러리 확인 (모듈 스코프에서 글로벌 window.flatpickr 접근)
+        if (typeof window.flatpickr !== 'undefined') {
 
             try {
-                startDatePicker = flatpickr(startDateEl, {
+                startDatePicker = window.flatpickr(startDateEl, {
                     locale: 'ko',                    // 한국어
                     dateFormat: 'Y-m-d',             // 날짜 형식 (YYYY-MM-DD)
                     defaultDate: defaultRange.start, // 기본값: 금주 시작일
@@ -1322,10 +1322,10 @@ function initComparisonDatePickers() {
     // 종료일 달력 초기화
     const endDateEl = document.getElementById('comparisonEndDate');
     if (endDateEl) {
-        // ✅ Flatpickr 라이브러리 확인
-        if (typeof flatpickr !== 'undefined') {
+        // ✅ Flatpickr 라이브러리 확인 (모듈 스코프에서 글로벌 window.flatpickr 접근)
+        if (typeof window.flatpickr !== 'undefined') {
             try {
-                endDatePicker = flatpickr(endDateEl, {
+                endDatePicker = window.flatpickr(endDateEl, {
                     locale: 'ko',                    // 한국어
                     dateFormat: 'Y-m-d',             // 날짜 형식 (YYYY-MM-DD)
                     defaultDate: defaultRange.end,   // 기본값: 금주 종료일
@@ -2282,3 +2282,21 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+
+// ============================================
+// SPA 페이지 재로드 이벤트 리스너
+// ============================================
+
+/**
+ * ✅ pageLoaded 이벤트 리스너 - 페이지 재로드 시 이벤트 리스너 재연결
+ */
+window.addEventListener('pageLoaded', (event) => {
+    const { page } = event.detail || {};
+
+    if (page === 'presentation') {
+        // 페이지 재로드 시 이벤트 리스너 재연결
+        setTimeout(() => {
+            setupEventListeners();
+        }, 100);  // DOM이 완전히 렌더링된 후 재연결
+    }
+});
