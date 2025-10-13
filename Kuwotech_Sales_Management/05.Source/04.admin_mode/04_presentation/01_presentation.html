@@ -14,8 +14,10 @@
     <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
     <link rel="stylesheet" href="../../07.styles/04_components.css">
 
-    <!-- Flatpickr (날짜 선택기) -->
+    <!-- Flatpickr (날짜 선택기) - head에서 먼저 로드 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
 </head>
 <body class="theme-admin viewport-3d" data-page-type="report-presentation" data-mode="admin">
 
@@ -1970,49 +1972,6 @@
         </div>
     </div>
 </div>
-
-<!-- Flatpickr 스크립트 (모듈 스크립트 전에 로드) -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
-
-<!-- ✅ Flatpickr 폴백 로더: CDN 실패 시 대체 소스/네이티브 date로 전환 -->
-<script>
-  (function ensureFlatpickr() {
-    function enableNativeDateInputs() {
-      document.querySelectorAll('.date-picker').forEach(el => {
-        try { el.readOnly = false; el.removeAttribute('readonly'); } catch (_) {}
-        try { el.type = 'date'; } catch (_) {}
-      });
-      console.warn('[비교보고] Flatpickr 미로딩 → 네이티브 date 입력으로 전환');
-    }
-    function inject(src, onload, onerror) {
-      var s = document.createElement('script');
-      s.src = src; s.async = false; // 순서 보장
-      if (onload) s.onload = onload;
-      if (onerror) s.onerror = onerror;
-      document.head.appendChild(s);
-    }
-    // jsDelivr 실패 시 unpkg 재시도
-    if (!window.flatpickr) {
-      inject('https://unpkg.com/flatpickr@4.6.13/dist/flatpickr.min.js',
-        function onOk() {
-          if (window.flatpickr && !window.flatpickr.l10ns.ko) {
-            inject('https://unpkg.com/flatpickr@4.6.13/dist/l10n/ko.js');
-          }
-        },
-        function onErr() { enableNativeDateInputs(); }
-      );
-      // 최종 타임아웃 폴백
-      setTimeout(function () {
-        if (!window.flatpickr) enableNativeDateInputs();
-      }, 1500);
-    }
-  })();
-  // 디버그 로그: 실제 로드 여부 시각화
-  setTimeout(function(){
-    console.log('[Flatpickr 확인]', typeof window.flatpickr);
-  }, 1600);
-</script>
 
 <script type="module" src="./02_presentation.js"></script>
 </body>
