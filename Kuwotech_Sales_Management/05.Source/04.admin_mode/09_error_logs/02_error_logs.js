@@ -1,7 +1,7 @@
 /**
  * ============================================
  * 오류사항 확인 페이지
- * v1.1 - 새로고침 시각적 피드백 강화
+ * v2.0 - 해결/미해결 상태 관리 및 필터링 기능 추가
  * ============================================
  */
 
@@ -11,8 +11,10 @@ import { showToast } from '../../01.common/14_toast.js';
 // 전역 변수
 let errorLogs = [];
 let lastRefreshTime = null;
+let currentFilter = 'all'; // all, resolved, unresolved
+let currentUser = null; // 현재 로그인한 사용자
 
-console.log('🔍 [오류사항 페이지] v1.1 로드됨 - 새로고침 기능 강화');
+console.log('🔍 [오류사항 페이지] v2.0 로드됨 - 해결/미해결 상태 관리');
 
 /**
  * 페이지 초기화
@@ -20,10 +22,21 @@ console.log('🔍 [오류사항 페이지] v1.1 로드됨 - 새로고침 기능 
 const init = async () => {
   console.log('[오류사항] 페이지 초기화 시작');
 
+  // 현재 사용자 정보 가져오기
+  const userJson = sessionStorage.getItem('user') || localStorage.getItem('user');
+  if (userJson) {
+    try {
+      currentUser = JSON.parse(userJson);
+    } catch (error) {
+      console.warn('[오류사항] 사용자 정보 파싱 실패:', error);
+    }
+  }
+
   // 이벤트 리스너 등록
   setupEventListeners();
 
-  // 에러 로그 로드
+  // 에러 로그 로드 (기본: 미해결만)
+  currentFilter = 'unresolved';
   await loadErrorLogs();
 };
 
@@ -31,6 +44,25 @@ const init = async () => {
  * 이벤트 리스너 설정
  */
 const setupEventListeners = () => {
+  // 필터 버튼들
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      // 모든 버튼에서 active 제거
+      filterBtns.forEach(b => b.classList.remove('active'));
+
+      // 클릭된 버튼에 active 추가
+      btn.classList.add('active');
+
+      // 필터 적용
+      const filter = btn.dataset.filter;
+      currentFilter = filter;
+
+      console.log(`🔍 [오류사항] 필터 변경: ${filter}`);
+      await loadErrorLogs();
+    });
+  });
+
   // 새로고침 버튼
   const refreshBtn = document.getElementById('refresh-btn');
   if (refreshBtn) {
@@ -40,8 +72,6 @@ const setupEventListeners = () => {
       // 버튼 비활성화 및 로딩 효과
       refreshBtn.disabled = true;
       refreshBtn.classList.add('loading');
-      const originalText = refreshBtn.textContent;
-      refreshBtn.textContent = '새로고침 중...';
 
       try {
         await loadErrorLogs();
@@ -54,7 +84,6 @@ const setupEventListeners = () => {
         // 버튼 다시 활성화
         refreshBtn.disabled = false;
         refreshBtn.classList.remove('loading');
-        refreshBtn.textContent = originalText;
         console.log('🏁 [오류사항] ===== 새로고침 완료 =====');
       }
     });
@@ -80,19 +109,28 @@ const setupEventListeners = () => {
  */
 const loadErrorLogs = async () => {
   try {
-    console.log('[오류사항] 에러 로그 조회 시작');
+    console.log('[오류사항] 에러 로그 조회 시작, 필터:', currentFilter);
 
     const apiManager = ApiManager.getInstance();
-    const response = await apiManager.get('/errors', {
+    const params = {
       limit: 100,
       offset: 0
-    });
+    };
+
+    // 필터에 따라 resolved 파라미터 추가
+    if (currentFilter === 'unresolved') {
+      params.resolved = '0';
+    } else if (currentFilter === 'resolved') {
+      params.resolved = '1';
+    }
+    // currentFilter === 'all'이면 resolved 파라미터 없음 (전체 조회)
+
+    const response = await apiManager.get('/errors', params);
 
     console.log('[오류사항] API 응답:', response);
 
-    // API 응답 형식 확인 (success 필드가 있는 경우와 없는 경우 모두 처리)
+    // API 응답 형식 확인
     if (response && (response.success !== false)) {
-      // response.data가 있으면 사용, 없으면 response 자체를 사용
       const data = response.data || response;
       errorLogs = data.errors || [];
       const total = data.total || errorLogs.length;
@@ -100,7 +138,7 @@ const loadErrorLogs = async () => {
       console.log(`[오류사항] ${errorLogs.length}건의 오류 내역 로드 완료 (전체: ${total}건)`);
 
       // 통계 업데이트
-      updateStats(total);
+      updateStats();
 
       // 테이블 렌더링
       renderErrorTable();
@@ -116,7 +154,7 @@ const loadErrorLogs = async () => {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="no-errors">오류 내역을 불러올 수 없습니다.</td>
+          <td colspan="8" class="no-errors">오류 내역을 불러올 수 없습니다.</td>
         </tr>
       `;
     }
@@ -129,60 +167,31 @@ const loadErrorLogs = async () => {
 /**
  * 통계 업데이트
  */
-const updateStats = (total) => {
+const updateStats = () => {
+  // 해결/미해결 개수 계산
+  const resolvedCount = errorLogs.filter(e => e.resolved === 1).length;
+  const unresolvedCount = errorLogs.filter(e => e.resolved === 0).length;
+  const total = errorLogs.length;
+
+  // 통계 표시
   const totalElement = document.getElementById('total-errors');
+  const resolvedElement = document.getElementById('resolved-errors');
+  const unresolvedElement = document.getElementById('unresolved-errors');
+
   if (totalElement) {
     totalElement.textContent = total.toLocaleString();
+  }
 
-    // 카운트가 변경되면 깜빡이는 효과 추가
-    totalElement.style.transition = 'all 0.3s ease';
-    totalElement.style.transform = 'scale(1.2)';
-    totalElement.style.color = '#4CAF50';
+  if (resolvedElement) {
+    resolvedElement.textContent = resolvedCount.toLocaleString();
+  }
 
-    setTimeout(() => {
-      totalElement.style.transform = 'scale(1)';
-      totalElement.style.color = '';
-    }, 300);
+  if (unresolvedElement) {
+    unresolvedElement.textContent = unresolvedCount.toLocaleString();
   }
 
   // 마지막 새로고침 시간 업데이트
   lastRefreshTime = new Date();
-  updateLastRefreshTime();
-};
-
-/**
- * 마지막 새로고침 시간 표시
- */
-const updateLastRefreshTime = () => {
-  let refreshTimeElement = document.getElementById('last-refresh-time');
-
-  if (!refreshTimeElement) {
-    // 요소가 없으면 생성
-    const statsDiv = document.querySelector('.error-stats');
-    if (statsDiv) {
-      const timeCard = document.createElement('div');
-      timeCard.className = 'stat-card';
-      timeCard.innerHTML = `
-        <div class="stat-label">마지막 새로고침</div>
-        <div class="stat-value" id="last-refresh-time" style="font-size: 16px;">-</div>
-      `;
-      statsDiv.appendChild(timeCard);
-      refreshTimeElement = document.getElementById('last-refresh-time');
-    }
-  }
-
-  if (refreshTimeElement && lastRefreshTime) {
-    const timeStr = formatTimestamp(lastRefreshTime);
-    refreshTimeElement.textContent = timeStr;
-
-    // 시간 표시를 깜빡이게
-    refreshTimeElement.style.transition = 'all 0.3s ease';
-    refreshTimeElement.style.color = '#2196F3';
-
-    setTimeout(() => {
-      refreshTimeElement.style.color = '';
-    }, 1000);
-  }
 };
 
 /**
@@ -199,7 +208,7 @@ const renderErrorTable = () => {
   if (errorLogs.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="no-errors">✅ 오류 내역이 없습니다.</td>
+        <td colspan="8" class="no-errors">✅ ${currentFilter === 'unresolved' ? '미해결 오류가 없습니다.' : '오류 내역이 없습니다.'}</td>
       </tr>
     `;
   } else {
@@ -208,9 +217,20 @@ const renderErrorTable = () => {
         const timestamp = formatTimestamp(error.timestamp);
         const pageUrl = error.pageUrl ? new URL(error.pageUrl).pathname : '-';
 
+        // 상태 배지
+        const statusBadge = error.resolved === 1
+          ? '<span class="status-badge resolved">✅ 해결</span>'
+          : '<span class="status-badge unresolved">⚠️ 미해결</span>';
+
+        // 해결 버튼 (미해결인 경우만)
+        const resolveBtn = error.resolved === 0
+          ? `<button class="btn-resolve" onclick="showResolveDialog(${error.id})">해결 처리</button>`
+          : `<span style="color: #28a745; font-size: 12px;">처리 완료</span>`;
+
         return `
           <tr>
             <td>${errorLogs.length - index}</td>
+            <td>${statusBadge}</td>
             <td class="error-timestamp">${timestamp}</td>
             <td>${error.userName || '-'}</td>
             <td>${error.userRole || '-'}</td>
@@ -220,6 +240,7 @@ const renderErrorTable = () => {
               </div>
             </td>
             <td>${pageUrl}</td>
+            <td>${resolveBtn}</td>
           </tr>
         `;
       })
@@ -243,6 +264,20 @@ window.showErrorDetail = (errorId) => {
 
   const detailBody = document.getElementById('error-detail-body');
   if (!detailBody) return;
+
+  let resolvedInfo = '';
+  if (error.resolved === 1) {
+    resolvedInfo = `
+      <div class="error-detail-section" style="background: #d4edda; padding: 12px; border-radius: 4px;">
+        <div class="error-detail-label">✅ 해결 정보</div>
+        <div style="font-size: 14px; margin-top: 8px;">
+          <strong>해결자:</strong> ${error.resolvedBy || '-'}<br>
+          <strong>해결 시간:</strong> ${formatTimestamp(error.resolvedAt)}<br>
+          ${error.resolutionNote ? `<strong>해결 메모:</strong><br><div style="margin-top: 4px; padding: 8px; background: white; border-radius: 4px;">${escapeHtml(error.resolutionNote)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
 
   detailBody.innerHTML = `
     <div class="error-detail-section">
@@ -275,10 +310,80 @@ window.showErrorDetail = (errorId) => {
     `
         : ''
     }
+    ${resolvedInfo}
   `;
 
   // 모달 열기
   openModal();
+};
+
+/**
+ * 해결 처리 다이얼로그 표시
+ */
+window.showResolveDialog = (errorId) => {
+  const error = errorLogs.find((e) => e.id === errorId);
+  if (!error) return;
+
+  const detailBody = document.getElementById('error-detail-body');
+  if (!detailBody) return;
+
+  detailBody.innerHTML = `
+    <div class="error-detail-section">
+      <div class="error-detail-label">오류 메시지</div>
+      <div class="error-detail-value">${escapeHtml(error.errorMessage)}</div>
+    </div>
+    <div class="error-detail-section">
+      <div class="error-detail-label">발생 시간</div>
+      <div class="error-detail-value">${formatTimestamp(error.timestamp)}</div>
+    </div>
+    <div class="resolve-section">
+      <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #007bff;">✅ 해결 처리</h3>
+      <textarea id="resolution-note" placeholder="해결 방법이나 메모를 입력하세요... (선택사항)"></textarea>
+      <div class="resolve-actions">
+        <button class="btn-cancel-resolve" onclick="closeModal()">취소</button>
+        <button class="btn-confirm-resolve" onclick="confirmResolve(${errorId})">해결 완료</button>
+      </div>
+    </div>
+  `;
+
+  openModal();
+};
+
+/**
+ * 해결 처리 확인
+ */
+window.confirmResolve = async (errorId) => {
+  try {
+    const resolutionNote = document.getElementById('resolution-note')?.value || '';
+
+    if (!currentUser || !currentUser.name) {
+      showToast('사용자 정보를 확인할 수 없습니다.', 'error');
+      return;
+    }
+
+    const apiManager = ApiManager.getInstance();
+    const response = await apiManager.request(`/errors/${errorId}/resolve`, {
+      method: 'PATCH',
+      body: {
+        resolvedBy: currentUser.name,
+        resolutionNote: resolutionNote
+      }
+    });
+
+    console.log('[오류사항] 해결 처리 완료:', response);
+
+    showToast('✅ 오류가 해결 처리되었습니다.', 'success');
+
+    // 모달 닫기
+    closeModal();
+
+    // 목록 새로고침
+    await loadErrorLogs();
+
+  } catch (error) {
+    console.error('[오류사항] 해결 처리 실패:', error);
+    showToast('❌ 해결 처리 중 오류가 발생했습니다.', 'error');
+  }
 };
 
 /**

@@ -306,10 +306,56 @@ const createErrorLogsTable = async (connection) => {
       pageUrl VARCHAR(500) COMMENT '발생 페이지',
       browserInfo VARCHAR(200) COMMENT '브라우저 정보',
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '발생 시간',
+      resolved TINYINT(1) DEFAULT 0 COMMENT '해결 여부',
+      resolvedBy VARCHAR(100) DEFAULT NULL COMMENT '해결한 사람',
+      resolvedAt DATETIME DEFAULT NULL COMMENT '해결 시간',
+      resolutionNote TEXT DEFAULT NULL COMMENT '해결 메모',
       INDEX idx_timestamp (timestamp),
-      INDEX idx_userName (userName)
+      INDEX idx_userName (userName),
+      INDEX idx_resolved (resolved)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
+};
+
+// ==========================================
+// 9-1. error_logs 테이블 마이그레이션 (해결 상태 컬럼 추가)
+// ==========================================
+const migrateErrorLogsAddResolved = async (connection) => {
+  try {
+    // resolved 컬럼 추가
+    await connection.execute(`
+      ALTER TABLE error_logs
+      ADD COLUMN IF NOT EXISTS resolved TINYINT(1) DEFAULT 0 COMMENT '해결 여부 (0: 미해결, 1: 해결)'
+    `).catch(() => {});
+
+    // resolvedBy 컬럼 추가
+    await connection.execute(`
+      ALTER TABLE error_logs
+      ADD COLUMN IF NOT EXISTS resolvedBy VARCHAR(100) DEFAULT NULL COMMENT '해결한 사람'
+    `).catch(() => {});
+
+    // resolvedAt 컬럼 추가
+    await connection.execute(`
+      ALTER TABLE error_logs
+      ADD COLUMN IF NOT EXISTS resolvedAt DATETIME DEFAULT NULL COMMENT '해결 시간'
+    `).catch(() => {});
+
+    // resolutionNote 컬럼 추가
+    await connection.execute(`
+      ALTER TABLE error_logs
+      ADD COLUMN IF NOT EXISTS resolutionNote TEXT DEFAULT NULL COMMENT '해결 메모'
+    `).catch(() => {});
+
+    // 인덱스 추가
+    await connection.execute(`
+      ALTER TABLE error_logs
+      ADD INDEX IF NOT EXISTS idx_resolved (resolved)
+    `).catch(() => {});
+
+    console.log('   ✅ error_logs 해결 상태 컬럼 마이그레이션 완료');
+  } catch (error) {
+    console.log('   ⏭️  error_logs 마이그레이션 건너뜀 (이미 적용됨):', error.message);
+  }
 };
 
 // ==========================================
@@ -743,6 +789,10 @@ export const initializeDatabase = async () => {
       await createErrorLogsTable(connection);
       console.log('   ✅ error_logs 생성 완료');
     }
+
+    // 9-1. error_logs 해결 상태 컬럼 마이그레이션
+    console.log('   📦 error_logs 해결 상태 마이그레이션 중...');
+    await migrateErrorLogsAddResolved(connection);
 
     // 10. 트리거 생성
     console.log('   📦 트리거 생성 중...');
