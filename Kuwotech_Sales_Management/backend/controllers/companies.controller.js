@@ -688,13 +688,13 @@ export const getDataCompleteness = async (req, res) => {
 
     // 각 필드별 미완성 데이터 수 조회
     const fields = [
-      { key: '사업자등록번호', dbColumn: 'businessRegistrationNumber' },
-      { key: '상세주소', dbColumn: 'detailedAddress' },
-      { key: '전화번호', dbColumn: 'phoneNumber' },
-      { key: '소개경로', dbColumn: 'referralSource' },
-      { key: '지역정보', dbColumn: 'region_id' },
-      { key: '정철웅기여', dbColumn: 'jcwContribution' },
-      { key: '회사기여', dbColumn: 'companyContribution' }
+      { key: 'businessRegistrationNumber', dbColumn: 'businessRegistrationNumber' },
+      { key: 'detailedAddress', dbColumn: 'detailedAddress' },
+      { key: 'phoneNumber', dbColumn: 'phoneNumber' },
+      { key: 'referralSource', dbColumn: 'referralSource' },
+      { key: 'region_id', dbColumn: 'region_id' },
+      { key: 'jcwContribution', dbColumn: 'jcwContribution' },
+      { key: 'companyContribution', dbColumn: 'companyContribution' }
     ];
 
     const completenessData = {};

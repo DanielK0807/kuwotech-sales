@@ -22,39 +22,39 @@ console.log('📝 [거래처 데이터관리] v1.0 로드됨');
  */
 const FIELD_DEFINITIONS = [
   {
-    key: '사업자등록번호',
-    dbColumn: '사업자등록번호',
+    key: 'businessRegistrationNumber',
+    dbColumn: 'businessRegistrationNumber',
     icon: '🏢',
     name: '사업자등록번호',
     inputType: 'text',
     maxLength: 12
   },
   {
-    key: '상세주소',
-    dbColumn: '상세주소',
+    key: 'detailedAddress',
+    dbColumn: 'detailedAddress',
     icon: '📍',
     name: '상세주소',
     inputType: 'text',
     maxLength: 200
   },
   {
-    key: '전화번호',
-    dbColumn: '전화번호',
+    key: 'phoneNumber',
+    dbColumn: 'phoneNumber',
     icon: '📞',
     name: '전화번호',
     inputType: 'tel',
     maxLength: 20
   },
   {
-    key: '소개경로',
-    dbColumn: '소개경로',
+    key: 'referralSource',
+    dbColumn: 'referralSource',
     icon: '🔍',
     name: '소개경로',
     inputType: 'text',
     maxLength: 100
   },
   {
-    key: '지역정보',
+    key: 'region_id',
     dbColumn: 'region_id',
     icon: '🗺️',
     name: '지역정보',
@@ -62,7 +62,7 @@ const FIELD_DEFINITIONS = [
     relatedColumn: 'region_district'
   },
   {
-    key: '정철웅기여',
+    key: 'jcwContribution',
     dbColumn: 'jcwContribution',
     icon: '⭐',
     name: '정철웅기여',
@@ -70,7 +70,7 @@ const FIELD_DEFINITIONS = [
     options: ['상', '중', '하']
   },
   {
-    key: '회사기여',
+    key: 'companyContribution',
     dbColumn: 'companyContribution',
     icon: '🏆',
     name: '회사기여',
