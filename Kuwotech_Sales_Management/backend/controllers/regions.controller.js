@@ -10,7 +10,7 @@ export const getAllRegions = async (req, res) => {
     const db = await getDB();
 
     const [regions] = await db.execute(`
-      SELECT id, province, district, description
+      SELECT *
       FROM regions
       ORDER BY id ASC
     `);
@@ -40,7 +40,7 @@ export const getRegionById = async (req, res) => {
     const db = await getDB();
 
     const [regions] = await db.execute(`
-      SELECT id, province, district, description
+      SELECT *
       FROM regions
       WHERE id = ?
     `, [id]);
