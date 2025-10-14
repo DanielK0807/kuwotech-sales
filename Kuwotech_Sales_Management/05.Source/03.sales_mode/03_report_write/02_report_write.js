@@ -1480,9 +1480,13 @@ function handleReset(skipConfirm = false) {
     elements.salesProductList.innerHTML = '';
     state.productIdCounter = 1;
 
-    // 방문 세부 정보 숨김
-    elements.visitDetails.style.display = 'none';
-    elements.proxyField.style.display = 'none';
+    // ✅ FIX: Optional chaining으로 안전하게 처리
+    if (elements.visitDetails) {
+        elements.visitDetails.style.display = 'none';
+    }
+    if (elements.proxyField) {
+        elements.proxyField.style.display = 'none';
+    }
 
     if (window.Toast) {
         window.Toast.info('폼이 초기화되었습니다');
