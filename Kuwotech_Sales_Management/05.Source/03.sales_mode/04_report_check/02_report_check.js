@@ -961,7 +961,7 @@ function addDynamicSalesRow(reportItem, report) {
 // =====================================================
 // 상세 정보 로드
 // =====================================================
-function loadReportDetails(reportItem, report) {
+async function loadReportDetails(reportItem, report) {
 
   // ✅ 보고서 기본정보 섹션 채우기
 
