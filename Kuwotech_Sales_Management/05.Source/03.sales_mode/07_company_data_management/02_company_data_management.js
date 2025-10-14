@@ -22,20 +22,36 @@ console.log('📝 [거래처 데이터관리] v1.0 로드됨');
  */
 const FIELD_DEFINITIONS = [
   {
+    key: 'finalCompanyName',
+    dbColumn: 'finalCompanyName',
+    icon: '🏢',
+    name: '최종거래처명',
+    inputType: 'text',
+    maxLength: 200
+  },
+  {
+    key: 'isClosed',
+    dbColumn: 'isClosed',
+    icon: '🚫',
+    name: '폐업여부',
+    inputType: 'select',
+    options: ['Y', 'N']
+  },
+  {
+    key: 'ceoOrDentist',
+    dbColumn: 'ceoOrDentist',
+    icon: '👤',
+    name: '대표이사/치과의사',
+    inputType: 'text',
+    maxLength: 100
+  },
+  {
     key: 'businessRegistrationNumber',
     dbColumn: 'businessRegistrationNumber',
-    icon: '🏢',
+    icon: '📋',
     name: '사업자등록번호',
     inputType: 'text',
     maxLength: 12
-  },
-  {
-    key: 'detailedAddress',
-    dbColumn: 'detailedAddress',
-    icon: '📍',
-    name: '상세주소',
-    inputType: 'text',
-    maxLength: 200
   },
   {
     key: 'phoneNumber',
@@ -46,10 +62,18 @@ const FIELD_DEFINITIONS = [
     maxLength: 20
   },
   {
-    key: 'referralSource',
-    dbColumn: 'referralSource',
-    icon: '🔍',
-    name: '소개경로',
+    key: 'detailedAddress',
+    dbColumn: 'detailedAddress',
+    icon: '📍',
+    name: '상세주소',
+    inputType: 'text',
+    maxLength: 200
+  },
+  {
+    key: 'customerRegion',
+    dbColumn: 'customerRegion',
+    icon: '🌏',
+    name: '고객사지역',
     inputType: 'text',
     maxLength: 100
   },
@@ -57,9 +81,41 @@ const FIELD_DEFINITIONS = [
     key: 'region_id',
     dbColumn: 'region_id',
     icon: '🗺️',
-    name: '지역정보',
+    name: '시/도 지역',
     inputType: 'select',
     relatedColumn: 'region_district'
+  },
+  {
+    key: 'region_district',
+    dbColumn: 'region_district',
+    icon: '📌',
+    name: '구/군 정보',
+    inputType: 'text',
+    maxLength: 50
+  },
+  {
+    key: 'businessStatus',
+    dbColumn: 'businessStatus',
+    icon: '📊',
+    name: '거래상태',
+    inputType: 'text',
+    maxLength: 50
+  },
+  {
+    key: 'department',
+    dbColumn: 'department',
+    icon: '🏬',
+    name: '담당부서',
+    inputType: 'text',
+    maxLength: 100
+  },
+  {
+    key: 'internalManager',
+    dbColumn: 'internalManager',
+    icon: '👔',
+    name: '내부담당자',
+    inputType: 'text',
+    maxLength: 100
   },
   {
     key: 'jcwContribution',

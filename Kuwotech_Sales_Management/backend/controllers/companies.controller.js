@@ -671,12 +671,20 @@ export const getDataCompleteness = async (req, res) => {
     const db = await getDB();
     const { manager } = req.query;
 
+    console.log('========================================');
+    console.log('[데이터 완성도] 요청 파라미터:', req.query);
+    console.log('[데이터 완성도] manager 값:', manager);
+    console.log('========================================');
+
     // 담당자 필터 조건
     let managerCondition = '';
     const params = [];
     if (manager) {
       managerCondition = 'WHERE internalManager = ?';
       params.push(manager);
+      console.log('[데이터 완성도] 담당자 필터링 적용:', manager);
+    } else {
+      console.log('[데이터 완성도] ⚠️ 담당자 필터링 없음 - 전체 데이터 조회');
     }
 
     // 총 거래처 수 조회
@@ -688,11 +696,18 @@ export const getDataCompleteness = async (req, res) => {
 
     // 각 필드별 미완성 데이터 수 조회
     const fields = [
+      { key: 'finalCompanyName', dbColumn: 'finalCompanyName' },
+      { key: 'isClosed', dbColumn: 'isClosed' },
+      { key: 'ceoOrDentist', dbColumn: 'ceoOrDentist' },
       { key: 'businessRegistrationNumber', dbColumn: 'businessRegistrationNumber' },
-      { key: 'detailedAddress', dbColumn: 'detailedAddress' },
       { key: 'phoneNumber', dbColumn: 'phoneNumber' },
-      { key: 'referralSource', dbColumn: 'referralSource' },
+      { key: 'detailedAddress', dbColumn: 'detailedAddress' },
+      { key: 'customerRegion', dbColumn: 'customerRegion' },
       { key: 'region_id', dbColumn: 'region_id' },
+      { key: 'region_district', dbColumn: 'region_district' },
+      { key: 'businessStatus', dbColumn: 'businessStatus' },
+      { key: 'department', dbColumn: 'department' },
+      { key: 'internalManager', dbColumn: 'internalManager' },
       { key: 'jcwContribution', dbColumn: 'jcwContribution' },
       { key: 'companyContribution', dbColumn: 'companyContribution' }
     ];
