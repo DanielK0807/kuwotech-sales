@@ -236,6 +236,58 @@
                 </div>
             </div>
 
+            <!-- ✅ NEW: 월간목표 섹션 -->
+            <div class="detail-section glass-card monthly-goal-section hidden">
+                <h3 class="section-title collapsible-section-title" data-section="monthly-goal">
+                    <span class="section-title-text">📅 월간목표</span>
+                    <div class="section-title-actions">
+                        <span class="section-toggle-icon">▼</span>
+                    </div>
+                </h3>
+                <div class="section-content hidden">
+                    <div class="goal-info-grid">
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">💰 목표 수금금액:</span>
+                            <span class="goal-info-value monthly-goal-collection">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">💵 목표 매출금액:</span>
+                            <span class="goal-info-value monthly-goal-sales">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">🎯 판매목표제품:</span>
+                            <span class="goal-info-value monthly-goal-products">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ NEW: 연간목표 섹션 -->
+            <div class="detail-section glass-card annual-goal-section hidden">
+                <h3 class="section-title collapsible-section-title" data-section="annual-goal">
+                    <span class="section-title-text">📆 연간목표</span>
+                    <div class="section-title-actions">
+                        <span class="section-toggle-icon">▼</span>
+                    </div>
+                </h3>
+                <div class="section-content hidden">
+                    <div class="goal-info-grid">
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">💰 목표 수금금액:</span>
+                            <span class="goal-info-value annual-goal-collection">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">💵 목표 매출금액:</span>
+                            <span class="goal-info-value annual-goal-sales">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">🎯 판매목표제품:</span>
+                            <span class="goal-info-value annual-goal-products">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 목표수금금액 섹션 -->
             <div class="detail-section glass-card collection-section hidden">
                 <h3 class="section-title collapsible-section-title" data-section="collection">
@@ -955,6 +1007,47 @@
         color: var(--text-primary);
         font-weight: var(--font-weight-bold);
         font-size: var(--font-sm); /* ✅ 글씨 크기 축소 */
+    }
+
+    /* ✅ NEW: 목표 섹션 스타일 */
+    .goal-info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md);
+    }
+
+    .goal-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: var(--radius-md);
+        transition: all 0.2s ease;
+    }
+
+    .goal-info-row:hover {
+        background: rgba(255, 255, 255, 0.7);
+        transform: translateX(4px);
+    }
+
+    .goal-info-label {
+        font-weight: var(--font-weight-semibold);
+        color: var(--text-primary);
+        font-size: var(--font-md);
+    }
+
+    .goal-info-value {
+        font-weight: var(--font-weight-bold);
+        color: var(--primary-color);
+        font-size: var(--font-lg);
+    }
+
+    /* 월간/연간 목표 섹션 숨김 상태 */
+    .monthly-goal-section.hidden,
+    .annual-goal-section.hidden {
+        display: none;
     }
 
     /* ✅ 반응형: 화면이 작을 때는 2열 또는 1열로 */

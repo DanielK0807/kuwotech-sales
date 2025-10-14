@@ -27,6 +27,7 @@ let groupedReports = {};       // 담당자별 그룹화된 데이터
 let companiesMap = {};         // 거래처 정보 맵 (누적매출/수금 조회용)
 let employeesMap = {};         // 직원 정보 맵 (이름 → 부서 조회용)
 let todayReports = [];         // 오늘 날짜 보고서 (영업담당자 통계용)
+let goalReports = {};          // ✅ NEW: 목표 보고서 맵 (이름 → { monthly: report, annual: report })
 let currentFilters = {
     period: 'weekly',
     department: '',
@@ -978,10 +979,11 @@ async function loadReports() {
         // 기간 계산
         const dateRange = calculateDateRange(currentFilters.period);
 
-        // API 호출 (모든 보고서 조회)
+        // ✅ MODIFIED: API 호출 (주간 보고서만 조회 - 실제 성과 데이터)
         const response = await apiManager.getReports({
             startDate: dateRange.start,
-            endDate: dateRange.end
+            endDate: dateRange.end,
+            reportType: 'weekly'  // 주간 보고서만 조회 (월간/연간 목표 보고서는 별도 로드)
         });
 
         // 데이터 파싱
@@ -1003,6 +1005,14 @@ async function loadReports() {
             });
         }
 
+        // ✅ NEW: 월간/연간 기간인 경우 목표 보고서 로드
+        if (currentFilters.period === 'monthly' || currentFilters.period === 'yearly') {
+            await loadGoalReports(currentFilters.period);
+        } else {
+            // 주간 기간인 경우 목표 보고서 초기화
+            goalReports = {};
+        }
+
         // 오늘 날짜 보고서 로드 (영업담당자 통계용)
         await loadTodayReports();
 
@@ -1021,6 +1031,57 @@ async function loadReports() {
     } catch (error) {
         logger.error('❌ 보고서 로드 실패:', error);
         showToast('보고서 데이터를 불러오는데 실패했습니다.', 'error');
+    }
+}
+
+/**
+ * ✅ NEW: 목표 보고서 로드 (월간/연간)
+ * @param {string} period - 'monthly' 또는 'yearly'
+ */
+async function loadGoalReports(period) {
+    try {
+        // 보고서 타입 결정
+        const reportType = period === 'monthly' ? 'monthly' : 'annual';
+
+        logger.log(`📊 [목표 보고서] ${reportType} 보고서 로드 중...`);
+
+        // 목표 보고서 조회 (최근 1개씩)
+        const response = await apiManager.getReports({
+            reportType: reportType,
+            limit: 100  // 모든 직원의 목표 보고서를 가져오기 위해 충분한 limit 설정
+        });
+
+        // 목표 보고서 초기화
+        goalReports = {};
+
+        // 데이터 파싱 및 저장
+        let reports = [];
+        if (response && response.data && Array.isArray(response.data.reports)) {
+            reports = response.data.reports;
+        } else if (Array.isArray(response)) {
+            reports = response;
+        }
+
+        // 직원별로 최신 목표 보고서만 저장
+        reports.forEach(report => {
+            const employee = report.submittedBy;
+            if (!goalReports[employee]) {
+                goalReports[employee] = {};
+            }
+
+            // 월간/연간 구분하여 저장
+            if (reportType === 'monthly') {
+                goalReports[employee].monthly = report;
+            } else {
+                goalReports[employee].annual = report;
+            }
+        });
+
+        logger.log(`✅ [목표 보고서] ${Object.keys(goalReports).length}명의 ${reportType} 목표 보고서 로드 완료`);
+
+    } catch (error) {
+        logger.error('❌ [목표 보고서] 로드 실패:', error);
+        goalReports = {};
     }
 }
 
@@ -1657,9 +1718,11 @@ function applyFiltersAndRender() {
 
 /**
  * 담당자별 그룹화
+ * ✅ MODIFIED: 월간/연간 기간인 경우 목표 보고서 사용
  */
 function groupByEmployee(reports) {
     const grouped = {};
+    const period = currentFilters.period;
 
     reports.forEach(report => {
         const employee = report.submittedBy;
@@ -1680,11 +1743,38 @@ function groupByEmployee(reports) {
         }
 
         grouped[employee].reports.push(report);
-        grouped[employee].subtotal.targetCollection += Number(report.targetCollectionAmount) || 0;
-        grouped[employee].subtotal.actualCollection += Number(report.actualCollectionAmount) || 0;
-        grouped[employee].subtotal.targetSales += Number(report.targetSalesAmount) || 0;
-        grouped[employee].subtotal.actualSales += Number(report.actualSalesAmount) || 0;
+
+        // ✅ NEW: 기간별 처리 로직
+        if (period === 'weekly') {
+            // 주간: 각 보고서의 목표/실제 금액 사용
+            grouped[employee].subtotal.targetCollection += Number(report.targetCollectionAmount) || 0;
+            grouped[employee].subtotal.actualCollection += Number(report.actualCollectionAmount) || 0;
+            grouped[employee].subtotal.targetSales += Number(report.targetSalesAmount) || 0;
+            grouped[employee].subtotal.actualSales += Number(report.actualSalesAmount) || 0;
+        } else {
+            // 월간/연간: 실제 금액만 누적 (목표는 나중에 goalReports에서 가져옴)
+            grouped[employee].subtotal.actualCollection += Number(report.actualCollectionAmount) || 0;
+            grouped[employee].subtotal.actualSales += Number(report.actualSalesAmount) || 0;
+        }
     });
+
+    // ✅ NEW: 월간/연간 기간인 경우 목표 금액을 goalReports에서 설정
+    if (period === 'monthly' || period === 'yearly') {
+        Object.keys(grouped).forEach(employee => {
+            const goalReport = goalReports[employee];
+            const goalType = period === 'monthly' ? 'monthly' : 'annual';
+            const goal = goalReport ? goalReport[goalType] : null;
+
+            if (goal) {
+                grouped[employee].subtotal.targetCollection = Number(goal.targetCollectionAmount) || 0;
+                grouped[employee].subtotal.targetSales = Number(goal.targetSalesAmount) || 0;
+            } else {
+                // 목표 보고서가 없는 경우 0으로 설정
+                grouped[employee].subtotal.targetCollection = 0;
+                grouped[employee].subtotal.targetSales = 0;
+            }
+        });
+    }
 
     // 달성률 계산
     Object.values(grouped).forEach(group => {
@@ -1881,6 +1971,7 @@ function renderSubtotalRow(group) {
 
 /**
  * 요약 정보 렌더링
+ * ✅ MODIFIED: groupedReports의 subtotal을 사용하여 목표 보고서 반영
  */
 function renderSummary() {
     const employeeCount = Object.keys(groupedReports).length;
@@ -1891,11 +1982,12 @@ function renderSummary() {
     let totalTargetSales = 0;
     let totalActualSales = 0;
 
-    filteredReports.forEach(report => {
-        totalTargetCollection += Number(report.targetCollectionAmount) || 0;
-        totalActualCollection += Number(report.actualCollectionAmount) || 0;
-        totalTargetSales += Number(report.targetSalesAmount) || 0;
-        totalActualSales += Number(report.actualSalesAmount) || 0;
+    // ✅ MODIFIED: groupedReports의 subtotal을 합산 (목표 보고서가 반영된 값)
+    Object.values(groupedReports).forEach(group => {
+        totalTargetCollection += group.subtotal.targetCollection || 0;
+        totalActualCollection += group.subtotal.actualCollection || 0;
+        totalTargetSales += group.subtotal.targetSales || 0;
+        totalActualSales += group.subtotal.actualSales || 0;
     });
 
     const collectionRate = calculateRate(totalActualCollection, totalTargetCollection);
@@ -2635,6 +2727,14 @@ async function loadComparisonReports() {
         } else {
         }
 
+        // ✅ NEW: 월간/연간 기간인 경우 목표 보고서 로드
+        if (comparisonFilters.period === 'monthly' || comparisonFilters.period === 'yearly') {
+            await loadGoalReports(comparisonFilters.period);
+        } else {
+            // 주간 기간인 경우 목표 보고서 초기화
+            goalReports = {};
+        }
+
         // 선택 기간 표시 업데이트
         updateComparisonPeriodDisplay();
 
@@ -2799,6 +2899,7 @@ function groupReportsByDepartment(reports) {
 
 /**
  * 보고서 배열의 실적 합계 계산
+ * ✅ MODIFIED: 월간/연간 기간인 경우 목표 보고서 사용
  */
 function aggregateReports(reports) {
     let totalActualCollection = 0;
@@ -2806,12 +2907,40 @@ function aggregateReports(reports) {
     let totalTargetCollection = 0;
     let totalTargetSales = 0;
 
+    // 실제 금액 합산
     reports.forEach(report => {
         totalActualCollection += Number(report.actualCollectionAmount) || 0;
         totalActualSales += Number(report.actualSalesAmount) || 0;
-        totalTargetCollection += Number(report.targetCollectionAmount) || 0;
-        totalTargetSales += Number(report.targetSalesAmount) || 0;
     });
+
+    // ✅ NEW: 목표 금액 계산 (기간 유형에 따라 다르게 처리)
+    const period = comparisonFilters.period;
+
+    if (period === 'weekly') {
+        // 주간: 각 보고서의 목표 금액 합산
+        reports.forEach(report => {
+            totalTargetCollection += Number(report.targetCollectionAmount) || 0;
+            totalTargetSales += Number(report.targetSalesAmount) || 0;
+        });
+    } else {
+        // 월간/연간: 목표 보고서에서 가져오기
+        // 보고서 작성자별로 그룹화하여 각 작성자의 목표를 한 번만 합산
+        const employeeSet = new Set();
+        reports.forEach(report => {
+            employeeSet.add(report.submittedBy);
+        });
+
+        employeeSet.forEach(employee => {
+            const goalReport = goalReports[employee];
+            const goalType = period === 'monthly' ? 'monthly' : 'annual';
+            const goal = goalReport ? goalReport[goalType] : null;
+
+            if (goal) {
+                totalTargetCollection += Number(goal.targetCollectionAmount) || 0;
+                totalTargetSales += Number(goal.targetSalesAmount) || 0;
+            }
+        });
+    }
 
     const collectionRate = calculateRate(totalActualCollection, totalTargetCollection);
     const salesRate = calculateRate(totalActualSales, totalTargetSales);
@@ -2949,7 +3078,9 @@ function renderComparisonByPeriod() {
         html += `
             <tr class="report-row period-total-row" style="background: rgba(16, 185, 129, 0.08); font-weight: bold;">
                 <td colspan="2">${group.displayText} (전체)</td>
+                <td class="amount">${formatCurrencyLocal(aggregated.totalTargetCollection)}</td>
                 <td class="amount">${formatCurrencyLocal(aggregated.totalActualCollection)}</td>
+                <td class="amount">${formatCurrencyLocal(aggregated.totalTargetSales)}</td>
                 <td class="amount">${formatCurrencyLocal(aggregated.totalActualSales)}</td>
                 <td class="rate ${getRateClass(aggregated.collectionRate)}">${aggregated.collectionRate}%</td>
                 <td class="rate ${getRateClass(aggregated.salesRate)}">${aggregated.salesRate}%</td>
@@ -2983,7 +3114,9 @@ function renderComparisonByPeriod() {
                 html += `
                     <tr class="report-row department-detail-row" style="background: rgba(16, 185, 129, 0.03); padding-left: var(--spacing-lg);">
                         <td colspan="2" style="padding-left: 2rem;">└─ ${department}</td>
+                        <td class="amount">${formatCurrencyLocal(deptAggregated.totalTargetCollection)}</td>
                         <td class="amount">${formatCurrencyLocal(deptAggregated.totalActualCollection)}</td>
+                        <td class="amount">${formatCurrencyLocal(deptAggregated.totalTargetSales)}</td>
                         <td class="amount">${formatCurrencyLocal(deptAggregated.totalActualSales)}</td>
                         <td class="rate ${getRateClass(deptAggregated.collectionRate)}">${deptAggregated.collectionRate}%</td>
                         <td class="rate ${getRateClass(deptAggregated.salesRate)}">${deptAggregated.salesRate}%</td>
@@ -3043,7 +3176,9 @@ function renderComparisonByDepartment() {
         html += `
             <tr class="report-row period-total-row" style="background: rgba(16, 185, 129, 0.08); font-weight: bold;">
                 <td colspan="2">${periodInfo.displayText} (${selectedDept} 전체)</td>
+                <td class="amount">${formatCurrencyLocal(aggregated.totalTargetCollection)}</td>
                 <td class="amount">${formatCurrencyLocal(aggregated.totalActualCollection)}</td>
+                <td class="amount">${formatCurrencyLocal(aggregated.totalTargetSales)}</td>
                 <td class="amount">${formatCurrencyLocal(aggregated.totalActualSales)}</td>
                 <td class="rate ${getRateClass(aggregated.collectionRate)}">${aggregated.collectionRate}%</td>
                 <td class="rate ${getRateClass(aggregated.salesRate)}">${aggregated.salesRate}%</td>
@@ -3063,7 +3198,9 @@ function renderComparisonByDepartment() {
                 html += `
                     <tr class="report-row employee-detail-row" style="background: rgba(16, 185, 129, 0.03);">
                         <td colspan="2" style="padding-left: 2rem;">└─ ${employeeName}</td>
+                        <td class="amount">${formatCurrencyLocal(employeeAggregated.totalTargetCollection)}</td>
                         <td class="amount">${formatCurrencyLocal(employeeAggregated.totalActualCollection)}</td>
+                        <td class="amount">${formatCurrencyLocal(employeeAggregated.totalTargetSales)}</td>
                         <td class="amount">${formatCurrencyLocal(employeeAggregated.totalActualSales)}</td>
                         <td class="rate ${getRateClass(employeeAggregated.collectionRate)}">${employeeAggregated.collectionRate}%</td>
                         <td class="rate ${getRateClass(employeeAggregated.salesRate)}">${employeeAggregated.salesRate}%</td>
@@ -3105,7 +3242,9 @@ function renderComparisonByEmployee() {
         html += `
             <tr class="report-row">
                 <td colspan="2">${group.displayText} (${department} - ${selectedEmployee})</td>
+                <td class="amount">${formatCurrencyLocal(aggregated.totalTargetCollection)}</td>
                 <td class="amount">${formatCurrencyLocal(aggregated.totalActualCollection)}</td>
+                <td class="amount">${formatCurrencyLocal(aggregated.totalTargetSales)}</td>
                 <td class="amount">${formatCurrencyLocal(aggregated.totalActualSales)}</td>
                 <td class="rate ${getRateClass(aggregated.collectionRate)}">${aggregated.collectionRate}%</td>
                 <td class="rate ${getRateClass(aggregated.salesRate)}">${aggregated.salesRate}%</td>

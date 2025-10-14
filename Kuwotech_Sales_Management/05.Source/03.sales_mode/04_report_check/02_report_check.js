@@ -1131,6 +1131,133 @@ function loadReportDetails(reportItem, report) {
   // ✅ 헤더 상태 업데이트
   updateSectionStatuses(reportItem, report);
 
+  // ✅ NEW: 월간/연간 목표 데이터 로드 및 표시
+  await loadAndDisplayGoals(reportItem, report);
+
+}
+
+// =====================================================
+// ✅ NEW: 월간/연간 목표 로드 및 표시
+// =====================================================
+async function loadAndDisplayGoals(reportItem, report) {
+  try {
+    // 월간/연간 목표 보고서 조회
+    const [monthlyGoalResponse, annualGoalResponse] = await Promise.all([
+      apiManager.getReports({
+        submittedBy: state.currentUser.name,
+        reportType: 'monthly',
+        limit: 1
+      }),
+      apiManager.getReports({
+        submittedBy: state.currentUser.name,
+        reportType: 'annual',
+        limit: 1
+      })
+    ]);
+
+    // 월간목표 처리
+    const monthlyGoalSection = reportItem.querySelector('.monthly-goal-section');
+    if (monthlyGoalResponse.success && monthlyGoalResponse.data?.reports?.length > 0) {
+      const monthlyGoal = monthlyGoalResponse.data.reports[0];
+      displayGoalData(reportItem, monthlyGoal, 'monthly');
+
+      // 섹션 표시 및 자동 펼치기
+      if (monthlyGoalSection) {
+        monthlyGoalSection.classList.remove('hidden');
+        monthlyGoalSection.style.display = 'block';
+
+        const sectionTitle = monthlyGoalSection.querySelector('.collapsible-section-title');
+        const sectionContent = sectionTitle?.nextElementSibling;
+        if (sectionContent) {
+          sectionContent.classList.remove('hidden');
+          sectionContent.style.display = 'block';
+          sectionTitle.classList.add('expanded');
+        }
+      }
+    } else {
+      // 월간목표 없음 - "0원" 표시
+      displayGoalData(reportItem, null, 'monthly');
+      if (monthlyGoalSection) {
+        monthlyGoalSection.classList.remove('hidden');
+        monthlyGoalSection.style.display = 'block';
+      }
+    }
+
+    // 연간목표 처리
+    const annualGoalSection = reportItem.querySelector('.annual-goal-section');
+    if (annualGoalResponse.success && annualGoalResponse.data?.reports?.length > 0) {
+      const annualGoal = annualGoalResponse.data.reports[0];
+      displayGoalData(reportItem, annualGoal, 'annual');
+
+      // 섹션 표시 및 자동 펼치기
+      if (annualGoalSection) {
+        annualGoalSection.classList.remove('hidden');
+        annualGoalSection.style.display = 'block';
+
+        const sectionTitle = annualGoalSection.querySelector('.collapsible-section-title');
+        const sectionContent = sectionTitle?.nextElementSibling;
+        if (sectionContent) {
+          sectionContent.classList.remove('hidden');
+          sectionContent.style.display = 'block';
+          sectionTitle.classList.add('expanded');
+        }
+      }
+    } else {
+      // 연간목표 없음 - "0원" 표시
+      displayGoalData(reportItem, null, 'annual');
+      if (annualGoalSection) {
+        annualGoalSection.classList.remove('hidden');
+        annualGoalSection.style.display = 'block';
+      }
+    }
+
+  } catch (error) {
+    logger.error('[Report Check] 목표 데이터 로드 실패:', error);
+    // 에러 발생 시에도 "0원" 표시
+    displayGoalData(reportItem, null, 'monthly');
+    displayGoalData(reportItem, null, 'annual');
+  }
+}
+
+/**
+ * 목표 데이터 표시 (월간 또는 연간)
+ */
+function displayGoalData(reportItem, goalReport, type) {
+  const prefix = type === 'monthly' ? 'monthly' : 'annual';
+
+  const collectionEl = reportItem.querySelector(`.${prefix}-goal-collection`);
+  const salesEl = reportItem.querySelector(`.${prefix}-goal-sales`);
+  const productsEl = reportItem.querySelector(`.${prefix}-goal-products`);
+
+  if (goalReport) {
+    // 목표 데이터가 있으면 표시
+    if (collectionEl) {
+      const collectionAmount = parseFloat(goalReport.targetCollectionAmount) || 0;
+      collectionEl.textContent = formatNumber(collectionAmount) + '원';
+    }
+
+    if (salesEl) {
+      const salesAmount = parseFloat(goalReport.targetSalesAmount) || 0;
+      salesEl.textContent = formatNumber(salesAmount) + '원';
+    }
+
+    if (productsEl) {
+      const targetProducts = parseJSON(goalReport.targetProducts, []);
+      const productNames = targetProducts.map(p => p.name || p.productName).filter(Boolean).join(', ');
+      productsEl.textContent = productNames || '-';
+    }
+  } else {
+    // 목표 데이터가 없으면 "0원" 표시
+    if (collectionEl) {
+      collectionEl.textContent = '0원';
+    }
+    if (salesEl) {
+      salesEl.textContent = '0원';
+    }
+    if (productsEl) {
+      productsEl.textContent = '-';
+    }
+  }
 }
 
 // =====================================================
