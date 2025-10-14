@@ -25,15 +25,15 @@
         font-size: 0.95rem;
       }
 
-      /* 카드 그리드 레이아웃 - 1열에 5개 */
+      /* 카드 컨테이너 */
       .completeness-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
         margin-bottom: 2rem;
       }
 
-      /* 개별 카드 */
+      /* 개별 카드 - 3열 구조 */
       .completeness-card {
         background: var(--glass-bg);
         backdrop-filter: blur(10px);
@@ -42,71 +42,114 @@
         padding: 1.5rem;
         cursor: pointer;
         transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        gap: 0.8rem;
+        display: grid;
+        grid-template-columns: 2fr 2fr 1.5fr;
+        align-items: center;
+        gap: 2rem;
       }
 
       .completeness-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateX(8px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
       }
 
+      /* 1열: 필드명 */
       .card-field-name {
-        font-size: 1.1rem;
-        font-weight: 600;
+        font-size: 1.2rem;
+        font-weight: 700;
         color: var(--text-primary);
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.8rem;
       }
 
       .card-field-icon {
-        font-size: 1.3rem;
+        font-size: 1.6rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--glass-bg);
+        border-radius: 10px;
+        border: 1px solid var(--glass-border);
       }
 
-      .card-stats-row {
+      /* 2열: 미작성/전체 */
+      .card-count-section {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 0.5rem;
-        border-top: 1px solid var(--glass-border);
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .card-count-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
       }
 
       .card-count {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--text-secondary);
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: baseline;
+        gap: 0.3rem;
       }
 
       .card-count .incomplete {
         color: #e74c3c;
+        font-size: 1.8rem;
+      }
+
+      .card-count .separator {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
       }
 
       .card-count .total {
         color: var(--text-primary);
+        font-size: 1.5rem;
+      }
+
+      /* 3열: 미완성율 */
+      .card-percentage-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      .card-percentage-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
       }
 
       .card-percentage {
-        font-size: 1.5rem;
-        font-weight: 700;
-        padding: 0.3rem 0.8rem;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        font-size: 2rem;
+        font-weight: 800;
+        padding: 0.5rem 1.2rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #2c3e50;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       }
 
       .card-percentage.high {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
       }
 
       .card-percentage.medium {
-        background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        background: linear-gradient(135deg, #ffd89b 0%, #ff8c42 100%);
+        color: white;
       }
 
       .card-percentage.low {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        background: linear-gradient(135deg, #a8edea 0%, #79d0e1 100%);
+        color: #2c3e50;
       }
 
       /* 모달 스타일 */
@@ -288,21 +331,25 @@
       }
 
       /* 반응형 */
-      @media (max-width: 1400px) {
-        .completeness-grid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-
       @media (max-width: 1024px) {
-        .completeness-grid {
-          grid-template-columns: repeat(2, 1fr);
+        .completeness-card {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+
+        .card-field-name {
+          justify-content: center;
+        }
+
+        .card-count-section,
+        .card-percentage-section {
+          align-items: center;
         }
       }
 
       @media (max-width: 768px) {
-        .completeness-grid {
-          grid-template-columns: 1fr;
+        .completeness-card {
+          padding: 1.2rem;
         }
 
         .modal-content {
@@ -310,10 +357,16 @@
           padding: 1.5rem;
         }
 
-        .card-stats-row {
-          flex-direction: column;
-          gap: 0.5rem;
-          align-items: flex-start;
+        .card-field-name {
+          font-size: 1.1rem;
+        }
+
+        .card-count {
+          font-size: 1.3rem;
+        }
+
+        .card-percentage {
+          font-size: 1.6rem;
         }
       }
     </style>

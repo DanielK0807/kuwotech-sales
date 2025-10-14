@@ -141,7 +141,17 @@ const loadCompletenessData = async () => {
     logger.info('[거래처 데이터관리] 데이터 완성도 조회 시작');
 
     const apiManager = ApiManager.getInstance();
-    const response = await apiManager.get('/companies/data-completeness');
+
+    // 영업담당 모드: 로그인한 사용자의 이름을 manager 파라미터로 전달
+    const user = window.sessionManager?.getUser();
+    const params = {};
+
+    if (user && user.name) {
+      params.manager = user.name;
+      logger.info(`[거래처 데이터관리] 담당자 필터링: ${user.name}`);
+    }
+
+    const response = await apiManager.get('/companies/data-completeness', params);
 
     logger.info('[거래처 데이터관리] API 응답:', response);
 
@@ -171,7 +181,7 @@ const loadCompletenessData = async () => {
 };
 
 /**
- * 데이터 완성도 카드 렌더링
+ * 데이터 완성도 카드 렌더링 - 3열 구조
  */
 const renderCompletenessCards = () => {
   const grid = document.getElementById('completeness-grid');
@@ -192,7 +202,7 @@ const renderCompletenessCards = () => {
     return;
   }
 
-  // 카드 생성
+  // 카드 생성 - 3열 구조
   const cards = FIELD_DEFINITIONS.map((field) => {
     const stats = completenessData[field.key] || {
       incomplete: 0,
@@ -207,16 +217,25 @@ const renderCompletenessCards = () => {
 
     return `
       <div class="completeness-card" onclick="openEditModal('${field.key}')">
+        <!-- 1열: 필드명 -->
         <div class="card-field-name">
           <span class="card-field-icon">${field.icon}</span>
           <span>${field.name}</span>
         </div>
-        <div class="card-stats-row">
+
+        <!-- 2열: 미작성 데이터 숫자/총 데이터 숫자 -->
+        <div class="card-count-section">
+          <div class="card-count-label">미작성 / 전체</div>
           <div class="card-count">
             <span class="incomplete">${stats.incomplete}</span>
-            <span> / </span>
+            <span class="separator">/</span>
             <span class="total">${stats.total}</span>
           </div>
+        </div>
+
+        <!-- 3열: 미완성율 -->
+        <div class="card-percentage-section">
+          <div class="card-percentage-label">미완성율</div>
           <div class="card-percentage ${percentageClass}">
             ${percentage.toFixed(2)}%
           </div>
@@ -247,11 +266,20 @@ window.openEditModal = async (fieldKey) => {
   }
 
   try {
+    // 영업담당 모드: 로그인한 사용자의 담당 거래처만
+    const user = window.sessionManager?.getUser();
+    const params = {
+      field: currentField.dbColumn
+    };
+
+    if (user && user.name) {
+      params.manager = user.name;
+      logger.info(`[거래처 데이터관리] 담당자 필터링: ${user.name}`);
+    }
+
     // 미완성 데이터 조회
     const apiManager = ApiManager.getInstance();
-    const response = await apiManager.get('/companies/incomplete', {
-      field: currentField.dbColumn
-    });
+    const response = await apiManager.get('/companies/incomplete', params);
 
     if (response && response.success !== false) {
       incompleteCompanies = response.data || response || [];
@@ -358,13 +386,15 @@ const renderModalTable = () => {
 
 /**
  * 주소 기반 자동 지역 설정
+ * 상세주소 → customerRegion → region_id, region_district
  */
 const autoSetRegion = async (companyId, address) => {
   try {
     logger.info(`[거래처 데이터관리] 자동 지역 설정 시작: ${address}`);
 
-    // 주소에서 시/구 추출 (간단한 로직)
-    const match = address.match(/(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주).*?(시|군|구)/);
+    // 주소에서 시/도, 구/군 추출
+    const regionPattern = /(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)[특별시|광역시|특별자치시|도]*\s*([가-힣]+[시군구])/;
+    const match = address.match(regionPattern);
 
     if (!match) {
       logger.warn('[거래처 데이터관리] 주소에서 지역을 추출할 수 없음');
@@ -372,28 +402,47 @@ const autoSetRegion = async (companyId, address) => {
     }
 
     const province = match[1];
-    const districtPart = match[2];
+    const district = match[2];
+
+    // customerRegion 생성 (예: "서울 강남구", "경기 수원시")
+    const customerRegion = `${province} ${district}`;
+
+    logger.info(`[거래처 데이터관리] 추출된 지역 정보: ${customerRegion}`);
 
     // 지역 목록에서 매칭되는 지역 찾기
-    const matchedRegion = regions.find((r) =>
-      r.province.includes(province) || r.district.includes(districtPart)
-    );
+    const matchedRegion = regions.find((r) => {
+      // district 필드로 매칭 (예: "강남구", "수원시")
+      const rDistrict = r.district || '';
+      return rDistrict.includes(district) || district.includes(rDistrict);
+    });
 
     if (matchedRegion) {
-      logger.info(`[거래처 데이터관리] 지역 매칭 성공: ${matchedRegion.district}`);
-      showToast(`✅ ${matchedRegion.district} 지역이 자동으로 설정되었습니다.`, 'info');
+      logger.info(`[거래처 데이터관리] 지역 매칭 성공: ID ${matchedRegion.id}, ${matchedRegion.district}`);
+      showToast(`✅ ${customerRegion} 지역이 자동으로 설정되었습니다.`, 'info');
 
-      // 백엔드에 지역 정보 업데이트
+      // 백엔드에 지역 정보 업데이트 (customerRegion, region_id, region_district)
       const apiManager = ApiManager.getInstance();
       await apiManager.request(`/companies/${companyId}`, {
         method: 'PATCH',
         body: JSON.stringify({
+          customerRegion: customerRegion,
           region_id: matchedRegion.id,
           region_district: matchedRegion.district
         })
       });
+
+      logger.info(`[거래처 데이터관리] 지역 정보 업데이트 완료: ${companyId}`);
     } else {
-      logger.warn('[거래처 데이터관리] 매칭되는 지역을 찾을 수 없음');
+      logger.warn(`[거래처 데이터관리] 매칭되는 지역을 찾을 수 없음: ${customerRegion}`);
+
+      // 매칭 실패해도 customerRegion은 저장
+      const apiManager = ApiManager.getInstance();
+      await apiManager.request(`/companies/${companyId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          customerRegion: customerRegion
+        })
+      });
     }
   } catch (error) {
     logger.error('[거래처 데이터관리] 자동 지역 설정 실패:', error);
