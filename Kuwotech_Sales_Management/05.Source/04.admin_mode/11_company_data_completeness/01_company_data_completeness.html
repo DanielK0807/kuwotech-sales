@@ -83,6 +83,29 @@
         transform: translateY(0);
       }
 
+      /* Shimmer 효과 속도 조정 (10배 천천히) */
+      @keyframes glass-shimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+      }
+
+      .page-header.glass-shimmer::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 200%;
+        height: 100%;
+        background: linear-gradient(
+          105deg,
+          transparent 40%,
+          rgba(255, 255, 255, 0.4) 50%,
+          transparent 60%
+        );
+        animation: glass-shimmer 30s ease-in-out infinite;
+        pointer-events: none;
+      }
+
       /* 카드 컨테이너 - 1열에 4개씩 그리드 */
       .completeness-grid {
         display: grid;
