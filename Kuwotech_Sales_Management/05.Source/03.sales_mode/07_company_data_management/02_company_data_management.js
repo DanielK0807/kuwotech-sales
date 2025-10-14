@@ -202,10 +202,20 @@ const loadCompletenessData = async () => {
     const user = window.sessionManager?.getUser();
     const params = {};
 
+    console.log('========================================');
+    console.log('[프론트엔드] window.sessionManager 존재:', !!window.sessionManager);
+    console.log('[프론트엔드] user 객체:', user);
+    console.log('[프론트엔드] user.name:', user?.name);
+    console.log('========================================');
+
     if (user && user.name) {
       params.manager = user.name;
-      logger.info(`[거래처 데이터관리] 담당자 필터링: ${user.name}`);
+      logger.info(`[거래처 데이터관리] ✅ 담당자 필터링 적용: ${user.name}`);
+    } else {
+      logger.warn('[거래처 데이터관리] ⚠️ 담당자 필터링 없음 - user 객체 또는 user.name이 없습니다');
     }
+
+    console.log('[프론트엔드] API 요청 params:', params);
 
     const response = await apiManager.get('/companies/data-completeness', params);
 
