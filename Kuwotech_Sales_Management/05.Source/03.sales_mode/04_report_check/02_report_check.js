@@ -112,6 +112,19 @@ if (document.readyState === 'loading') {
   initReportCheckPage();
 }
 
+// ✅ SPA 동적 로딩 지원: pageLoaded 이벤트 리스너
+window.addEventListener('pageLoaded', (event) => {
+  const { page } = event.detail || {};
+
+  if (page === 'report-check') {
+    logger.info('[Report Check] 페이지 재로드 - 초기화 시작');
+    // 페이지 재로드 시 전체 재초기화
+    setTimeout(() => {
+      initReportCheckPage();
+    }, 100);  // DOM이 완전히 렌더링된 후 초기화
+  }
+});
+
 /**
  * DOM 요소 캐싱
  */
