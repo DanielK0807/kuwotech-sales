@@ -568,6 +568,18 @@ function renderReportDetail(reportId) {
     // 관리자 의견 (기존 의견 표시)
     document.getElementById('adminComment').value = report.adminComment || '';
 
+    // ✅ 월간/연간 보고서는 수금/매출/활동 섹션 제거
+    if (report.reportType === 'monthly' || report.reportType === 'annual') {
+        const collectionSection = document.getElementById('collection-section');
+        const salesSection = document.getElementById('sales-section');
+        const activitySection = document.getElementById('activity-section');
+
+        // 입력 섹션들 제거
+        if (collectionSection) collectionSection.remove();
+        if (salesSection) salesSection.remove();
+        if (activitySection) activitySection.remove();
+    }
+
     // ✅ NEW: 월간/연간 목표 데이터 로드 및 표시
     loadAndDisplayGoals(report);
 }
