@@ -857,13 +857,14 @@ function toggleSectionContent(sectionTitle) {
   if (isExpanded) {
     // 접기
     sectionTitle.classList.remove('expanded');
+    sectionContent.classList.add('hidden');
     sectionContent.style.display = 'none';
   } else {
     // 펼치기
     sectionTitle.classList.add('expanded');
+    sectionContent.classList.remove('hidden');
     sectionContent.style.display = 'block';
   }
-
 }
 
 // =====================================================
@@ -1021,50 +1022,65 @@ async function loadReportDetails(reportItem, report) {
   }
 
 
-  // ✅ 섹션 표시 (데이터가 있으면 표시) 및 자동 펼치기
-  const collectionSection = reportItem.querySelector('.collection-section');
-  const salesSection = reportItem.querySelector('.sales-section');
-  const activitySection = reportItem.querySelector('.activity-section');
+  // ✅ 월간/연간 보고서는 입력 섹션과 저장 버튼 완전히 제거
+  if (report.type === 'monthly' || report.type === 'annual') {
+    const collectionSection = reportItem.querySelector('.collection-section');
+    const salesSection = reportItem.querySelector('.sales-section');
+    const activitySection = reportItem.querySelector('.activity-section');
+    const detailActions = reportItem.querySelector('.detail-actions');
 
-  if (collectionSection && report.collection && report.collection.planned > 0) {
-    // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
-    collectionSection.classList.remove('hidden');
-    collectionSection.style.display = 'block';
-    // 섹션 자동 펼치기
-    const collectionSectionTitle = collectionSection.querySelector('.collapsible-section-title');
-    const collectionSectionContent = collectionSectionTitle?.nextElementSibling;
-    if (collectionSectionContent) {
-      collectionSectionContent.classList.remove('hidden');
-      collectionSectionContent.style.display = 'block';
-      collectionSectionTitle.classList.add('expanded');
+    // 입력 섹션들 제거
+    if (collectionSection) collectionSection.remove();
+    if (salesSection) salesSection.remove();
+    if (activitySection) activitySection.remove();
+    // 저장 버튼 제거
+    if (detailActions) detailActions.remove();
+  } else {
+    // 주간 보고서만 입력 섹션 표시 및 자동 펼치기
+    const collectionSection = reportItem.querySelector('.collection-section');
+    const salesSection = reportItem.querySelector('.sales-section');
+    const activitySection = reportItem.querySelector('.activity-section');
+
+    if (collectionSection && report.collection && report.collection.planned > 0) {
+      // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
+      collectionSection.classList.remove('hidden');
+      collectionSection.style.display = 'block';
+      // 섹션 자동 펼치기
+      const collectionSectionTitle = collectionSection.querySelector('.collapsible-section-title');
+      const collectionSectionContent = collectionSectionTitle?.nextElementSibling;
+      if (collectionSectionContent) {
+        collectionSectionContent.classList.remove('hidden');
+        collectionSectionContent.style.display = 'block';
+        collectionSectionTitle.classList.add('expanded');
+      }
     }
-  }
 
-  if (salesSection && report.sales && report.sales.planned > 0) {
-    // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
-    salesSection.classList.remove('hidden');
-    salesSection.style.display = 'block';
-    // 섹션 자동 펼치기
-    const salesSectionTitle = salesSection.querySelector('.collapsible-section-title');
-    const salesSectionContent = salesSectionTitle?.nextElementSibling;
-    if (salesSectionContent) {
-      salesSectionContent.classList.remove('hidden');
-      salesSectionContent.style.display = 'block';
-      salesSectionTitle.classList.add('expanded');
+    if (salesSection && report.sales && report.sales.planned > 0) {
+      // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
+      salesSection.classList.remove('hidden');
+      salesSection.style.display = 'block';
+      // 섹션 자동 펼치기
+      const salesSectionTitle = salesSection.querySelector('.collapsible-section-title');
+      const salesSectionContent = salesSectionTitle?.nextElementSibling;
+      if (salesSectionContent) {
+        salesSectionContent.classList.remove('hidden');
+        salesSectionContent.style.display = 'block';
+        salesSectionTitle.classList.add('expanded');
+      }
     }
-  }
 
-  if (activitySection && report.activities && report.activities.length > 0) {
-    // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
-    activitySection.classList.remove('hidden');
-    activitySection.style.display = 'block';
-    // 활동 섹션도 자동 펼치기
-    const activitySectionTitle = activitySection.querySelector('.collapsible-section-title');
-    const activitySectionContent = activitySectionTitle?.nextElementSibling;
-    if (activitySectionContent) {
-      activitySectionContent.classList.remove('hidden');
-      activitySectionContent.style.display = 'block';
-      activitySectionTitle.classList.add('expanded');
+    if (activitySection && report.activities && report.activities.length > 0) {
+      // ✅ FIX: .hidden 클래스를 먼저 제거해야 섹션이 보임
+      activitySection.classList.remove('hidden');
+      activitySection.style.display = 'block';
+      // 활동 섹션도 자동 펼치기
+      const activitySectionTitle = activitySection.querySelector('.collapsible-section-title');
+      const activitySectionContent = activitySectionTitle?.nextElementSibling;
+      if (activitySectionContent) {
+        activitySectionContent.classList.remove('hidden');
+        activitySectionContent.style.display = 'block';
+        activitySectionTitle.classList.add('expanded');
+      }
     }
   }
 
