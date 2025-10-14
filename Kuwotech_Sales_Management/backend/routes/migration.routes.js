@@ -784,4 +784,40 @@ router.post('/kpi-columns', async (req, res) => {
     }
 });
 
+// GET /api/migration/check-kpi-structure - KPI 테이블 구조 확인
+router.get('/check-kpi-structure', async (req, res) => {
+    try {
+        const db = await getDB();
+
+        // kpi_sales 테이블 구조 확인
+        const [salesColumns] = await db.execute(`
+            SELECT COLUMN_NAME, DATA_TYPE, COLUMN_COMMENT
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'kpi_sales'
+            ORDER BY ORDINAL_POSITION
+        `);
+
+        // kpi_admin 테이블 구조 확인
+        const [adminColumns] = await db.execute(`
+            SELECT COLUMN_NAME, DATA_TYPE, COLUMN_COMMENT
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'kpi_admin'
+            ORDER BY ORDINAL_POSITION
+        `);
+
+        res.json({
+            success: true,
+            kpi_sales_columns: salesColumns,
+            kpi_admin_columns: adminColumns
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 export default router;
