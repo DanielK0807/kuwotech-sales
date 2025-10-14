@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>거래처 데이터관리 - 관리자</title>
+    <style>
+      .data-management-container {
+        padding: 2rem;
+      }
+
+      .page-header {
+        margin-bottom: 2rem;
+      }
+
+      .page-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .page-description {
+        color: rgba(44, 62, 80, 0.8);
+        font-size: 0.95rem;
+      }
+
+      /* 카드 컨테이너 - 1열에 4개씩 그리드 */
+      .completeness-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      /* 개별 카드 - 세로 배치 구조 */
+      .completeness-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08),
+                    0 4px 16px rgba(0, 0, 0, 0.06);
+      }
+
+      .completeness-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15),
+                    0 12px 32px rgba(102, 126, 234, 0.2);
+        border-color: var(--primary-color);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+      }
+
+      /* 아이콘 */
+      .card-field-icon {
+        font-size: 2.5rem;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--glass-bg);
+        border-radius: 50%;
+        border: 1px solid var(--glass-border);
+      }
+
+      /* 필드명 */
+      .card-field-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+      }
+
+      /* 미작성/전체 섹션 */
+      .card-count-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+        width: 100%;
+      }
+
+      .card-count-label {
+        font-size: 0.8rem;
+        color: rgba(44, 62, 80, 0.7);
+        font-weight: 500;
+      }
+
+      .card-count {
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: baseline;
+        gap: 0.3rem;
+      }
+
+      .card-count .incomplete {
+        color: #e74c3c;
+        font-size: 1.6rem;
+      }
+
+      .card-count .separator {
+        color: rgba(44, 62, 80, 0.7);
+        font-size: 1rem;
+      }
+
+      .card-count .total {
+        color: #2c3e50;
+        font-size: 1.3rem;
+      }
+
+      /* 미완성율 섹션 */
+      .card-percentage-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+      }
+
+      .card-percentage-label {
+        font-size: 0.8rem;
+        color: rgba(44, 62, 80, 0.7);
+        font-weight: 500;
+      }
+
+      .card-percentage {
+        font-size: 1.8rem;
+        font-weight: 800;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #2c3e50;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-percentage.high {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+
+      .card-percentage.medium {
+        background: linear-gradient(135deg, #ffd89b 0%, #ff8c42 100%);
+        color: white;
+      }
+
+      .card-percentage.low {
+        background: linear-gradient(135deg, #a8edea 0%, #79d0e1 100%);
+        color: #2c3e50;
+      }
+
+      /* 모달 스타일 */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 900px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--glass-border);
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        cursor: pointer;
+        color: #ffffff;
+        transition: color 0.2s;
+      }
+
+      .modal-close:hover {
+        color: var(--primary-color);
+      }
+
+      /* 모달 내 테이블 */
+      .modal-table-container {
+        overflow-x: auto;
+        margin-bottom: 1rem;
+      }
+
+      .modal-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .modal-table th,
+      .modal-table td {
+        padding: 0.8rem;
+        text-align: left;
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .modal-table th {
+        background: var(--glass-bg);
+        font-weight: 600;
+        color: #ffffff;
+        position: sticky;
+        top: 0;
+        font-size: 1rem;
+      }
+
+      .modal-table td {
+        color: #ffffff;
+        font-size: 0.95rem;
+      }
+
+      .modal-table input,
+      .modal-table select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--glass-border);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        font-size: 0.9rem;
+      }
+
+      .modal-table input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .modal-table input:focus,
+      .modal-table select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .modal-table select option {
+        background: #2c3e50;
+        color: #ffffff;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--glass-border);
+      }
+
+      .btn {
+        padding: 0.7rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-secondary {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: #ffffff;
+      }
+
+      .btn-secondary:hover {
+        background: var(--glass-border);
+        color: #ffffff;
+      }
+
+      /* 로딩 스피너 */
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        gap: 1rem;
+        color: #2c3e50;
+      }
+
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid var(--glass-border);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 빈 데이터 메시지 */
+      .empty-message {
+        text-align: center;
+        padding: 3rem;
+        color: #2c3e50;
+        font-size: 1.1rem;
+      }
+
+      /* 반응형 - 1열에 표시할 카드 개수 조정 */
+      @media (max-width: 1440px) {
+        .completeness-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .completeness-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.2rem;
+        }
+
+        .completeness-card {
+          padding: 1.3rem;
+        }
+
+        .card-field-icon {
+          font-size: 2rem;
+          width: 50px;
+          height: 50px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .completeness-grid {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+
+        .completeness-card {
+          padding: 1.2rem;
+        }
+
+        .modal-content {
+          width: 95%;
+          padding: 1.5rem;
+        }
+
+        .card-field-name {
+          font-size: 1rem;
+        }
+
+        .card-field-icon {
+          font-size: 1.8rem;
+          width: 45px;
+          height: 45px;
+        }
+
+        .card-count {
+          font-size: 1.2rem;
+        }
+
+        .card-count .incomplete {
+          font-size: 1.4rem;
+        }
+
+        .card-percentage {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="data-management-container">
+      <!-- 페이지 헤더 -->
+      <div class="page-header">
+        <h1 class="page-title">📝 거래처 데이터관리 (전체)</h1>
+        <p class="page-description">
+          전체 거래처의 데이터 완성도를 확인하고 누락된 정보를 입력할 수 있습니다.
+        </p>
+      </div>
+
+      <!-- 데이터 완성도 카드 그리드 -->
+      <div id="completeness-grid" class="completeness-grid">
+        <!-- 로딩 표시 -->
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>데이터 완성도를 조회하고 있습니다...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 편집 모달 -->
+    <div id="edit-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modal-title">데이터 편집</h2>
+          <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+
+        <div class="modal-table-container">
+          <table class="modal-table" id="modal-table">
+            <thead>
+              <tr>
+                <th>거래처명</th>
+                <th>현재값</th>
+                <th>입력</th>
+              </tr>
+            </thead>
+            <tbody id="modal-table-body">
+              <!-- 동적으로 생성됨 -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="modal-cancel">취소</button>
+          <button class="btn btn-primary" id="modal-save">저장</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

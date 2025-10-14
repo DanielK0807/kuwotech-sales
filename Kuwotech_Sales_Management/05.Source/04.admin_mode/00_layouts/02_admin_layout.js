@@ -64,10 +64,15 @@ const pageFileMap = {
         file: '01_dashboard',
         script: '02_dashboard.js'
     },
-    'all-companies': { 
-        folder: '02_all_companies', 
+    'all-companies': {
+        folder: '02_all_companies',
         file: '01_all_companies',
         script: '02_all_companies.js'
+    },
+    'company-data-completeness': {
+        folder: '11_company_data_completeness',
+        file: '01_company_data_completeness',
+        script: '02_company_data_completeness.js'
     },
     'report-confirm': {
         folder: '03_report_confirm',
