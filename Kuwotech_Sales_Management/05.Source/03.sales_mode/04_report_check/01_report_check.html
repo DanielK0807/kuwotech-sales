@@ -236,33 +236,7 @@
                 </div>
             </div>
 
-            <!-- ✅ NEW: 월간목표 섹션 -->
-            <div class="detail-section glass-card monthly-goal-section hidden">
-                <h3 class="section-title collapsible-section-title" data-section="monthly-goal">
-                    <span class="section-title-text">📅 월간목표</span>
-                    <div class="section-title-actions">
-                        <span class="section-toggle-icon">▼</span>
-                    </div>
-                </h3>
-                <div class="section-content hidden">
-                    <div class="goal-info-grid">
-                        <div class="goal-info-row">
-                            <span class="goal-info-label">💰 목표 수금금액:</span>
-                            <span class="goal-info-value monthly-goal-collection">0원</span>
-                        </div>
-                        <div class="goal-info-row">
-                            <span class="goal-info-label">💵 목표 매출금액:</span>
-                            <span class="goal-info-value monthly-goal-sales">0원</span>
-                        </div>
-                        <div class="goal-info-row">
-                            <span class="goal-info-label">🎯 판매목표제품:</span>
-                            <span class="goal-info-value monthly-goal-products">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ✅ NEW: 연간목표 섹션 -->
+            <!-- ✅ NEW: 연간목표 섹션 (연간 먼저 표시) -->
             <div class="detail-section glass-card annual-goal-section hidden">
                 <h3 class="section-title collapsible-section-title" data-section="annual-goal">
                     <span class="section-title-text">📆 연간목표</span>
@@ -277,12 +251,70 @@
                             <span class="goal-info-value annual-goal-collection">0원</span>
                         </div>
                         <div class="goal-info-row">
+                            <span class="goal-info-label">실제 수금금액:</span>
+                            <span class="goal-info-value annual-actual-collection">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">목표 달성율:</span>
+                            <span class="goal-info-value annual-collection-rate">0%</span>
+                        </div>
+                        <div class="goal-info-row">
                             <span class="goal-info-label">💵 목표 매출금액:</span>
                             <span class="goal-info-value annual-goal-sales">0원</span>
                         </div>
                         <div class="goal-info-row">
+                            <span class="goal-info-label">실제 매출금액:</span>
+                            <span class="goal-info-value annual-actual-sales">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">목표 달성율:</span>
+                            <span class="goal-info-value annual-sales-rate">0%</span>
+                        </div>
+                        <div class="goal-info-row">
                             <span class="goal-info-label">🎯 판매목표제품:</span>
                             <span class="goal-info-value annual-goal-products">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ NEW: 월간목표 섹션 (연간 다음에 표시) -->
+            <div class="detail-section glass-card monthly-goal-section hidden">
+                <h3 class="section-title collapsible-section-title" data-section="monthly-goal">
+                    <span class="section-title-text">📅 월간목표</span>
+                    <div class="section-title-actions">
+                        <span class="section-toggle-icon">▼</span>
+                    </div>
+                </h3>
+                <div class="section-content hidden">
+                    <div class="goal-info-grid">
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">💰 목표 수금금액:</span>
+                            <span class="goal-info-value monthly-goal-collection">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">실제 수금금액:</span>
+                            <span class="goal-info-value monthly-actual-collection">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">목표 달성율:</span>
+                            <span class="goal-info-value monthly-collection-rate">0%</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">💵 목표 매출금액:</span>
+                            <span class="goal-info-value monthly-goal-sales">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">실제 매출금액:</span>
+                            <span class="goal-info-value monthly-actual-sales">0원</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">목표 달성율:</span>
+                            <span class="goal-info-value monthly-sales-rate">0%</span>
+                        </div>
+                        <div class="goal-info-row">
+                            <span class="goal-info-label">🎯 판매목표제품:</span>
+                            <span class="goal-info-value monthly-goal-products">-</span>
                         </div>
                     </div>
                 </div>

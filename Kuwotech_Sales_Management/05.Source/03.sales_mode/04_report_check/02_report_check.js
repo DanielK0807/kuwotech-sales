@@ -1155,119 +1155,150 @@ async function loadReportDetails(reportItem, report) {
 async function loadAndDisplayGoals(reportItem, report) {
   try {
     // 월간/연간 목표 보고서 조회
-    const [monthlyGoalResponse, annualGoalResponse] = await Promise.all([
-      apiManager.getReports({
-        submittedBy: state.currentUser.name,
-        reportType: 'monthly',
-        limit: 1
-      }),
+    const [annualGoalResponse, monthlyGoalResponse] = await Promise.all([
       apiManager.getReports({
         submittedBy: state.currentUser.name,
         reportType: 'annual',
         limit: 1
+      }),
+      apiManager.getReports({
+        submittedBy: state.currentUser.name,
+        reportType: 'monthly',
+        limit: 1
       })
     ]);
 
-    // 월간목표 처리
-    const monthlyGoalSection = reportItem.querySelector('.monthly-goal-section');
-    if (monthlyGoalResponse.success && monthlyGoalResponse.data?.reports?.length > 0) {
-      const monthlyGoal = monthlyGoalResponse.data.reports[0];
-      displayGoalData(reportItem, monthlyGoal, 'monthly');
+    // 주간 보고서 조회 (실제 금액 집계용)
+    const weeklyReportsResponse = await apiManager.getReports({
+      submittedBy: state.currentUser.name,
+      reportType: 'weekly',
+      limit: 100
+    });
 
-      // 섹션 표시 및 자동 펼치기
-      if (monthlyGoalSection) {
-        monthlyGoalSection.classList.remove('hidden');
-        monthlyGoalSection.style.display = 'block';
+    const weeklyReports = weeklyReportsResponse.success ? (weeklyReportsResponse.data?.reports || []) : [];
 
-        const sectionTitle = monthlyGoalSection.querySelector('.collapsible-section-title');
-        const sectionContent = sectionTitle?.nextElementSibling;
-        if (sectionContent) {
-          sectionContent.classList.remove('hidden');
-          sectionContent.style.display = 'block';
-          sectionTitle.classList.add('expanded');
-        }
-      }
-    } else {
-      // 월간목표 없음 - "0원" 표시
-      displayGoalData(reportItem, null, 'monthly');
-      if (monthlyGoalSection) {
-        monthlyGoalSection.classList.remove('hidden');
-        monthlyGoalSection.style.display = 'block';
-      }
-    }
-
-    // 연간목표 처리
+    // 연간목표 처리 (연간 먼저 표시)
     const annualGoalSection = reportItem.querySelector('.annual-goal-section');
     if (annualGoalResponse.success && annualGoalResponse.data?.reports?.length > 0) {
       const annualGoal = annualGoalResponse.data.reports[0];
-      displayGoalData(reportItem, annualGoal, 'annual');
+      await displayGoalData(reportItem, annualGoal, 'annual', weeklyReports);
 
-      // 섹션 표시 및 자동 펼치기
+      // 섹션 표시 (자동 펼치기 제거 - 접혀진 상태 유지)
       if (annualGoalSection) {
         annualGoalSection.classList.remove('hidden');
         annualGoalSection.style.display = 'block';
-
-        const sectionTitle = annualGoalSection.querySelector('.collapsible-section-title');
-        const sectionContent = sectionTitle?.nextElementSibling;
-        if (sectionContent) {
-          sectionContent.classList.remove('hidden');
-          sectionContent.style.display = 'block';
-          sectionTitle.classList.add('expanded');
-        }
       }
     } else {
       // 연간목표 없음 - "0원" 표시
-      displayGoalData(reportItem, null, 'annual');
+      await displayGoalData(reportItem, null, 'annual', weeklyReports);
       if (annualGoalSection) {
         annualGoalSection.classList.remove('hidden');
         annualGoalSection.style.display = 'block';
+      }
+    }
+
+    // 월간목표 처리 (연간 다음에 표시)
+    const monthlyGoalSection = reportItem.querySelector('.monthly-goal-section');
+    if (monthlyGoalResponse.success && monthlyGoalResponse.data?.reports?.length > 0) {
+      const monthlyGoal = monthlyGoalResponse.data.reports[0];
+      await displayGoalData(reportItem, monthlyGoal, 'monthly', weeklyReports);
+
+      // 섹션 표시 (자동 펼치기 제거 - 접혀진 상태 유지)
+      if (monthlyGoalSection) {
+        monthlyGoalSection.classList.remove('hidden');
+        monthlyGoalSection.style.display = 'block';
+      }
+    } else {
+      // 월간목표 없음 - "0원" 표시
+      await displayGoalData(reportItem, null, 'monthly', weeklyReports);
+      if (monthlyGoalSection) {
+        monthlyGoalSection.classList.remove('hidden');
+        monthlyGoalSection.style.display = 'block';
       }
     }
 
   } catch (error) {
     logger.error('[Report Check] 목표 데이터 로드 실패:', error);
     // 에러 발생 시에도 "0원" 표시
-    displayGoalData(reportItem, null, 'monthly');
-    displayGoalData(reportItem, null, 'annual');
+    await displayGoalData(reportItem, null, 'annual', []);
+    await displayGoalData(reportItem, null, 'monthly', []);
   }
 }
 
 /**
- * 목표 데이터 표시 (월간 또는 연간)
+ * 목표 데이터 표시 (월간 또는 연간) - 실제 금액 및 달성율 포함
  */
-function displayGoalData(reportItem, goalReport, type) {
+async function displayGoalData(reportItem, goalReport, type, weeklyReports = []) {
   const prefix = type === 'monthly' ? 'monthly' : 'annual';
 
+  // DOM 요소 선택
   const collectionEl = reportItem.querySelector(`.${prefix}-goal-collection`);
+  const actualCollectionEl = reportItem.querySelector(`.${prefix}-actual-collection`);
+  const collectionRateEl = reportItem.querySelector(`.${prefix}-collection-rate`);
+
   const salesEl = reportItem.querySelector(`.${prefix}-goal-sales`);
+  const actualSalesEl = reportItem.querySelector(`.${prefix}-actual-sales`);
+  const salesRateEl = reportItem.querySelector(`.${prefix}-sales-rate`);
+
   const productsEl = reportItem.querySelector(`.${prefix}-goal-products`);
 
-  if (goalReport) {
-    // 목표 데이터가 있으면 표시
-    if (collectionEl) {
-      const collectionAmount = parseFloat(goalReport.targetCollectionAmount) || 0;
-      collectionEl.textContent = formatNumber(collectionAmount) + '원';
+  // 목표 금액
+  const goalCollection = goalReport ? (parseFloat(goalReport.targetCollectionAmount) || 0) : 0;
+  const goalSales = goalReport ? (parseFloat(goalReport.targetSalesAmount) || 0) : 0;
+
+  // 주간 보고서에서 실제 수금/매출 집계
+  let actualCollection = 0;
+  let actualSales = 0;
+
+  weeklyReports.forEach(weeklyReport => {
+    const confirmationData = parseJSON(weeklyReport.confirmationData, {});
+
+    // 실제 수금금액 집계
+    if (confirmationData.collection?.entries) {
+      actualCollection += calculateActual(confirmationData.collection.entries);
     }
 
-    if (salesEl) {
-      const salesAmount = parseFloat(goalReport.targetSalesAmount) || 0;
-      salesEl.textContent = formatNumber(salesAmount) + '원';
+    // 실제 매출금액 집계
+    if (confirmationData.sales?.entries) {
+      actualSales += calculateActual(confirmationData.sales.entries);
     }
+  });
 
-    if (productsEl) {
+  // 목표 달성율 계산
+  const collectionRate = goalCollection > 0 ? ((actualCollection / goalCollection) * 100).toFixed(1) : '0.0';
+  const salesRate = goalSales > 0 ? ((actualSales / goalSales) * 100).toFixed(1) : '0.0';
+
+  // UI 업데이트
+  if (collectionEl) {
+    collectionEl.textContent = formatNumber(goalCollection) + '원';
+  }
+
+  if (actualCollectionEl) {
+    actualCollectionEl.textContent = formatNumber(actualCollection) + '원';
+  }
+
+  if (collectionRateEl) {
+    collectionRateEl.textContent = collectionRate + '%';
+  }
+
+  if (salesEl) {
+    salesEl.textContent = formatNumber(goalSales) + '원';
+  }
+
+  if (actualSalesEl) {
+    actualSalesEl.textContent = formatNumber(actualSales) + '원';
+  }
+
+  if (salesRateEl) {
+    salesRateEl.textContent = salesRate + '%';
+  }
+
+  if (productsEl) {
+    if (goalReport) {
       const targetProducts = parseJSON(goalReport.targetProducts, []);
       const productNames = targetProducts.map(p => p.name || p.productName).filter(Boolean).join(', ');
       productsEl.textContent = productNames || '-';
-    }
-  } else {
-    // 목표 데이터가 없으면 "0원" 표시
-    if (collectionEl) {
-      collectionEl.textContent = '0원';
-    }
-    if (salesEl) {
-      salesEl.textContent = '0원';
-    }
-    if (productsEl) {
+    } else {
       productsEl.textContent = '-';
     }
   }
