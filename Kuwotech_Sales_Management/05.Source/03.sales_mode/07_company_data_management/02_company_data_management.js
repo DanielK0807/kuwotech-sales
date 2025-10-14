@@ -10,12 +10,14 @@ import { showToast } from '../../01.common/14_toast.js';
 import logger from '../../01.common/23_logger.js';
 
 // 전역 변수
+const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let completenessData = null;
 let currentField = null;
 let incompleteCompanies = [];
 let regions = []; // 지역 목록
 
 console.log('📝 [거래처 데이터관리] v1.0 로드됨');
+console.log('[거래처 데이터관리] 로그인 사용자:', user.name || '미확인');
 
 /**
  * 필드 정의
@@ -199,14 +201,7 @@ const loadCompletenessData = async () => {
     const apiManager = ApiManager.getInstance();
 
     // 영업담당 모드: 로그인한 사용자의 이름을 manager 파라미터로 전달
-    const user = window.sessionManager?.getUser();
     const params = {};
-
-    console.log('========================================');
-    console.log('[프론트엔드] window.sessionManager 존재:', !!window.sessionManager);
-    console.log('[프론트엔드] user 객체:', user);
-    console.log('[프론트엔드] user.name:', user?.name);
-    console.log('========================================');
 
     if (user && user.name) {
       params.manager = user.name;
@@ -214,8 +209,6 @@ const loadCompletenessData = async () => {
     } else {
       logger.warn('[거래처 데이터관리] ⚠️ 담당자 필터링 없음 - user 객체 또는 user.name이 없습니다');
     }
-
-    console.log('[프론트엔드] API 요청 params:', params);
 
     const response = await apiManager.get('/companies/data-completeness', params);
 
@@ -333,7 +326,6 @@ window.openEditModal = async (fieldKey) => {
 
   try {
     // 영업담당 모드: 로그인한 사용자의 담당 거래처만
-    const user = window.sessionManager?.getUser();
     const params = {
       field: currentField.dbColumn
     };
