@@ -57,7 +57,10 @@ export const REPORT_TYPE_MAP = {
     visit: '방문',
     call: '전화',
     online: '온라인',
-    other: '기타'
+    other: '기타',
+    weekly: '주간',
+    monthly: '월간',
+    annual: '연간'
 };
 
 // ============================================

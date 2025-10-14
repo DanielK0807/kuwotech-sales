@@ -503,18 +503,41 @@ function renderReportDetail(reportId) {
     document.getElementById('detailSubmitDate').textContent = formatDate(report.submittedDate);
     document.getElementById('detailStatus').innerHTML = getStatusBadgeHTML(report.calculatedStatus);
 
-    // ✅ 월간/연간 보고서는 수금/매출/활동 섹션 먼저 제거
+    // ✅ 보고서 유형에 따라 섹션 표시/숨김 처리
     const isMonthlyOrAnnual = report.reportType === 'monthly' || report.reportType === 'annual';
 
-    if (isMonthlyOrAnnual) {
-        const collectionSection = document.getElementById('collection-section');
-        const salesSection = document.getElementById('sales-section');
-        const activitySection = document.getElementById('activity-section');
+    const collectionSection = document.getElementById('collection-section');
+    const salesSection = document.getElementById('sales-section');
+    const activitySection = document.getElementById('activity-section');
 
-        // 입력 섹션들 제거
-        if (collectionSection) collectionSection.remove();
-        if (salesSection) salesSection.remove();
-        if (activitySection) activitySection.remove();
+    if (isMonthlyOrAnnual) {
+        // 월간/연간 보고서: 수금/매출/활동 섹션 숨기기
+        if (collectionSection) {
+            collectionSection.style.display = 'none';
+            collectionSection.classList.add('hidden');
+        }
+        if (salesSection) {
+            salesSection.style.display = 'none';
+            salesSection.classList.add('hidden');
+        }
+        if (activitySection) {
+            activitySection.style.display = 'none';
+            activitySection.classList.add('hidden');
+        }
+    } else {
+        // 주간 보고서: 수금/매출/활동 섹션 표시
+        if (collectionSection) {
+            collectionSection.style.display = 'block';
+            collectionSection.classList.remove('hidden');
+        }
+        if (salesSection) {
+            salesSection.style.display = 'block';
+            salesSection.classList.remove('hidden');
+        }
+        if (activitySection) {
+            activitySection.style.display = 'block';
+            activitySection.classList.remove('hidden');
+        }
     }
 
     // ✅ 주간 보고서만 수금/매출/활동 필드 업데이트
