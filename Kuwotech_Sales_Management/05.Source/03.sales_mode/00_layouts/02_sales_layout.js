@@ -63,13 +63,18 @@ const pageFileMap = {
         file: '01_dashboard',
         script: '02_dashboard.js'
     },
-    'my-companies': { 
-        folder: '02_my_companies', 
+    'my-companies': {
+        folder: '02_my_companies',
         file: '01_my_companies',
         script: '02_my_companies.js'
     },
-    'report-write': { 
-        folder: '03_report_write', 
+    'company-data-management': {
+        folder: '07_company_data_management',
+        file: '01_company_data_management',
+        script: '02_company_data_management.js'
+    },
+    'report-write': {
+        folder: '03_report_write',
         file: '01_report_write',
         script: '02_report_write.js'
     },

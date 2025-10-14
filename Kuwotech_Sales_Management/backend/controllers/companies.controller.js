@@ -660,3 +660,295 @@ export const deleteCompany = async (req, res) => {
     });
   }
 };
+
+// ============================================
+// 데이터 완성도 관리 API
+// ============================================
+
+// GET /api/companies/data-completeness - 데이터 완성도 조회
+export const getDataCompleteness = async (req, res) => {
+  try {
+    const db = await getDB();
+    const { manager } = req.query;
+
+    // 담당자 필터 조건
+    let managerCondition = '';
+    const params = [];
+    if (manager) {
+      managerCondition = 'WHERE internalManager = ?';
+      params.push(manager);
+    }
+
+    // 총 거래처 수 조회
+    const [totalResult] = await db.execute(
+      `SELECT COUNT(*) as total FROM companies ${managerCondition}`,
+      params
+    );
+    const total = totalResult[0].total;
+
+    // 각 필드별 미완성 데이터 수 조회
+    const fields = [
+      { key: '사업자등록번호', dbColumn: 'businessRegistrationNumber' },
+      { key: '상세주소', dbColumn: 'detailedAddress' },
+      { key: '전화번호', dbColumn: 'phoneNumber' },
+      { key: '소개경로', dbColumn: 'referralSource' },
+      { key: '지역정보', dbColumn: 'region_id' },
+      { key: '정철웅기여', dbColumn: 'jcwContribution' },
+      { key: '회사기여', dbColumn: 'companyContribution' }
+    ];
+
+    const completenessData = {};
+
+    for (const field of fields) {
+      const [incompleteResult] = await db.execute(
+        `SELECT COUNT(*) as incomplete FROM companies
+         ${managerCondition}${managerCondition ? ' AND' : 'WHERE'}
+         (${field.dbColumn} IS NULL OR ${field.dbColumn} = '')`,
+        params
+      );
+
+      const incomplete = incompleteResult[0].incomplete;
+      const percentage = total > 0 ? ((incomplete / total) * 100) : 0;
+
+      completenessData[field.key] = {
+        incomplete,
+        total,
+        percentage: parseFloat(percentage.toFixed(2))
+      };
+    }
+
+    console.log('[데이터 완성도] 조회 완료:', completenessData);
+
+    res.json({
+      success: true,
+      data: completenessData
+    });
+
+  } catch (error) {
+    console.error('데이터 완성도 조회 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '데이터 완성도 조회 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};
+
+// GET /api/companies/incomplete - 특정 필드가 누락된 거래처 조회
+export const getIncompleteCompanies = async (req, res) => {
+  try {
+    const { field, manager } = req.query;
+    const db = await getDB();
+
+    if (!field) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: '조회할 필드를 지정해주세요.'
+      });
+    }
+
+    // 필드명 매핑
+    const fieldMap = {
+      'businessRegistrationNumber': 'businessRegistrationNumber',
+      'detailedAddress': 'detailedAddress',
+      'phoneNumber': 'phoneNumber',
+      'referralSource': 'referralSource',
+      'region_id': 'region_id',
+      'jcwContribution': 'jcwContribution',
+      'companyContribution': 'companyContribution'
+    };
+
+    const dbColumn = fieldMap[field] || field;
+
+    // 쿼리 조건 구성
+    let conditions = [`(${dbColumn} IS NULL OR ${dbColumn} = '')`];
+    const params = [];
+
+    if (manager) {
+      conditions.push('internalManager = ?');
+      params.push(manager);
+    }
+
+    const whereClause = 'WHERE ' + conditions.join(' AND ');
+
+    const [companies] = await db.execute(
+      `SELECT keyValue, finalCompanyName, erpCompanyName, ${dbColumn}
+       FROM companies ${whereClause}
+       ORDER BY finalCompanyName ASC`,
+      params
+    );
+
+    console.log(`[미완성 데이터] ${field}: ${companies.length}건 조회`);
+
+    res.json({
+      success: true,
+      field: field,
+      count: companies.length,
+      data: companies
+    });
+
+  } catch (error) {
+    console.error('미완성 데이터 조회 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '미완성 데이터 조회 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};
+
+// POST /api/companies/bulk-update - 다중 거래처 업데이트
+export const bulkUpdateCompanies = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    const db = await getDB();
+
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: '업데이트할 데이터를 제공해주세요.'
+      });
+    }
+
+    console.log(`[다중 업데이트] ${updates.length}건 처리 시작`);
+
+    let successCount = 0;
+    let failCount = 0;
+    const errors = [];
+
+    // 트랜잭션 시작
+    await db.query('START TRANSACTION');
+
+    try {
+      for (const update of updates) {
+        const { companyId, field, value, relatedField } = update;
+
+        try {
+          // 지역 정보인 경우 region_district도 함께 업데이트
+          if (field === 'region_id' && relatedField) {
+            // region_id로부터 region_district 조회
+            const [regionData] = await db.execute(
+              'SELECT district FROM regions WHERE id = ?',
+              [value]
+            );
+
+            if (regionData.length > 0) {
+              await db.execute(
+                `UPDATE companies SET region_id = ?, region_district = ? WHERE keyValue = ?`,
+                [value, regionData[0].district, companyId]
+              );
+            } else {
+              await db.execute(
+                `UPDATE companies SET ${field} = ? WHERE keyValue = ?`,
+                [value, companyId]
+              );
+            }
+          } else {
+            // 일반 필드 업데이트
+            await db.execute(
+              `UPDATE companies SET ${field} = ? WHERE keyValue = ?`,
+              [value, companyId]
+            );
+          }
+
+          successCount++;
+        } catch (err) {
+          console.error(`[다중 업데이트] ${companyId} 실패:`, err);
+          failCount++;
+          errors.push({
+            companyId,
+            field,
+            error: err.message
+          });
+        }
+      }
+
+      // 트랜잭션 커밋
+      await db.query('COMMIT');
+
+      console.log(`[다중 업데이트] 완료: 성공 ${successCount}, 실패 ${failCount}`);
+
+      res.json({
+        success: true,
+        message: `${successCount}건 업데이트 완료${failCount > 0 ? `, ${failCount}건 실패` : ''}`,
+        successCount,
+        failCount,
+        errors: errors.length > 0 ? errors : undefined
+      });
+
+    } catch (error) {
+      // 트랜잭션 롤백
+      await db.query('ROLLBACK');
+      throw error;
+    }
+
+  } catch (error) {
+    console.error('다중 업데이트 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '다중 업데이트 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};
+
+// PATCH /api/companies/:keyValue - 거래처 부분 업데이트
+export const patchCompany = async (req, res) => {
+  try {
+    const { keyValue } = req.params;
+    const updates = req.body;
+    const db = await getDB();
+
+    // 기존 데이터 확인
+    const [existing] = await db.execute(
+      'SELECT * FROM companies WHERE keyValue = ?',
+      [keyValue]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: '거래처를 찾을 수 없습니다.'
+      });
+    }
+
+    // 업데이트할 필드들 동적 구성
+    const updateFields = [];
+    const params = [];
+
+    for (const [key, value] of Object.entries(updates)) {
+      updateFields.push(`${key} = ?`);
+      params.push(value);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: '업데이트할 필드가 없습니다.'
+      });
+    }
+
+    params.push(keyValue);
+
+    const [result] = await db.execute(
+      `UPDATE companies SET ${updateFields.join(', ')} WHERE keyValue = ?`,
+      params
+    );
+
+    console.log(`[부분 업데이트] ${keyValue}: ${updateFields.length}개 필드 업데이트`);
+
+    res.json({
+      success: true,
+      message: '거래처가 업데이트되었습니다.',
+      affected: result.affectedRows
+    });
+
+  } catch (error) {
+    console.error('거래처 부분 업데이트 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '거래처 부분 업데이트 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};

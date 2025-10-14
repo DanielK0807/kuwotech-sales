@@ -307,21 +307,35 @@ export async function handleLogout() {
 
     // 📊 웹사용기록: 로그아웃 시간 기록을 위해 API 호출
     const accessLogId = sessionStorage.getItem('accessLogId');
+    logger.info('🚪 [로그아웃] accessLogId:', accessLogId);
+
     if (accessLogId) {
         try {
+            const token = localStorage.getItem('authToken');
+            const apiBaseUrl = window.location.hostname === 'localhost'
+                ? 'http://localhost:5000'
+                : 'https://kuwotech-sales-production-aa64.up.railway.app';
+
+            logger.info('🚪 [로그아웃] API 호출 시작:', `${apiBaseUrl}/api/auth/logout`);
+
             // 백엔드에 로그아웃 시간 기록
-            await fetch('/api/auth/logout', {
+            const response = await fetch(`${apiBaseUrl}/api/auth/logout`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ accessLogId })
+                body: JSON.stringify({ accessLogId: parseInt(accessLogId, 10) })
             });
-            logger.info('로그아웃 시간 기록 완료');
+
+            const result = await response.json();
+            logger.info('✅ [로그아웃] 로그아웃 시간 기록 완료:', result);
         } catch (error) {
-            logger.error('로그아웃 시간 기록 실패:', error);
+            logger.error('❌ [로그아웃] 로그아웃 시간 기록 실패:', error);
             // 에러가 있어도 로그아웃은 계속 진행
         }
+    } else {
+        logger.warn('⚠️ [로그아웃] accessLogId가 없습니다 - 웹사용기록에 로그아웃 시간이 기록되지 않습니다');
     }
 
     // 세션 클리어

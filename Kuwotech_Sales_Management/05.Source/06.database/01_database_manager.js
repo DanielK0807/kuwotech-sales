@@ -76,6 +76,8 @@ export class DatabaseManager {
                 // sessionStorage에 사용자 정보만 임시 저장 (현재 세션용)
                 sessionStorage.setItem('user', JSON.stringify(this.user));
 
+                // 📊 웹사용기록: 로그아웃 시 사용할 접속 로그 ID를 sessionStorage에 저장
+                sessionStorage.setItem('accessLogId', response.accessLogId);
 
                 return response.user;
             } else {

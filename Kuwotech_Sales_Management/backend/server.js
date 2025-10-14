@@ -37,6 +37,7 @@ import productsRoutes from './routes/products.routes.js';
 import debugRoutes from './routes/debug.routes.js';
 import errorsRoutes from './routes/errors.routes.js';
 import accessLogsRoutes from './routes/access-logs.routes.js';
+import regionsRoutes from './routes/regions.routes.js';
 
 // ============================================
 // 환경 변수 로드
@@ -160,6 +161,9 @@ app.use('/api/employees', employeesRoutes);
 
 // 거래처 라우트
 app.use('/api/companies', companiesRoutes);
+
+// 지역 라우트
+app.use('/api/regions', regionsRoutes);
 
 // 보고서 라우트
 app.use('/api/reports', reportsRoutes);

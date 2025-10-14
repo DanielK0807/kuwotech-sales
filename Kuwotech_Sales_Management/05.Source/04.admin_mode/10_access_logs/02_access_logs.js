@@ -472,3 +472,11 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// SPA 환경을 위한 pageLoaded 이벤트 리스닝
+window.addEventListener('pageLoaded', (event) => {
+  if (event.detail.page === 'access-logs') {
+    console.log('🔄 [웹사용기록] pageLoaded 이벤트로 재초기화');
+    init();
+  }
+});
