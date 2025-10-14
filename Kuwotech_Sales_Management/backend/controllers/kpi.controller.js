@@ -361,12 +361,12 @@ export const getMainProductRanking = async (req, res) => {
 // ============================================
 
 /**
- * KPI 응답 포맷팅 (id, createdAt, lastUpdated 제거)
+ * KPI 응답 포맷팅 (id, createdAt, lastUpdated 제거, employeeId/employeeName은 유지)
  */
 function formatKPIResponse(kpiData) {
     if (!kpiData) return null;
 
-    const { id, createdAt, lastUpdated, employeeId, employeeName, ...kpi } = kpiData;
+    const { id, createdAt, lastUpdated, ...kpi } = kpiData;
 
     // 숫자 타입 변환
     return Object.keys(kpi).reduce((acc, key) => {
