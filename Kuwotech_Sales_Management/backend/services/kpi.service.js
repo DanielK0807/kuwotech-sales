@@ -76,34 +76,34 @@ export async function refreshSalesKPI(employeeIdOrName) {
         // 4. KPI 계산
         const kpi = calculateSalesKPI(employee, companies, totalsData);
 
-        // 5. 데이터베이스에 UPSERT
+        // 5. 데이터베이스에 UPSERT (영문 컬럼명)
         await connection.execute(
             `INSERT INTO kpi_sales (
                 id, employeeName,
-                담당거래처, 활성거래처, 활성화율, 주요제품판매거래처,
-                회사배정기준대비달성율, 주요고객처목표달성율,
-                누적매출금액, 주요제품매출액, 매출집중도,
-                누적수금금액, 매출채권잔액, 주요제품매출비율,
-                전체매출기여도, 주요제품매출기여도,
-                현재월수
+                assignedCompanies, activeCompanies, activationRate, mainProductCompanies,
+                companyTargetAchievementRate, majorCustomerTargetRate,
+                accumulatedSales, mainProductSales, salesConcentration,
+                accumulatedCollection, accountsReceivable, mainProductSalesRatio,
+                totalSalesContribution, mainProductContribution,
+                currentMonths
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 employeeName = VALUES(employeeName),
-                담당거래처 = VALUES(담당거래처),
-                활성거래처 = VALUES(활성거래처),
-                활성화율 = VALUES(활성화율),
-                주요제품판매거래처 = VALUES(주요제품판매거래처),
-                회사배정기준대비달성율 = VALUES(회사배정기준대비달성율),
-                주요고객처목표달성율 = VALUES(주요고객처목표달성율),
-                누적매출금액 = VALUES(누적매출금액),
-                주요제품매출액 = VALUES(주요제품매출액),
-                매출집중도 = VALUES(매출집중도),
-                누적수금금액 = VALUES(누적수금금액),
-                매출채권잔액 = VALUES(매출채권잔액),
-                주요제품매출비율 = VALUES(주요제품매출비율),
-                전체매출기여도 = VALUES(전체매출기여도),
-                주요제품매출기여도 = VALUES(주요제품매출기여도),
-                현재월수 = VALUES(현재월수),
+                assignedCompanies = VALUES(assignedCompanies),
+                activeCompanies = VALUES(activeCompanies),
+                activationRate = VALUES(activationRate),
+                mainProductCompanies = VALUES(mainProductCompanies),
+                companyTargetAchievementRate = VALUES(companyTargetAchievementRate),
+                majorCustomerTargetRate = VALUES(majorCustomerTargetRate),
+                accumulatedSales = VALUES(accumulatedSales),
+                mainProductSales = VALUES(mainProductSales),
+                salesConcentration = VALUES(salesConcentration),
+                accumulatedCollection = VALUES(accumulatedCollection),
+                accountsReceivable = VALUES(accountsReceivable),
+                mainProductSalesRatio = VALUES(mainProductSalesRatio),
+                totalSalesContribution = VALUES(totalSalesContribution),
+                mainProductContribution = VALUES(mainProductContribution),
+                currentMonths = VALUES(currentMonths),
                 lastUpdated = CURRENT_TIMESTAMP`,
             [
                 employee.id, employee.name,
@@ -201,31 +201,31 @@ export async function refreshAdminKPI() {
         // 3. KPI 계산
         const kpi = calculateAdminKPI(allCompanies, employees);
 
-        // 4. 데이터베이스에 UPSERT (단일 레코드 유지)
+        // 4. 데이터베이스에 UPSERT (단일 레코드 유지, 영문 컬럼명)
         await connection.execute(
             `INSERT INTO kpi_admin (
                 id,
-                전체거래처, 활성거래처, 활성화율, 주요제품판매거래처,
-                회사배정기준대비달성율, 주요고객처목표달성율,
-                누적매출금액, 누적수금금액, 매출채권잔액, 주요제품매출액, 매출집중도,
-                주요제품매출비율,
-                영업담당자수, 현재월수
+                totalCompanies, activeCompanies, activationRate, mainProductCompanies,
+                companyTargetAchievementRate, majorCustomerTargetRate,
+                accumulatedSales, accumulatedCollection, accountsReceivable, mainProductSales, salesConcentration,
+                mainProductSalesRatio,
+                salesRepCount, currentMonths
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-                전체거래처 = VALUES(전체거래처),
-                활성거래처 = VALUES(활성거래처),
-                활성화율 = VALUES(활성화율),
-                주요제품판매거래처 = VALUES(주요제품판매거래처),
-                회사배정기준대비달성율 = VALUES(회사배정기준대비달성율),
-                주요고객처목표달성율 = VALUES(주요고객처목표달성율),
-                누적매출금액 = VALUES(누적매출금액),
-                누적수금금액 = VALUES(누적수금금액),
-                매출채권잔액 = VALUES(매출채권잔액),
-                주요제품매출액 = VALUES(주요제품매출액),
-                매출집중도 = VALUES(매출집중도),
-                주요제품매출비율 = VALUES(주요제품매출비율),
-                영업담당자수 = VALUES(영업담당자수),
-                현재월수 = VALUES(현재월수),
+                totalCompanies = VALUES(totalCompanies),
+                activeCompanies = VALUES(activeCompanies),
+                activationRate = VALUES(activationRate),
+                mainProductCompanies = VALUES(mainProductCompanies),
+                companyTargetAchievementRate = VALUES(companyTargetAchievementRate),
+                majorCustomerTargetRate = VALUES(majorCustomerTargetRate),
+                accumulatedSales = VALUES(accumulatedSales),
+                accumulatedCollection = VALUES(accumulatedCollection),
+                accountsReceivable = VALUES(accountsReceivable),
+                mainProductSales = VALUES(mainProductSales),
+                salesConcentration = VALUES(salesConcentration),
+                mainProductSalesRatio = VALUES(mainProductSalesRatio),
+                salesRepCount = VALUES(salesRepCount),
+                currentMonths = VALUES(currentMonths),
                 lastUpdated = CURRENT_TIMESTAMP`,
             [
                 'admin-kpi-singleton',
@@ -464,11 +464,11 @@ export async function updateRankingsAndCumulativeContribution() {
 
         console.log('[KPI Service] 순위 및 누적기여도 계산 시작');
 
-        // 1. 전체매출기여도 순위별 정렬 조회
+        // 1. 전체매출기여도 순위별 정렬 조회 (영문 컬럼명)
         const [salesContribution] = await connection.execute(`
-            SELECT id, employeeName, 전체매출기여도
+            SELECT id, employeeName, totalSalesContribution
             FROM kpi_sales
-            ORDER BY 전체매출기여도 DESC
+            ORDER BY totalSalesContribution DESC
         `);
 
         // 2. 전체매출기여도 순위 + 누적기여도 계산
@@ -476,11 +476,11 @@ export async function updateRankingsAndCumulativeContribution() {
         for (let i = 0; i < salesContribution.length; i++) {
             const row = salesContribution[i];
             const 순위 = i + 1;
-            전체누적 += parseFloat(row.전체매출기여도) || 0;
+            전체누적 += parseFloat(row.totalSalesContribution) || 0;
 
             await connection.execute(
                 `UPDATE kpi_sales
-                 SET 전체매출기여도순위 = ?, 전체매출누적기여도 = ?
+                 SET totalSalesContributionRank = ?, cumulativeTotalSalesContribution = ?
                  WHERE id = ?`,
                 [순위, 전체누적, row.id]
             );
@@ -488,11 +488,11 @@ export async function updateRankingsAndCumulativeContribution() {
 
         console.log(`   ✅ 전체매출기여도 순위 및 누적기여도 업데이트 완료 (${salesContribution.length}명)`);
 
-        // 3. 주요제품매출기여도 순위별 정렬 조회
+        // 3. 주요제품매출기여도 순위별 정렬 조회 (영문 컬럼명)
         const [mainProductContribution] = await connection.execute(`
-            SELECT id, employeeName, 주요제품매출기여도
+            SELECT id, employeeName, mainProductContribution
             FROM kpi_sales
-            ORDER BY 주요제품매출기여도 DESC
+            ORDER BY mainProductContribution DESC
         `);
 
         // 4. 주요제품매출기여도 순위 + 누적기여도 계산
@@ -500,11 +500,11 @@ export async function updateRankingsAndCumulativeContribution() {
         for (let i = 0; i < mainProductContribution.length; i++) {
             const row = mainProductContribution[i];
             const 순위 = i + 1;
-            주요누적 += parseFloat(row.주요제품매출기여도) || 0;
+            주요누적 += parseFloat(row.mainProductContribution) || 0;
 
             await connection.execute(
                 `UPDATE kpi_sales
-                 SET 주요제품매출기여도순위 = ?, 주요제품매출누적기여도 = ?
+                 SET mainProductContributionRank = ?, cumulativeMainProductContribution = ?
                  WHERE id = ?`,
                 [순위, 주요누적, row.id]
             );

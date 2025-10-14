@@ -257,30 +257,30 @@ export const getTotalSalesRanking = async (req, res) => {
             `SELECT
                 k.id,
                 k.employeeName,
-                k.담당거래처,
-                k.누적매출금액,
-                k.전체매출기여도,
-                k.전체매출기여도순위 as \`rank\`,
+                k.assignedCompanies,
+                k.accumulatedSales,
+                k.totalSalesContribution,
+                k.totalSalesContributionRank as \`rank\`,
                 k.lastUpdated
             FROM kpi_sales k
             INNER JOIN employees e ON k.id = e.id
             WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
                 AND e.status = '재직'
-            ORDER BY k.전체매출기여도순위 ASC`
+            ORDER BY k.totalSalesContributionRank ASC`
         );
 
         res.json({
             success: true,
             data: rankings.map(r => {
-                const sales = parseFloat(r.누적매출금액);
-                const contribution = parseFloat(r.전체매출기여도);
+                const sales = parseFloat(r.accumulatedSales);
+                const contribution = parseFloat(r.totalSalesContribution);
                 return {
                     rank: r.rank,
                     employeeId: r.id,
                     employeeName: r.employeeName,
-                    담당거래처: r.담당거래처,
-                    누적매출금액: isNaN(sales) ? 0 : sales,
-                    전체매출기여도: isNaN(contribution) ? 0 : contribution,
+                    assignedCompanies: r.assignedCompanies,
+                    accumulatedSales: isNaN(sales) ? 0 : sales,
+                    totalSalesContribution: isNaN(contribution) ? 0 : contribution,
                     lastUpdated: r.lastUpdated
                 };
             })
@@ -315,30 +315,30 @@ export const getMainProductRanking = async (req, res) => {
             `SELECT
                 k.id,
                 k.employeeName,
-                k.주요제품판매거래처,
-                k.주요제품매출액,
-                k.주요제품매출기여도,
-                k.주요제품매출기여도순위 as \`rank\`,
+                k.mainProductCompanies,
+                k.mainProductSales,
+                k.mainProductContribution,
+                k.mainProductContributionRank as \`rank\`,
                 k.lastUpdated
             FROM kpi_sales k
             INNER JOIN employees e ON k.id = e.id
             WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
                 AND e.status = '재직'
-            ORDER BY k.주요제품매출기여도순위 ASC`
+            ORDER BY k.mainProductContributionRank ASC`
         );
 
         res.json({
             success: true,
             data: rankings.map(r => {
-                const sales = parseFloat(r.주요제품매출액);
-                const contribution = parseFloat(r.주요제품매출기여도);
+                const sales = parseFloat(r.mainProductSales);
+                const contribution = parseFloat(r.mainProductContribution);
                 return {
                     rank: r.rank,
                     employeeId: r.id,
                     employeeName: r.employeeName,
-                    주요제품판매거래처: r.주요제품판매거래처,
-                    주요제품매출액: isNaN(sales) ? 0 : sales,
-                    주요제품매출기여도: isNaN(contribution) ? 0 : contribution,
+                    mainProductCompanies: r.mainProductCompanies,
+                    mainProductSales: isNaN(sales) ? 0 : sales,
+                    mainProductContribution: isNaN(contribution) ? 0 : contribution,
                     lastUpdated: r.lastUpdated
                 };
             })
