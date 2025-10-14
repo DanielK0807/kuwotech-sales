@@ -5,24 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>거래처 데이터관리</title>
     <style>
+      /* 3D 뷰포트 설정 */
+      .viewport-3d {
+        perspective: 1500px;
+        perspective-origin: 50% 50%;
+        transform-style: preserve-3d;
+      }
+
       .data-management-container {
-        padding: 2rem;
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
       }
 
+      /* 페이지 헤더 (영업담당 모드 - 그린 계열) */
       .page-header {
-        margin-bottom: 2rem;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-md) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(15, 42, 29, 0.98) !important; /* 영업담당 그린 색상 */
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
       }
 
-      .page-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
+      .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
       }
 
-      .page-description {
-        color: rgba(44, 62, 80, 0.8);
-        font-size: 0.95rem;
+      .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+      }
+
+      .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+      }
+
+      .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .btn-refresh:active {
+        transform: translateY(0);
       }
 
       /* 카드 컨테이너 - 1열에 4개씩 그리드 */
@@ -31,6 +89,9 @@
         grid-template-columns: repeat(4, 1fr);
         gap: 1.5rem;
         margin-bottom: 2rem;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       /* 개별 카드 - 세로 배치 구조 */
@@ -417,15 +478,26 @@
       }
     </style>
   </head>
-  <body>
+  <body class="theme-sales viewport-3d" data-page-type="data-management" data-mode="sales">
     <div class="data-management-container">
       <!-- 페이지 헤더 -->
-      <div class="page-header">
-        <h1 class="page-title">📝 거래처 데이터관리</h1>
-        <p class="page-description">
-          담당 거래처의 데이터 완성도를 확인하고 누락된 정보를 입력할 수 있습니다.
-        </p>
-      </div>
+      <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="text-on-layer-1">📝 거래처 데이터관리</h1>
+            <p class="subtitle text-on-layer-1">
+              담당 거래처의 데이터 완성도를 확인하고 누락된 정보를 입력할 수 있습니다.
+            </p>
+          </div>
+          <button
+            id="btn-refresh-data"
+            class="btn-refresh glass-button"
+            title="데이터 새로고침"
+            onclick="location.reload()">
+            🔄 새로고침
+          </button>
+        </div>
+      </header>
 
       <!-- 데이터 완성도 카드 그리드 -->
       <div id="completeness-grid" class="completeness-grid">
