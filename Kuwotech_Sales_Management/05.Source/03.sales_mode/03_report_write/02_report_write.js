@@ -1480,6 +1480,10 @@ function handleReset(skipConfirm = false) {
     elements.salesProductList.innerHTML = '';
     state.productIdCounter = 1;
 
+    // 영업활동 목록 초기화
+    elements.activityList.innerHTML = '';
+    activityIdCounter = 1;
+
     // ✅ FIX: Optional chaining으로 안전하게 처리
     if (elements.visitDetails) {
         elements.visitDetails.style.display = 'none';
