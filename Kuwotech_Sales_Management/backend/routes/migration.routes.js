@@ -712,8 +712,10 @@ router.post('/kpi-columns', async (req, res) => {
 
         // 11. 인덱스 업데이트
         try {
-            await db.execute('ALTER TABLE kpi_sales DROP INDEX IF EXISTS idx_contribution');
-            await db.execute('ALTER TABLE kpi_sales DROP INDEX IF EXISTS idx_sales');
+            // MySQL doesn't support DROP INDEX IF EXISTS, so try/catch for each
+            try { await db.execute('ALTER TABLE kpi_sales DROP INDEX idx_contribution'); } catch (e) { /* ignore if doesn't exist */ }
+            try { await db.execute('ALTER TABLE kpi_sales DROP INDEX idx_sales'); } catch (e) { /* ignore if doesn't exist */ }
+
             await db.execute('ALTER TABLE kpi_sales ADD INDEX idx_contribution (totalSalesContribution, mainProductContribution)');
             await db.execute('ALTER TABLE kpi_sales ADD INDEX idx_sales (accumulatedSales DESC, mainProductSales DESC)');
             results.push({ step: 'indexes', message: '✅ 인덱스 업데이트 완료' });

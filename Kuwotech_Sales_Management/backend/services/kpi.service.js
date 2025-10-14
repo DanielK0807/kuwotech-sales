@@ -79,15 +79,16 @@ export async function refreshSalesKPI(employeeIdOrName) {
         // 5. 데이터베이스에 UPSERT (영문 컬럼명)
         await connection.execute(
             `INSERT INTO kpi_sales (
-                id, employeeName,
+                id, employeeId, employeeName,
                 assignedCompanies, activeCompanies, activationRate, mainProductCompanies,
                 companyTargetAchievementRate, majorCustomerTargetRate,
                 accumulatedSales, mainProductSales, salesConcentration,
                 accumulatedCollection, accountsReceivable, mainProductSalesRatio,
                 totalSalesContribution, mainProductContribution,
                 currentMonths
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
+                employeeId = VALUES(employeeId),
                 employeeName = VALUES(employeeName),
                 assignedCompanies = VALUES(assignedCompanies),
                 activeCompanies = VALUES(activeCompanies),
@@ -106,7 +107,7 @@ export async function refreshSalesKPI(employeeIdOrName) {
                 currentMonths = VALUES(currentMonths),
                 lastUpdated = CURRENT_TIMESTAMP`,
             [
-                employee.id, employee.name,
+                employee.id, employee.id, employee.name,
                 kpi.담당거래처, kpi.활성거래처, kpi.활성화율, kpi.주요제품판매거래처,
                 kpi.회사배정기준대비달성율, kpi.주요고객처목표달성율,
                 kpi.누적매출금액, kpi.주요제품매출액, kpi.매출집중도,
