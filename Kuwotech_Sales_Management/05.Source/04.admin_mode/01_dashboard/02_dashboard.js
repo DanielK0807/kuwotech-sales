@@ -155,18 +155,18 @@ async function initDashboard() {
  */
 function createEmptyKPIData() {
     return {
-        전체거래처: 0,
-        활성거래처: 0,
-        활성화율: 0,
-        주요제품판매거래처: 0,
-        회사배정기준대비달성율: 0,
-        주요고객처목표달성율: 0,
-        누적매출금액: 0,
-        누적수금금액: 0,
-        매출채권잔액: 0,
-        주요제품매출액: 0,
-        매출집중도: 0,
-        주요제품매출비율: 0
+        totalCompanies: 0,
+        activeCompanies: 0,
+        activationRate: 0,
+        mainProductCompanies: 0,
+        companyTargetAchievementRate: 0,
+        majorCustomerTargetRate: 0,
+        accumulatedSales: 0,
+        accumulatedCollection: 0,
+        accountsReceivable: 0,
+        mainProductSales: 0,
+        salesConcentration: 0,
+        mainProductSalesRatio: 0
     };
 }
 
@@ -219,7 +219,7 @@ function displayKPICardsWithGlass() {
     const section1Config = [
         {
             title: '전체거래처',
-            value: dashboardData.전체거래처 || 0,
+            value: dashboardData.totalCompanies || 0,
             unit: '개사',
             icon: '🏢',
             formula: '전체 영업담당 불용제외 거래처 종합',
@@ -227,7 +227,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '활성거래처',
-            value: dashboardData.활성거래처 || 0,
+            value: dashboardData.activeCompanies || 0,
             unit: '개사',
             icon: '✅',
             formula: '거래상태가 활성인 거래처 총합',
@@ -235,7 +235,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '활성화율',
-            value: dashboardData.활성화율 || 0,
+            value: dashboardData.activationRate || 0,
             unit: '%',
             icon: '📊',
             formula: '활성거래처 ÷ 전체거래처 × 100',
@@ -243,7 +243,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '주요제품판매거래처',
-            value: dashboardData.주요제품판매거래처 || 0,
+            value: dashboardData.mainProductCompanies || 0,
             unit: '개사',
             icon: '⭐',
             formula: '주요제품을 구매한 거래처 총합',
@@ -256,7 +256,7 @@ function displayKPICardsWithGlass() {
         {
             title: '회사배정기준대비달성율',
             value: (() => {
-                const val = dashboardData.회사배정기준대비달성율 || 0;
+                const val = dashboardData.companyTargetAchievementRate || 0;
                 const formatted = formatPercent(Math.abs(val) / 100, 2, false);
                 return val >= 0
                     ? `${formatted} 초과배정`
@@ -266,7 +266,7 @@ function displayKPICardsWithGlass() {
             icon: '🎯',
             formula: '((전체거래처 ÷ (80 × 영업담당자수)) - 1) × 100',
             style: {
-                color: (dashboardData.회사배정기준대비달성율 || 0) >= 0 ? 'success' : 'danger',
+                color: (dashboardData.companyTargetAchievementRate || 0) >= 0 ? 'success' : 'danger',
                 size: 'md',
                 animated: true
             }
@@ -274,7 +274,7 @@ function displayKPICardsWithGlass() {
         {
             title: '주요고객처목표달성율',
             value: (() => {
-                const val = dashboardData.주요고객처목표달성율 || 0;
+                const val = dashboardData.majorCustomerTargetRate || 0;
                 const formatted = formatPercent(Math.abs(val) / 100, 2, false);
                 return val >= 0
                     ? `${formatted} 목표 초과`
@@ -284,7 +284,7 @@ function displayKPICardsWithGlass() {
             icon: '🏆',
             formula: '((주요제품판매거래처 ÷ (40 × 영업담당자수)) - 1) × 100',
             style: {
-                color: (dashboardData.주요고객처목표달성율 || 0) >= 0 ? 'success' : 'danger',
+                color: (dashboardData.majorCustomerTargetRate || 0) >= 0 ? 'success' : 'danger',
                 size: 'md',
                 animated: true
             }
@@ -295,7 +295,7 @@ function displayKPICardsWithGlass() {
     const section3Config = [
         {
             title: '누적매출금액',
-            value: dashboardData.누적매출금액 || 0,
+            value: dashboardData.accumulatedSales || 0,
             unit: '원',
             icon: '💰',
             formula: '∑(전체 영업담당 누적매출)',
@@ -303,7 +303,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '누적수금금액',
-            value: dashboardData.누적수금금액 || 0,
+            value: dashboardData.accumulatedCollection || 0,
             unit: '원',
             icon: '💳',
             formula: '∑(전체 영업담당 누적수금)',
@@ -311,7 +311,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '매출채권잔액',
-            value: dashboardData.매출채권잔액 || 0,
+            value: dashboardData.accountsReceivable || 0,
             unit: '원',
             icon: '📋',
             formula: '전사 누적매출 - 전사 누적수금',
@@ -319,7 +319,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '주요제품매출액',
-            value: dashboardData.주요제품매출액 || 0,
+            value: dashboardData.mainProductSales || 0,
             unit: '원',
             icon: '💎',
             formula: '∑(전체 영업담당 주요제품매출)',
@@ -327,7 +327,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '매출집중도',
-            value: dashboardData.매출집중도 || 0,
+            value: dashboardData.salesConcentration || 0,
             unit: '원',
             icon: '📈',
             formula: '(전사 누적매출금액 ÷ 전사 담당거래처) ÷ 현재월수',
@@ -335,7 +335,7 @@ function displayKPICardsWithGlass() {
         },
         {
             title: '주요제품매출비율',
-            value: dashboardData.주요제품매출비율 || 0,
+            value: dashboardData.mainProductSalesRatio || 0,
             unit: '%',
             icon: '📊',
             formula: '전사 주요제품매출 ÷ 전사 누적매출 × 100',
@@ -443,8 +443,8 @@ async function showRankingModal(type) {
         let cumulativeContribution = 0;
 
         const tableRows = rankings.map(rank => {
-            const salesAmount = type === 'total' ? rank.누적매출금액 : rank.주요제품매출액;
-            const contributionRate = type === 'total' ? rank.전체매출기여도 : rank.주요제품매출기여도;
+            const salesAmount = type === 'total' ? rank.accumulatedSales : rank.mainProductSales;
+            const contributionRate = type === 'total' ? rank.totalSalesContribution : rank.mainProductContribution;
 
             // 누적기여도 계산 (1등부터 현재 순위까지의 합산)
             cumulativeContribution += contributionRate;
