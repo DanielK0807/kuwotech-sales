@@ -784,6 +784,86 @@ router.post('/kpi-columns', async (req, res) => {
     }
 });
 
+// POST /api/migration/fix-kpi-structure - employeeId 컬럼 추가 및 뷰 생성
+router.post('/fix-kpi-structure', async (req, res) => {
+    try {
+        const db = await getDB();
+        const results = [];
+
+        // 1. employeeId 컬럼 추가 (id 다음에)
+        try {
+            await db.execute(`
+                ALTER TABLE kpi_sales
+                ADD COLUMN employeeId VARCHAR(36) NULL COMMENT '직원 ID (employees.id 참조)'
+                AFTER id
+            `);
+            results.push({ step: 'add_employeeId', message: '✅ employeeId 컬럼 추가 완료' });
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                results.push({ step: 'add_employeeId', message: 'ℹ️ employeeId 컬럼 이미 존재' });
+            } else {
+                throw err;
+            }
+        }
+
+        // 2. 기존 데이터에 employeeId 채우기 (id와 동일한 값으로)
+        await db.execute('UPDATE kpi_sales SET employeeId = id WHERE employeeId IS NULL');
+        results.push({ step: 'populate_employeeId', message: '✅ employeeId 데이터 채우기 완료' });
+
+        // 3. employeeId를 NOT NULL로 변경
+        await db.execute(`
+            ALTER TABLE kpi_sales
+            MODIFY COLUMN employeeId VARCHAR(36) NOT NULL COMMENT '직원 ID (employees.id 참조)'
+        `);
+        results.push({ step: 'set_not_null', message: '✅ employeeId NOT NULL 설정 완료' });
+
+        // 4. UNIQUE 인덱스 추가
+        try {
+            await db.execute('ALTER TABLE kpi_sales ADD UNIQUE KEY unique_employee (employeeId)');
+            results.push({ step: 'add_unique_index', message: '✅ employeeId UNIQUE 인덱스 추가 완료' });
+        } catch (err) {
+            if (err.code === 'ER_DUP_KEYNAME') {
+                results.push({ step: 'add_unique_index', message: 'ℹ️ UNIQUE 인덱스 이미 존재' });
+            } else {
+                throw err;
+            }
+        }
+
+        // 5. 뷰 재생성
+        await db.execute('DROP VIEW IF EXISTS view_kpi_ranking_total_sales');
+        await db.execute(`
+            CREATE VIEW view_kpi_ranking_total_sales AS
+            SELECT employeeId, employeeName, assignedCompanies, accumulatedSales,
+                   totalSalesContribution, totalSalesContributionRank as \`rank\`, lastUpdated
+            FROM kpi_sales WHERE totalSalesContribution > 0
+            ORDER BY accumulatedSales DESC
+        `);
+
+        await db.execute('DROP VIEW IF EXISTS view_kpi_ranking_main_product_sales');
+        await db.execute(`
+            CREATE VIEW view_kpi_ranking_main_product_sales AS
+            SELECT employeeId, employeeName, mainProductCompanies, mainProductSales,
+                   mainProductContribution, mainProductContributionRank as \`rank\`, lastUpdated
+            FROM kpi_sales WHERE mainProductContribution > 0
+            ORDER BY mainProductSales DESC
+        `);
+        results.push({ step: 'create_views', message: '✅ 뷰 생성 완료' });
+
+        res.json({
+            success: true,
+            message: '✅ KPI 테이블 구조 수정 및 뷰 생성 완료',
+            results
+        });
+
+    } catch (error) {
+        console.error('❌ KPI 구조 수정 실패:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // GET /api/migration/check-kpi-structure - KPI 테이블 구조 확인
 router.get('/check-kpi-structure', async (req, res) => {
     try {
