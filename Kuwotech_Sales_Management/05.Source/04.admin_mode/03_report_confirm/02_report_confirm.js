@@ -503,73 +503,10 @@ function renderReportDetail(reportId) {
     document.getElementById('detailSubmitDate').textContent = formatDate(report.submittedDate);
     document.getElementById('detailStatus').innerHTML = getStatusBadgeHTML(report.calculatedStatus);
 
-    // 수금금액 (읽기 전용)
-    const targetCollection = report.targetCollectionAmount || 0;
-    const actualCollection = report.actualCollectionAmount || 0;
-    const remainingCollection = targetCollection - actualCollection;
+    // ✅ 월간/연간 보고서는 수금/매출/활동 섹션 먼저 제거
+    const isMonthlyOrAnnual = report.reportType === 'monthly' || report.reportType === 'annual';
 
-    document.getElementById('detailCollectionGoal').textContent = formatCurrency(targetCollection);
-    document.getElementById('detailCollectionActual').textContent = formatCurrency(actualCollection);
-    document.getElementById('detailCollectionRemaining').textContent = formatCurrency(remainingCollection);
-
-    // 매출액 (읽기 전용)
-    const targetSales = report.targetSalesAmount || 0;
-    const actualSales = report.actualSalesAmount || 0;
-    const remainingSales = targetSales - actualSales;
-
-    document.getElementById('detailSalesGoal').textContent = formatCurrency(targetSales);
-    document.getElementById('detailSalesActual').textContent = formatCurrency(actualSales);
-    document.getElementById('detailSalesRemaining').textContent = formatCurrency(remainingSales);
-
-    // 목표상품 (목표매출액 헤더에 표시)
-    try {
-        const productsData = typeof report.targetProducts === 'string'
-            ? JSON.parse(report.targetProducts)
-            : report.targetProducts;
-
-        if (Array.isArray(productsData) && productsData.length > 0) {
-            document.getElementById('detailSalesProduct').textContent =
-                productsData.map(p => p.productName).join(', ');
-        } else {
-            document.getElementById('detailSalesProduct').textContent = '-';
-        }
-    } catch (e) {
-        document.getElementById('detailSalesProduct').textContent = report.targetProducts || '-';
-    }
-
-    // 영업활동(특이사항) - activityNotes는 JSON 배열
-    const activityListEl = document.getElementById('detailActivityList');
-    if (activityListEl) {
-        try {
-            const activities = typeof report.activityNotes === 'string'
-                ? JSON.parse(report.activityNotes)
-                : report.activityNotes;
-
-            if (Array.isArray(activities) && activities.length > 0) {
-                activityListEl.innerHTML = activities.map(activity => `
-                    <div class="activity-item glass-card activity-item-padding">
-                        <div class="activity-company">
-                            ${activity.companyName || '회사명 없음'}
-                        </div>
-                        <div class="activity-content-text">
-                            ${activity.content || '-'}
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                activityListEl.innerHTML = '<p class="activity-no-data">활동 내역이 없습니다</p>';
-            }
-        } catch (e) {
-            logger.error('활동내역 파싱 에러:', e);
-            activityListEl.innerHTML = '<p class="activity-no-data">-</p>';
-        }
-    }
-
-    // 관리자 의견 (기존 의견 표시)
-    document.getElementById('adminComment').value = report.adminComment || '';
-
-    // ✅ 월간/연간 보고서는 수금/매출/활동 섹션 제거
-    if (report.reportType === 'monthly' || report.reportType === 'annual') {
+    if (isMonthlyOrAnnual) {
         const collectionSection = document.getElementById('collection-section');
         const salesSection = document.getElementById('sales-section');
         const activitySection = document.getElementById('activity-section');
@@ -579,6 +516,84 @@ function renderReportDetail(reportId) {
         if (salesSection) salesSection.remove();
         if (activitySection) activitySection.remove();
     }
+
+    // ✅ 주간 보고서만 수금/매출/활동 필드 업데이트
+    if (!isMonthlyOrAnnual) {
+        // 수금금액 (읽기 전용)
+        const targetCollection = report.targetCollectionAmount || 0;
+        const actualCollection = report.actualCollectionAmount || 0;
+        const remainingCollection = targetCollection - actualCollection;
+
+        const collectionGoalEl = document.getElementById('detailCollectionGoal');
+        const collectionActualEl = document.getElementById('detailCollectionActual');
+        const collectionRemainingEl = document.getElementById('detailCollectionRemaining');
+
+        if (collectionGoalEl) collectionGoalEl.textContent = formatCurrency(targetCollection);
+        if (collectionActualEl) collectionActualEl.textContent = formatCurrency(actualCollection);
+        if (collectionRemainingEl) collectionRemainingEl.textContent = formatCurrency(remainingCollection);
+
+        // 매출액 (읽기 전용)
+        const targetSales = report.targetSalesAmount || 0;
+        const actualSales = report.actualSalesAmount || 0;
+        const remainingSales = targetSales - actualSales;
+
+        const salesGoalEl = document.getElementById('detailSalesGoal');
+        const salesActualEl = document.getElementById('detailSalesActual');
+        const salesRemainingEl = document.getElementById('detailSalesRemaining');
+
+        if (salesGoalEl) salesGoalEl.textContent = formatCurrency(targetSales);
+        if (salesActualEl) salesActualEl.textContent = formatCurrency(actualSales);
+        if (salesRemainingEl) salesRemainingEl.textContent = formatCurrency(remainingSales);
+
+        // 목표상품 (목표매출액 헤더에 표시)
+        const salesProductEl = document.getElementById('detailSalesProduct');
+        if (salesProductEl) {
+            try {
+                const productsData = typeof report.targetProducts === 'string'
+                    ? JSON.parse(report.targetProducts)
+                    : report.targetProducts;
+
+                if (Array.isArray(productsData) && productsData.length > 0) {
+                    salesProductEl.textContent = productsData.map(p => p.productName).join(', ');
+                } else {
+                    salesProductEl.textContent = '-';
+                }
+            } catch (e) {
+                salesProductEl.textContent = report.targetProducts || '-';
+            }
+        }
+
+        // 영업활동(특이사항) - activityNotes는 JSON 배열
+        const activityListEl = document.getElementById('detailActivityList');
+        if (activityListEl) {
+            try {
+                const activities = typeof report.activityNotes === 'string'
+                    ? JSON.parse(report.activityNotes)
+                    : report.activityNotes;
+
+                if (Array.isArray(activities) && activities.length > 0) {
+                    activityListEl.innerHTML = activities.map(activity => `
+                        <div class="activity-item glass-card activity-item-padding">
+                            <div class="activity-company">
+                                ${activity.companyName || '회사명 없음'}
+                            </div>
+                            <div class="activity-content-text">
+                                ${activity.content || '-'}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    activityListEl.innerHTML = '<p class="activity-no-data">활동 내역이 없습니다</p>';
+                }
+            } catch (e) {
+                logger.error('활동내역 파싱 에러:', e);
+                activityListEl.innerHTML = '<p class="activity-no-data">-</p>';
+            }
+        }
+    }
+
+    // 관리자 의견 (기존 의견 표시)
+    document.getElementById('adminComment').value = report.adminComment || '';
 
     // ✅ NEW: 월간/연간 목표 데이터 로드 및 표시
     loadAndDisplayGoals(report);
