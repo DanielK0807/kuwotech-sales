@@ -864,6 +864,61 @@ router.post('/fix-kpi-structure', async (req, res) => {
     }
 });
 
+// POST /api/migration/remove-korean-link-columns - 한글 링크 컬럼 제거
+router.post('/remove-korean-link-columns', async (req, res) => {
+    try {
+        const db = await getDB();
+        const results = [];
+
+        // kpi_admin 테이블에서 한글 링크 컬럼 확인 및 제거
+        const [columns] = await db.execute(`
+            SELECT COLUMN_NAME
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'kpi_admin'
+              AND COLUMN_NAME LIKE '%링크%'
+        `);
+
+        if (columns.length === 0) {
+            return res.json({
+                success: true,
+                message: 'ℹ️ 제거할 한글 링크 컬럼이 없습니다.',
+                results: []
+            });
+        }
+
+        // 각 한글 컬럼 제거
+        for (const col of columns) {
+            const columnName = col.COLUMN_NAME;
+            try {
+                await db.execute(`ALTER TABLE kpi_admin DROP COLUMN \`${columnName}\``);
+                results.push({
+                    column: columnName,
+                    message: `✅ 컬럼 제거 완료: ${columnName}`
+                });
+            } catch (err) {
+                results.push({
+                    column: columnName,
+                    error: err.message
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `✅ ${columns.length}개의 한글 링크 컬럼 제거 완료`,
+            results
+        });
+
+    } catch (error) {
+        console.error('❌ 한글 컬럼 제거 실패:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // GET /api/migration/check-kpi-structure - KPI 테이블 구조 확인
 router.get('/check-kpi-structure', async (req, res) => {
     try {
