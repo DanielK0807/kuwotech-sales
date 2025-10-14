@@ -261,7 +261,7 @@ const renderCompletenessCards = () => {
     return;
   }
 
-  // 카드 생성 - 3열 구조
+  // 카드 생성 - 세로 배치 구조 (1열 4개)
   const cards = FIELD_DEFINITIONS.map((field) => {
     const stats = completenessData[field.key] || {
       incomplete: 0,
@@ -276,13 +276,15 @@ const renderCompletenessCards = () => {
 
     return `
       <div class="completeness-card" onclick="openEditModal('${field.key}')">
-        <!-- 1열: 필드명 -->
+        <!-- 아이콘 -->
+        <span class="card-field-icon">${field.icon}</span>
+
+        <!-- 필드명 -->
         <div class="card-field-name">
-          <span class="card-field-icon">${field.icon}</span>
           <span>${field.name}</span>
         </div>
 
-        <!-- 2열: 미작성 데이터 숫자/총 데이터 숫자 -->
+        <!-- 미작성/전체 -->
         <div class="card-count-section">
           <div class="card-count-label">미작성 / 전체</div>
           <div class="card-count">
@@ -292,7 +294,7 @@ const renderCompletenessCards = () => {
           </div>
         </div>
 
-        <!-- 3열: 미완성율 -->
+        <!-- 미완성율 -->
         <div class="card-percentage-section">
           <div class="card-percentage-label">미완성율</div>
           <div class="card-percentage ${percentageClass}">
