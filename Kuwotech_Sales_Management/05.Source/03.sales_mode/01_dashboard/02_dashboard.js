@@ -492,6 +492,8 @@ function cleanupDashboard() {
 // 페이지 로드 이벤트 리스닝 (sales_layout.js에서 발생)
 window.addEventListener('pageLoaded', (e) => {
     if (e.detail && e.detail.page === 'dashboard') {
+        // 페이지 재진입 시 항상 정리 후 재초기화
+        cleanupDashboard();
         initDashboard();
     }
 });
