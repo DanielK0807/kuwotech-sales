@@ -192,6 +192,13 @@ async function loadDashboardData() {
 
     if (response.success) {
       dashboardData = response.data;
+
+      // 🐛 DEBUG: 불용 거래처 수 확인
+      console.log("[Admin Dashboard] KPI 데이터 로드 완료:", {
+        totalCompanies: dashboardData.totalCompanies,
+        inactiveCompanies: dashboardData.inactiveCompanies,
+        cached: response.cached
+      });
     } else {
       throw new Error(response.message || "KPI 데이터 로드 실패");
     }
