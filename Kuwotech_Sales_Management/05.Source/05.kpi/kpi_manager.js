@@ -17,7 +17,7 @@
 
 import logger from "../01.common/23_logger.js";
 import { showToast } from "../01.common/14_toast.js";
-import { ApiManager } from "../01.common/13_api_manager.js";
+import ApiManager from "../01.common/13_api_manager.js";
 
 class KpiManager {
   constructor() {
