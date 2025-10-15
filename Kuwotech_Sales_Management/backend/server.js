@@ -771,6 +771,11 @@ const startServer = async () => {
     console.log('🔄 마이그레이션 014 실행 중...');
     await runMigration014();
 
+    // KPI 테이블 컬럼명 영문 변경 마이그레이션
+    console.log('🔄 KPI 테이블 컬럼명 영문 변경 마이그레이션 실행 중...');
+    const { renamekpiColumnsToEnglish } = await import('./migrations/rename_kpi_columns_to_english.js');
+    await renamekpiColumnsToEnglish();
+
     // DB 연결
     await connectDB();
 
