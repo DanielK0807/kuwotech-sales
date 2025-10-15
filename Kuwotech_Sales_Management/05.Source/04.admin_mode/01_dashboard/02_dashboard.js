@@ -105,7 +105,7 @@ async function initDashboard() {
 
     // KPI 재계산 완료 이벤트 리스너 등록
     document.addEventListener("kpi-recalculated", async () => {
-      logger.log(
+      console.log(
         "📊 [Admin Dashboard] KPI 재계산 완료 이벤트 수신 - 대시보드를 갱신합니다."
       );
       await refreshDashboard();
@@ -227,7 +227,7 @@ function displayKPICardsWithGlass() {
   // 섹션 1: 전사 거래처 지표 (4개)
   const section1Config = [
     {
-      title: "전체거래처",
+      title: "전체 거래처",
       value: dashboardData.totalCompanies || 0,
       unit: "개사",
       icon: "🏢",
@@ -235,7 +235,7 @@ function displayKPICardsWithGlass() {
       style: { color: "primary", size: "md", animated: true },
     },
     {
-      title: "활성거래처",
+      title: "활성 거래처",
       value: dashboardData.activeCompanies || 0,
       unit: "개사",
       icon: "✅",
@@ -243,7 +243,7 @@ function displayKPICardsWithGlass() {
       style: { color: "success", size: "md", animated: true },
     },
     {
-      title: "활성화율",
+      title: "거래처 활성화율",
       value: dashboardData.activationRate || 0,
       unit: "%",
       icon: "📊",
@@ -251,7 +251,7 @@ function displayKPICardsWithGlass() {
       style: { color: "info", size: "md", animated: true },
     },
     {
-      title: "주요제품판매거래처",
+      title: "주요제품 판매 거래처",
       value: dashboardData.mainProductCompanies || 0,
       unit: "개사",
       icon: "⭐",
@@ -268,7 +268,7 @@ function displayKPICardsWithGlass() {
   // 섹션 2: 전사 목표 달성 (2개)
   const section2Config = [
     {
-      title: "회사배정기준대비달성율",
+      title: "회사배정기준 대비 달성율",
       value: (() => {
         const val = dashboardData.companyTargetAchievementRate || 0;
         const formatted = formatPercent(Math.abs(val) / 100, 2, false);
@@ -287,7 +287,7 @@ function displayKPICardsWithGlass() {
       },
     },
     {
-      title: "주요고객처목표달성율",
+      title: "주요고객처 목표 달성율",
       value: (() => {
         const val = dashboardData.majorCustomerTargetRate || 0;
         const formatted = formatPercent(Math.abs(val) / 100, 2, false);
@@ -310,7 +310,7 @@ function displayKPICardsWithGlass() {
   // 섹션 3: 전사 매출 지표 (6개)
   const section3Config = [
     {
-      title: "누적매출금액",
+      title: "누적 매출금액",
       value: dashboardData.accumulatedSales || 0,
       unit: "원",
       icon: "💰",
@@ -323,7 +323,7 @@ function displayKPICardsWithGlass() {
       },
     },
     {
-      title: "누적수금금액",
+      title: "누적 수금금액",
       value: dashboardData.accumulatedCollection || 0,
       unit: "원",
       icon: "💳",
@@ -331,7 +331,7 @@ function displayKPICardsWithGlass() {
       style: { color: "success", size: "md", animated: true },
     },
     {
-      title: "매출채권잔액",
+      title: "매출채권 잔액",
       value: dashboardData.accountsReceivable || 0,
       unit: "원",
       icon: "📋",
@@ -339,7 +339,7 @@ function displayKPICardsWithGlass() {
       style: { color: "warning", size: "md", animated: true },
     },
     {
-      title: "주요제품매출액",
+      title: "주요제품 매출액",
       value: dashboardData.mainProductSales || 0,
       unit: "원",
       icon: "💎",
@@ -347,7 +347,7 @@ function displayKPICardsWithGlass() {
       style: { color: "info", size: "md", animated: true },
     },
     {
-      title: "매출집중도",
+      title: "매출 집중도",
       value: dashboardData.salesConcentration || 0,
       unit: "원",
       icon: "📈",
@@ -360,7 +360,7 @@ function displayKPICardsWithGlass() {
       },
     },
     {
-      title: "주요제품매출비율",
+      title: "주요제품 매출비율",
       value: dashboardData.mainProductSalesRatio || 0,
       unit: "%",
       icon: "📊",
@@ -372,7 +372,7 @@ function displayKPICardsWithGlass() {
   // 섹션 4: 전사 기여도 지표 (3개)
   const section4Config = [
     {
-      title: "전체매출기여도",
+      title: "전체매출 기여도",
       value: "상세보기",
       unit: "",
       icon: "🌟",
@@ -381,7 +381,7 @@ function displayKPICardsWithGlass() {
       onClick: () => showRankingModal("total"),
     },
     {
-      title: "주요제품매출기여도",
+      title: "주요제품매출 기여도",
       value: "상세보기",
       unit: "",
       icon: "⭐",
@@ -390,67 +390,163 @@ function displayKPICardsWithGlass() {
       onClick: () => showRankingModal("main"),
     },
     {
-      title: "매출집중도",
-      value: formatCurrency(dashboardData.salesConcentration || 0),
-      unit: "원",
+      title: "매출집중도 상세",
+      value: "상세보기",
+      unit: "",
       icon: "📊",
-      description: "(누적매출/전체거래처)/현재월수",
-      style: {
-        color: "info",
-        size: "md",
-        animated: true,
-        trend:
-          (dashboardData.salesConcentration || 0) > 0 ? "up" : "neutral",
-      },
+      description: "매출집중도 상세 데이터 보기",
+      style: { color: "info", size: "md", animated: true, clickable: true },
+      onClick: () => showSalesConcentrationModal(),
     },
   ];
+  // ...기존 코드...
 
-  // 각 섹션 렌더링
+  // 각 섹션 렌더링 (이 부분이 반드시 displayKPICardsWithGlass에서 실행되어야 함)
   renderKPISection("kpiSection1", section1Config);
   renderKPISection("kpiSection2", section2Config);
   renderKPISection("kpiSection3", section3Config);
   renderKPISection("kpiSection4", section4Config);
 }
 
+// ============================================
+// [SECTION: 순위 및 상세 모달 함수들]
+// ============================================
+
+async function showSalesConcentrationModal() {
+    try {
+      showLoading("매출집중도 데이터를 불러오는 중...");
+      // API에서 매출집중도 상세 데이터 조회 (영업담당자별 순위)
+      const response = await dbManager.request(
+        "/kpi/admin/sales-concentration/detail"
+      );
+      if (!response.success)
+        throw new Error(response.message || "매출집중도 데이터 로드 실패");
+      const details = response.data;
+
+      // 영업담당자별 순위 테이블 생성
+      const tableRows = details
+        .map((row) => {
+          // 매출집중도 값 포맷팅
+          const concentrationFormatted = formatCurrency(row.salesConcentration);
+
+          // 누적매출 포맷팅 (음수 규칙 적용)
+          const salesResult = formatCurrency(row.accumulatedSales, true);
+          let salesFormatted, salesClass = "";
+          if (typeof salesResult === "object") {
+            salesFormatted = salesResult.text;
+            salesClass = salesResult.isNegative ? salesResult.className : "";
+          } else {
+            salesFormatted = salesResult;
+          }
+
+          return `
+        <tr class="rank-${row.rank}">
+          <td class="rank-number">${getRankBadge(row.rank)}</td>
+          <td class="employee-name">${row.employeeName}</td>
+          <td class="text-right">${concentrationFormatted}</td>
+          <td class="text-right">${formatNumber(row.assignedCompanies)}</td>
+          <td class="sales-amount ${salesClass}">${salesFormatted}</td>
+          <td class="text-right">${formatNumber(row.currentMonths)}</td>
+        </tr>
+      `;
+        })
+        .join("");
+
+      const modalHTML = `
+      <div class="ranking-modal-overlay" id="rankingModal">
+        <div class="ranking-modal-content glass-modal glass-layered glass-shimmer">
+          <div class="ranking-modal-header bg-layer-2">
+            <h2 class="text-on-layer-2">매출집중도 순위</h2>
+            <p class="text-on-layer-2" style="font-size: 14px; margin-top: 8px; opacity: 0.9;">영업담당 인원: ${details.length}명</p>
+            <button class="ranking-modal-close glass-button" onclick="closeRankingModal()">✕</button>
+          </div>
+          <div class="ranking-modal-body">
+            <table class="ranking-table glass-panel">
+              <thead>
+                <tr class="bg-layer-3">
+                  <th class="text-on-layer-3 text-center">순위</th>
+                  <th class="text-on-layer-3 text-left">영업담당</th>
+                  <th class="text-on-layer-3 text-right">매출집중도</th>
+                  <th class="text-on-layer-3 text-right">담당거래처</th>
+                  <th class="text-on-layer-3 text-right">누적매출</th>
+                  <th class="text-on-layer-3 text-right">월수</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+      const modalDiv = document.createElement("div");
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
+      hideLoading();
+    } catch (error) {
+      await errorHandler.handle(
+        new DatabaseError("매출집중도 모달 로드 실패", error, {
+          userMessage: "매출집중도 데이터를 불러오는 중 오류가 발생했습니다.",
+          context: {
+            module: "admin_dashboard",
+            action: "showSalesConcentrationModal",
+          },
+          severity: "MEDIUM",
+        }),
+        { showToUser: true }
+      );
+      hideLoading();
+    }
+}
+
 /**
  * KPI 섹션 렌더링 헬퍼
  */
 function renderKPISection(sectionId, kpiConfig) {
-  const container = document.getElementById(sectionId);
-  if (!container) {
-    // UI 요소 누락은 로그만 남기고 계속 진행
-    logger.warn(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
-    return;
-  }
+    const container = document.getElementById(sectionId);
+    if (!container) {
+      // UI 요소 누락은 로그만 남기고 계속 진행
+      logger.warn(`[KPI 섹션] ${sectionId} 컨테이너를 찾을 수 없습니다.`);
+      return;
+    }
 
-  try {
-    // 섹션별 정확한 컬럼 수 설정 (한 줄 배치를 위해)
-    const kpiGrid = new KPIGrid({
-      cards: kpiConfig,
-      columns: kpiConfig.length, // ✅ 카드 개수만큼 컬럼 생성
-      minWidth: "0px", // ✅ 최소 너비 제거 (균등 분할 우선)
-      gap: "clamp(8px, 1.5vw, 20px)",
-      responsive: false, // ✅ 반응형 비활성화 (CSS가 제어)
-    });
+    // ✅ FIX: KPIGrid 컴포넌트 대신 KPICard를 직접 생성하여 추가하는 방식으로 변경
+    try {
+      container.innerHTML = "";
 
-    container.innerHTML = "";
-    container.appendChild(kpiGrid.render());
-  } catch (error) {
-    errorHandler.handle(
-      new NotFoundError(`KPI 섹션 렌더링 실패: ${sectionId}`, error, {
-        userMessage: "카드를 표시할 수 없습니다.",
-        context: {
-          module: "admin_dashboard",
-          action: "renderKPISection",
-          sectionId,
-          cardCount: kpiConfig?.length,
-        },
-        severity: "MEDIUM",
-      }),
-      { showToUser: false }
-    );
-    container.innerHTML = '<p class="error-message">카드 렌더링 실패</p>';
-  }
+      kpiConfig.forEach((cardConfig) => {
+        const card = new KPICard(cardConfig);
+        const cardElement = card.render();
+
+        if (cardElement instanceof HTMLElement) {
+          container.appendChild(cardElement);
+        } else {
+          logger.warn(
+            `[KPI 카드] 렌더링 실패 - 잘못된 타입: ${typeof cardElement}`
+          );
+        }
+      });
+
+      // 카드 렌더링 완료 - 디버깅용 로그는 제거
+      // console.log(`[KPI 섹션] ${sectionId} - ${kpiConfig.length}개 카드 렌더링 완료`);
+    } catch (error) {
+      logger.error(`[KPI 섹션] ${sectionId} 렌더링 실패:`, error.stack);
+      errorHandler.handle(
+        new NotFoundError(`KPI 섹션 렌더링 실패: ${sectionId}`, error, {
+          userMessage: "카드를 표시할 수 없습니다.",
+          context: {
+            module: "admin_dashboard",
+            action: "renderKPISection",
+            sectionId,
+            cardCount: kpiConfig?.length,
+          },
+          severity: "MEDIUM",
+        }),
+        { showToUser: false }
+      );
+      container.innerHTML = '<p style="color: red;">카드 렌더링 실패</p>';
+    }
 }
 
 // ============================================
@@ -462,86 +558,86 @@ function renderKPISection(sectionId, kpiConfig) {
  * @param {string} type - 'total' (전체매출) | 'main' (주요제품매출)
  */
 async function showRankingModal(type) {
-  try {
-    showLoading("순위 데이터를 불러오는 중...");
+    try {
+      showLoading("순위 데이터를 불러오는 중...");
 
-    // 순위 데이터 조회
-    const response = await dbManager.request(`/kpi/admin/ranking/${type}`);
+      // 순위 데이터 조회
+      const response = await dbManager.request(`/kpi/admin/ranking/${type}`);
 
-    if (!response.success) {
-      throw new Error(response.message || "순위 데이터 로드 실패");
-    }
+      if (!response.success) {
+        throw new Error(response.message || "순위 데이터 로드 실패");
+      }
 
-    const rankings = response.data;
+      const rankings = response.data;
 
-    // 모달 HTML 생성
-    const title =
-      type === "total" ? "전체매출기여도 순위" : "주요제품매출기여도 순위";
+      // 모달 HTML 생성
+      const title =
+        type === "total" ? "전체매출기여도 순위" : "주요제품매출기여도 순위";
 
-    // 순위 데이터 매핑 (API 응답 구조에 맞춤, 음수 규칙 적용)
-    // 누적기여도 계산을 위한 running sum
-    let cumulativeContribution = 0;
+      // 순위 데이터 매핑 (API 응답 구조에 맞춤, 음수 규칙 적용)
+      // 누적기여도 계산을 위한 running sum
+      let cumulativeContribution = 0;
 
-    const tableRows = rankings
-      .map((rank) => {
-        const salesAmount =
-          type === "total" ? rank.accumulatedSales : rank.mainProductSales;
-        const contributionRate =
-          type === "total"
-            ? rank.totalSalesContribution
-            : rank.mainProductContribution;
+      const tableRows = rankings
+        .map((rank) => {
+          const salesAmount =
+            type === "total" ? rank.accumulatedSales : rank.mainProductSales;
+          const contributionRate =
+            type === "total"
+              ? rank.totalSalesContribution
+              : rank.mainProductContribution;
 
-        // 누적기여도 계산 (1등부터 현재 순위까지의 합산)
-        cumulativeContribution += contributionRate;
+          // 누적기여도 계산 (1등부터 현재 순위까지의 합산)
+          cumulativeContribution += contributionRate;
 
-        // 음수 규칙 적용 - 매출액
-        const currencyResult = formatCurrency(salesAmount, true);
-        let salesFormatted,
-          salesClass = "";
-        if (typeof currencyResult === "object") {
-          salesFormatted = currencyResult.text;
-          salesClass = currencyResult.isNegative
-            ? currencyResult.className
-            : "";
-        } else {
-          salesFormatted = currencyResult;
-        }
+          // 음수 규칙 적용 - 매출액
+          const currencyResult = formatCurrency(salesAmount, true);
+          let salesFormatted,
+            salesClass = "";
+          if (typeof currencyResult === "object") {
+            salesFormatted = currencyResult.text;
+            salesClass = currencyResult.isNegative
+              ? currencyResult.className
+              : "";
+          } else {
+            salesFormatted = currencyResult;
+          }
 
-        // 음수 규칙 적용 - 기여도
-        const contributionResult = formatPercent(
-          contributionRate / 100,
-          2,
-          true
-        );
-        let contributionFormatted,
-          contributionClass = "";
-        if (typeof contributionResult === "object") {
-          contributionFormatted = contributionResult.text;
-          contributionClass = contributionResult.isNegative
-            ? contributionResult.className
-            : "";
-        } else {
-          contributionFormatted = contributionResult;
-        }
+          // 음수 규칙 적용 - 기여도
+          const contributionResult = formatPercent(
+            contributionRate / 100,
+            2,
+            true
+          );
+          let contributionFormatted,
+            contributionClass = "";
+          if (typeof contributionResult === "object") {
+            contributionFormatted = contributionResult.text;
+            contributionClass = contributionResult.isNegative
+              ? contributionResult.className
+              : "";
+          } else {
+            contributionFormatted = contributionResult;
+          }
 
-        // 음수 규칙 적용 - 누적기여도
-        const cumulativeResult = formatPercent(
-          cumulativeContribution / 100,
-          2,
-          true
-        );
-        let cumulativeFormatted,
-          cumulativeClass = "";
-        if (typeof cumulativeResult === "object") {
-          cumulativeFormatted = cumulativeResult.text;
-          cumulativeClass = cumulativeResult.isNegative
-            ? cumulativeResult.className
-            : "";
-        } else {
-          cumulativeFormatted = cumulativeResult;
-        }
+          // 음수 규칙 적용 - 누적기여도
+          const cumulativeResult = formatPercent(
+            cumulativeContribution / 100,
+            2,
+            true
+          );
+          let cumulativeFormatted,
+            cumulativeClass = "";
+          if (typeof cumulativeResult === "object") {
+            cumulativeFormatted = cumulativeResult.text;
+            cumulativeClass = cumulativeResult.isNegative
+              ? cumulativeResult.className
+              : "";
+          } else {
+            cumulativeFormatted = cumulativeResult;
+          }
 
-        return `
+          return `
                 <tr class="rank-${rank.rank}">
                     <td class="rank-number">${getRankBadge(rank.rank)}</td>
                     <td class="employee-name">${rank.employeeName}</td>
@@ -550,10 +646,10 @@ async function showRankingModal(type) {
                     <td class="cumulative-contribution ${cumulativeClass}">${cumulativeFormatted}</td>
                 </tr>
             `;
-      })
-      .join("");
+        })
+        .join("");
 
-    const modalHTML = `
+      const modalHTML = `
             <div class="ranking-modal-overlay" id="rankingModal">
                 <div class="ranking-modal-content glass-modal glass-layered glass-shimmer">
                     <div class="ranking-modal-header bg-layer-2">
@@ -581,28 +677,28 @@ async function showRankingModal(type) {
             </div>
         `;
 
-    // 모달 DOM에 추가
-    const modalDiv = document.createElement("div");
-    modalDiv.innerHTML = modalHTML;
-    document.body.appendChild(modalDiv.firstElementChild);
+      // 모달 DOM에 추가
+      const modalDiv = document.createElement("div");
+      modalDiv.innerHTML = modalHTML;
+      document.body.appendChild(modalDiv.firstElementChild);
 
-    hideLoading();
-  } catch (error) {
-    await errorHandler.handle(
-      new DatabaseError("순위 모달 로드 실패", error, {
-        userMessage: "순위 데이터를 불러오는 중 오류가 발생했습니다.",
-        context: {
-          module: "admin_dashboard",
-          action: "showRankingModal",
-          type,
-          endpoint: `/kpi/admin/ranking/${type}`,
-        },
-        severity: "MEDIUM",
-      }),
-      { showToUser: true }
-    );
-    hideLoading();
-  }
+      hideLoading();
+    } catch (error) {
+      await errorHandler.handle(
+        new DatabaseError("순위 모달 로드 실패", error, {
+          userMessage: "순위 데이터를 불러오는 중 오류가 발생했습니다.",
+          context: {
+            module: "admin_dashboard",
+            action: "showRankingModal",
+            type,
+            endpoint: `/kpi/admin/ranking/${type}`,
+          },
+          severity: "MEDIUM",
+        }),
+        { showToUser: true }
+      );
+      hideLoading();
+    }
 }
 
 /**
@@ -625,41 +721,37 @@ function closeRankingModal() {
   }
 }
 
-// 전역 노출 (클릭 이벤트용)
-window.showRankingModal = showRankingModal;
-window.closeRankingModal = closeRankingModal;
-
 // ============================================
 // [SECTION: 대시보드 새로고침]
 // ============================================
 
 async function refreshDashboard() {
-  try {
-    // DOM이 존재하는지 확인 (다른 페이지로 이동했을 수 있음)
-    const section1 = document.getElementById("kpiSection1");
-    if (!section1) {
-      return;
-    }
+    try {
+      // DOM이 존재하는지 확인 (다른 페이지로 이동했을 수 있음)
+      const section1 = document.getElementById("kpiSection1");
+      if (!section1) {
+        return;
+      }
 
-    showLoading("데이터를 새로고침하는 중...");
-    await loadDashboardData();
-    displayKPICardsWithGlass();
-    hideLoading();
-    showToast("데이터가 새로고침되었습니다.", "success");
-  } catch (error) {
-    await errorHandler.handle(
-      new DatabaseError("대시보드 새로고침 실패", error, {
-        userMessage: "새로고침 중 오류가 발생했습니다.",
-        context: {
-          module: "admin_dashboard",
-          action: "refreshDashboard",
-        },
-        severity: "LOW",
-      }),
-      { showToUser: true }
-    );
-    hideLoading();
-  }
+      showLoading("데이터를 새로고침하는 중...");
+      await loadDashboardData();
+      displayKPICardsWithGlass();
+      hideLoading();
+      showToast("데이터가 새로고침되었습니다.", "success");
+    } catch (error) {
+      await errorHandler.handle(
+        new DatabaseError("대시보드 새로고침 실패", error, {
+          userMessage: "새로고침 중 오류가 발생했습니다.",
+          context: {
+            module: "admin_dashboard",
+            action: "refreshDashboard",
+          },
+          severity: "LOW",
+        }),
+        { showToUser: true }
+      );
+      hideLoading();
+    }
 }
 
 // 타이머 정리 함수
@@ -670,6 +762,14 @@ function cleanupDashboard() {
   }
   isInitialized = false;
 }
+
+// ============================================
+// [SECTION: 전역 노출 (클릭 이벤트용)]
+// ============================================
+
+window.showRankingModal = showRankingModal;
+window.closeRankingModal = closeRankingModal;
+window.showSalesConcentrationModal = showSalesConcentrationModal;
 
 // ============================================
 // [SECTION: 이벤트 리스너]
@@ -708,4 +808,5 @@ window.dashboardModule = {
 
 // 페이지 언로드 시 타이머 정리 (다른 페이지로 이동할 때)
 window.addEventListener("beforePageChange", cleanupDashboard);
+
 window.addEventListener("beforeunload", cleanupDashboard);

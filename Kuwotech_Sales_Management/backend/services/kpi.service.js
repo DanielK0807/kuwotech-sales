@@ -632,58 +632,38 @@ export async function getAdminKPI() {
 
 /**
  * ✅ NEW: 매출집중도 상세 데이터 조회
- * 거래처별 누적매출, 월수, 월평균매출 정보 반환
+ * 영업담당자별 매출집중도 순위 반환
  */
 export async function getSalesConcentrationDetail() {
   let connection;
   try {
     connection = await getDB();
 
-    console.log("[KPI Service] 매출집중도 상세 데이터 조회");
+    console.log("[KPI Service] 매출집중도 상세 데이터 조회 (영업담당자별 순위)");
 
-    // 거래처 데이터 조회 (불용 제외, 누적매출 기준 내림차순 정렬)
-    const [companies] = await connection.execute(
+    // 영업담당자별 매출집중도 조회 (내림차순 정렬)
+    const [rankings] = await connection.execute(
       `SELECT
-        companyName,
+        employeeName,
+        salesConcentration,
+        assignedCompanies,
         accumulatedSales,
-        DATE(transactionDate) as transactionDate,
-        internalManager
-      FROM companies
-      WHERE businessStatus != ?
-      ORDER BY accumulatedSales DESC`,
-      ["불용"]
+        currentMonths
+      FROM kpi_sales
+      ORDER BY salesConcentration DESC`
     );
 
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const yearStart = new Date(currentYear, 0, 1); // 올해 1월 1일
+    // 순위 추가
+    const details = rankings.map((row, index) => ({
+      rank: index + 1,
+      employeeName: row.employeeName,
+      salesConcentration: parseFloat(row.salesConcentration) || 0,
+      assignedCompanies: row.assignedCompanies || 0,
+      accumulatedSales: parseFloat(row.accumulatedSales) || 0,
+      currentMonths: row.currentMonths || 1
+    }));
 
-    // 각 거래처의 월수 계산 및 데이터 변환
-    const details = companies.map(company => {
-      let monthCount = 1; // 기본값
-
-      if (company.transactionDate) {
-        const transactionDate = new Date(company.transactionDate);
-
-        // 거래일이 올해보다 이전이면 올해 1월 1일부터 계산
-        const startDate = transactionDate < yearStart ? yearStart : transactionDate;
-
-        // 시작일부터 현재까지의 일수 계산
-        const daysSinceStart = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
-
-        // 개월 수 계산 (최소 1개월)
-        monthCount = Math.max(1, Math.floor(daysSinceStart / 30));
-      }
-
-      return {
-        companyName: company.companyName,
-        salesAmount: parseFloat(company.accumulatedSales) || 0,
-        monthCount: monthCount,
-        manager: company.internalManager || '-'
-      };
-    });
-
-    console.log(`[KPI Service] 매출집중도 상세 데이터 조회 완료 (${details.length}개 거래처)`);
+    console.log(`[KPI Service] 매출집중도 상세 데이터 조회 완료 (${details.length}명)`);
 
     return { success: true, data: details };
   } catch (error) {
