@@ -60,6 +60,31 @@ export const getSalesKPI = async (req, res) => {
                 [employeeId, employeeId]
             );
 
+            // 직원 정보 조회 (internalManager 확인용)
+            const [employeeData] = await connection.execute(
+                `SELECT name FROM employees WHERE id = ? OR name = ? LIMIT 1`,
+                [employeeId, employeeId]
+            );
+
+            if (employeeData.length > 0) {
+                // 불용 거래처 수 계산 (동적 추가)
+                const [inactiveResult1] = await connection.execute(
+                    `SELECT COUNT(*) as count FROM companies
+                     WHERE internalManager = ? AND businessStatus = ?`,
+                    [employeeData[0].name, "불용"]
+                );
+                const inactiveCount1 = inactiveResult1[0].count;
+
+                const responseData1 = formatKPIResponse(newKpiData[0]);
+                responseData1.inactiveCompanies = inactiveCount1;
+
+                return res.json({
+                    success: true,
+                    data: responseData1,
+                    cached: false
+                });
+            }
+
             return res.json({
                 success: true,
                 data: formatKPIResponse(newKpiData[0]),
@@ -67,13 +92,40 @@ export const getSalesKPI = async (req, res) => {
             });
         }
 
-        // 2. 캐시된 데이터 반환
-        res.json({
-            success: true,
-            data: formatKPIResponse(kpiData[0]),
-            cached: true,
-            lastUpdated: kpiData[0].lastUpdated
-        });
+        // 2. 직원 정보 조회 (internalManager 확인용)
+        const [employeeData] = await connection.execute(
+            `SELECT name FROM employees WHERE id = ? OR name = ? LIMIT 1`,
+            [employeeId, employeeId]
+        );
+
+        if (employeeData.length > 0) {
+            // 불용 거래처 수 계산 (동적 추가)
+            const [inactiveCompaniesResult] = await connection.execute(
+                `SELECT COUNT(*) as count FROM companies
+                 WHERE internalManager = ? AND businessStatus = ?`,
+                [employeeData[0].name, "불용"]
+            );
+            const inactiveCompaniesCount = inactiveCompaniesResult[0].count;
+
+            // 3. 캐시된 데이터에 불용 거래처 수 추가하여 반환
+            const responseData = formatKPIResponse(kpiData[0]);
+            responseData.inactiveCompanies = inactiveCompaniesCount;
+
+            res.json({
+                success: true,
+                data: responseData,
+                cached: true,
+                lastUpdated: kpiData[0].lastUpdated
+            });
+        } else {
+            // 직원 정보 없으면 불용 거래처 수 없이 반환
+            res.json({
+                success: true,
+                data: formatKPIResponse(kpiData[0]),
+                cached: true,
+                lastUpdated: kpiData[0].lastUpdated
+            });
+        }
 
     } catch (error) {
         console.error('[KPI API] 영업담당 KPI 조회 실패:', error);
@@ -151,17 +203,37 @@ export const getAdminKPI = async (req, res) => {
                 ['admin-kpi-singleton']
             );
 
+            // 불용 거래처 수 계산 (동적 추가)
+            const [inactiveResult1] = await connection.execute(
+                "SELECT COUNT(*) as count FROM companies WHERE businessStatus = ?",
+                ["불용"]
+            );
+            const inactiveCount1 = inactiveResult1[0].count;
+
+            const responseData1 = formatKPIResponse(newKpiData[0]);
+            responseData1.inactiveCompanies = inactiveCount1;
+
             return res.json({
                 success: true,
-                data: formatKPIResponse(newKpiData[0]),
+                data: responseData1,
                 cached: false
             });
         }
 
-        // 2. 캐시된 데이터 반환
+        // 2. 불용 거래처 수 계산 (동적 추가)
+        const [inactiveCompaniesResult] = await connection.execute(
+            "SELECT COUNT(*) as count FROM companies WHERE businessStatus = ?",
+            ["불용"]
+        );
+        const inactiveCompaniesCount = inactiveCompaniesResult[0].count;
+
+        // 3. 캐시된 데이터에 불용 거래처 수 추가하여 반환
+        const responseData = formatKPIResponse(kpiData[0]);
+        responseData.inactiveCompanies = inactiveCompaniesCount;
+
         res.json({
             success: true,
-            data: formatKPIResponse(kpiData[0]),
+            data: responseData,
             cached: true,
             lastUpdated: kpiData[0].lastUpdated
         });
