@@ -39,6 +39,9 @@ import errorsRoutes from './routes/errors.routes.js';
 import accessLogsRoutes from './routes/access-logs.routes.js';
 import regionsRoutes from './routes/regions.routes.js';
 
+// KPI 스케줄러 임포트
+import { startKpiScheduler } from './services/kpi.scheduler.js';
+
 // ============================================
 // 환경 변수 로드
 // ============================================
@@ -770,6 +773,10 @@ const startServer = async () => {
 
     // DB 연결
     await connectDB();
+
+    // KPI 자동 계산 스케줄러 시작
+    console.log('⏰ KPI 자동 계산 스케줄러 시작 중...');
+    startKpiScheduler();
 
     // 서버 시작
     app.listen(PORT, '0.0.0.0', () => {
