@@ -133,8 +133,16 @@ export async function refreshSalesKPI(employeeIdOrName) {
       ]
     );
 
+    // ✅ FIX: 저장 후, DB에서 최신 데이터를 다시 조회하여 반환
+    // 이렇게 해야 프론트엔드가 기대하는 영문 키 데이터를 받을 수 있음
+    const [updatedKpiRows] = await connection.execute(
+      `SELECT * FROM kpi_sales WHERE id = ?`,
+      [employee.id]
+    );
+    const updatedKpiData = updatedKpiRows[0];
+
     console.log(`[KPI Service] ${employee.name} KPI 갱신 완료`);
-    return { success: true, data: kpi };
+    return { success: true, data: updatedKpiData };
   } catch (error) {
     console.error("[KPI Service] 영업담당 KPI 갱신 실패:", error);
     throw error;
@@ -263,8 +271,16 @@ export async function refreshAdminKPI() {
       ]
     );
 
+    // ✅ FIX: 저장 후, DB에서 최신 데이터를 다시 조회하여 반환
+    // 이렇게 해야 영문 컬럼명으로 구성된 정확한 데이터를 반환할 수 있음
+    const [updatedKpiRows] = await connection.execute(
+      `SELECT * FROM kpi_admin WHERE id = ?`,
+      ["admin-kpi-singleton"]
+    );
+    const updatedKpiData = updatedKpiRows[0];
+
     console.log("[KPI Service] 전사 KPI 갱신 완료");
-    return { success: true, data: kpi };
+    return { success: true, data: updatedKpiData };
   } catch (error) {
     console.error("[KPI Service] 전사 KPI 갱신 실패:", error);
     throw error;
@@ -578,5 +594,100 @@ export async function updateRankingsAndCumulativeContribution() {
   } catch (error) {
     console.error("[KPI Service] 순위 및 누적기여도 업데이트 실패:", error);
     return { success: false, error: error.message };
+  }
+}
+
+// ============================================
+// [전사 KPI 조회]
+// ============================================
+
+/**
+ * ✅ NEW: 전사 KPI 데이터를 DB에서 조회하는 함수
+ */
+export async function getAdminKPI() {
+  let connection;
+  try {
+    connection = await getDB();
+    const [rows] = await connection.execute(
+      `SELECT * FROM kpi_admin WHERE id = ?`,
+      ["admin-kpi-singleton"]
+    );
+
+    if (rows.length > 0) {
+      return { success: true, data: rows[0] };
+    } else {
+      // 데이터가 없으면 새로고침 후 다시 조회
+      await refreshAdminKPI();
+      const [refreshedRows] = await connection.execute(
+        `SELECT * FROM kpi_admin WHERE id = ?`,
+        ["admin-kpi-singleton"]
+      );
+      return { success: true, data: refreshedRows[0] };
+    }
+  } catch (error) {
+    console.error("[KPI Service] 전사 KPI 조회 실패:", error);
+    throw error;
+  }
+}
+
+/**
+ * ✅ NEW: 매출집중도 상세 데이터 조회
+ * 거래처별 누적매출, 월수, 월평균매출 정보 반환
+ */
+export async function getSalesConcentrationDetail() {
+  let connection;
+  try {
+    connection = await getDB();
+
+    console.log("[KPI Service] 매출집중도 상세 데이터 조회");
+
+    // 거래처 데이터 조회 (불용 제외, 누적매출 기준 내림차순 정렬)
+    const [companies] = await connection.execute(
+      `SELECT
+        companyName,
+        accumulatedSales,
+        DATE(transactionDate) as transactionDate,
+        internalManager
+      FROM companies
+      WHERE businessStatus != ?
+      ORDER BY accumulatedSales DESC`,
+      ["불용"]
+    );
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const yearStart = new Date(currentYear, 0, 1); // 올해 1월 1일
+
+    // 각 거래처의 월수 계산 및 데이터 변환
+    const details = companies.map(company => {
+      let monthCount = 1; // 기본값
+
+      if (company.transactionDate) {
+        const transactionDate = new Date(company.transactionDate);
+
+        // 거래일이 올해보다 이전이면 올해 1월 1일부터 계산
+        const startDate = transactionDate < yearStart ? yearStart : transactionDate;
+
+        // 시작일부터 현재까지의 일수 계산
+        const daysSinceStart = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
+
+        // 개월 수 계산 (최소 1개월)
+        monthCount = Math.max(1, Math.floor(daysSinceStart / 30));
+      }
+
+      return {
+        companyName: company.companyName,
+        salesAmount: parseFloat(company.accumulatedSales) || 0,
+        monthCount: monthCount,
+        manager: company.internalManager || '-'
+      };
+    });
+
+    console.log(`[KPI Service] 매출집중도 상세 데이터 조회 완료 (${details.length}개 거래처)`);
+
+    return { success: true, data: details };
+  } catch (error) {
+    console.error("[KPI Service] 매출집중도 상세 데이터 조회 실패:", error);
+    throw error;
   }
 }
