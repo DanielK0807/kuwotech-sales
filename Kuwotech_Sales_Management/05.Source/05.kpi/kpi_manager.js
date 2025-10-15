@@ -7,18 +7,17 @@
  *
  * [역할]
  * - 시스템 전체의 KPI 재계산 요청을 중앙에서 처리합니다.
- * - 데이터 변경이 발생했을 때 호출되어, 모든 관련 KPI를 다시 계산하고 캐시를 갱신합니다.
+ * - 데이터 변경이 발생했을 때 호출되어, 백엔드 API를 통해 모든 관련 KPI를 다시 계산하고 캐시를 갱신합니다.
  * - 계산 과정의 시작과 끝을 로깅하여 추적성을 제공합니다.
  *
  * [주요 함수]
- * - triggerKpiRecalculation(): 외부에서 호출하는 유일한 공개 함수. KPI 재계산 프로세스를 시작합니다.
+ * - triggerKpiRecalculation(): 외부에서 호출하는 유일한 공개 함수. 백엔드 API를 호출하여 KPI 재계산 프로세스를 시작합니다.
  * ============================================
  */
 
 import logger from "../01.common/23_logger.js";
 import { showToast } from "../01.common/14_toast.js";
-import { calculateAllKpis } from "./01_kpi_calculator.js";
-import { getCache, setCache } from "./05_cache.js";
+import { ApiManager } from "../01.common/13_api_manager.js";
 
 class KpiManager {
   constructor() {
@@ -27,6 +26,7 @@ class KpiManager {
 
   /**
    * KPI 재계산 프로세스를 시작하는 유일한 진입점입니다.
+   * 백엔드 API를 호출하여 서버에서 데이터베이스의 KPI를 재계산합니다.
    * 데이터가 변경되는 모든 곳에서 이 함수를 호출해야 합니다.
    * @param {object} options - 재계산 옵션 (예: { quiet: true }는 토스트 메시지를 띄우지 않음)
    */
@@ -48,19 +48,17 @@ class KpiManager {
     }
 
     try {
-      // 1. 모든 KPI 데이터 계산 (영업, 관리자 등)
-      const newKpiData = await calculateAllKpis();
+      // 백엔드 API 호출: 모든 KPI 재계산 요청
+      const apiManager = ApiManager.getInstance();
+      const response = await apiManager.post('/api/kpi/refresh-all');
 
-      if (!newKpiData) {
-        throw new Error("KPI 계산 결과가 유효하지 않습니다.");
+      if (!response || response.error) {
+        throw new Error(response?.message || "KPI 재계산 API 호출 실패");
       }
 
-      // 2. 계산된 최신 데이터를 캐시에 저장
-      // 'allKpiData' 라는 키로 전체 KPI 데이터를 저장한다고 가정합니다.
-      await setCache("allKpiData", newKpiData);
-
       logger.log(
-        "✅ [KpiManager] KPI 재계산 및 캐시 저장이 성공적으로 완료되었습니다."
+        "✅ [KpiManager] 백엔드에서 KPI 재계산이 성공적으로 완료되었습니다.",
+        response
       );
       if (!options.quiet) {
         showToast("KPI 동기화가 완료되었습니다!", "success");
@@ -76,9 +74,7 @@ class KpiManager {
     } finally {
       this.isRecalculating = false;
       logger.log("✅ [KpiManager] KPI 재계산 프로세스가 완료되었습니다.");
-      if (!options.quiet) {
-        showToast("KPI 동기화가 완료되었습니다.", "success");
-      }
+      
       // 재계산 완료 이벤트를 전역으로 발생시켜 대시보드 등에서 수신하도록 함
       document.dispatchEvent(new CustomEvent("kpi-recalculated"));
     }
