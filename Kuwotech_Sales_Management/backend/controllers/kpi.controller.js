@@ -231,6 +231,13 @@ export const getAdminKPI = async (req, res) => {
         const responseData = formatKPIResponse(kpiData[0]);
         responseData.inactiveCompanies = inactiveCompaniesCount;
 
+        // 🐛 DEBUG: 응답 데이터 확인
+        console.log('[KPI API] 전사 KPI 응답:', {
+            totalCompanies: responseData.totalCompanies,
+            inactiveCompanies: responseData.inactiveCompanies,
+            cached: true
+        });
+
         res.json({
             success: true,
             data: responseData,
