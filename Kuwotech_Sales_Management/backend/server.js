@@ -601,21 +601,45 @@ async function runMigration014() {
 
     console.log('  📝 마이그레이션 014: activityNotes, customerNewsDate 추가');
 
-    // 1. activityNotes 컬럼 추가
-    await db.execute(`
-      ALTER TABLE companies
-      ADD COLUMN IF NOT EXISTS activityNotes TEXT COMMENT '고객소식 (관리자 엑셀 업로드)'
-      AFTER businessActivity
+    // 1. activityNotes 컬럼 존재 여부 확인 후 추가
+    const [activityColumns] = await db.execute(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'companies'
+      AND COLUMN_NAME = 'activityNotes'
     `);
-    console.log('    ✅ activityNotes 컬럼 추가 완료');
 
-    // 2. customerNewsDate 컬럼 추가
-    await db.execute(`
-      ALTER TABLE companies
-      ADD COLUMN IF NOT EXISTS customerNewsDate DATE COMMENT '고객소식 작성일'
-      AFTER activityNotes
+    if (activityColumns.length === 0) {
+      await db.execute(`
+        ALTER TABLE companies
+        ADD COLUMN activityNotes TEXT COMMENT '고객소식 (관리자 엑셀 업로드)'
+        AFTER businessActivity
+      `);
+      console.log('    ✅ activityNotes 컬럼 추가 완료');
+    } else {
+      console.log('    ℹ️  activityNotes 컬럼 이미 존재');
+    }
+
+    // 2. customerNewsDate 컬럼 존재 여부 확인 후 추가
+    const [dateColumns] = await db.execute(`
+      SELECT COLUMN_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'companies'
+      AND COLUMN_NAME = 'customerNewsDate'
     `);
-    console.log('    ✅ customerNewsDate 컬럼 추가 완료');
+
+    if (dateColumns.length === 0) {
+      await db.execute(`
+        ALTER TABLE companies
+        ADD COLUMN customerNewsDate DATE COMMENT '고객소식 작성일'
+        AFTER activityNotes
+      `);
+      console.log('    ✅ customerNewsDate 컬럼 추가 완료');
+    } else {
+      console.log('    ℹ️  customerNewsDate 컬럼 이미 존재');
+    }
 
     // 3. 기존 데이터 날짜 설정
     const [result] = await db.execute(`
@@ -627,13 +651,8 @@ async function runMigration014() {
 
     console.log('  🎉 마이그레이션 014 완료!');
   } catch (error) {
-    // ADD COLUMN IF NOT EXISTS를 사용하므로 이미 존재하는 경우 무시
-    if (error.code === 'ER_DUP_FIELDNAME') {
-      console.log('  ℹ️  마이그레이션 014: 이미 실행됨 (스킵)');
-    } else {
-      console.error('  ❌ 마이그레이션 014 실패:', error.message);
-      // 마이그레이션 실패해도 서버는 계속 실행
-    }
+    console.error('  ❌ 마이그레이션 014 실패:', error.message);
+    // 마이그레이션 실패해도 서버는 계속 실행
   }
 }
 
