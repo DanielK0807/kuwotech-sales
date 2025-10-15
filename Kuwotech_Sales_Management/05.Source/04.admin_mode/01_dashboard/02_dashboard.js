@@ -100,6 +100,12 @@ async function initDashboard() {
             btnRefresh.addEventListener('click', refreshDashboard);
         }
 
+        // KPI 재계산 완료 이벤트 리스너 등록
+        document.addEventListener('kpi-recalculated', async () => {
+            logger.log('📊 [Admin Dashboard] KPI 재계산 완료 이벤트 수신 - 대시보드를 갱신합니다.');
+            await refreshDashboard();
+        });
+
         // 대시보드 데이터 로드
         try {
             await loadDashboardData();

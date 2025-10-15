@@ -74,7 +74,13 @@ class KpiManager {
         showToast("오류: KPI를 동기화하지 못했습니다.", "error");
       }
     } finally {
-      this.isRecalculating = false; // 프로세스 종료 후 플래그 해제
+      this.isRecalculating = false;
+      logger.log("✅ [KpiManager] KPI 재계산 프로세스가 완료되었습니다.");
+      if (!options.quiet) {
+        showToast("KPI 동기화가 완료되었습니다.", "success");
+      }
+      // 재계산 완료 이벤트를 전역으로 발생시켜 대시보드 등에서 수신하도록 함
+      document.dispatchEvent(new CustomEvent("kpi-recalculated"));
     }
   }
 }
