@@ -204,14 +204,18 @@ export const getAdminKPI = async (req, res) => {
             );
 
             // 불용 거래처 수 계산 (동적 추가)
+            console.log('[KPI API] 🔍 [캐시 미스] 불용 거래처 COUNT 쿼리 실행 시작...');
             const [inactiveResult1] = await connection.execute(
                 "SELECT COUNT(*) as count FROM companies WHERE businessStatus = ?",
                 ["불용"]
             );
+            console.log('[KPI API] 🔍 [캐시 미스] COUNT 쿼리 결과:', inactiveResult1[0]);
             const inactiveCount1 = inactiveResult1[0].count;
+            console.log('[KPI API] 🔍 [캐시 미스] inactiveCount1:', inactiveCount1, typeof inactiveCount1);
 
             const responseData1 = formatKPIResponse(newKpiData[0]);
             responseData1.inactiveCompanies = inactiveCount1;
+            console.log('[KPI API] 🔍 [캐시 미스] 최종 응답 data.inactiveCompanies:', responseData1.inactiveCompanies);
 
             return res.json({
                 success: true,
@@ -221,15 +225,25 @@ export const getAdminKPI = async (req, res) => {
         }
 
         // 2. 불용 거래처 수 계산 (동적 추가)
+        console.log('[KPI API] 🔍 불용 거래처 COUNT 쿼리 실행 시작...');
         const [inactiveCompaniesResult] = await connection.execute(
             "SELECT COUNT(*) as count FROM companies WHERE businessStatus = ?",
             ["불용"]
         );
+        console.log('[KPI API] 🔍 COUNT 쿼리 결과:', {
+            result: inactiveCompaniesResult,
+            firstRow: inactiveCompaniesResult[0],
+            count: inactiveCompaniesResult[0]?.count,
+            countType: typeof inactiveCompaniesResult[0]?.count
+        });
         const inactiveCompaniesCount = inactiveCompaniesResult[0].count;
+        console.log('[KPI API] 🔍 inactiveCompaniesCount 값:', inactiveCompaniesCount, typeof inactiveCompaniesCount);
 
         // 3. 캐시된 데이터에 불용 거래처 수 추가하여 반환
         const responseData = formatKPIResponse(kpiData[0]);
+        console.log('[KPI API] 🔍 responseData 생성 후:', responseData);
         responseData.inactiveCompanies = inactiveCompaniesCount;
+        console.log('[KPI API] 🔍 inactiveCompanies 추가 후:', responseData.inactiveCompanies);
 
         // 🐛 DEBUG: 응답 데이터 확인
         console.log('[KPI API] 전사 KPI 응답:', {
