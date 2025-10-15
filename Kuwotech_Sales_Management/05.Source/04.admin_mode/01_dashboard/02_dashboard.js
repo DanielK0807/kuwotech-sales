@@ -369,7 +369,7 @@ function displayKPICardsWithGlass() {
     },
   ];
 
-  // 섹션 4: 전사 기여도 지표 (2개)
+  // 섹션 4: 전사 기여도 지표 (3개)
   const section4Config = [
     {
       title: "전체매출기여도",
@@ -388,6 +388,20 @@ function displayKPICardsWithGlass() {
       description: "영업담당자별 순위 보기",
       style: { color: "success", size: "md", animated: true, clickable: true },
       onClick: () => showRankingModal("main"),
+    },
+    {
+      title: "매출집중도",
+      value: formatCurrency(dashboardData.salesConcentration || 0),
+      unit: "원",
+      icon: "📊",
+      description: "(누적매출/전체거래처)/현재월수",
+      style: {
+        color: "info",
+        size: "md",
+        animated: true,
+        trend:
+          (dashboardData.salesConcentration || 0) > 0 ? "up" : "neutral",
+      },
     },
   ];
 
