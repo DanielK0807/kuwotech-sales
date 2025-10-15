@@ -416,11 +416,19 @@ export class DatabaseManager {
 
     /**
      * [기능: 거래처 수정]
+     * @param {string} id - 거래처 ID (keyValue)
+     * @param {object} clientData - 수정할 데이터
+     * @param {object} options - 옵션 { isExcelUpload: true } 등
      */
-    async updateClient(id, clientData) {
+    async updateClient(id, clientData, options = {}) {
+        // 엑셀 업로드인 경우 body에 플래그 포함
+        const requestBody = options.isExcelUpload
+            ? { ...clientData, isExcelUpload: true }
+            : clientData;
+
         const response = await this.request(`${ENDPOINTS.CLIENTS}/${id}`, {
             method: 'PUT',
-            body: JSON.stringify(clientData)
+            body: JSON.stringify(requestBody)
         });
         // 백엔드는 { success: true, affected: ... } 형태로 반환
         return response;

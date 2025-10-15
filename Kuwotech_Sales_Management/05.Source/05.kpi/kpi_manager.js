@@ -42,7 +42,7 @@ class KpiManager {
     }
 
     this.isRecalculating = true;
-    logger.log("🚀 [KpiManager] KPI 재계산 프로세스를 시작합니다...");
+    logger.info("🚀 [KpiManager] KPI 재계산 프로세스를 시작합니다...");
     if (!options.quiet) {
       showToast("데이터 변경이 감지되어 KPI를 동기화합니다...", "info", 3000);
     }
@@ -56,7 +56,7 @@ class KpiManager {
         throw new Error(response?.message || "KPI 재계산 API 호출 실패");
       }
 
-      logger.log(
+      logger.info(
         "✅ [KpiManager] 백엔드에서 KPI 재계산이 성공적으로 완료되었습니다.",
         response
       );
@@ -73,7 +73,7 @@ class KpiManager {
       }
     } finally {
       this.isRecalculating = false;
-      logger.log("✅ [KpiManager] KPI 재계산 프로세스가 완료되었습니다.");
+      logger.info("✅ [KpiManager] KPI 재계산 프로세스가 완료되었습니다.");
 
       // 재계산 완료 이벤트를 전역으로 발생시켜 대시보드 등에서 수신하도록 함
       document.dispatchEvent(new CustomEvent("kpi-recalculated"));

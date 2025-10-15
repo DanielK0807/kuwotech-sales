@@ -3,6 +3,7 @@
 // ============================================
 
 import { getDB } from '../config/database.js';
+import { refreshAllSalesKPI, refreshAdminKPI } from '../services/kpi.service.js';
 
 // GET /api/companies - 전체 거래처 조회 (필터링 지원)
 export const getAllCompanies = async (req, res) => {
@@ -452,6 +453,18 @@ export const createCompany = async (req, res) => {
       req
     );
 
+    // ============================================
+    // 📊 KPI 자동 재계산
+    // ============================================
+    console.log('🔄 [거래처 생성] KPI 재계산 시작...');
+    try {
+      await refreshAllSalesKPI();
+      await refreshAdminKPI();
+      console.log('✅ [거래처 생성] KPI 재계산 완료');
+    } catch (kpiError) {
+      console.error('⚠️ [거래처 생성] KPI 재계산 실패:', kpiError.message);
+    }
+
     res.status(201).json({
       success: true,
       message: '거래처가 생성되었습니다.',
@@ -490,10 +503,14 @@ export const updateCompany = async (req, res) => {
 
     const oldData = existing[0];
 
-    // 권한 체크: finalCompanyName은 관리자만 수정 가능
-    if (companyData.finalCompanyName &&
-        companyData.finalCompanyName !== oldData.finalCompanyName &&
-        req.user.role !== '관리자') {
+    // 권한 체크: finalCompanyName이 실제로 변경되는 경우에만 체크
+    // 단, 엑셀 업로드는 관리자만 할 수 있으므로 예외 처리
+    const isExcelUpload = req.body.isExcelUpload === true;
+    const isFinalCompanyNameChanging =
+      companyData.finalCompanyName &&
+      companyData.finalCompanyName !== oldData.finalCompanyName;
+
+    if (!isExcelUpload && isFinalCompanyNameChanging && req.user?.role !== '관리자' && req.user?.role1 !== '관리자') {
       return res.status(403).json({
         error: 'Forbidden',
         message: '최종거래처명은 관리자만 수정할 수 있습니다.'
@@ -596,6 +613,18 @@ export const updateCompany = async (req, res) => {
       req
     );
 
+    // ============================================
+    // 📊 KPI 자동 재계산
+    // ============================================
+    console.log('🔄 [거래처 수정] KPI 재계산 시작...');
+    try {
+      await refreshAllSalesKPI();
+      await refreshAdminKPI();
+      console.log('✅ [거래처 수정] KPI 재계산 완료');
+    } catch (kpiError) {
+      console.error('⚠️ [거래처 수정] KPI 재계산 실패:', kpiError.message);
+    }
+
     res.json({
       success: true,
       message: '거래처가 수정되었습니다.',
@@ -650,6 +679,18 @@ export const deleteCompany = async (req, res) => {
       null,
       req
     );
+
+    // ============================================
+    // 📊 KPI 자동 재계산
+    // ============================================
+    console.log('🔄 [거래처 삭제] KPI 재계산 시작...');
+    try {
+      await refreshAllSalesKPI();
+      await refreshAdminKPI();
+      console.log('✅ [거래처 삭제] KPI 재계산 완료');
+    } catch (kpiError) {
+      console.error('⚠️ [거래처 삭제] KPI 재계산 실패:', kpiError.message);
+    }
 
     res.json({
       success: true,
@@ -889,6 +930,20 @@ export const bulkUpdateCompanies = async (req, res) => {
 
       console.log(`[다중 업데이트] 완료: 성공 ${successCount}, 실패 ${failCount}`);
 
+      // ============================================
+      // 📊 KPI 자동 재계산
+      // ============================================
+      if (successCount > 0) {
+        console.log('🔄 [다중 업데이트] KPI 재계산 시작...');
+        try {
+          await refreshAllSalesKPI();
+          await refreshAdminKPI();
+          console.log('✅ [다중 업데이트] KPI 재계산 완료');
+        } catch (kpiError) {
+          console.error('⚠️ [다중 업데이트] KPI 재계산 실패:', kpiError.message);
+        }
+      }
+
       res.json({
         success: true,
         message: `${successCount}건 업데이트 완료${failCount > 0 ? `, ${failCount}건 실패` : ''}`,
@@ -957,6 +1012,18 @@ export const patchCompany = async (req, res) => {
     );
 
     console.log(`[부분 업데이트] ${keyValue}: ${updateFields.length}개 필드 업데이트`);
+
+    // ============================================
+    // 📊 KPI 자동 재계산
+    // ============================================
+    console.log('🔄 [부분 업데이트] KPI 재계산 시작...');
+    try {
+      await refreshAllSalesKPI();
+      await refreshAdminKPI();
+      console.log('✅ [부분 업데이트] KPI 재계산 완료');
+    } catch (kpiError) {
+      console.error('⚠️ [부분 업데이트] KPI 재계산 실패:', kpiError.message);
+    }
 
     res.json({
       success: true,

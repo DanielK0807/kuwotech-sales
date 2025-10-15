@@ -1,597 +1,618 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>관리자 대시보드 - KUWOTECH 영업관리 시스템</title>
-    
+
     <!-- ✅ NEW: 순서 중요 - 변수 → 공통 → 글래스모피즘 → 테마 색상 -->
-    <link rel="stylesheet" href="../../07.styles/00_root.css">
-    <link rel="stylesheet" href="../../07.styles/01_variables.css">
-    <link rel="stylesheet" href="../../07.styles/02_common.css">
-    
+    <link rel="stylesheet" href="../../07.styles/00_root.css" />
+    <link rel="stylesheet" href="../../07.styles/01_variables.css" />
+    <link rel="stylesheet" href="../../07.styles/02_common.css" />
+
     <!-- ✅ UPDATED: 새로운 글래스모피즘 & 색상 시스템 -->
-    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
-    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
-    
+    <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css" />
+    <link rel="stylesheet" href="../../07.styles/07_theme_colors.css" />
+
     <!-- 기타 스타일 -->
-    <link rel="stylesheet" href="../../07.styles/04_components.css">
-    <link rel="stylesheet" href="../../07.styles/10_download_ui.css">
-    
+    <link rel="stylesheet" href="../../07.styles/04_components.css" />
+    <link rel="stylesheet" href="../../07.styles/10_download_ui.css" />
+
     <!-- 시스템 로더 -->
     <script type="module" src="../../01.common/17_system_loader.js"></script>
-    
+
     <!-- ✨ NEW: 글래스모피즘 자동 적용 -->
-    <script type="module" src="../../01.common/18_glassmorphism_auto_apply.js"></script>
-</head>
-<body class="theme-admin viewport-3d" data-page-type="dashboard" data-mode="admin">
-    
+    <script
+      type="module"
+      src="../../01.common/18_glassmorphism_auto_apply.js"
+    ></script>
+  </head>
+  <body
+    class="theme-admin viewport-3d"
+    data-page-type="dashboard"
+    data-mode="admin"
+  >
     <!-- ✅ UPDATED: dashboard-container 구조로 변경 (영업담당 대시보드 패턴 적용) -->
     <div class="dashboard-container">
-
-        <!-- ✅ UPDATED: 헤더 - Layer 1 색상 적용 + glassmorphism 효과 추가 -->
-        <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1 class="text-on-layer-1">관리자 모드 KPI</h1>
-                    <p class="subtitle text-on-layer-1">전체 영업 현황을 종합적으로 관리하세요</p>
-                </div>
-                <button
-                    id="btnRefreshKPI"
-                    class="btn-refresh glass-button"
-                    title="데이터 새로고침">
-                    🔄 새로고침
-                </button>
-            </div>
-        </header>
-
-        <!-- 로딩 상태 -->
-        <div id="kpiLoadingState" class="loading-state hidden">
-            <div class="loading-spinner"></div>
-            <p>KPI 데이터를 불러오는 중...</p>
+      <!-- ✅ UPDATED: 헤더 - Layer 1 색상 적용 + glassmorphism 효과 추가 -->
+      <header
+        class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer"
+      >
+        <div class="header-content">
+          <div class="header-text">
+            <h1 class="text-on-layer-1">관리자 모드 KPI</h1>
+            <p class="subtitle text-on-layer-1">
+              전체 영업 현황을 종합적으로 관리하세요
+            </p>
+          </div>
+          <button
+            id="btnRefreshKPI"
+            class="btn-refresh glass-button"
+            title="데이터 새로고침"
+          >
+            🔄 새로고침
+          </button>
         </div>
+      </header>
 
-        <!-- 데이터 없음 상태 -->
-        <div id="kpiEmptyState" class="empty-state hidden">
-            <div class="empty-icon">📊</div>
-            <p>표시할 KPI 데이터가 없습니다.</p>
-            <button class="btn-primary" onclick="location.reload()">새로고침</button>
+      <!-- 로딩 상태 -->
+      <div id="kpiLoadingState" class="loading-state hidden">
+        <div class="loading-spinner"></div>
+        <p>KPI 데이터를 불러오는 중...</p>
+      </div>
+
+      <!-- 데이터 없음 상태 -->
+      <div id="kpiEmptyState" class="empty-state hidden">
+        <div class="empty-icon">📊</div>
+        <p>표시할 KPI 데이터가 없습니다.</p>
+        <button class="btn-primary" onclick="location.reload()">
+          새로고침
+        </button>
+      </div>
+
+      <!-- 1️⃣ 전사 거래처 지표 (4개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">📊 전사 거래처 지표</h2>
+        <div class="kpi-grid" id="kpiSection1">
+          <!-- JavaScript로 동적 생성됨 -->
         </div>
+      </div>
 
-        <!-- 1️⃣ 전사 거래처 지표 (4개) -->
-        <div class="kpi-section">
-            <h2 class="section-title">📊 전사 거래처 지표</h2>
-            <div class="kpi-grid" id="kpiSection1">
-                <!-- JavaScript로 동적 생성됨 -->
-            </div>
+      <!-- 2️⃣ 전사 목표 달성 (2개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">🎯 전사 거래처확보 목표 달성지표</h2>
+        <div class="kpi-grid" id="kpiSection2">
+          <!-- JavaScript로 동적 생성됨 -->
         </div>
+      </div>
 
-        <!-- 2️⃣ 전사 목표 달성 (2개) -->
-        <div class="kpi-section">
-            <h2 class="section-title">🎯 전사 거래처확보 목표 달성지표</h2>
-            <div class="kpi-grid" id="kpiSection2">
-                <!-- JavaScript로 동적 생성됨 -->
-            </div>
+      <!-- 3️⃣ 전사 매출 지표 (6개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">💰 전사 매출 지표</h2>
+        <div class="kpi-grid" id="kpiSection3">
+          <!-- JavaScript로 동적 생성됨 -->
         </div>
+      </div>
 
-        <!-- 3️⃣ 전사 매출 지표 (5개) -->
-        <div class="kpi-section">
-            <h2 class="section-title">💰 전사 매출 지표</h2>
-            <div class="kpi-grid" id="kpiSection3">
-                <!-- JavaScript로 동적 생성됨 -->
-            </div>
+      <!-- 4️⃣ 전사 기여도 지표 (3개) -->
+      <div class="kpi-section">
+        <h2 class="section-title">📈 전사 기여도 지표</h2>
+        <div class="kpi-grid" id="kpiSection4">
+          <!-- JavaScript로 동적 생성됨 -->
         </div>
-
-        <!-- 4️⃣ 전사 기여도 지표 (3개) -->
-        <div class="kpi-section">
-            <h2 class="section-title">📈 전사 기여도 지표</h2>
-            <div class="kpi-grid" id="kpiSection4">
-                <!-- JavaScript로 동적 생성됨 -->
-            </div>
-        </div>
-
+      </div>
     </div>
-    
+
     <!-- ✅ NEW: 인라인 스타일 (글래스모피즘 강화) -->
     <style>
-        /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
-        html, body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
+      /* === CRITICAL: 헤더 고정을 위한 html/body 설정 === */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
 
-        body {
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
 
-        /* === 레이아웃 === */
-        .dashboard-container {
-            padding: 0 5px;
-            width: 100%;
-            margin: 0 auto;
-            transform-style: preserve-3d;
-            position: relative;
-        }
-        
-        /* === 헤더 === */
-        .page-header {
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 1000 !important;
-            padding: var(--spacing-md) 0 !important;
-            margin-bottom: var(--spacing-2xl) !important;
-            background: rgba(2, 16, 36, 0.98) !important; /* 관리자 색상 유지 */
-            backdrop-filter: blur(20px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-            border-radius: 16px !important;
-            will-change: transform !important;
-        }
-        
-        .header-content {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            gap: var(--spacing-lg) !important;
-            width: 95% !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-            box-sizing: border-box !important;
-        }
-        
-        .btn-refresh {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-md) var(--spacing-lg);
-            font-size: var(--font-md);
-            font-weight: var(--font-weight-medium);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius-lg);
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-on-layer-1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-refresh:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .btn-refresh:active {
-            transform: translateY(0);
-        }
-        
-        .header-text h1 {
-            margin: 0;
-            font-size: calc(var(--font-3xl) + 2px);
-            font-weight: var(--font-weight-bold);
-        }
-        
-        /* === 로딩 & 빈 상태 === */
-        .loading-state,
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: var(--spacing-3xl);
-            min-height: 300px;
-            text-align: center;
-            width: 95%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: var(--spacing-lg);
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .empty-icon {
-            font-size: 64px;
-            margin-bottom: var(--spacing-lg);
-            opacity: 0.5;
-        }
-        
-        .empty-state p {
-            margin: var(--spacing-md) 0;
-            color: var(--text-secondary);
-            font-size: var(--font-lg);
-        }
-        
-        .header-text .subtitle {
-            margin-top: var(--spacing-xs);
-            opacity: 0.9;
-        }
+      /* === 레이아웃 === */
+      .dashboard-container {
+        padding: 0 5px;
+        width: 100%;
+        margin: 0 auto;
+        transform-style: preserve-3d;
+        position: relative;
+      }
 
-        /* === KPI 섹션 === */
+      /* === 헤더 === */
+      .page-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        padding: var(--spacing-md) 0 !important;
+        margin-bottom: var(--spacing-2xl) !important;
+        background: rgba(2, 16, 36, 0.98) !important; /* 관리자 색상 유지 */
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 16px !important;
+        will-change: transform !important;
+      }
+
+      .header-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: var(--spacing-lg) !important;
+        width: 95% !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      .btn-refresh {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-medium);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-on-layer-1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-refresh:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .btn-refresh:active {
+        transform: translateY(0);
+      }
+
+      .header-text h1 {
+        margin: 0;
+        font-size: calc(var(--font-3xl) + 2px);
+        font-weight: var(--font-weight-bold);
+      }
+
+      /* === 로딩 & 빈 상태 === */
+      .loading-state,
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-3xl);
+        min-height: 300px;
+        text-align: center;
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: var(--spacing-lg);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .empty-icon {
+        font-size: 64px;
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.5;
+      }
+
+      .empty-state p {
+        margin: var(--spacing-md) 0;
+        color: var(--text-secondary);
+        font-size: var(--font-lg);
+      }
+
+      .header-text .subtitle {
+        margin-top: var(--spacing-xs);
+        opacity: 0.9;
+      }
+
+      /* === KPI 섹션 === */
+      .kpi-section {
+        display: block !important; /* 강제 표시 */
+        visibility: visible !important;
+        margin-bottom: var(--spacing-3xl, 64px);
+        width: 95% !important; /* ✅ 전체 95% */
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .section-title {
+        /* 글래스모피즘 효과 - 더 진한 배경 (관리자 색상) */
+        background: rgba(2, 16, 36, 0.6) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: var(--radius-lg, 12px) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+
+        /* 텍스트 스타일 */
+        font-size: 22px !important;
+        font-weight: var(--font-weight-bold, 700) !important;
+        color: #ffffff !important;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8),
+          0 0 10px rgba(255, 255, 255, 0.3) !important;
+
+        /* 레이아웃 - kpi-section의 100% (메인창 기준 95%) */
+        width: 100% !important; /* ✅ 전체 너비 */
+        padding: var(--spacing-md, 16px) var(--spacing-lg, 24px) !important;
+        margin-bottom: var(--spacing-lg, 24px) !important;
+        box-sizing: border-box !important;
+
+        /* 강제 표시 */
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+
+        /* 호버 효과 */
+        transition: all 0.3s ease !important;
+      }
+
+      .section-title:hover {
+        background: rgba(2, 16, 36, 0.8);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        text-shadow: 2px 2px 6px rgba(0, 0, 0, 1),
+          0 0 15px rgba(255, 255, 255, 0.5);
+      }
+
+      /* === CSS 변수 정의 === */
+      :root {
+        --kpi-gap: clamp(8px, 1.5vw, 20px);
+      }
+
+      /* === KPI 그리드 - Flexbox + calc() 방식으로 카드 너비 명시적 계산 === */
+      .kpi-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: var(--kpi-gap) !important;
+        width: 100% !important;
+      }
+
+      /* 섹션별 카드 개수에 맞게 너비 계산 */
+      /* 공식: width = (100% - (N-1) × gap) / N */
+
+      #kpiSection1 .kpi-card {
+        /* 4개 카드: (100% - 3 × gap) / 4 */
+        width: calc((100% - 3 * var(--kpi-gap)) / 4) !important;
+        flex-shrink: 0 !important;
+      }
+
+      #kpiSection2 .kpi-card {
+        /* 2개 카드: (100% - 1 × gap) / 2 */
+        width: calc((100% - 1 * var(--kpi-gap)) / 2) !important;
+        flex-shrink: 0 !important;
+      }
+
+      #kpiSection3 .kpi-card {
+        /* 6개 카드: (100% - 5 × gap) / 6 */
+        width: calc((100% - 5 * var(--kpi-gap)) / 6) !important;
+        flex-shrink: 0 !important;
+      }
+
+      #kpiSection4 .kpi-card {
+        /* 3개 카드: (100% - 2 × gap) / 3 */
+        width: calc((100% - 2 * var(--kpi-gap)) / 3) !important;
+        flex-shrink: 0 !important;
+      }
+
+      /* 스크롤바 스타일 (선택적) */
+      .kpi-grid::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .kpi-grid::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .kpi-grid::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      .kpi-grid::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .kpi-card {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      .kpi-content {
+        width: 100% !important;
+      }
+
+      /* === 섹션별 카드 내용물 크기 === */
+      /* 일관성 규칙: 4개 이하 = 100%, 5개 = 85%, 6개 = 70% (1장당 15% 감소) */
+
+      /* 기본 크기 (100%) - 1~4개 카드용 */
+      .kpi-card-base {
+        gap: clamp(6px, 1.2vw, 10px) !important;
+        padding: clamp(10px, 2.5vw, 16px) !important;
+      }
+
+      /* Section 1: 4개 카드 → 100% 기본 크기 */
+      #kpiSection1 .kpi-card {
+        gap: clamp(6px, 1.2vw, 10px) !important;
+        padding: clamp(10px, 2.5vw, 16px) !important;
+      }
+      #kpiSection1 .kpi-icon {
+        font-size: clamp(16px, 3.5vw, 24px) !important;
+        line-height: 1 !important;
+        margin-bottom: 4px !important;
+      }
+      #kpiSection1 .kpi-label {
+        font-size: clamp(9px, 1.5vw, 11px) !important;
+        margin-bottom: 2px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+        color: var(--text-secondary) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection1 .kpi-value {
+        font-size: clamp(14px, 3vw, 22px) !important;
+        font-weight: var(--font-weight-bold) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection1 .kpi-unit {
+        font-size: clamp(10px, 1.8vw, 13px) !important;
+        color: var(--text-secondary) !important;
+        margin-left: 3px !important;
+      }
+
+      /* Section 2: 2개 카드 → 100% 기본 크기 */
+      #kpiSection2 .kpi-card {
+        gap: clamp(6px, 1.2vw, 10px) !important;
+        padding: clamp(10px, 2.5vw, 16px) !important;
+      }
+      #kpiSection2 .kpi-icon {
+        font-size: clamp(16px, 3.5vw, 24px) !important;
+        line-height: 1 !important;
+        margin-bottom: 4px !important;
+      }
+      #kpiSection2 .kpi-label {
+        font-size: clamp(9px, 1.5vw, 11px) !important;
+        margin-bottom: 2px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+        color: var(--text-secondary) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection2 .kpi-value {
+        font-size: clamp(14px, 3vw, 22px) !important;
+        font-weight: var(--font-weight-bold) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection2 .kpi-unit {
+        font-size: clamp(10px, 1.8vw, 13px) !important;
+        color: var(--text-secondary) !important;
+        margin-left: 3px !important;
+      }
+
+      /* Section 3: 6개 카드 → 70% 크기 (30% 감소) */
+      #kpiSection3 .kpi-card {
+        gap: clamp(4px, 0.84vw, 7px) !important;
+        padding: clamp(7px, 1.75vw, 11px) !important;
+      }
+      #kpiSection3 .kpi-icon {
+        font-size: clamp(11px, 2.45vw, 17px) !important;
+        line-height: 1 !important;
+        margin-bottom: 3px !important;
+      }
+      #kpiSection3 .kpi-label {
+        font-size: clamp(6px, 1.05vw, 8px) !important;
+        margin-bottom: 2px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.2px !important;
+        color: var(--text-secondary) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection3 .kpi-value {
+        font-size: clamp(10px, 2.1vw, 15px) !important;
+        font-weight: var(--font-weight-bold) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection3 .kpi-unit {
+        font-size: clamp(7px, 1.26vw, 9px) !important;
+        color: var(--text-secondary) !important;
+        margin-left: 2px !important;
+      }
+
+      /* Section 4: 3개 카드 → 100% 기본 크기 */
+      #kpiSection4 .kpi-card {
+        gap: clamp(6px, 1.2vw, 10px) !important;
+        padding: clamp(10px, 2.5vw, 16px) !important;
+      }
+      #kpiSection4 .kpi-icon {
+        font-size: clamp(16px, 3.5vw, 24px) !important;
+        line-height: 1 !important;
+        margin-bottom: 4px !important;
+      }
+      #kpiSection4 .kpi-label {
+        font-size: clamp(9px, 1.5vw, 11px) !important;
+        margin-bottom: 2px !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+        color: var(--text-secondary) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection4 .kpi-value {
+        font-size: clamp(14px, 3vw, 22px) !important;
+        font-weight: var(--font-weight-bold) !important;
+        line-height: 1.2 !important;
+      }
+      #kpiSection4 .kpi-unit {
+        font-size: clamp(10px, 1.8vw, 13px) !important;
+        color: var(--text-secondary) !important;
+        margin-left: 3px !important;
+      }
+
+      .kpi-trend {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
+        font-size: clamp(10px, 1.2vw, 14px); /* 반응형 폰트 */
+      }
+
+      .trend-up {
+        color: var(--success-color);
+      }
+      .trend-down {
+        color: var(--danger-color);
+      }
+
+      .trend-period {
+        color: var(--text-muted);
+      }
+
+      .kpi-details {
+        display: flex;
+        gap: var(--spacing-xs);
+        margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
+        font-size: clamp(10px, 1.1vw, 13px); /* 반응형 폰트 */
+      }
+
+      .kpi-progress {
+        height: clamp(4px, 0.8vw, 8px); /* 반응형 높이 */
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-full);
+        overflow: hidden;
+        margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: var(--gradient-accent);
+        border-radius: var(--radius-full);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .progress-bar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        animation: shimmer 2s infinite;
+      }
+
+      @keyframes shimmer {
+        to {
+          left: 100%;
+        }
+      }
+
+      /* === 반응형 === */
+      /* 타블릿: 콘텐츠 크기만 조정, 그리드는 그대로 */
+      @media (max-width: 1024px) {
+        .kpi-card {
+          gap: clamp(6px, 0.8vw, 12px);
+        }
+      }
+
+      /* 모바일: 자동 줄바꿈 (여러 줄 가로 배치) */
+      @media (max-width: 640px) {
         .kpi-section {
-            display: block !important; /* 강제 표시 */
-            visibility: visible !important;
-            margin-bottom: var(--spacing-3xl, 64px);
-            width: 95% !important; /* ✅ 전체 95% */
-            margin-left: auto;
-            margin-right: auto;
+          width: 95% !important; /* 모바일에서는 전체 너비 */
         }
 
         .section-title {
-            /* 글래스모피즘 효과 - 더 진한 배경 (관리자 색상) */
-            background: rgba(2, 16, 36, 0.6) !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-            border-radius: var(--radius-lg, 12px) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-
-            /* 텍스트 스타일 */
-            font-size: 22px !important;
-            font-weight: var(--font-weight-bold, 700) !important;
-            color: #FFFFFF !important;
-            text-shadow:
-              2px 2px 4px rgba(0, 0, 0, 0.8),
-              0 0 10px rgba(255, 255, 255, 0.3) !important;
-
-            /* 레이아웃 - kpi-section의 100% (메인창 기준 95%) */
-            width: 100% !important; /* ✅ 전체 너비 */
-            padding: var(--spacing-md, 16px) var(--spacing-lg, 24px) !important;
-            margin-bottom: var(--spacing-lg, 24px) !important;
-            box-sizing: border-box !important;
-
-            /* 강제 표시 */
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-
-            /* 호버 효과 */
-            transition: all 0.3s ease !important;
+          width: 100% !important; /* 모바일에서는 전체 너비 */
+          white-space: normal !important; /* 줄바꿈 허용 */
         }
 
-        .section-title:hover {
-            background: rgba(2, 16, 36, 0.8);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-            text-shadow:
-              2px 2px 6px rgba(0, 0, 0, 1),
-              0 0 15px rgba(255, 255, 255, 0.5);
-        }
-
-        /* === CSS 변수 정의 === */
-        :root {
-            --kpi-gap: clamp(8px, 1.5vw, 20px);
-        }
-
-        /* === KPI 그리드 - Flexbox + calc() 방식으로 카드 너비 명시적 계산 === */
         .kpi-grid {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            gap: var(--kpi-gap) !important;
-            width: 100% !important;
+          flex-wrap: wrap !important; /* 줄바꿈 허용 */
+          overflow-x: hidden !important;
         }
 
-        /* 섹션별 카드 개수에 맞게 너비 계산 */
-        /* 공식: width = (100% - (N-1) × gap) / N */
-
-        #kpiSection1 .kpi-card {
-            /* 4개 카드: (100% - 3 × gap) / 4 */
-            width: calc((100% - 3 * var(--kpi-gap)) / 4) !important;
-            flex-shrink: 0 !important;
-        }
-
-        #kpiSection2 .kpi-card {
-            /* 2개 카드: (100% - 1 × gap) / 2 */
-            width: calc((100% - 1 * var(--kpi-gap)) / 2) !important;
-            flex-shrink: 0 !important;
-        }
-
-        #kpiSection3 .kpi-card {
-            /* 6개 카드: (100% - 5 × gap) / 6 */
-            width: calc((100% - 5 * var(--kpi-gap)) / 6) !important;
-            flex-shrink: 0 !important;
-        }
-
+        /* 모바일에서는 모든 카드가 동일한 너비 (최소 120px) */
+        #kpiSection1 .kpi-card,
+        #kpiSection2 .kpi-card,
+        #kpiSection3 .kpi-card,
         #kpiSection4 .kpi-card {
-            /* 2개 카드: (100% - 1 × gap) / 2 */
-            width: calc((100% - 1 * var(--kpi-gap)) / 2) !important;
-            flex-shrink: 0 !important;
+          width: calc((100% - var(--kpi-gap)) / 2) !important; /* 2열 배치 */
+          min-width: 120px !important;
+          flex-grow: 1 !important;
         }
 
-        /* 스크롤바 스타일 (선택적) */
-        .kpi-grid::-webkit-scrollbar {
-            height: 6px;
+        .header-content {
+          flex-direction: column;
+          align-items: flex-start;
         }
 
-        .kpi-grid::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
+        /* 모바일에서는 콘텐츠를 더 크게 */
+        .kpi-label {
+          font-size: 12px;
+          white-space: normal; /* 줄바꿈 허용 */
         }
 
-        .kpi-grid::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
+        .kpi-value {
+          font-size: 24px;
         }
 
-        .kpi-grid::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
+        .kpi-icon {
+          font-size: 28px;
         }
-        
-        .kpi-card {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            box-sizing: border-box !important;
-            width: 100% !important;
-            min-width: 0 !important;
-        }
+      }
 
-        .kpi-content {
-            width: 100% !important;
-        }
-
-        /* === 섹션별 카드 내용물 크기 === */
-        /* 일관성 규칙: 4개 이하 = 100%, 5개 = 85%, 6개 = 70% (1장당 15% 감소) */
-
-        /* 기본 크기 (100%) - 1~4개 카드용 */
-        .kpi-card-base {
-            gap: clamp(6px, 1.2vw, 10px) !important;
-            padding: clamp(10px, 2.5vw, 16px) !important;
-        }
-
-        /* Section 1: 4개 카드 → 100% 기본 크기 */
-        #kpiSection1 .kpi-card {
-            gap: clamp(6px, 1.2vw, 10px) !important;
-            padding: clamp(10px, 2.5vw, 16px) !important;
-        }
-        #kpiSection1 .kpi-icon {
-            font-size: clamp(16px, 3.5vw, 24px) !important;
-            line-height: 1 !important;
-            margin-bottom: 4px !important;
-        }
-        #kpiSection1 .kpi-label {
-            font-size: clamp(9px, 1.5vw, 11px) !important;
-            margin-bottom: 2px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.3px !important;
-            color: var(--text-secondary) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection1 .kpi-value {
-            font-size: clamp(14px, 3vw, 22px) !important;
-            font-weight: var(--font-weight-bold) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection1 .kpi-unit {
-            font-size: clamp(10px, 1.8vw, 13px) !important;
-            color: var(--text-secondary) !important;
-            margin-left: 3px !important;
-        }
-
-        /* Section 2: 2개 카드 → 100% 기본 크기 */
-        #kpiSection2 .kpi-card {
-            gap: clamp(6px, 1.2vw, 10px) !important;
-            padding: clamp(10px, 2.5vw, 16px) !important;
-        }
-        #kpiSection2 .kpi-icon {
-            font-size: clamp(16px, 3.5vw, 24px) !important;
-            line-height: 1 !important;
-            margin-bottom: 4px !important;
-        }
-        #kpiSection2 .kpi-label {
-            font-size: clamp(9px, 1.5vw, 11px) !important;
-            margin-bottom: 2px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.3px !important;
-            color: var(--text-secondary) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection2 .kpi-value {
-            font-size: clamp(14px, 3vw, 22px) !important;
-            font-weight: var(--font-weight-bold) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection2 .kpi-unit {
-            font-size: clamp(10px, 1.8vw, 13px) !important;
-            color: var(--text-secondary) !important;
-            margin-left: 3px !important;
-        }
-
-        /* Section 3: 6개 카드 → 70% 크기 (30% 감소) */
-        #kpiSection3 .kpi-card {
-            gap: clamp(4px, 0.84vw, 7px) !important;
-            padding: clamp(7px, 1.75vw, 11px) !important;
-        }
-        #kpiSection3 .kpi-icon {
-            font-size: clamp(11px, 2.45vw, 17px) !important;
-            line-height: 1 !important;
-            margin-bottom: 3px !important;
-        }
-        #kpiSection3 .kpi-label {
-            font-size: clamp(6px, 1.05vw, 8px) !important;
-            margin-bottom: 2px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.2px !important;
-            color: var(--text-secondary) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection3 .kpi-value {
-            font-size: clamp(10px, 2.1vw, 15px) !important;
-            font-weight: var(--font-weight-bold) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection3 .kpi-unit {
-            font-size: clamp(7px, 1.26vw, 9px) !important;
-            color: var(--text-secondary) !important;
-            margin-left: 2px !important;
-        }
-
-        /* Section 4: 2개 카드 → 100% 기본 크기 */
-        #kpiSection4 .kpi-card {
-            gap: clamp(6px, 1.2vw, 10px) !important;
-            padding: clamp(10px, 2.5vw, 16px) !important;
-        }
-        #kpiSection4 .kpi-icon {
-            font-size: clamp(16px, 3.5vw, 24px) !important;
-            line-height: 1 !important;
-            margin-bottom: 4px !important;
-        }
-        #kpiSection4 .kpi-label {
-            font-size: clamp(9px, 1.5vw, 11px) !important;
-            margin-bottom: 2px !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.3px !important;
-            color: var(--text-secondary) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection4 .kpi-value {
-            font-size: clamp(14px, 3vw, 22px) !important;
-            font-weight: var(--font-weight-bold) !important;
-            line-height: 1.2 !important;
-        }
-        #kpiSection4 .kpi-unit {
-            font-size: clamp(10px, 1.8vw, 13px) !important;
-            color: var(--text-secondary) !important;
-            margin-left: 3px !important;
-        }
-        
-        .kpi-trend {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
-            font-size: clamp(10px, 1.2vw, 14px); /* 반응형 폰트 */
-        }
-        
-        .trend-up { color: var(--success-color); }
-        .trend-down { color: var(--danger-color); }
-        
-        .trend-period {
-            color: var(--text-muted);
-        }
-        
-        .kpi-details {
-            display: flex;
-            gap: var(--spacing-xs);
-            margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
-            font-size: clamp(10px, 1.1vw, 13px); /* 반응형 폰트 */
-        }
-
-        .kpi-progress {
-            height: clamp(4px, 0.8vw, 8px); /* 반응형 높이 */
-            background: rgba(255,255,255,0.1);
-            border-radius: var(--radius-full);
-            overflow: hidden;
-            margin-top: clamp(4px, 0.5vw, 8px); /* 반응형 여백 */
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: var(--gradient-accent);
-            border-radius: var(--radius-full);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            to { left: 100%; }
-        }
-        
-
-        
-        /* === 반응형 === */
-        /* 타블릿: 콘텐츠 크기만 조정, 그리드는 그대로 */
-        @media (max-width: 1024px) {
-            .kpi-card {
-                gap: clamp(6px, 0.8vw, 12px);
-            }
-        }
-
-        /* 모바일: 자동 줄바꿈 (여러 줄 가로 배치) */
-        @media (max-width: 640px) {
-            .kpi-section {
-                width: 95% !important; /* 모바일에서는 전체 너비 */
-            }
-
-            .section-title {
-                width: 100% !important; /* 모바일에서는 전체 너비 */
-                white-space: normal !important; /* 줄바꿈 허용 */
-            }
-
-            .kpi-grid {
-                flex-wrap: wrap !important; /* 줄바꿈 허용 */
-                overflow-x: hidden !important;
-            }
-
-            /* 모바일에서는 모든 카드가 동일한 너비 (최소 120px) */
-            #kpiSection1 .kpi-card,
-            #kpiSection2 .kpi-card,
-            #kpiSection3 .kpi-card,
-            #kpiSection4 .kpi-card {
-                width: calc((100% - var(--kpi-gap)) / 2) !important; /* 2열 배치 */
-                min-width: 120px !important;
-                flex-grow: 1 !important;
-            }
-
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            /* 모바일에서는 콘텐츠를 더 크게 */
-            .kpi-label {
-                font-size: 12px;
-                white-space: normal; /* 줄바꿈 허용 */
-            }
-
-            .kpi-value {
-                font-size: 24px;
-            }
-
-            .kpi-icon {
-                font-size: 28px;
-            }
-        }
-
-        /* ============================================
+      /* ============================================
            유틸리티 클래스 (인라인 스타일 리팩토링)
            ============================================ */
 
-        /* 숨김 상태 (JavaScript로 토글됨) */
-        .hidden {
-            display: none;
-        }
+      /* 숨김 상태 (JavaScript로 토글됨) */
+      .hidden {
+        display: none;
+      }
     </style>
-    
+
     <!-- JavaScript -->
     <script type="module">
-        // 페이지 초기화
-        document.addEventListener('DOMContentLoaded', () => {
-            // 페이지 초기화 로직 (필요시 추가)
-        });
+      // 페이지 초기화
+      document.addEventListener("DOMContentLoaded", () => {
+        // 페이지 초기화 로직 (필요시 추가)
+      });
     </script>
-</body>
+  </body>
 </html>

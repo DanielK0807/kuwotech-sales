@@ -5,6 +5,7 @@
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../config/database.js';
+import { refreshAllSalesKPI, refreshAdminKPI } from '../services/kpi.service.js';
 
 // GET /api/employees - 전체 직원 조회
 export const getAllEmployees = async (req, res) => {
@@ -237,6 +238,23 @@ export const updateEmployee = async (req, res) => {
 
     console.log('[직원 정보 수정] 성공');
 
+    // ============================================
+    // 📊 KPI 자동 재계산 (role1/role2/status 변경 시)
+    // ============================================
+    const kpiAffectingFields = ['role1', 'role2', 'status', 'name'];
+    const shouldRefreshKPI = kpiAffectingFields.some(field => updates.includes(`${field} = ?`));
+
+    if (shouldRefreshKPI) {
+      console.log('🔄 [직원 정보 수정] KPI 재계산 시작 (역할/상태 변경)...');
+      try {
+        await refreshAllSalesKPI();
+        await refreshAdminKPI();
+        console.log('✅ [직원 정보 수정] KPI 재계산 완료');
+      } catch (kpiError) {
+        console.error('⚠️ [직원 정보 수정] KPI 재계산 실패:', kpiError.message);
+      }
+    }
+
     res.json({
       success: true,
       message: '직원 정보가 성공적으로 수정되었습니다.'
@@ -377,6 +395,18 @@ export const createEmployee = async (req, res) => {
 
     console.log('[직원 추가] 성공:', name);
 
+    // ============================================
+    // 📊 KPI 자동 재계산
+    // ============================================
+    console.log('🔄 [직원 추가] KPI 재계산 시작...');
+    try {
+      await refreshAllSalesKPI();
+      await refreshAdminKPI();
+      console.log('✅ [직원 추가] KPI 재계산 완료');
+    } catch (kpiError) {
+      console.error('⚠️ [직원 추가] KPI 재계산 실패:', kpiError.message);
+    }
+
     res.json({
       success: true,
       message: '직원이 성공적으로 추가되었습니다.',
@@ -430,6 +460,18 @@ export const deleteEmployee = async (req, res) => {
     await db.execute('DELETE FROM employees WHERE id = ?', [id]);
 
     console.log('[직원 삭제] 성공:', employeeName);
+
+    // ============================================
+    // 📊 KPI 자동 재계산
+    // ============================================
+    console.log('🔄 [직원 삭제] KPI 재계산 시작...');
+    try {
+      await refreshAllSalesKPI();
+      await refreshAdminKPI();
+      console.log('✅ [직원 삭제] KPI 재계산 완료');
+    } catch (kpiError) {
+      console.error('⚠️ [직원 삭제] KPI 재계산 실패:', kpiError.message);
+    }
 
     res.json({
       success: true,

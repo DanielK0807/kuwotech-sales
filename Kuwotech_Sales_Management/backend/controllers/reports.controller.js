@@ -3,6 +3,7 @@
 // ============================================
 
 import { getDB } from '../config/database.js';
+import { refreshAllSalesKPI, refreshAdminKPI } from '../services/kpi.service.js';
 
 // GET /api/reports - 전체 보고서 조회 (필터링 지원)
 export const getAllReports = async (req, res) => {
@@ -440,6 +441,20 @@ export const updateReport = async (req, res) => {
     const query = `UPDATE reports SET ${updates.join(', ')} WHERE reportId = ?`;
 
     await db.execute(query, params);
+
+    // ============================================
+    // 📊 KPI 자동 재계산 (보고서 승인 시)
+    // ============================================
+    if (status === '승인') {
+      console.log('🔄 [보고서 승인] KPI 재계산 시작...');
+      try {
+        await refreshAllSalesKPI();
+        await refreshAdminKPI();
+        console.log('✅ [보고서 승인] KPI 재계산 완료');
+      } catch (kpiError) {
+        console.error('⚠️ [보고서 승인] KPI 재계산 실패:', kpiError.message);
+      }
+    }
 
     res.json({
       success: true,

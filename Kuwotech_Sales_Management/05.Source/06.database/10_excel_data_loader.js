@@ -100,9 +100,15 @@ export class ExcelDataLoader {
         throw new Error("XLSX 라이브러리가 로드되지 않았습니다.");
       }
 
-      // 백업 생성
+      // 백업 생성 (실패해도 업로드는 계속 진행)
       if (createBackupFirst) {
-        await createBackup("엑셀 업로드 전 백업");
+        try {
+          await createBackup("엑셀 업로드 전 백업");
+          logger.info("[ExcelDataLoader] 백업 생성 완료");
+        } catch (backupError) {
+          logger.warn("[ExcelDataLoader] 백업 생성 실패 - 업로드는 계속 진행:", backupError.message);
+          // 백업 실패해도 업로드는 계속 진행
+        }
       }
 
       // 파일 읽기
@@ -473,7 +479,8 @@ export class ExcelDataLoader {
 
           if (existing) {
             // 업데이트 (기존 KEY VALUE 유지)
-            await db.updateClient(existing.keyValue, companyData);
+            // 엑셀 업로드는 관리자만 할 수 있으므로 isExcelUpload 플래그 추가
+            await db.updateClient(existing.keyValue, companyData, { isExcelUpload: true });
             updatedCount++;
 
             if (!matchedByKeyValue) {

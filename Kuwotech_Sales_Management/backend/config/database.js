@@ -2,7 +2,7 @@
 // MySQL 데이터베이스 연결 설정
 // ============================================
 
-import mysql from 'mysql2/promise';
+import mysql from "mysql2/promise";
 
 let connection = null;
 
@@ -19,7 +19,7 @@ const isConnectionAlive = async (conn) => {
 // 데이터베이스 연결 생성
 export const connectDB = async () => {
   // 기존 연결이 있고 살아있으면 반환
-  if (connection && await isConnectionAlive(connection)) {
+  if (connection && (await isConnectionAlive(connection))) {
     return connection;
   }
 
@@ -34,20 +34,34 @@ export const connectDB = async () => {
   }
 
   try {
-    connection = await mysql.createConnection(process.env.DATABASE_URL);
-    console.log('✅ MySQL 데이터베이스 연결 성공');
+    // 연결 옵션 추가 (타임아웃 및 재연결 설정 강화)
+    const connectionConfig = {
+      uri: process.env.DATABASE_URL,
+      connectTimeout: 60000, // 60초
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 0,
+    };
+
+    connection = await mysql.createConnection(connectionConfig);
+    console.log("✅ MySQL 데이터베이스 연결 성공");
 
     // 연결 에러 핸들러 등록
-    connection.on('error', (err) => {
-      console.error('❌ MySQL 연결 에러:', err);
-      if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
+    connection.on("error", (err) => {
+      console.error("❌ MySQL 연결 에러:", err);
+      if (
+        err.code === "PROTOCOL_CONNECTION_LOST" ||
+        err.code === "ECONNRESET"
+      ) {
         connection = null;
       }
     });
 
     return connection;
   } catch (error) {
-    console.error('❌ MySQL 연결 실패:', error.message);
+    console.error("❌ MySQL 연결 실패:", error.message);
     throw error;
   }
 };
@@ -56,7 +70,7 @@ export const connectDB = async () => {
 export const getDB = async () => {
   // 연결이 없거나 죽었으면 재연결
   if (!connection || !(await isConnectionAlive(connection))) {
-    console.log('🔄 MySQL 재연결 시도...');
+    console.log("🔄 MySQL 재연결 시도...");
     await connectDB();
   }
   return connection;
@@ -67,6 +81,6 @@ export const closeDB = async () => {
   if (connection) {
     await connection.end();
     connection = null;
-    console.log('✅ MySQL 연결 종료');
+    console.log("✅ MySQL 연결 종료");
   }
 };

@@ -257,7 +257,7 @@ function displayKPICardsWithGlass() {
   // 섹션 1: 거래처 관리 지표 (4개)
   const section1Config = [
     {
-      title: "담당거래처",
+      title: "담당 거래처",
       value: dashboardData.assignedCompanies || 0,
       unit: "개사",
       icon: "🏢",
@@ -265,7 +265,7 @@ function displayKPICardsWithGlass() {
       style: { color: "primary", size: "md", animated: true },
     },
     {
-      title: "활성거래처",
+      title: "활성 거래처",
       value: dashboardData.activeCompanies || 0,
       unit: "개사",
       icon: "✅",
@@ -273,7 +273,7 @@ function displayKPICardsWithGlass() {
       style: { color: "success", size: "md", animated: true },
     },
     {
-      title: "활성화율",
+      title: "거래처 활성화율",
       value: dashboardData.activationRate || 0,
       unit: "%",
       icon: "📊",
@@ -281,7 +281,7 @@ function displayKPICardsWithGlass() {
       style: { color: "info", size: "md", animated: true },
     },
     {
-      title: "주요제품판매거래처",
+      title: "주요제품 판매 거래처",
       value: dashboardData.mainProductCompanies || 0,
       unit: "개사",
       icon: "⭐",
@@ -298,7 +298,7 @@ function displayKPICardsWithGlass() {
   // 섹션 2: 목표 달성 지표 (2개)
   const section2Config = [
     {
-      title: "회사배정기준대비달성율",
+      title: "회사배정기준 대비 달성율",
       value: (() => {
         const val = dashboardData.companyTargetAchievementRate || 0;
         const formatted = formatPercent(Math.abs(val) / 100, 2, false);
@@ -317,7 +317,7 @@ function displayKPICardsWithGlass() {
       },
     },
     {
-      title: "주요고객처목표달성율",
+      title: "주요고객처 목표 달성율",
       value: (() => {
         const val = dashboardData.majorCustomerTargetRate || 0;
         const formatted = formatPercent(Math.abs(val) / 100, 2, false);
@@ -340,7 +340,7 @@ function displayKPICardsWithGlass() {
   // 섹션 3: 매출 성과 지표 (4개)
   const section3Config = [
     {
-      title: "누적매출금액",
+      title: "누적 매출금액",
       value: dashboardData.accumulatedSales || 0,
       unit: "원",
       icon: "💰",
@@ -353,7 +353,7 @@ function displayKPICardsWithGlass() {
       },
     },
     {
-      title: "주요제품매출액",
+      title: "주요제품 매출액",
       value: dashboardData.mainProductSales || 0,
       unit: "원",
       icon: "💎",
@@ -361,7 +361,7 @@ function displayKPICardsWithGlass() {
       style: { color: "info", size: "md", animated: true },
     },
     {
-      title: "매출집중도",
+      title: "매출 집중도",
       value: dashboardData.salesConcentration || 0,
       unit: "원",
       icon: "📈",
@@ -374,7 +374,7 @@ function displayKPICardsWithGlass() {
       },
     },
     {
-      title: "주요제품매출비율",
+      title: "주요제품 매출비율",
       value: dashboardData.mainProductSalesRatio || 0,
       unit: "%",
       icon: "📊",
@@ -386,7 +386,7 @@ function displayKPICardsWithGlass() {
   // 섹션 4: 재무 및 기여도 지표 (4개)
   const section4Config = [
     {
-      title: "누적수금금액",
+      title: "누적 수금금액",
       value: dashboardData.accumulatedCollection || 0,
       unit: "원",
       icon: "💳",
@@ -394,7 +394,7 @@ function displayKPICardsWithGlass() {
       style: { color: "success", size: "md", animated: true },
     },
     {
-      title: "매출채권잔액",
+      title: "매출채권 잔액",
       value: dashboardData.accountsReceivable || 0,
       unit: "원",
       icon: "📋",
@@ -402,7 +402,7 @@ function displayKPICardsWithGlass() {
       style: { color: "warning", size: "md", animated: true },
     },
     {
-      title: "전체매출기여도",
+      title: "전체매출 기여도",
       value: dashboardData.totalSalesContribution || 0,
       unit: "%",
       icon: "🌟",
@@ -410,7 +410,7 @@ function displayKPICardsWithGlass() {
       style: { color: "primary", size: "md", animated: true },
     },
     {
-      title: "주요제품매출기여도",
+      title: "주요제품매출 기여도",
       value: dashboardData.mainProductContribution || 0,
       unit: "%",
       icon: "⭐",

@@ -18,6 +18,7 @@
 import logger from './23_logger.js';
 import { showToast } from './14_toast.js';
 import { showModal } from './06_modal.js';
+import { getApiBaseUrl } from './01_global_config.js';
 
 // ============================================
 // [SECTION: 에러 타입 정의]
@@ -339,8 +340,12 @@ class ErrorHandler {
                 browserInfo: navigator.userAgent
             };
 
+            // 올바른 API URL 생성 (프로덕션/로컬 환경 자동 감지)
+            const apiBaseUrl = getApiBaseUrl();
+            const errorLogUrl = `${apiBaseUrl}/api/errors/log`;
+
             // API로 전송 (비동기, 에러 발생해도 무시)
-            const response = await fetch('/api/errors/log', {
+            const response = await fetch(errorLogUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

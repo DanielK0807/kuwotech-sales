@@ -26,7 +26,7 @@ import employeesRoutes from "./routes/employees.routes.js";
 import companiesRoutes from "./routes/companies.routes.js";
 import reportsRoutes from "./routes/reports.routes.js";
 import goalsRoutes from "./routes/goals.routes.js";
-import kpiRoutes from "./routes/kpi.routes.js";
+import kpiRoutes from "./routes/kpi.routes.js"; // ✅ FIX: 이 파일이 실제로는 없었음. 새로 생성 후 연결
 import uploadRoutes from "./routes/upload.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import migrationRoutes from "./routes/migration.routes.js";

@@ -356,6 +356,58 @@ export const getMainProductRanking = async (req, res) => {
     }
 };
 
+/**
+ * 매출집중도 상세 데이터 조회
+ * GET /api/kpi/admin/sales-concentration/detail
+ */
+export const getSalesConcentrationDetail = async (req, res) => {
+    let connection;
+
+    try {
+        connection = await getDB();
+
+        console.log('[KPI API] 매출집중도 상세 데이터 조회');
+
+        // 거래처별 누적매출 및 월수 집계 조회
+        const [concentrationData] = await connection.execute(
+            `SELECT
+                c.id,
+                c.companyName,
+                COALESCE(SUM(r.salesAmount), 0) as salesAmount,
+                COUNT(DISTINCT DATE_FORMAT(r.reportDate, '%Y-%m')) as monthCount
+            FROM companies c
+            INNER JOIN reports r ON c.id = r.companyId
+            WHERE r.approvalStatus = '승인'
+                AND r.reportDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                AND c.status = '활성'
+            GROUP BY c.id, c.companyName
+            HAVING salesAmount > 0
+            ORDER BY salesAmount DESC
+            LIMIT 100`
+        );
+
+        res.json({
+            success: true,
+            data: concentrationData.map(row => ({
+                companyId: row.id,
+                companyName: row.companyName,
+                salesAmount: parseFloat(row.salesAmount) || 0,
+                monthCount: parseInt(row.monthCount) || 0
+            }))
+        });
+
+    } catch (error) {
+        console.error('[KPI API] 매출집중도 상세 데이터 조회 실패:', error);
+        res.status(500).json({
+            success: false,
+            message: '서버 오류가 발생했습니다.',
+            error: error.message
+        });
+    } finally {
+        // Connection is shared, no need to release
+    }
+};
+
 // ============================================
 // [헬퍼 함수]
 // ============================================

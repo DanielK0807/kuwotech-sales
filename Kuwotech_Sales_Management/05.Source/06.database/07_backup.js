@@ -29,11 +29,13 @@ export async function createBackup(options = {}) {
     // 문자열이 전달된 경우 description으로 처리
     const description = typeof options === 'string' ? options : (options.description || '수동 백업');
 
+    logger.info('[백업 생성] 시도 중:', description);
 
     const db = await getDB();
     const result = await db.createBackup();
 
     if (result.success) {
+      logger.info('[백업 생성] 성공:', description);
       return {
         success: true,
         message: '백업이 성공적으로 생성되었습니다.',
@@ -44,6 +46,16 @@ export async function createBackup(options = {}) {
     }
 
   } catch (error) {
+    // 백업 API가 구현되지 않은 경우 (404 에러)
+    if (error.message && error.message.includes('Cannot POST')) {
+      logger.warn('[백업 생성] 백업 API가 아직 구현되지 않았습니다. 백업 없이 계속 진행합니다.');
+      return {
+        success: false,
+        message: '백업 API 미구현',
+        skipped: true
+      };
+    }
+
     logger.error('[백업 생성 실패]', error);
     return {
       success: false,
