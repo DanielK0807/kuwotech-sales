@@ -50,7 +50,7 @@ class KpiManager {
     try {
       // 백엔드 API 호출: 모든 KPI 재계산 요청
       const apiManager = ApiManager.getInstance();
-      const response = await apiManager.post("/api/kpi/refresh-all");
+      const response = await apiManager.post("/kpi/refresh-all");
 
       if (!response || response.error) {
         throw new Error(response?.message || "KPI 재계산 API 호출 실패");
