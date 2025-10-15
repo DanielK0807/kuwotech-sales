@@ -54,6 +54,10 @@ const PORT = process.env.PORT || 3000;
 // 미들웨어 설정
 // ============================================
 
+// Trust proxy - Railway/Nginx 등 프록시 환경에서 실제 클라이언트 IP 가져오기
+// x-forwarded-for 헤더를 신뢰하여 req.ip가 실제 클라이언트 IP를 반환하도록 설정
+app.set('trust proxy', true);
+
 // CORS 설정
 const allowedOrigins = [
   "http://localhost:5500", // Live Server (로컬 개발)
