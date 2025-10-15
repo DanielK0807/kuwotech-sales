@@ -9,127 +9,140 @@ Date: 2025-01-27
 -->
 
 <div class="page-container excel-upload-page">
-    <!-- [섹션: 페이지 헤더] -->
-    <div class="page-header glass-card">
-        <h1 class="page-title">
-            <i class="icon">📤</i>
-            거래처 데이터 업로드
-        </h1>
-        <p class="page-description">
-            엑셀 파일의 "기본정보" 시트를 업로드하여 거래처 데이터를 데이터베이스에 저장합니다.
-        </p>
+  <!-- [섹션: 페이지 헤더] -->
+  <div class="page-header glass-card">
+    <h1 class="page-title">
+      <i class="icon">📤</i>
+      거래처 데이터 업로드
+    </h1>
+    <p class="page-description">
+      엑셀 파일의 "기본정보" 시트를 업로드하여 거래처 데이터를 데이터베이스에
+      저장합니다.
+    </p>
+  </div>
+
+  <!-- [섹션: 업로드 상태 정보] -->
+  <div class="upload-status glass-card" id="upload-status">
+    <div class="status-item">
+      <div class="status-label">현재 저장된 거래처</div>
+      <div class="status-value" id="current-count">-</div>
+    </div>
+    <div class="status-item">
+      <div class="status-label">마지막 업로드</div>
+      <div class="status-value" id="last-upload">-</div>
+    </div>
+    <div class="status-item">
+      <div class="status-label">저장소 상태</div>
+      <div class="status-value" id="storage-status">-</div>
+    </div>
+  </div>
+
+  <!-- [섹션: 중요 안내사항] -->
+  <div class="info-box glass-card info-box-warning">
+    <h3 class="info-box-title">
+      <i class="fas fa-exclamation-triangle"></i> 중요 안내사항
+    </h3>
+    <ul class="info-box-list">
+      <li><strong>"기본정보"</strong> 시트만 업로드됩니다.</li>
+      <li>업로드 전 <strong>자동 백업</strong>이 생성됩니다.</li>
+      <li>
+        기존 데이터와 비교하여 <strong>변경사항이 자동 감지</strong>됩니다.
+      </li>
+      <li>
+        모든 관리자와 영업담당이 업로드된 데이터를 즉시 사용할 수 있습니다.
+      </li>
+      <li>
+        필수 컬럼: <code>KEY VALUE</code>, <code>거래처명(ERP)</code> 또는
+        <code>최종거래처명</code>
+      </li>
+    </ul>
+  </div>
+
+  <!-- [섹션: 파일 업로드 영역] -->
+  <div class="upload-area glass-card" id="upload-area">
+    <div class="upload-zone" id="upload-zone">
+      <i class="upload-icon">📁</i>
+      <h3>엑셀 파일을 선택하거나 드래그하세요</h3>
+      <p>지원 형식: .xlsx, .xls</p>
+      <button class="btn-import" id="select-file-btn">
+        <i class="fas fa-file-upload"></i> 파일 선택
+      </button>
+      <input
+        type="file"
+        id="excel-file-input"
+        accept=".xlsx,.xls"
+        class="hidden"
+      />
     </div>
 
-    <!-- [섹션: 업로드 상태 정보] -->
-    <div class="upload-status glass-card" id="upload-status">
-        <div class="status-item">
-            <div class="status-label">현재 저장된 거래처</div>
-            <div class="status-value" id="current-count">-</div>
+    <!-- [섹션: 파일 정보 표시] -->
+    <div class="file-info hidden" id="file-info">
+      <div class="file-details glass-effect-light">
+        <div class="file-icon">📄</div>
+        <div class="file-content">
+          <div class="file-name" id="file-name">-</div>
+          <div class="file-meta">
+            <span id="file-size">-</span> |
+            <span id="file-date">-</span>
+          </div>
         </div>
-        <div class="status-item">
-            <div class="status-label">마지막 업로드</div>
-            <div class="status-value" id="last-upload">-</div>
-        </div>
-        <div class="status-item">
-            <div class="status-label">저장소 상태</div>
-            <div class="status-value" id="storage-status">-</div>
-        </div>
+        <button class="btn-delete" id="remove-file-btn">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <button class="btn-save btn-full-mt" id="upload-btn">
+        <i class="fas fa-cloud-upload-alt"></i> 데이터베이스에 업로드
+      </button>
     </div>
+  </div>
 
-    <!-- [섹션: 중요 안내사항] -->
-    <div class="info-box glass-card info-box-warning">
-        <h3 class="info-box-title">
-            <i class="fas fa-exclamation-triangle"></i> 중요 안내사항
-        </h3>
-        <ul class="info-box-list">
-            <li><strong>"기본정보"</strong> 시트만 업로드됩니다.</li>
-            <li>업로드 전 <strong>자동 백업</strong>이 생성됩니다.</li>
-            <li>기존 데이터와 비교하여 <strong>변경사항이 자동 감지</strong>됩니다.</li>
-            <li>모든 관리자와 영업담당이 업로드된 데이터를 즉시 사용할 수 있습니다.</li>
-            <li>필수 컬럼: <code>KEY VALUE</code>, <code>거래처명(ERP)</code> 또는 <code>최종거래처명</code></li>
-        </ul>
-    </div>
+  <!-- [섹션: 처리 결과] -->
+  <div class="upload-result hidden" id="upload-result">
+    <!-- 동적 생성 -->
+  </div>
 
-    <!-- [섹션: 파일 업로드 영역] -->
-    <div class="upload-area glass-card" id="upload-area">
-        <div class="upload-zone" id="upload-zone">
-            <i class="upload-icon">📁</i>
-            <h3>엑셀 파일을 선택하거나 드래그하세요</h3>
-            <p>지원 형식: .xlsx, .xls</p>
-            <button class="btn-import" id="select-file-btn">
-                <i class="fas fa-file-upload"></i> 파일 선택
-            </button>
-            <input type="file" id="excel-file-input" accept=".xlsx,.xls" class="hidden">
-        </div>
-
-        <!-- [섹션: 파일 정보 표시] -->
-        <div class="file-info hidden" id="file-info">
-            <div class="file-details glass-effect-light">
-                <div class="file-icon">📄</div>
-                <div class="file-content">
-                    <div class="file-name" id="file-name">-</div>
-                    <div class="file-meta">
-                        <span id="file-size">-</span> | 
-                        <span id="file-date">-</span>
-                    </div>
-                </div>
-                <button class="btn-delete" id="remove-file-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <button class="btn-save btn-full-mt" id="upload-btn">
-                <i class="fas fa-cloud-upload-alt"></i> 데이터베이스에 업로드
-            </button>
-        </div>
-    </div>
-
-    <!-- [섹션: 처리 결과] -->
-    <div class="upload-result hidden" id="upload-result">
+  <!-- [섹션: 변경사항 모달] -->
+  <div class="changes-modal-overlay hidden" id="changes-modal">
+    <div class="changes-modal-content glass-card">
+      <div class="modal-header">
+        <h2>변경사항 확인</h2>
+        <button class="btn-close" id="close-changes-modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="changes-modal-body">
         <!-- 동적 생성 -->
+      </div>
     </div>
+  </div>
 
-    <!-- [섹션: 변경사항 모달] -->
-    <div class="changes-modal-overlay hidden" id="changes-modal">
-        <div class="changes-modal-content glass-card">
-            <div class="modal-header">
-                <h2>변경사항 확인</h2>
-                <button class="btn-close" id="close-changes-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body" id="changes-modal-body">
-                <!-- 동적 생성 -->
-            </div>
-        </div>
+  <!-- [섹션: 업로드 이력] -->
+  <div class="upload-history glass-card">
+    <h3 class="section-title"><i class="fas fa-history"></i> 업로드 이력</h3>
+    <div class="history-list" id="history-list">
+      <div class="no-data">업로드 이력이 없습니다.</div>
     </div>
-
-    <!-- [섹션: 업로드 이력] -->
-    <div class="upload-history glass-card">
-        <h3 class="section-title">
-            <i class="fas fa-history"></i> 업로드 이력
-        </h3>
-        <div class="history-list" id="history-list">
-            <div class="no-data">업로드 이력이 없습니다.</div>
-        </div>
-    </div>
+  </div>
 </div>
 
+<script src="02_excel_upload.js" type="module"></script>
+
 <style>
-/* [스타일: 엑셀 업로드 페이지] */
-.excel-upload-page {
+  /* [스타일: 엑셀 업로드 페이지] */
+  .excel-upload-page {
     padding: var(--spacing-xl);
     max-width: 1200px;
     margin: 0 auto;
-}
+  }
 
-.page-header {
+  .page-header {
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
     text-align: center;
-}
+  }
 
-.page-title {
+  .page-title {
     font-size: var(--font-2xl);
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
@@ -138,132 +151,132 @@ Date: 2025-01-27
     align-items: center;
     justify-content: center;
     gap: var(--spacing-md);
-}
+  }
 
-.page-title .icon {
+  .page-title .icon {
     font-size: 2rem;
-}
+  }
 
-.page-description {
+  .page-description {
     color: var(--text-secondary);
     font-size: var(--font-md);
-}
+  }
 
-/* [업로드 상태] */
-.upload-status {
+  /* [업로드 상태] */
+  .upload-status {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: var(--spacing-lg);
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
-}
+  }
 
-.status-item {
+  .status-item {
     text-align: center;
-}
+  }
 
-.status-label {
+  .status-label {
     font-size: var(--font-sm);
     color: var(--text-secondary);
     margin-bottom: var(--spacing-xs);
-}
+  }
 
-.status-value {
+  .status-value {
     font-size: var(--font-xl);
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
-}
+  }
 
-/* [안내사항] */
-.info-box {
+  /* [안내사항] */
+  .info-box {
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
-}
+  }
 
-.info-box code {
+  .info-box code {
     background: rgba(0, 0, 0, 0.3);
     padding: 2px 8px;
     border-radius: 4px;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     color: rgba(255, 193, 7, 0.9);
-}
+  }
 
-/* [업로드 영역] */
-.upload-area {
+  /* [업로드 영역] */
+  .upload-area {
     padding: var(--spacing-xl);
     margin-bottom: var(--spacing-xl);
-}
+  }
 
-.upload-zone {
+  .upload-zone {
     border: 3px dashed rgba(255, 255, 255, 0.3);
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-3xl);
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
-}
+  }
 
-.upload-zone:hover {
+  .upload-zone:hover {
     border-color: rgba(33, 150, 243, 0.6);
     background: rgba(33, 150, 243, 0.05);
-}
+  }
 
-.upload-zone.drag-over {
+  .upload-zone.drag-over {
     border-color: rgba(76, 175, 80, 0.8);
     background: rgba(76, 175, 80, 0.1);
-}
+  }
 
-.upload-icon {
+  .upload-icon {
     font-size: 4rem;
     margin-bottom: var(--spacing-md);
     display: block;
-}
+  }
 
-.upload-zone h3 {
+  .upload-zone h3 {
     color: var(--text-primary);
     font-size: var(--font-xl);
     margin-bottom: var(--spacing-sm);
-}
+  }
 
-.upload-zone p {
+  .upload-zone p {
     color: var(--text-secondary);
     margin-bottom: var(--spacing-lg);
-}
+  }
 
-/* [파일 정보] */
-.file-info {
+  /* [파일 정보] */
+  .file-info {
     margin-top: var(--spacing-xl);
-}
+  }
 
-.file-details {
+  .file-details {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-lg);
     border-radius: var(--border-radius-md);
-}
+  }
 
-.file-icon {
+  .file-icon {
     font-size: 2rem;
-}
+  }
 
-.file-content {
+  .file-content {
     flex: 1;
-}
+  }
 
-.file-name {
+  .file-name {
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin-bottom: var(--spacing-xs);
-}
+  }
 
-.file-meta {
+  .file-meta {
     font-size: var(--font-sm);
     color: var(--text-secondary);
-}
+  }
 
-/* [변경사항 모달] */
-.changes-modal-overlay {
+  /* [변경사항 모달] */
+  .changes-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -275,31 +288,31 @@ Date: 2025-01-27
     align-items: center;
     justify-content: center;
     z-index: 9999;
-}
+  }
 
-.changes-modal-content {
+  .changes-modal-content {
     width: 90%;
     max-width: 900px;
     max-height: 90vh;
     overflow-y: auto;
     padding: var(--spacing-xl);
-}
+  }
 
-.modal-header {
+  .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-md);
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-}
+  }
 
-.modal-header h2 {
+  .modal-header h2 {
     color: var(--text-primary);
     font-size: var(--font-xl);
-}
+  }
 
-.btn-close {
+  .btn-close {
     background: rgba(0, 0, 0, 0.1);
     border: none;
     color: var(--text-primary);
@@ -308,163 +321,209 @@ Date: 2025-01-27
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
-}
+  }
 
-.btn-close:hover {
+  .btn-close:hover {
     background: rgba(244, 67, 54, 0.8);
-}
+  }
 
-/* [엑셀 미리보기] */
-.excel-preview {
+  /* [엑셀 미리보기] */
+  .excel-preview {
     padding: var(--spacing-xl);
     margin-top: var(--spacing-xl);
     animation: fadeIn 0.3s ease;
-}
+  }
 
-@keyframes fadeIn {
+  @keyframes fadeIn {
     from {
-        opacity: 0;
-        transform: translateY(10px);
+      opacity: 0;
+      transform: translateY(10px);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+      opacity: 1;
+      transform: translateY(0);
     }
-}
+  }
 
-.preview-stats {
+  .preview-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: var(--spacing-md);
-}
+  }
 
-.stat-card {
+  .stat-card {
     background: rgba(255, 255, 255, 0.05);
     padding: var(--spacing-md);
     border-radius: var(--border-radius-sm);
     text-align: center;
     transition: all 0.3s ease;
-}
+  }
 
-.stat-card:hover {
+  .stat-card:hover {
     background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
-}
+  }
 
-.preview-table-wrapper {
+  .preview-table-wrapper {
     border-radius: var(--border-radius-sm);
     overflow: auto;
     max-height: 400px;
-}
+  }
 
-.preview-table-wrapper::-webkit-scrollbar {
+  .preview-table-wrapper::-webkit-scrollbar {
     width: 8px;
     height: 8px;
-}
+  }
 
-.preview-table-wrapper::-webkit-scrollbar-track {
+  .preview-table-wrapper::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.2);
-}
+  }
 
-.preview-table-wrapper::-webkit-scrollbar-thumb {
+  .preview-table-wrapper::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 4px;
-}
+  }
 
-.preview-table-wrapper::-webkit-scrollbar-thumb:hover {
+  .preview-table-wrapper::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
-}
+  }
 
-/* [업로드 이력] */
-.upload-history {
+  /* [결과 카드] */
+  .result-card {
     padding: var(--spacing-xl);
-}
+    border-radius: var(--border-radius-md);
+    margin-top: var(--spacing-xl);
+    animation: fadeIn 0.3s ease;
+  }
 
-.section-title {
-    color: var(--text-primary);
-    font-size: var(--font-xl);
-    font-weight: var(--font-weight-semibold);
-    margin-bottom: var(--spacing-lg);
+  .result-card h4 {
+    font-size: var(--font-lg);
+    margin-bottom: var(--spacing-md);
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-}
+  }
 
-.history-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
+  .result-card .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-left-color: #fff;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--spacing-md);
+  }
 
-.history-item {
-    background: rgba(255, 255, 255, 0.05);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius-md);
-    border-left: 4px solid rgba(33, 150, 243, 0.6);
-}
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
-.history-time {
-    font-size: var(--font-sm);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xs);
-}
-
-.history-details {
-    color: var(--text-primary);
-    font-size: var(--font-md);
-}
-
-.no-data {
+  .loading-card {
     text-align: center;
-    padding: var(--spacing-xl);
-    color: var(--text-tertiary);
-    font-style: italic;
-}
+    background: rgba(33, 150, 243, 0.1);
+    border-left: 4px solid rgba(33, 150, 243, 0.8);
+  }
 
-/* [반응형] */
-@media (max-width: 768px) {
+  .error-card {
+    background: rgba(244, 67, 54, 0.1);
+    border-left: 4px solid rgba(244, 67, 54, 0.8);
+  }
+
+  .error-card h4 {
+    color: rgba(244, 67, 54, 0.9);
+  }
+
+  .success-card {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 4px solid rgba(76, 175, 80, 0.8);
+  }
+
+  .success-card h4 {
+    color: rgba(76, 175, 80, 0.9);
+  }
+
+  .success-card .summary {
+    margin-top: var(--spacing-lg);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+    background: rgba(0, 0, 0, 0.2);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+  }
+
+  /* [미리보기 테이블] */
+  .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-sm);
+  }
+
+  .preview-table th,
+  .preview-table td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+  }
+
+  .preview-table th {
+    background: rgba(0, 0, 0, 0.3);
+    font-weight: var(--font-weight-semibold);
+    position: sticky;
+    top: 0;
+  }
+
+  .preview-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* [반응형] */
+  @media (max-width: 768px) {
     .excel-upload-page {
-        padding: var(--spacing-md);
+      padding: var(--spacing-md);
     }
 
     .upload-status {
-        grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
 
     .upload-zone {
-        padding: var(--spacing-xl);
+      padding: var(--spacing-xl);
     }
-}
+  }
 
-/* ============================================
+  /* ============================================
    유틸리티 클래스 (인라인 스타일 리팩토링)
    ============================================ */
 
-/* 숨김 상태 (JavaScript로 토글됨) */
-.hidden {
+  /* 숨김 상태 (JavaScript로 토글됨) */
+  .hidden {
     display: none !important;
-}
+  }
 
-/* 안내사항 박스 스타일 */
-.info-box-warning {
+  /* 안내사항 박스 스타일 */
+  .info-box-warning {
     background: rgba(255, 193, 7, 0.1);
     border-left: 4px solid rgba(255, 193, 7, 0.8);
-}
+  }
 
-.info-box-title {
+  .info-box-title {
     color: rgba(255, 193, 7, 0.9);
     margin-bottom: 12px;
-}
+  }
 
-.info-box-list {
+  .info-box-list {
     color: var(--text-primary);
     line-height: 1.8;
     margin-left: 20px;
-}
+  }
 
-/* 버튼 유틸리티 */
-.btn-full-mt {
+  /* 버튼 유틸리티 */
+  .btn-full-mt {
     width: 100%;
     margin-top: 20px;
-}
+  }
 </style>

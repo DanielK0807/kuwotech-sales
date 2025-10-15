@@ -17,5 +17,8 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.56.0"
+  },
+  "dependencies": {
+    "sheetjs": "^2.0.0"
   }
 }
