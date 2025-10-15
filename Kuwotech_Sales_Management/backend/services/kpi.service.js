@@ -668,6 +668,68 @@ export async function getSalesConcentrationDetail() {
     return { success: true, data: details };
   } catch (error) {
     console.error("[KPI Service] 매출집중도 상세 데이터 조회 실패:", error);
+    console.error("[KPI Service] Error details:", error.message, error.stack);
+    throw error;
+  }
+}
+
+/**
+ * ✅ NEW: 기여도 순위 데이터 조회
+ * @param {string} type - 'total' (전체매출) | 'main' (주요제품매출)
+ */
+export async function getRankingData(type) {
+  let connection;
+  try {
+    connection = await getDB();
+
+    console.log(`[KPI Service] 기여도 순위 데이터 조회 (${type})`);
+
+    let query, sortColumn, contributionColumn, rankColumn, cumulativeColumn;
+
+    if (type === "total") {
+      sortColumn = "totalSalesContribution";
+      contributionColumn = "totalSalesContribution";
+      rankColumn = "totalSalesContributionRank";
+      cumulativeColumn = "cumulativeTotalSalesContribution";
+    } else if (type === "main") {
+      sortColumn = "mainProductContribution";
+      contributionColumn = "mainProductContribution";
+      rankColumn = "mainProductContributionRank";
+      cumulativeColumn = "cumulativeMainProductContribution";
+    } else {
+      throw new Error(`Invalid ranking type: ${type}`);
+    }
+
+    // 순위 데이터 조회
+    const [rankings] = await connection.execute(
+      `SELECT
+        ${rankColumn} as rank,
+        employeeName,
+        accumulatedSales,
+        mainProductSales,
+        ${contributionColumn} as contribution,
+        ${cumulativeColumn} as cumulativeContribution
+      FROM kpi_sales
+      WHERE ${rankColumn} IS NOT NULL
+      ORDER BY ${rankColumn} ASC`
+    );
+
+    // 데이터 변환
+    const details = rankings.map((row) => ({
+      rank: row.rank,
+      employeeName: row.employeeName,
+      accumulatedSales: parseFloat(type === "total" ? row.accumulatedSales : row.mainProductSales) || 0,
+      totalSalesContribution: parseFloat(row.contribution) || 0,
+      mainProductContribution: parseFloat(row.contribution) || 0,
+      cumulativeContribution: parseFloat(row.cumulativeContribution) || 0
+    }));
+
+    console.log(`[KPI Service] 기여도 순위 데이터 조회 완료 (${details.length}명)`);
+
+    return { success: true, data: details };
+  } catch (error) {
+    console.error("[KPI Service] 기여도 순위 데이터 조회 실패:", error);
+    console.error("[KPI Service] Error details:", error.message, error.stack);
     throw error;
   }
 }

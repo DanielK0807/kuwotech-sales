@@ -11,6 +11,7 @@ import {
   refreshSalesKPI,
   getAdminKPI, // ✅ NEW: 전사 KPI 조회 서비스 임포트
   getSalesConcentrationDetail, // ✅ NEW: 매출집중도 상세 조회 임포트
+  getRankingData, // ✅ NEW: 기여도 순위 조회 임포트
 } from "../services/kpi.service.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 
@@ -48,9 +49,39 @@ router.get("/admin/sales-concentration/detail", authenticate, async (req, res) =
     }
   } catch (error) {
     console.error("Error fetching sales concentration detail:", error);
+    console.error("Error stack:", error.stack);
     res
       .status(500)
-      .json({ success: false, message: "서버 오류가 발생했습니다." });
+      .json({ success: false, message: "서버 오류가 발생했습니다.", error: error.message });
+  }
+});
+
+// ✅ NEW: GET /api/kpi/admin/ranking/:type - 기여도 순위 조회
+router.get("/admin/ranking/:type", authenticate, async (req, res) => {
+  try {
+    const { type } = req.params;
+
+    if (type !== "total" && type !== "main") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ranking type. Use 'total' or 'main'."
+      });
+    }
+
+    const result = await getRankingData(type);
+    if (result.success) {
+      res.json(result);
+    } else {
+      res
+        .status(404)
+        .json({ success: false, message: "순위 데이터를 찾을 수 없습니다." });
+    }
+  } catch (error) {
+    console.error("Error fetching ranking data:", error);
+    console.error("Error stack:", error.stack);
+    res
+      .status(500)
+      .json({ success: false, message: "서버 오류가 발생했습니다.", error: error.message });
   }
 });
 
