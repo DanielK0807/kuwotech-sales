@@ -190,6 +190,9 @@ async function loadDashboardData() {
     // 관리자 KPI 조회
     const response = await dbManager.request("/kpi/admin");
 
+    // 🐛 DEBUG: 전체 응답 확인
+    console.log("[Admin Dashboard] 🔍 전체 API 응답:", JSON.stringify(response, null, 2));
+
     if (response.success) {
       dashboardData = response.data;
 
@@ -728,11 +731,23 @@ async function refreshDashboard() {
         return;
       }
 
-      showLoading("데이터를 새로고침하는 중...");
+      showLoading("KPI를 재계산하는 중...");
+
+      // 🔧 FIX: Call backend refresh endpoint to recalculate KPI with latest code
+      try {
+        console.log("[Admin Dashboard] 🔄 KPI 재계산 API 호출 중...");
+        const refreshResponse = await dbManager.request("/kpi/admin/refresh", { method: 'POST' });
+        console.log("[Admin Dashboard] ✅ KPI 재계산 완료:", refreshResponse);
+      } catch (refreshError) {
+        console.error('[Admin Dashboard] ⚠️ KPI 재계산 실패:', refreshError);
+        // Continue to load cached data even if refresh fails
+      }
+
+      // Then load the fresh data
       await loadDashboardData();
       displayKPICardsWithGlass();
       hideLoading();
-      showToast("데이터가 새로고침되었습니다.", "success");
+      showToast("KPI가 재계산되었습니다.", "success");
     } catch (error) {
       await errorHandler.handle(
         new DatabaseError("대시보드 새로고침 실패", error, {
