@@ -423,21 +423,11 @@ async function showSalesConcentrationModal() {
         throw new Error(response.message || "매출집중도 데이터 로드 실패");
       const details = response.data;
 
-      // 영업담당자별 순위 테이블 생성
+      // 영업담당자별 순위 테이블 생성 (간소화 버전: 순위, 영업담당, 매출집중도, 담당거래처)
       const tableRows = details
         .map((row) => {
           // 매출집중도 값 포맷팅
           const concentrationFormatted = formatCurrency(row.salesConcentration);
-
-          // 누적매출 포맷팅 (음수 규칙 적용)
-          const salesResult = formatCurrency(row.accumulatedSales, true);
-          let salesFormatted, salesClass = "";
-          if (typeof salesResult === "object") {
-            salesFormatted = salesResult.text;
-            salesClass = salesResult.isNegative ? salesResult.className : "";
-          } else {
-            salesFormatted = salesResult;
-          }
 
           return `
         <tr class="rank-${row.rank}">
@@ -445,8 +435,6 @@ async function showSalesConcentrationModal() {
           <td class="employee-name">${row.employeeName}</td>
           <td class="text-right">${concentrationFormatted}</td>
           <td class="text-right">${formatNumber(row.assignedCompanies)}</td>
-          <td class="sales-amount ${salesClass}">${salesFormatted}</td>
-          <td class="text-right">${formatNumber(row.currentMonths)}</td>
         </tr>
       `;
         })
@@ -468,8 +456,6 @@ async function showSalesConcentrationModal() {
                   <th class="text-on-layer-3 text-left">영업담당</th>
                   <th class="text-on-layer-3 text-right">매출집중도</th>
                   <th class="text-on-layer-3 text-right">담당거래처</th>
-                  <th class="text-on-layer-3 text-right">누적매출</th>
-                  <th class="text-on-layer-3 text-right">월수</th>
                 </tr>
               </thead>
               <tbody>

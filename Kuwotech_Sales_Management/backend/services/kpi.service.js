@@ -632,7 +632,7 @@ export async function getAdminKPI() {
 
 /**
  * ✅ NEW: 매출집중도 상세 데이터 조회
- * 영업담당자별 매출집중도 순위 반환
+ * 영업담당자별 매출집중도 순위 반환 (영업담당자만)
  */
 export async function getSalesConcentrationDetail() {
   let connection;
@@ -642,15 +642,17 @@ export async function getSalesConcentrationDetail() {
     console.log("[KPI Service] 매출집중도 상세 데이터 조회 (영업담당자별 순위)");
 
     // 영업담당자별 매출집중도 조회 (내림차순 정렬)
+    // employees 테이블과 조인하여 영업담당자만 필터링
     const [rankings] = await connection.execute(
       `SELECT
-        employeeName,
-        salesConcentration,
-        assignedCompanies,
-        accumulatedSales,
-        currentMonths
-      FROM kpi_sales
-      ORDER BY salesConcentration DESC`
+        k.employeeName,
+        k.salesConcentration,
+        k.assignedCompanies
+      FROM kpi_sales k
+      INNER JOIN employees e ON k.employeeId = e.id
+      WHERE (e.role1 LIKE '%영업%' OR e.role2 LIKE '%영업%')
+      AND e.status = '재직'
+      ORDER BY k.salesConcentration DESC`
     );
 
     // 순위 추가
@@ -658,9 +660,7 @@ export async function getSalesConcentrationDetail() {
       rank: index + 1,
       employeeName: row.employeeName,
       salesConcentration: parseFloat(row.salesConcentration) || 0,
-      assignedCompanies: row.assignedCompanies || 0,
-      accumulatedSales: parseFloat(row.accumulatedSales) || 0,
-      currentMonths: row.currentMonths || 1
+      assignedCompanies: row.assignedCompanies || 0
     }));
 
     console.log(`[KPI Service] 매출집중도 상세 데이터 조회 완료 (${details.length}명)`);
