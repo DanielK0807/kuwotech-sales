@@ -229,7 +229,9 @@ function displayKPICardsWithGlass() {
     {
       title: "전체 거래처",
       value: dashboardData.totalCompanies || 0,
-      unit: "개사",
+      unit: dashboardData.inactiveCompanies
+        ? `개사(${dashboardData.inactiveCompanies}개 불용제외)`
+        : "개사",
       icon: "🏢",
       formula: "전체 영업담당 불용제외 거래처 종합",
       style: { color: "primary", size: "md", animated: true },

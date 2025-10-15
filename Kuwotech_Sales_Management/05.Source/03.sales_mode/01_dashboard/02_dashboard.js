@@ -259,7 +259,9 @@ function displayKPICardsWithGlass() {
     {
       title: "담당 거래처",
       value: dashboardData.assignedCompanies || 0,
-      unit: "개사",
+      unit: dashboardData.inactiveCompanies
+        ? `개사(${dashboardData.inactiveCompanies}개 불용제외)`
+        : "개사",
       icon: "🏢",
       formula: "불용제외 배정된 거래처 수",
       style: { color: "primary", size: "md", animated: true },

@@ -39,13 +39,22 @@ export async function refreshSalesKPI(employeeIdOrName) {
 
     const employee = employees[0];
 
-    // 2. 담당 거래처 조회
+    // 2. 담당 거래처 조회 (활성 + 불용)
     const [companies] = await connection.execute(
       `SELECT * FROM companies
              WHERE internalManager = ?
              AND businessStatus != ?`,
       [employee.name, "불용"]
     );
+
+    // 2-1. 담당 거래처 중 불용 거래처 수 조회
+    const [inactiveCompaniesResult] = await connection.execute(
+      `SELECT COUNT(*) as count FROM companies
+             WHERE internalManager = ?
+             AND businessStatus = ?`,
+      [employee.name, "불용"]
+    );
+    const inactiveCompaniesCount = inactiveCompaniesResult[0].count;
 
     // 3. 전사 집계 데이터 조회 (기여도 계산용)
     const [allCompanies] = await connection.execute(
@@ -79,7 +88,7 @@ export async function refreshSalesKPI(employeeIdOrName) {
     };
 
     // 4. KPI 계산
-    const kpi = calculateSalesKPI(employee, companies, totalsData);
+    const kpi = calculateSalesKPI(employee, companies, totalsData, inactiveCompaniesCount);
 
     // 5. 데이터베이스에 UPSERT (영문 컬럼명)
     await connection.execute(
@@ -140,6 +149,9 @@ export async function refreshSalesKPI(employeeIdOrName) {
       [employee.id]
     );
     const updatedKpiData = updatedKpiRows[0];
+
+    // 불용거래처 수를 응답에 추가 (DB에 저장하지 않고 동적으로 추가)
+    updatedKpiData.inactiveCompanies = inactiveCompaniesCount;
 
     console.log(`[KPI Service] ${employee.name} KPI 갱신 완료`);
     return { success: true, data: updatedKpiData };
@@ -209,11 +221,18 @@ export async function refreshAdminKPI() {
 
     console.log("[KPI Service] 전사 KPI 갱신");
 
-    // 1. 전체 거래처 조회
+    // 1. 전체 거래처 조회 (불용 제외)
     const [allCompanies] = await connection.execute(
       "SELECT * FROM companies WHERE businessStatus != ?",
       ["불용"]
     );
+
+    // 1-1. 전체 불용 거래처 수 조회
+    const [inactiveCompaniesResult] = await connection.execute(
+      "SELECT COUNT(*) as count FROM companies WHERE businessStatus = ?",
+      ["불용"]
+    );
+    const inactiveCompaniesCount = inactiveCompaniesResult[0].count;
 
     // 2. 영업담당자 수 조회
     const [employees] = await connection.execute(
@@ -224,7 +243,7 @@ export async function refreshAdminKPI() {
     );
 
     // 3. KPI 계산
-    const kpi = calculateAdminKPI(allCompanies, employees);
+    const kpi = calculateAdminKPI(allCompanies, employees, inactiveCompaniesCount);
 
     // 4. 데이터베이스에 UPSERT (단일 레코드 유지, 영문 컬럼명)
     await connection.execute(
@@ -279,6 +298,9 @@ export async function refreshAdminKPI() {
     );
     const updatedKpiData = updatedKpiRows[0];
 
+    // 불용거래처 수를 응답에 추가 (DB에 저장하지 않고 동적으로 추가)
+    updatedKpiData.inactiveCompanies = inactiveCompaniesCount;
+
     console.log("[KPI Service] 전사 KPI 갱신 완료");
     return { success: true, data: updatedKpiData };
   } catch (error) {
@@ -296,11 +318,12 @@ export async function refreshAdminKPI() {
 /**
  * 영업담당 KPI 계산 (기존 로직과 동일)
  */
-function calculateSalesKPI(employee, companies, totals) {
+function calculateSalesKPI(employee, companies, totals, inactiveCompaniesCount = 0) {
   const kpi = {};
 
   // 거래처 관리 지표 (4개)
   kpi.담당거래처 = companies.length;
+  kpi.불용거래처 = inactiveCompaniesCount;
   kpi.활성거래처 = companies.filter((c) => c.businessStatus === "활성").length;
   kpi.활성화율 =
     kpi.담당거래처 > 0 ? (kpi.활성거래처 / kpi.담당거래처) * 100 : 0;
@@ -352,12 +375,13 @@ function calculateSalesKPI(employee, companies, totals) {
 /**
  * 전사 KPI 계산 (기존 로직과 동일)
  */
-function calculateAdminKPI(allCompanies, employees) {
+function calculateAdminKPI(allCompanies, employees, inactiveCompaniesCount = 0) {
   const kpi = {};
   const 영업담당자수 = employees.length;
 
   // 전사 거래처 지표 (4개)
   kpi.전체거래처 = allCompanies.length;
+  kpi.불용거래처 = inactiveCompaniesCount;
   kpi.활성거래처 = allCompanies.filter(
     (c) => c.businessStatus === "활성"
   ).length;
