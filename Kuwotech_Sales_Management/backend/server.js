@@ -587,6 +587,66 @@ app.get('/api/debug/employees-check', async (req, res) => {
   }
 });
 
+// Debug endpoint to check recent company updates
+app.get('/api/debug/companies-recent-updates', async (req, res) => {
+  try {
+    const { getDB } = await import('./config/database.js');
+    const db = await getDB();
+
+    // 1. Total count
+    const [totalCount] = await db.execute('SELECT COUNT(*) as total FROM companies');
+
+    // 2. Updates today (2025-10-15)
+    const [todayUpdates] = await db.execute(`
+      SELECT COUNT(*) as count
+      FROM companies
+      WHERE DATE(updatedAt) = '2025-10-15'
+    `);
+
+    // 3. Created today (actually new)
+    const [createdToday] = await db.execute(`
+      SELECT COUNT(*) as count
+      FROM companies
+      WHERE DATE(createdAt) = '2025-10-15'
+    `);
+
+    // 4. Recent 10 companies
+    const [recentCompanies] = await db.execute(`
+      SELECT keyValue, finalCompanyName, createdAt, updatedAt, customerNewsDate
+      FROM companies
+      ORDER BY updatedAt DESC
+      LIMIT 10
+    `);
+
+    // 5. customerNewsDate count
+    const [newsDateCount] = await db.execute(`
+      SELECT COUNT(*) as count
+      FROM companies
+      WHERE customerNewsDate = '2025-10-15'
+    `);
+
+    res.json({
+      success: true,
+      summary: {
+        totalCompanies: totalCount[0].total,
+        updatedToday: todayUpdates[0].count,
+        createdToday: createdToday[0].count,
+        withCustomerNewsDate: newsDateCount[0].count
+      },
+      recentCompanies: recentCompanies,
+      conclusion: createdToday[0].count > 0
+        ? '✅ 오늘 엑셀 업로드가 실행되었습니다!'
+        : '⚠️ 오늘 엑셀 업로드는 실행되지 않았습니다. updatedAt 변경은 마이그레이션으로 인한 것입니다.'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 // ============================================
 // 마이그레이션 함수
 // ============================================
