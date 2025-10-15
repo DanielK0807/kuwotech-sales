@@ -50,7 +50,7 @@ class KpiManager {
     try {
       // 백엔드 API 호출: 모든 KPI 재계산 요청
       const apiManager = ApiManager.getInstance();
-      const response = await apiManager.post('/api/kpi/refresh-all');
+      const response = await apiManager.post("/api/kpi/refresh-all");
 
       if (!response || response.error) {
         throw new Error(response?.message || "KPI 재계산 API 호출 실패");
@@ -74,7 +74,7 @@ class KpiManager {
     } finally {
       this.isRecalculating = false;
       logger.log("✅ [KpiManager] KPI 재계산 프로세스가 완료되었습니다.");
-      
+
       // 재계산 완료 이벤트를 전역으로 발생시켜 대시보드 등에서 수신하도록 함
       document.dispatchEvent(new CustomEvent("kpi-recalculated"));
     }

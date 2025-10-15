@@ -29,6 +29,7 @@ import { initDownloadButton, exportExcel, importExcel } from './03_companies_dow
 import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import logger from '../../01.common/23_logger.js';
 import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
+import kpiManager from '../../05.kpi/kpi_manager.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -701,6 +702,9 @@ async function deleteCompany(keyValue) {
             throw new Error('거래처 삭제에 실패했습니다.');
         }
         
+        // KPI 재계산 트리거
+        await kpiManager.triggerKpiRecalculation({ quiet: true });
+        
         // 목록 새로고침
         await loadCompanies();
         
@@ -906,6 +910,9 @@ async function showCompanyEditModal(company) {
                         
                         // 거래처 업데이트
                         await companyCrud.update(company.keyValue, updatedData);
+                        
+                        // KPI 재계산 트리거
+                        await kpiManager.triggerKpiRecalculation({ quiet: true });
                         
                         hideLoading();
                         showToast('거래처 정보가 수정되었습니다.', 'success');
@@ -1194,6 +1201,10 @@ async function openCompanyModal() {
                         }
 
                         const result = await response.json();
+                        
+                        // KPI 재계산 트리거
+                        await kpiManager.triggerKpiRecalculation({ quiet: true });
+                        
                         showToast('거래처가 성공적으로 등록되었습니다.', 'success');
 
                         // 목록 새로고침
