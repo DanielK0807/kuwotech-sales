@@ -269,25 +269,38 @@ export class ExcelDataLoader {
      */
     parseCompanyRow(row, rowNum) {
         try {
-            // KEY VALUE가 없으면 생성
+            // KEY VALUE 생성 로직 개선
             let keyValue = row['KEY VALUE'] || row['keyValue'];
-            if (!keyValue) {
+
+            // NO 컬럼이 있으면 COMP-xxxxx 형식으로 생성
+            const no = row['NO'] || row['No'] || row['no'];
+            if (!keyValue && no) {
+                keyValue = `COMP-${String(no).padStart(5, '0')}`;
+                this.warnings.push(`행 ${rowNum}: KEY VALUE 자동 생성 (NO 기반) - ${keyValue}`);
+            } else if (!keyValue) {
                 keyValue = this.generateKeyValue('COMP', rowNum);
                 this.warnings.push(`행 ${rowNum}: KEY VALUE 자동 생성 - ${keyValue}`);
             }
-            
+
             // 거래처명 확인
-            const companyName = row['거래처명(ERP)'] || row['최종거래처명'] || row['거래처명'];
+            const companyNameERP = row['거래처명(ERP)'] || '';
+            const finalCompanyName = row['최종거래처명'] || '';
+            const companyName = companyNameERP || finalCompanyName || row['거래처명'];
+
             if (!companyName) {
                 this.errors.push(`행 ${rowNum}: 거래처명이 없습니다.`);
                 return null;
             }
-            
+
+            // 고객소식 필드 처리 (과거 영업활동(특이사항)에서 변경됨)
+            const activityNotes = row['고객소식'] || row['영업활동(특이사항)'] || '';
+            const customerNewsDate = activityNotes ? '2025-10-15' : null;
+
             // 데이터 매핑
             const company = {
                 keyValue: keyValue,
-                companyNameERP: row['거래처명(ERP)'] || companyName,
-                finalCompanyName: row['최종거래처명'] || companyName,
+                companyNameERP: companyNameERP || companyName,
+                finalCompanyName: finalCompanyName || companyName,
                 companyCode: row['거래처코드'] || '',
                 isClosedBusiness: this.parseBoolean(row['폐업여부']),
                 ceoOrDentist: row['대표이사 또는 치과의사'] || row['대표자'] || '',
@@ -298,6 +311,8 @@ export class ExcelDataLoader {
                 internalManager: row['내부담당자'] || '',
                 ceoContribution: row['정철웅기여(상.중.하)'] || '',
                 companyContribution: row['회사기여(상.중.하)'] || '',
+                activityNotes: activityNotes,
+                customerNewsDate: customerNewsDate,
                 lastPaymentDate: this.parseDate(row['마지막결제일']),
                 lastPaymentAmount: this.parseNumber(row['마지막총결재금액']),
                 accountsReceivable: this.parseNumber(row['매출채권잔액']),
@@ -308,9 +323,9 @@ export class ExcelDataLoader {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            
+
             return company;
-            
+
         } catch (error) {
             this.errors.push(`행 ${rowNum}: 파싱 오류 - ${error.message}`);
             return null;
@@ -373,22 +388,60 @@ export class ExcelDataLoader {
             // 기존 데이터 조회
             const existingCompanies = await db.getAllClients();
 
-            // keyValue로 빠른 검색을 위한 맵 생성
-            const existingMap = new Map();
+            // 매칭을 위한 맵 생성
+            const existingByKeyValue = new Map();
+            const existingByCompanyName = new Map();
+
             existingCompanies.forEach(c => {
-                existingMap.set(c.keyValue, c);
+                // KEY VALUE로 매핑
+                existingByKeyValue.set(c.keyValue, c);
+
+                // 거래처명(ERP)로 매핑
+                if (c.companyName || c.finalCompanyName) {
+                    const erpName = c.companyName || c.finalCompanyName;
+                    existingByCompanyName.set(erpName, c);
+                }
+
+                // 최종거래처명으로 매핑
+                if (c.finalCompanyName) {
+                    existingByCompanyName.set(c.finalCompanyName, c);
+                }
             });
 
             let addedCount = 0;
             let updatedCount = 0;
             let errorCount = 0;
 
-
             for (const company of this.loadedData.companies) {
                 try {
+                    // 매칭 로직: KEY VALUE 우선 → 거래처명(ERP) → 최종거래처명
+                    let existing = null;
+                    let matchedByKeyValue = false;
+
+                    // 1. KEY VALUE로 매칭 시도
+                    if (company.keyValue) {
+                        existing = existingByKeyValue.get(company.keyValue);
+                        if (existing) {
+                            matchedByKeyValue = true;
+                        }
+                    }
+
+                    // 2. KEY VALUE 매칭 실패 시, 거래처명으로 매칭 시도
+                    if (!existing) {
+                        // 거래처명(ERP)로 매칭
+                        if (company.companyNameERP) {
+                            existing = existingByCompanyName.get(company.companyNameERP);
+                        }
+
+                        // 최종거래처명으로 매칭
+                        if (!existing && company.finalCompanyName) {
+                            existing = existingByCompanyName.get(company.finalCompanyName);
+                        }
+                    }
+
                     // 백엔드 API 스키마에 맞게 필드명 변환
                     const companyData = {
-                        keyValue: company.keyValue,
+                        keyValue: existing ? existing.keyValue : company.keyValue, // 기존 데이터가 있으면 기존 KEY VALUE 유지
                         finalCompanyName: company.finalCompanyName,
                         isClosed: company.isClosedBusiness ? 'Y' : 'N', // boolean → Y/N
                         ceoOrDentist: company.ceoOrDentist || null,
@@ -399,21 +452,25 @@ export class ExcelDataLoader {
                         jcwContribution: company.ceoContribution || null, // 정철웅기여
                         companyContribution: company.companyContribution || null,
                         accountsReceivable: company.accountsReceivable || 0,
+                        activityNotes: company.activityNotes || null,
+                        customerNewsDate: company.customerNewsDate || null,
                         // 백엔드 API에서 지원하지 않는 필드들은 제외
                         // salesProduct, lastPaymentDate, lastPaymentAmount 등은 추후 추가 필요
                     };
 
-                    // 기존 데이터 확인
-                    const existing = existingMap.get(company.keyValue);
-
                     if (existing) {
-                        // 업데이트
-                        await db.updateClient(company.keyValue, companyData);
+                        // 업데이트 (기존 KEY VALUE 유지)
+                        await db.updateClient(existing.keyValue, companyData);
                         updatedCount++;
+
+                        if (!matchedByKeyValue) {
+                            logger.info(`[거래처 업데이트] 거래처명 매칭: ${company.finalCompanyName} → ${existing.keyValue}`);
+                        }
                     } else {
                         // 새로 추가
                         await db.createClient(companyData);
                         addedCount++;
+                        logger.info(`[거래처 추가] 신규: ${company.finalCompanyName} → ${company.keyValue}`);
                     }
 
                 } catch (error) {
@@ -423,6 +480,7 @@ export class ExcelDataLoader {
                 }
             }
 
+            logger.info(`[거래처 저장 완료] 추가: ${addedCount}, 업데이트: ${updatedCount}, 오류: ${errorCount}`);
 
         } catch (error) {
             logger.error('[ExcelDataLoader] DB 저장 실패:', error);

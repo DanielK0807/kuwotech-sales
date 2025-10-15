@@ -588,6 +588,56 @@ app.get('/api/debug/employees-check', async (req, res) => {
 });
 
 // ============================================
+// 마이그레이션 함수
+// ============================================
+
+/**
+ * 마이그레이션 014: activityNotes, customerNewsDate 컬럼 추가
+ */
+async function runMigration014() {
+  try {
+    const { getDB } = await import('./config/database.js');
+    const db = await getDB();
+
+    console.log('  📝 마이그레이션 014: activityNotes, customerNewsDate 추가');
+
+    // 1. activityNotes 컬럼 추가
+    await db.execute(`
+      ALTER TABLE companies
+      ADD COLUMN IF NOT EXISTS activityNotes TEXT COMMENT '고객소식 (관리자 엑셀 업로드)'
+      AFTER businessActivity
+    `);
+    console.log('    ✅ activityNotes 컬럼 추가 완료');
+
+    // 2. customerNewsDate 컬럼 추가
+    await db.execute(`
+      ALTER TABLE companies
+      ADD COLUMN IF NOT EXISTS customerNewsDate DATE COMMENT '고객소식 작성일'
+      AFTER activityNotes
+    `);
+    console.log('    ✅ customerNewsDate 컬럼 추가 완료');
+
+    // 3. 기존 데이터 날짜 설정
+    const [result] = await db.execute(`
+      UPDATE companies
+      SET customerNewsDate = '2025-10-15'
+      WHERE activityNotes IS NOT NULL AND activityNotes != '' AND customerNewsDate IS NULL
+    `);
+    console.log(`    ✅ 기존 데이터 날짜 업데이트 완료 (${result.affectedRows}건)`);
+
+    console.log('  🎉 마이그레이션 014 완료!');
+  } catch (error) {
+    // ADD COLUMN IF NOT EXISTS를 사용하므로 이미 존재하는 경우 무시
+    if (error.code === 'ER_DUP_FIELDNAME') {
+      console.log('  ℹ️  마이그레이션 014: 이미 실행됨 (스킵)');
+    } else {
+      console.error('  ❌ 마이그레이션 014 실패:', error.message);
+      // 마이그레이션 실패해도 서버는 계속 실행
+    }
+  }
+}
+
+// ============================================
 // 에러 핸들링
 // ============================================
 
@@ -634,6 +684,10 @@ const startServer = async () => {
     // 스키마 자동 체크 및 업데이트
     console.log('📋 데이터베이스 스키마 체크 시작...');
     await ensureAllSchemas();
+
+    // 마이그레이션 014 실행 (activityNotes, customerNewsDate 추가)
+    console.log('🔄 마이그레이션 014 실행 중...');
+    await runMigration014();
 
     // DB 연결
     await connectDB();

@@ -26,7 +26,7 @@ export const getAllCompanies = async (req, res) => {
         customerRegion, region_id, region_district, businessStatus, department, salesProduct,
         internalManager, jcwContribution, companyContribution,
         lastPaymentDate, lastPaymentAmount, accountsReceivable,
-        accumulatedCollection, accumulatedSales, activityNotes,
+        accumulatedCollection, accumulatedSales, activityNotes, customerNewsDate,
         businessRegistrationNumber, detailedAddress, phoneNumber,
         referralSource, createdAt, updatedAt
       FROM companies
@@ -183,7 +183,7 @@ export const getCompaniesByManager = async (req, res) => {
         internalManager, jcwContribution, companyContribution,
         lastPaymentDate, lastPaymentAmount,
         accountsReceivable, accumulatedCollection, accumulatedSales,
-        activityNotes,
+        activityNotes, customerNewsDate,
         businessRegistrationNumber, detailedAddress, phoneNumber, referralSource,
         createdAt, updatedAt
       FROM companies
@@ -416,9 +416,9 @@ export const createCompany = async (req, res) => {
         keyValue, finalCompanyName, isClosed, ceoOrDentist,
         customerRegion, region_id, businessStatus, department,
         internalManager, jcwContribution, companyContribution,
-        accountsReceivable,
+        accountsReceivable, activityNotes, customerNewsDate,
         businessRegistrationNumber, detailedAddress, phoneNumber, referralSource
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       keyValue,
       companyData.finalCompanyName,
@@ -432,6 +432,8 @@ export const createCompany = async (req, res) => {
       jcwContribution,
       companyContribution,
       accountsReceivable,
+      companyData.activityNotes || null,
+      companyData.customerNewsDate || null,
       companyData.businessRegistrationNumber || null,
       companyData.detailedAddress || null,
       companyData.phoneNumber || null,
@@ -554,6 +556,8 @@ export const updateCompany = async (req, res) => {
         jcwContribution = ?,
         companyContribution = ?,
         accountsReceivable = ?,
+        activityNotes = ?,
+        customerNewsDate = ?,
         businessRegistrationNumber = ?,
         detailedAddress = ?,
         phoneNumber = ?,
@@ -571,6 +575,8 @@ export const updateCompany = async (req, res) => {
       jcwContribution,
       companyContribution,
       accountsReceivable,
+      companyData.activityNotes !== undefined ? companyData.activityNotes : oldData.activityNotes,
+      companyData.customerNewsDate !== undefined ? companyData.customerNewsDate : oldData.customerNewsDate,
       companyData.businessRegistrationNumber || oldData.businessRegistrationNumber,
       companyData.detailedAddress || oldData.detailedAddress,
       companyData.phoneNumber || oldData.phoneNumber,
