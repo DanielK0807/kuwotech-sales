@@ -76,38 +76,37 @@ export async function refreshSalesKPI(employeeIdOrName) {
         // 4. KPI 계산
         const kpi = calculateSalesKPI(employee, companies, totalsData);
 
-        // 5. 데이터베이스에 UPSERT (영문 컬럼명)
+                // 5. 데이터베이스에 UPSERT (한글 컬럼명으로 수정)
         await connection.execute(
             `INSERT INTO kpi_sales (
-                id, employeeId, employeeName,
-                assignedCompanies, activeCompanies, activationRate, mainProductCompanies,
-                companyTargetAchievementRate, majorCustomerTargetRate,
-                accumulatedSales, mainProductSales, salesConcentration,
-                accumulatedCollection, accountsReceivable, mainProductSalesRatio,
-                totalSalesContribution, mainProductContribution,
-                currentMonths
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, employeeName,
+                담당거래처, 활성거래처, 활성화율, 주요제품판매거래처,
+                회사배정기준대비달성율, 주요고객처목표달성율,
+                누적매출금액, 주요제품매출액, 매출집중도,
+                누적수금금액, 매출채권잔액, 주요제품매출비율,
+                전체매출기여도, 주요매출기여도,
+                현재월수
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-                employeeId = VALUES(employeeId),
                 employeeName = VALUES(employeeName),
-                assignedCompanies = VALUES(assignedCompanies),
-                activeCompanies = VALUES(activeCompanies),
-                activationRate = VALUES(activationRate),
-                mainProductCompanies = VALUES(mainProductCompanies),
-                companyTargetAchievementRate = VALUES(companyTargetAchievementRate),
-                majorCustomerTargetRate = VALUES(majorCustomerTargetRate),
-                accumulatedSales = VALUES(accumulatedSales),
-                mainProductSales = VALUES(mainProductSales),
-                salesConcentration = VALUES(salesConcentration),
-                accumulatedCollection = VALUES(accumulatedCollection),
-                accountsReceivable = VALUES(accountsReceivable),
-                mainProductSalesRatio = VALUES(mainProductSalesRatio),
-                totalSalesContribution = VALUES(totalSalesContribution),
-                mainProductContribution = VALUES(mainProductContribution),
-                currentMonths = VALUES(currentMonths),
+                담당거래처 = VALUES(담당거래처),
+                활성거래처 = VALUES(활성거래처),
+                활성화율 = VALUES(활성화율),
+                주요제품판매거래처 = VALUES(주요제품판매거래처),
+                회사배정기준대비달성율 = VALUES(회사배정기준대비달성율),
+                주요고객처목표달성율 = VALUES(주요고객처목표달성율),
+                누적매출금액 = VALUES(누적매출금액),
+                주요제품매출액 = VALUES(주요제품매출액),
+                매출집중도 = VALUES(매출집중도),
+                누적수금금액 = VALUES(누적수금금액),
+                매출채권잔액 = VALUES(매출채권잔액),
+                주요제품매출비율 = VALUES(주요제품매출비율),
+                전체매출기여도 = VALUES(전체매출기여도),
+                주요매출기여도 = VALUES(주요매출기여도),
+                현재월수 = VALUES(현재월수),
                 lastUpdated = CURRENT_TIMESTAMP`,
             [
-                employee.id, employee.id, employee.name,
+                employee.id, employee.name,
                 kpi.담당거래처, kpi.활성거래처, kpi.활성화율, kpi.주요제품판매거래처,
                 kpi.회사배정기준대비달성율, kpi.주요고객처목표달성율,
                 kpi.누적매출금액, kpi.주요제품매출액, kpi.매출집중도,
@@ -202,31 +201,31 @@ export async function refreshAdminKPI() {
         // 3. KPI 계산
         const kpi = calculateAdminKPI(allCompanies, employees);
 
-        // 4. 데이터베이스에 UPSERT (단일 레코드 유지, 영문 컬럼명)
+        // 4. 데이터베이스에 UPSERT (한글 컬럼명으로 수정)
         await connection.execute(
             `INSERT INTO kpi_admin (
                 id,
-                totalCompanies, activeCompanies, activationRate, mainProductCompanies,
-                companyTargetAchievementRate, majorCustomerTargetRate,
-                accumulatedSales, accumulatedCollection, accountsReceivable, mainProductSales, salesConcentration,
-                mainProductSalesRatio,
-                salesRepCount, currentMonths
+                전체거래처, 활성거래처, 활성화율, 주요제품판매거래처,
+                회사배정기준대비달성율, 주요고객처목표달성율,
+                누적매출금액, 누적수금금액, 매출채권잔액, 주요제품매출액, 매출집중도,
+                주요제품매출비율,
+                영업담당자수, 현재월수
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-                totalCompanies = VALUES(totalCompanies),
-                activeCompanies = VALUES(activeCompanies),
-                activationRate = VALUES(activationRate),
-                mainProductCompanies = VALUES(mainProductCompanies),
-                companyTargetAchievementRate = VALUES(companyTargetAchievementRate),
-                majorCustomerTargetRate = VALUES(majorCustomerTargetRate),
-                accumulatedSales = VALUES(accumulatedSales),
-                accumulatedCollection = VALUES(accumulatedCollection),
-                accountsReceivable = VALUES(accountsReceivable),
-                mainProductSales = VALUES(mainProductSales),
-                salesConcentration = VALUES(salesConcentration),
-                mainProductSalesRatio = VALUES(mainProductSalesRatio),
-                salesRepCount = VALUES(salesRepCount),
-                currentMonths = VALUES(currentMonths),
+                전체거래처 = VALUES(전체거래처),
+                활성거래처 = VALUES(활성거래처),
+                활성화율 = VALUES(활성화율),
+                주요제품판매거래처 = VALUES(주요제품판매거래처),
+                회사배정기준대비달성율 = VALUES(회사배정기준대비달성율),
+                주요고객처목표달성율 = VALUES(주요고객처목표달성율),
+                누적매출금액 = VALUES(누적매출금액),
+                누적수금금액 = VALUES(누적수금금액),
+                매출채권잔액 = VALUES(매출채권잔액),
+                주요제품매출액 = VALUES(주요제품매출액),
+                매출집중도 = VALUES(매출집중도),
+                주요제품매출비율 = VALUES(주요제품매출비율),
+                영업담당자수 = VALUES(영업담당자수),
+                현재월수 = VALUES(현재월수),
                 lastUpdated = CURRENT_TIMESTAMP`,
             [
                 'admin-kpi-singleton',
