@@ -12,8 +12,10 @@ export const getAllEmployees = async (req, res) => {
   try {
     const db = await getDB();
 
-    // 관리자는 모든 직원 조회, 영업담당은 영업담당만 조회
+    // 로그인한 사용자의 역할 확인
     const userRole = req.user?.role || req.user?.role1;
+
+    console.log('[직원 목록 조회] 요청자 역할:', userRole);
 
     let query = `
       SELECT
@@ -24,13 +26,18 @@ export const getAllEmployees = async (req, res) => {
 
     const conditions = [];
 
-    // 영업담당이 아닌 경우 모든 직원 조회
-    if (userRole !== '영업담당') {
+    // 관리자는 모든 직원 조회, 영업담당은 영업담당만 조회
+    if (userRole === '관리자') {
       // 관리자는 모든 직원 조회 (재직/퇴사 모두)
-    } else {
+      console.log('[직원 목록 조회] 관리자 모드 - 모든 직원 조회');
+    } else if (userRole === '영업담당') {
       // 영업담당은 영업담당만 조회
+      console.log('[직원 목록 조회] 영업담당 모드 - 영업담당만 조회');
       conditions.push(`(role1 = '영업담당' OR role2 = '영업담당')`);
       conditions.push(`status = '재직'`);
+    } else {
+      // 알 수 없는 역할인 경우 모든 직원 조회 (안전장치)
+      console.log('[직원 목록 조회] 알 수 없는 역할 - 모든 직원 조회:', userRole);
     }
 
     if (conditions.length > 0) {
@@ -40,6 +47,8 @@ export const getAllEmployees = async (req, res) => {
     query += ' ORDER BY hireDate ASC';
 
     const [employees] = await db.execute(query);
+
+    console.log('[직원 목록 조회] 결과:', employees.length, '명');
 
     res.json({
       success: true,
