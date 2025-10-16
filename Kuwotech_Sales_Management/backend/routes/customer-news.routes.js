@@ -43,6 +43,17 @@ const router = express.Router();
 // GET /api/customer-news - 전체 고객소식 조회 (필터링 지원)
 router.get('/', authenticate, getAllCustomerNews);
 
+// ============================================
+// 특수 경로 (MUST BE BEFORE /:id)
+// ============================================
+
+// GET /api/customer-news/my-news-with-comments - 내 고객소식과 의견 조회
+router.get('/my-news-with-comments', authenticate, getMyNewsWithComments);
+
+// ============================================
+// 고객소식 기본 CRUD (계속)
+// ============================================
+
 // GET /api/customer-news/:id - 특정 고객소식 조회
 router.get('/:id', authenticate, getCustomerNewsById);
 
@@ -58,9 +69,6 @@ router.delete('/:id', authenticate, deleteCustomerNews);
 // ============================================
 // 카테고리별 조회
 // ============================================
-
-// GET /api/customer-news/my-news-with-comments - 내 고객소식과 의견 조회 (MUST BE BEFORE /:id)
-router.get('/my-news-with-comments', authenticate, getMyNewsWithComments);
 
 // GET /api/customer-news/category/:category - 카테고리별 조회
 router.get('/category/:category', authenticate, getNewsByCategory);
