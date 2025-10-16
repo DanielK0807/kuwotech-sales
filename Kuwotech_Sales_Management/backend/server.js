@@ -914,6 +914,26 @@ const startServer = async () => {
       }
 
       console.log("\n✅ 비밀번호 형식 확인 완료\n");
+
+      // 정철웅, 이미정 비밀번호를 1234로 수정
+      if (results.formatName0000.includes('정철웅') || results.formatName0000.includes('이미정')) {
+        console.log("🔧 정철웅, 이미정 비밀번호를 1234로 변경 중...");
+
+        const password1234 = await bcrypt.default.hash('1234', 10);
+
+        for (const name of ['정철웅', '이미정']) {
+          if (results.formatName0000.includes(name)) {
+            await db.execute(
+              'UPDATE employees SET password = ? WHERE name = ?',
+              [password1234, name]
+            );
+            console.log(`   ✅ ${name} 비밀번호 → "1234"로 변경 완료`);
+          }
+        }
+
+        console.log("✅ 비밀번호 통일 완료\n");
+      }
+
     } catch (error) {
       console.error("❌ 비밀번호 확인 오류:", error.message);
     }
