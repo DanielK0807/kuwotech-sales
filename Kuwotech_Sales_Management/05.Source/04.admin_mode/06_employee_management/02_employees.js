@@ -1443,10 +1443,45 @@ async function updateEmployeeStatus(employeeId, status) {
 // ===================
 // 페이지 로드 시 초기화
 // ===================
+
+// 중복 초기화 방지 플래그
+let isPageInitialized = false;
+
+// 페이지 초기화 래퍼 함수
+async function handlePageLoad() {
+    // 이미 초기화 중이면 무시
+    if (isPageInitialized) {
+        logger.info('[직원 관리] 이미 초기화되어 있습니다');
+        return;
+    }
+
+    isPageInitialized = true;
+
+    try {
+        await initializePage();
+    } catch (error) {
+        logger.error('[직원 관리] 페이지 로드 오류:', error);
+        isPageInitialized = false; // 오류 시 다시 시도 가능하도록
+    }
+}
+
+// SPA 페이지 전환 시 실행 (pageLoaded 이벤트 리스닝)
+window.addEventListener('pageLoaded', (event) => {
+    logger.info('[직원 관리] pageLoaded 이벤트 수신:', event.detail);
+
+    // 직원 관리 페이지인 경우에만 초기화
+    if (event.detail?.page === 'employee-management' || event.detail?.folder === '06_employee_management') {
+        logger.info('[직원 관리] 페이지 초기화 시작');
+        isPageInitialized = false; // 플래그 리셋
+        handlePageLoad();
+    }
+});
+
+// 처음 모듈 로드 시 실행 (직접 페이지 접근 시)
 if (document.readyState === 'loading') {
     // DOM이 아직 로드 중이면 이벤트 리스너 등록
-    document.addEventListener('DOMContentLoaded', initializePage);
+    document.addEventListener('DOMContentLoaded', handlePageLoad);
 } else {
     // DOM이 이미 로드된 경우 약간의 지연 후 실행
-    setTimeout(initializePage, 100);
+    setTimeout(handlePageLoad, 100);
 }
