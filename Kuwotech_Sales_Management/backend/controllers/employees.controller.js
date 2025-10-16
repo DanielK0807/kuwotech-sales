@@ -379,8 +379,8 @@ export const createEmployee = async (req, res) => {
 
     const employeeId = uuidv4();
 
-    // 기본 비밀번호 생성 (이름 + 0000)
-    const defaultPassword = await bcrypt.hash(`${name}0000`, 10);
+    // 기본 비밀번호: 1234 (모든 직원 통일)
+    const defaultPassword = await bcrypt.hash('1234', 10);
 
     // 직원 추가
     await db.execute(
