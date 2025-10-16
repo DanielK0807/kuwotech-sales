@@ -88,6 +88,16 @@ const pageFileMap = {
         file: '01_admin_feedback',
         script: '02_admin_feedback.js'
     },
+    'customer-news': {
+        folder: '05_customer_news',
+        file: '01_customer_news',
+        script: '02_customer_news.js'
+    },
+    'admin-comments': {
+        folder: '06_admin_comments',
+        file: '01_admin_comments',
+        script: '02_admin_comments.js'
+    },
     'system-settings': {
         folder: '06_system_settings',  // 수정: 07 -> 06
         file: '01_settings',
@@ -268,12 +278,19 @@ async function initSalesMode() {
         activateMenu(targetPage);
         
         await loadPage(targetPage);
-        
+
         isInitialized = true;
-        
+
         // 환영 메시지
         showToast(`안녕하세요, ${user.name}님! 영업관리 시스템에 오신 것을 환영합니다.`, 'success');
-        
+
+        // 읽지 않은 관리자 의견 확인 (영업담당만, 최초 로그인 시 1회만)
+        // 세션 스토리지에 체크 완료 플래그가 없으면 실행
+        if (user.role === '영업담당' && !sessionStorage.getItem('commentsChecked')) {
+            sessionStorage.setItem('commentsChecked', 'true');
+            await checkUnreadComments();
+        }
+
     } catch (error) {
         await errorHandler.handle(
             new AuthError('영업모드 초기화 실패', error, {
@@ -500,6 +517,108 @@ async function renderPage(container, html, mapping, page) {
 // [SECTION: 글로벌 이벤트]
 // ============================================
 // → 18_layout_common.js에서 import (setupGlobalEvents, checkUnsavedWork)
+
+// ============================================
+// [SECTION: 읽지 않은 관리자 의견 확인]
+// ============================================
+
+/**
+ * 읽지 않은 관리자 의견 확인 및 알림
+ */
+async function checkUnreadComments() {
+    try {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (!token) {
+            logger.warn('[관리자 의견] 토큰이 없어 의견 확인을 건너뜁니다.');
+            return;
+        }
+
+        // API 호출하여 읽지 않은 의견 확인
+        const API_BASE_URL = GlobalConfig.API_BASE_URL || 'https://kuwotech-sales-production-aa64.up.railway.app';
+        const response = await fetch(`${API_BASE_URL}/api/customer-news/my-news-with-comments`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            logger.warn('[관리자 의견] API 호출 실패:', response.status);
+            return;
+        }
+
+        const data = await response.json();
+        const newsData = data.news || [];
+
+        // 읽지 않은 의견 개수 계산
+        let unreadCount = 0;
+        newsData.forEach(news => {
+            const comments = news.comments || [];
+            unreadCount += comments.filter(c => !c.is_read_by_writer).length;
+        });
+
+        if (unreadCount === 0) {
+            logger.info('[관리자 의견] 읽지 않은 의견이 없습니다.');
+            return;
+        }
+
+        // 읽지 않은 의견이 있으면 모달 표시
+        showUnreadCommentsModal(unreadCount);
+
+    } catch (error) {
+        logger.error('[관리자 의견] 확인 오류:', error);
+        // 오류가 발생해도 로그인 프로세스는 계속 진행
+    }
+}
+
+/**
+ * 읽지 않은 의견 모달 표시
+ */
+function showUnreadCommentsModal(count) {
+    const modalConfig = {
+        title: '🔔 새로운 관리자 의견이 있습니다',
+        message: `
+            <div style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 48px; margin-bottom: 20px;">💬</div>
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">
+                    읽지 않은 관리자 의견이 <span style="color: #ef4444; font-size: 24px;">${count}개</span> 있습니다.
+                </p>
+                <p style="color: var(--text-secondary); margin-top: 10px;">
+                    관리자가 작성한 고객소식에 대한 의견을 확인해보세요.
+                </p>
+            </div>
+        `,
+        confirmText: '지금 확인하기',
+        cancelText: '나중에 확인',
+        type: 'info',
+        onConfirm: () => {
+            // "관리자 의견 확인" 페이지로 이동
+            navigateToAdminComments();
+        },
+        onCancel: () => {
+            logger.info('[관리자 의견] 사용자가 나중에 확인을 선택했습니다.');
+        }
+    };
+
+    showModal(modalConfig);
+}
+
+/**
+ * 관리자 의견 확인 페이지로 이동
+ */
+function navigateToAdminComments() {
+    // 관리자 의견 확인 페이지가 pageFileMap에 등록되어 있는지 확인
+    const adminCommentsPage = 'admin-comments';
+
+    if (pageFileMap[adminCommentsPage]) {
+        // 페이지 매핑이 있으면 navigateTo 사용
+        navigateTo(adminCommentsPage);
+    } else {
+        // 페이지 매핑이 없으면 직접 이동
+        window.location.href = '../06_admin_comments/01_admin_comments.html';
+    }
+}
 
 // ============================================
 // [SECTION: 유틸리티 함수]
