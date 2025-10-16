@@ -856,6 +856,51 @@ const startServer = async () => {
     console.log("⏰ KPI 자동 계산 스케줄러 시작 중...");
     startKpiScheduler();
 
+    // 🔍 비밀번호 디버그 (이미정, 정철웅)
+    try {
+      console.log("🔍 비밀번호 확인 중...");
+      const { getDB } = await import("./config/database.js");
+      const bcrypt = await import("bcrypt");
+      const db = await getDB();
+
+      const names = ['이미정', '정철웅'];
+
+      for (const name of names) {
+        const [employees] = await db.execute(
+          'SELECT id, name, password FROM employees WHERE name = ?',
+          [name]
+        );
+
+        if (employees.length === 0) {
+          console.log(`❌ "${name}" 직원을 찾을 수 없습니다.`);
+          continue;
+        }
+
+        const employee = employees[0];
+        const test1234 = await bcrypt.default.compare('1234', employee.password);
+        const testNamePassword = await bcrypt.default.compare(`${name}0000`, employee.password);
+
+        console.log(`\n📊 ${name} 비밀번호 분석:`);
+        console.log(`   - 비밀번호 해시: ${employee.password?.substring(0, 20)}...`);
+        console.log(`   - 해시 길이: ${employee.password?.length}`);
+        console.log(`   - bcrypt 형식: ${employee.password?.startsWith('$2b$') || employee.password?.startsWith('$2a$')}`);
+        console.log(`   - "1234" 일치: ${test1234 ? '✅ YES' : '❌ NO'}`);
+        console.log(`   - "${name}0000" 일치: ${testNamePassword ? '✅ YES' : '❌ NO'}`);
+
+        if (test1234) {
+          console.log(`   ✅ 현재 비밀번호: "1234"`);
+        } else if (testNamePassword) {
+          console.log(`   ✅ 현재 비밀번호: "${name}0000"`);
+        } else {
+          console.log(`   ⚠️ 비밀번호가 "1234"도 아니고 "${name}0000"도 아님`);
+        }
+      }
+
+      console.log("\n✅ 비밀번호 확인 완료\n");
+    } catch (error) {
+      console.error("❌ 비밀번호 확인 오류:", error.message);
+    }
+
     // 서버 시작
     app.listen(PORT, "0.0.0.0", () => {
       console.log("\n" + "=".repeat(50));

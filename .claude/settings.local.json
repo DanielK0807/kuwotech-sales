@@ -54,7 +54,16 @@
       "Bash(for file in \"00_layouts/02_admin_layout.js\" \"01_dashboard/02_dashboard.js\" \"01_dashboard/03_download_kpi.js\" \"02_all_companies/03_companies_download.js\" \"03_report_confirm/03_reports_download.js\" \"05_data_management/03_backup_download.js\" \"06_employee_management/03_employee_download.js\" \"07_system_settings/02_settings.js\" \"07_system_settings/03_settings_download.js\" \"08_excel_upload/02_excel_upload.js\")",
       "Bash(done)",
       "Bash(for:*)",
-      "Bash(do echo \"=== $dir ===\")"
+      "Bash(do echo \"=== $dir ===\")",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__take_screenshot",
+      "Read(//f/7.VScode/Running VS Code/python_projects/엑셀파일다루기/**)",
+      "Read(//f/7.VScode/Running VS Code/python_projects/엑셀파일다루기/Paperlogy/**)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []
