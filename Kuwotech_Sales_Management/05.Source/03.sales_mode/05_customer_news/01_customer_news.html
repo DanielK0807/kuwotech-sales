@@ -888,13 +888,23 @@
         border-bottom: none;
     }
 
-    .autocomplete-item:hover {
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
         background: rgba(16, 185, 129, 0.15);
+        color: #2d7a2f !important;
+        font-weight: 600 !important;
     }
 
     .autocomplete-item strong {
-        color: #059669;
-        font-weight: 700;
+        color: #2d7a2f !important;
+        font-weight: 700 !important;
+    }
+
+    .autocomplete-no-results {
+        padding: var(--spacing-md);
+        text-align: center;
+        color: var(--text-secondary);
+        font-style: italic;
     }
 
     /* 유틸리티 */
