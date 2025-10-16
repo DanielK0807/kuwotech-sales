@@ -546,6 +546,63 @@ export const resetEmployeePassword = async (req, res) => {
   }
 };
 
+// GET /api/employees/debug-password/:name - 비밀번호 디버그 (임시 - 관리자 전용)
+export const debugEmployeePassword = async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    console.log('[비밀번호 디버그] 요청:', { name });
+
+    const db = await getDB();
+
+    // 직원 조회 (비밀번호 해시 포함)
+    const [employees] = await db.execute(
+      'SELECT id, name, password FROM employees WHERE name = ?',
+      [name]
+    );
+
+    if (employees.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: '직원을 찾을 수 없습니다.'
+      });
+    }
+
+    const employee = employees[0];
+
+    // 1234와 비교
+    const test1234 = await bcrypt.compare('1234', employee.password);
+    const testNamePassword = await bcrypt.compare(`${name}0000`, employee.password);
+
+    console.log('[비밀번호 디버그] 결과:', {
+      name,
+      passwordHashLength: employee.password?.length,
+      test1234Match: test1234,
+      testNamePasswordMatch: testNamePassword
+    });
+
+    res.json({
+      success: true,
+      debug: {
+        name: employee.name,
+        passwordHash: employee.password,
+        passwordHashLength: employee.password?.length,
+        bcryptFormat: employee.password?.startsWith('$2b$') || employee.password?.startsWith('$2a$'),
+        test1234: test1234,
+        testNamePassword: testNamePasswordMatch,
+        expectedPassword: test1234 ? '1234' : (testNamePasswordMatch ? `${name}0000` : 'unknown')
+      }
+    });
+
+  } catch (error) {
+    console.error('[비밀번호 디버그] 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '비밀번호 디버그 중 오류가 발생했습니다.'
+    });
+  }
+};
+
 // GET /api/employees/statistics - 직원 통계 조회
 export const getEmployeeStatistics = async (req, res) => {
   try {

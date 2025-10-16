@@ -12,7 +12,8 @@ import {
   deleteEmployee,
   updatePassword,
   getEmployeeStatistics,
-  resetEmployeePassword
+  resetEmployeePassword,
+  debugEmployeePassword
 } from '../controllers/employees.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 
@@ -20,6 +21,9 @@ const router = express.Router();
 
 // GET /api/employees/statistics - 직원 통계 조회 (인증된 사용자)
 router.get('/statistics', authenticate, getEmployeeStatistics);
+
+// GET /api/employees/debug-password/:name - 비밀번호 디버그 (관리자 전용, 임시)
+router.get('/debug-password/:name', authenticate, requireRole('관리자'), debugEmployeePassword);
 
 // GET /api/employees - 전체 직원 조회 (인증된 사용자)
 router.get('/', authenticate, getAllEmployees);
