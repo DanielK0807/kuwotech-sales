@@ -515,13 +515,13 @@ function renderNewsList(newsItems) {
         clone.querySelector('.news-company').textContent = news.companyName;
 
         // 날짜
-        clone.querySelector('.news-date').textContent = formatDate(news.newsDate);
+        clone.querySelector('.news-date').textContent = formatNewsDate(news.newsDate);
 
         // 상세 정보
         clone.querySelector('.news-title').textContent = news.title;
         clone.querySelector('.news-content').textContent = news.content;
         clone.querySelector('.news-author').textContent = news.createdBy;
-        clone.querySelector('.news-created').textContent = formatDateTime(news.createdAt);
+        clone.querySelector('.news-created').textContent = formatNewsDateTime(news.createdAt);
         clone.querySelector('.news-views').textContent = news.viewCount + '회';
         clone.querySelector('.news-comments').textContent = news.commentCount + '개';
 
@@ -734,13 +734,13 @@ function updateCharCounter() {
 // 유틸리티 함수
 // ============================================
 
-function formatDate(dateString) {
+function formatNewsDate(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function formatDateTime(dateString) {
+function formatNewsDateTime(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleString('ko-KR');
