@@ -54,6 +54,15 @@ export const login = async (req, res) => {
 
     const employee = employees[0];
 
+    // 퇴사 직원 체크
+    if (employee.status === '퇴사' || employee.status === 'inactive') {
+      console.log('❌ 퇴사한 직원 로그인 시도:', name);
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: '퇴사한 직원은 로그인할 수 없습니다.'
+      });
+    }
+
     // 비밀번호 검증
     const isPasswordValid = await bcrypt.compare(password, employee.password);
     if (!isPasswordValid) {
