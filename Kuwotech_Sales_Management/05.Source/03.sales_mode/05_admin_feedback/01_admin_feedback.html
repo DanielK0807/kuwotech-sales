@@ -127,6 +127,47 @@
             opacity: 0.8;
         }
 
+        /* === 탭 네비게이션 === */
+        .tab-navigation {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: var(--font-md);
+            font-weight: var(--font-weight-semibold);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-on-layer-1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
         /* ============================================ */
         /* 2열 레이아웃 (사이드바 + 메인 콘텐츠) */
         /* ============================================ */
@@ -503,8 +544,8 @@
     <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
         <div class="header-content">
             <div class="header-text">
-                <h1 class="text-on-layer-1">관리자의견 확인</h1>
-                <p class="subtitle text-on-layer-1">관리자가 작성한 의견이 포함된 보고서를 확인하세요</p>
+                <h1 class="text-on-layer-1">관리자 의견 확인</h1>
+                <p class="subtitle text-on-layer-1">보고서 및 고객소식에 대한 관리자 의견을 확인하세요</p>
             </div>
             <button
                 id="btnRefresh"
@@ -530,40 +571,94 @@
             <div class="card-icon">💬</div>
             <div class="card-content">
                 <div class="card-value success" id="feedbackReports">0</div>
-                <div class="card-label">의견 작성됨</div>
+                <div class="card-label">보고서 의견</div>
+            </div>
+        </div>
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">📰</div>
+            <div class="card-content">
+                <div class="card-value" id="totalNews">0</div>
+                <div class="card-label">전체 고객소식</div>
+            </div>
+        </div>
+        <div class="summary-card glass-card glass-3d-element">
+            <div class="card-icon">💭</div>
+            <div class="card-content">
+                <div class="card-value success" id="feedbackNews">0</div>
+                <div class="card-label">고객소식 의견</div>
             </div>
         </div>
     </section>
 
         <!-- ============================================ -->
-        <!-- 2열 레이아웃 (사이드바 + 메인 콘텐츠) -->
+        <!-- 탭 네비게이션 -->
         <!-- ============================================ -->
-        <div class="admin-feedback-container">
-        <!-- === 사이드바: 관리자 의견이 있는 보고서 리스트 === -->
-        <aside class="feedback-sidebar glass-card glass-3d-element">
-            <div class="sidebar-header">
-                <h3>💬 관리자 의견</h3>
-                <span class="feedback-count" id="feedbackCount">0</span>
-            </div>
-            <div class="report-list" id="reportList">
-                <!-- JavaScript로 동적 생성 -->
-                <div class="empty-state">
-                    <div class="empty-state-icon">📭</div>
-                    <div class="empty-state-text">의견이 작성된 보고서가 없습니다</div>
-                </div>
-            </div>
-        </aside>
+        <div class="tab-navigation" style="width: 95%; margin: 0 auto var(--spacing-lg) auto;">
+            <button class="tab-button active" data-tab="reports">
+                📊 보고서 의견
+            </button>
+            <button class="tab-button" data-tab="news">
+                📰 고객소식 의견
+            </button>
+        </div>
 
-        <!-- === 메인 콘텐츠: 보고서 상세 및 관리자 의견 === -->
-        <main class="feedback-content glass-card glass-3d-element" id="detailContent">
-            <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <div class="empty-state-text">보고서를 선택해주세요</div>
-                <div class="empty-state-subtext">왼쪽 목록에서 보고서를 클릭하면 상세 내용과 관리자 의견을 확인할 수 있습니다</div>
-            </div>
-        </main>
-    </div>
-    <!-- admin-feedback-container 끝 -->
+        <!-- ============================================ -->
+        <!-- 보고서 의견 탭 -->
+        <!-- ============================================ -->
+        <div class="admin-feedback-container tab-content active" id="reportsTab">
+            <!-- === 사이드바: 관리자 의견이 있는 보고서 리스트 === -->
+            <aside class="feedback-sidebar glass-card glass-3d-element">
+                <div class="sidebar-header">
+                    <h3>💬 보고서 의견</h3>
+                    <span class="feedback-count" id="feedbackCount">0</span>
+                </div>
+                <div class="report-list" id="reportList">
+                    <!-- JavaScript로 동적 생성 -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">의견이 작성된 보고서가 없습니다</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- === 메인 콘텐츠: 보고서 상세 및 관리자 의견 === -->
+            <main class="feedback-content glass-card glass-3d-element" id="detailContent">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-text">보고서를 선택해주세요</div>
+                    <div class="empty-state-subtext">왼쪽 목록에서 보고서를 클릭하면 상세 내용과 관리자 의견을 확인할 수 있습니다</div>
+                </div>
+            </main>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- 고객소식 의견 탭 -->
+        <!-- ============================================ -->
+        <div class="admin-feedback-container tab-content" id="newsTab" style="display: none;">
+            <!-- === 사이드바: 관리자 의견이 있는 고객소식 리스트 === -->
+            <aside class="feedback-sidebar glass-card glass-3d-element">
+                <div class="sidebar-header">
+                    <h3>💭 고객소식 의견</h3>
+                    <span class="feedback-count" id="newsCount">0</span>
+                </div>
+                <div class="report-list" id="newsList">
+                    <!-- JavaScript로 동적 생성 -->
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">의견이 작성된 고객소식이 없습니다</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- === 메인 콘텐츠: 고객소식 상세 및 관리자 의견 === -->
+            <main class="feedback-content glass-card glass-3d-element" id="newsDetailContent">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📰</div>
+                    <div class="empty-state-text">고객소식을 선택해주세요</div>
+                    <div class="empty-state-subtext">왼쪽 목록에서 고객소식을 클릭하면 상세 내용과 관리자 의견을 확인할 수 있습니다</div>
+                </div>
+            </main>
+        </div>
 
 </div>
 <!-- report-confirm-container 끝 -->
