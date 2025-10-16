@@ -496,6 +496,56 @@ export const deleteEmployee = async (req, res) => {
   }
 };
 
+// POST /api/employees/:id/reset-password - 비밀번호 초기화 (관리자 전용)
+export const resetEmployeePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log('[비밀번호 초기화] 요청:', { id });
+
+    const db = await getDB();
+
+    // 직원 조회
+    const [employees] = await db.execute(
+      'SELECT id, name FROM employees WHERE id = ?',
+      [id]
+    );
+
+    if (employees.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: '직원을 찾을 수 없습니다.'
+      });
+    }
+
+    const employee = employees[0];
+
+    // 기본 비밀번호 생성 (이름 + 0000)
+    const defaultPassword = `${employee.name}0000`;
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+    // 비밀번호 업데이트
+    await db.execute(
+      'UPDATE employees SET password = ? WHERE id = ?',
+      [hashedPassword, id]
+    );
+
+    console.log('[비밀번호 초기화] 성공:', employee.name, '→', defaultPassword);
+
+    res.json({
+      success: true,
+      message: `${employee.name} 직원의 비밀번호가 "${defaultPassword}"로 초기화되었습니다.`
+    });
+
+  } catch (error) {
+    console.error('[비밀번호 초기화] 오류:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '비밀번호 초기화 중 오류가 발생했습니다.'
+    });
+  }
+};
+
 // GET /api/employees/statistics - 직원 통계 조회
 export const getEmployeeStatistics = async (req, res) => {
   try {

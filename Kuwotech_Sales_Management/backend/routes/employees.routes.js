@@ -11,7 +11,8 @@ import {
   updateEmployee,
   deleteEmployee,
   updatePassword,
-  getEmployeeStatistics
+  getEmployeeStatistics,
+  resetEmployeePassword
 } from '../controllers/employees.controller.js';
 import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 
@@ -40,5 +41,8 @@ router.delete('/:id', authenticate, requireRole('관리자'), deleteEmployee);
 
 // PUT /api/employees/:id/password - 비밀번호 변경 (인증된 사용자)
 router.put('/:id/password', authenticate, updatePassword);
+
+// POST /api/employees/:id/reset-password - 비밀번호 초기화 (관리자만)
+router.post('/:id/reset-password', authenticate, requireRole('관리자'), resetEmployeePassword);
 
 export default router;
