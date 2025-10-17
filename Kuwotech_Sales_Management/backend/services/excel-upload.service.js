@@ -46,10 +46,19 @@ const trackChanges = async (connection, tableName, recordId, oldData, newData, c
 };
 
 // activityNotes를 customer_news 테이블에 자동 저장
-const insertCustomerNewsFromActivityNotes = async (connection, companyId, companyName, activityNotes, createdBy) => {
+const insertCustomerNewsFromActivityNotes = async (connection, companyId, companyName, activityNotes, uploadedBy) => {
   try {
     const newsId = randomUUID();
     const today = new Date().toISOString().split('T')[0];
+
+    // 거래처 담당자 조회
+    const [companyInfo] = await connection.execute(
+      'SELECT internalManager FROM companies WHERE keyValue = ? LIMIT 1',
+      [companyId]
+    );
+
+    // createdBy 우선순위: uploadedBy > 거래처 담당자 > 기본값 '정철웅'
+    const createdBy = uploadedBy || companyInfo[0]?.internalManager || '정철웅';
 
     await connection.execute(
       `INSERT INTO customer_news (
@@ -60,8 +69,8 @@ const insertCustomerNewsFromActivityNotes = async (connection, companyId, compan
         newsId,
         companyId,
         companyName,
-        createdBy || '시스템',
-        '시스템',
+        createdBy,
+        '영업부',
         '일반소식',
         `[엑셀 업로드] ${companyName} 영업활동`,
         activityNotes,
@@ -71,7 +80,7 @@ const insertCustomerNewsFromActivityNotes = async (connection, companyId, compan
       ]
     );
 
-    console.log(`   📰 [고객소식 자동 저장] ${companyName} - 엑셀 업로드 내용 저장 완료`);
+    console.log(`   📰 [고객소식 자동 저장] ${companyName} - 엑셀 업로드 내용 저장 완료 (작성자: ${createdBy})`);
   } catch (error) {
     console.error(`   ⚠️ [고객소식 자동 저장 실패] ${companyName}:`, error.message);
   }
