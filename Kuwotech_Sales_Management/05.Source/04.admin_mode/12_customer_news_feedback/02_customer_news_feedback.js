@@ -42,7 +42,7 @@ async function fetchCustomerNews(filters = {}) {
         params.append('limit', '10000'); // 전체 데이터 로드
 
         const queryString = params.toString();
-        const url = `/api/customer-news${queryString ? '?' + queryString : ''}`;
+        const url = `${API_BASE_URL}/api/customer-news${queryString ? '?' + queryString : ''}`;
 
         console.log('🔍 [고객소식 조회] 요청:', url);
 
@@ -76,7 +76,7 @@ async function saveComment(newsId, commentType, commentContent) {
         console.log('💾 [의견 저장] 요청:', newsId);
 
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        const response = await fetch(`/api/customer-news/${newsId}/comments`, {
+        const response = await fetch(`${API_BASE_URL}/api/customer-news/${newsId}/comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ function renderNewsList(newsArray) {
 
         clone.querySelector('.news-company').textContent = news.companyName;
         clone.querySelector('.news-author').textContent = `작성자: ${news.createdBy}`;
-        clone.querySelector('.news-date').textContent = `날짜: ${news.newsDate}`;
+        clone.querySelector('.news-date').textContent = `날짜: ${formatDateOnly(news.newsDate)}`;
 
         // 상세 정보
         clone.querySelector('.news-title').textContent = news.title;
@@ -161,7 +161,7 @@ function renderNewsList(newsArray) {
         clone.querySelector('.news-company-full').textContent = news.companyName;
         clone.querySelector('.news-author-full').textContent = news.createdBy;
         clone.querySelector('.news-category-full').textContent = news.category;
-        clone.querySelector('.news-date-full').textContent = news.newsDate;
+        clone.querySelector('.news-date-full').textContent = formatDateOnly(news.newsDate);
         clone.querySelector('.news-created-at').textContent = formatDateTime(news.createdAt);
         clone.querySelector('.news-priority').textContent = news.priority || '보통';
 
@@ -402,6 +402,20 @@ function formatDateTime(dateString) {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
+/**
+ * 날짜만 포맷 (YYYY-MM-DD)
+ */
+function formatDateOnly(dateString) {
+    if (!dateString) return '-';
+
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 // ============================================
 // 거래처 목록 로드
 // ============================================
@@ -588,27 +602,31 @@ function initCompanyAutocomplete() {
 // 초기화
 // ============================================
 
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 [고객소식 의견제시] 초기화 시작');
-
-    // 거래처 목록 로드
-    await loadCompanies();
-
-    // 내부담당자 목록 로드
-    await loadSalesReps();
-
-    // 거래처 자동완성 초기화
-    initCompanyAutocomplete();
-
-    // 이벤트 리스너 등록
-    const btnSearch = document.getElementById('btnSearch');
-    const btnRefresh = document.getElementById('btnRefresh');
-
-    console.log('🔍 [이벤트 등록] 버튼 요소 확인:', {
-        btnSearch: !!btnSearch,
-        btnRefresh: !!btnRefresh
+/**
+ * DOM 준비 대기 함수
+ */
+function waitForDOMReady() {
+    return new Promise((resolve) => {
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            // DOM이 이미 준비됨
+            setTimeout(resolve, 100); // 약간의 여유 시간
+        } else {
+            // DOM 로드 대기
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(resolve, 100);
+            });
+        }
     });
+}
 
+/**
+ * 이벤트 리스너 설정
+ */
+function setupEventListeners() {
+    console.error('🔍 [이벤트 리스너] 설정 시작');
+
+    // 검색 버튼
+    const btnSearch = document.getElementById('btnSearch');
     if (btnSearch) {
         btnSearch.addEventListener('click', () => {
             console.error('🔍 [검색 버튼] 클릭됨!');
@@ -619,9 +637,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('❌ [이벤트 등록] 검색 버튼을 찾을 수 없음!');
     }
 
+    // 새로고침 버튼
+    const btnRefresh = document.getElementById('btnRefresh');
     if (btnRefresh) {
         btnRefresh.addEventListener('click', handleRefresh);
-        console.log('✅ [이벤트 등록] 새로고침 버튼 이벤트 리스너 등록 완료');
+        console.error('✅ [이벤트 등록] 새로고침 버튼 이벤트 리스너 등록 완료');
     } else {
         console.error('❌ [이벤트 등록] 새로고침 버튼을 찾을 수 없음!');
     }
@@ -634,48 +654,63 @@ document.addEventListener('DOMContentLoaded', async () => {
                 handleSearch();
             }
         });
+        console.error('✅ [이벤트 등록] 거래처명 Enter 키 이벤트 등록 완료');
     }
 
-    // 내부담당자 드롭다운 토글
+    // 내부담당자 커스텀 드롭다운 토글
     const employeeDropdownButton = document.getElementById('employee-dropdown-button');
     const employeeDropdownMenu = document.getElementById('employee-dropdown-menu');
 
     if (employeeDropdownButton && employeeDropdownMenu) {
-        console.log('✅ [드롭다운] 버튼과 메뉴 요소 찾음');
+        console.error('✅ [드롭다운] 버튼과 메뉴 요소 찾음');
 
         employeeDropdownButton.addEventListener('click', (e) => {
-            e.preventDefault();
             e.stopPropagation();
-
-            const isOpen = employeeDropdownMenu.classList.contains('show');
-            console.log('🔽 [드롭다운] 클릭 - 현재 상태:', isOpen ? '열림' : '닫힘');
-
-            if (isOpen) {
-                employeeDropdownMenu.classList.remove('show');
-                employeeDropdownButton.classList.remove('active');
-                console.log('🔽 [드롭다운] 메뉴 닫음');
-            } else {
-                employeeDropdownMenu.classList.add('show');
-                employeeDropdownButton.classList.add('active');
-                console.log('🔽 [드롭다운] 메뉴 열림');
-            }
+            employeeDropdownButton.classList.toggle('active');
+            employeeDropdownMenu.classList.toggle('show');
+            console.error('🔽 [드롭다운] 토글됨 - show:', employeeDropdownMenu.classList.contains('show'));
         });
 
         // 드롭다운 외부 클릭 시 닫기
         document.addEventListener('click', (e) => {
             if (!employeeDropdownButton.contains(e.target) && !employeeDropdownMenu.contains(e.target)) {
-                if (employeeDropdownMenu.classList.contains('show')) {
-                    employeeDropdownMenu.classList.remove('show');
-                    employeeDropdownButton.classList.remove('active');
-                    console.log('🔽 [드롭다운] 외부 클릭으로 닫힘');
-                }
+                employeeDropdownButton.classList.remove('active');
+                employeeDropdownMenu.classList.remove('show');
             }
         });
+
+        console.error('✅ [이벤트 등록] 내부담당자 드롭다운 이벤트 등록 완료');
     } else {
         console.error('❌ [드롭다운] 버튼 또는 메뉴 요소를 찾을 수 없음!');
-        console.log('버튼:', employeeDropdownButton);
-        console.log('메뉴:', employeeDropdownMenu);
     }
+}
 
-    console.log('✅ [고객소식 의견제시] 초기화 완료');
-});
+/**
+ * 고객소식 의견제시 페이지 초기화
+ */
+async function initCustomerNewsFeedback() {
+    try {
+        console.error('🚀 [고객소식 의견제시] 초기화 시작');
+
+        // DOM 요소 확인 후 이벤트 리스너 설정
+        await waitForDOMReady();
+        setupEventListeners();
+
+        // 거래처 목록 로드
+        await loadCompanies();
+
+        // 내부담당자 목록 로드
+        await loadSalesReps();
+
+        // 거래처 자동완성 초기화
+        initCompanyAutocomplete();
+
+        console.error('✅ [고객소식 의견제시] 초기화 완료');
+    } catch (error) {
+        console.error('❌ [고객소식 의견제시] 초기화 실패:', error);
+        showToast('페이지 초기화 중 오류가 발생했습니다.', 'error');
+    }
+}
+
+// 페이지 로드 시 초기화 실행
+initCustomerNewsFeedback();

@@ -1,86 +1,94 @@
 // ============================================
-// MySQL 데이터베이스 연결 설정
+// MySQL 데이터베이스 연결 설정 (Connection Pool)
 // ============================================
 
 import mysql from "mysql2/promise";
 
-let connection = null;
+let pool = null;
 
-// 연결 상태 확인
-const isConnectionAlive = async (conn) => {
-  try {
-    await conn.ping();
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-// 데이터베이스 연결 생성
+// 데이터베이스 연결 풀 생성
 export const connectDB = async () => {
-  // 기존 연결이 있고 살아있으면 반환
-  if (connection && (await isConnectionAlive(connection))) {
-    return connection;
+  if (pool) {
+    return pool;
   }
 
-  // 기존 연결이 죽었으면 정리
-  if (connection) {
+  let retries = 3;
+  let lastError = null;
+
+  while (retries > 0) {
     try {
-      await connection.end();
+      const poolConfig = {
+        uri: process.env.DATABASE_URL,
+        waitForConnections: true,
+        connectionLimit: 10, // 최대 10개의 동시 연결
+        maxIdle: 10,
+        idleTimeout: 60000, // 60초
+        queueLimit: 0,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 0,
+        connectTimeout: 30000, // 30초
+        acquireTimeout: 30000, // 30초
+      };
+
+      pool = mysql.createPool(poolConfig);
+
+      // 연결 테스트
+      const conn = await pool.getConnection();
+      await conn.ping();
+      conn.release();
+
+      console.log("✅ MySQL 데이터베이스 연결 풀 생성 성공");
+
+      // 에러 핸들러 등록
+      pool.on("error", (err) => {
+        console.error("❌ MySQL 풀 에러:", err.message);
+      });
+
+      return pool;
     } catch (error) {
-      // 이미 끊어진 연결이므로 무시
-    }
-    connection = null;
-  }
+      lastError = error;
+      retries--;
+      console.error(`❌ MySQL 연결 실패 (${3 - retries}/3):`, error.message);
 
-  try {
-    // 연결 옵션 추가 (타임아웃 및 재연결 설정 강화)
-    const connectionConfig = {
-      uri: process.env.DATABASE_URL,
-      connectTimeout: 60000, // 60초
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      enableKeepAlive: true,
-      keepAliveInitialDelay: 0,
-    };
-
-    connection = await mysql.createConnection(connectionConfig);
-    console.log("✅ MySQL 데이터베이스 연결 성공");
-
-    // 연결 에러 핸들러 등록
-    connection.on("error", (err) => {
-      console.error("❌ MySQL 연결 에러:", err);
-      if (
-        err.code === "PROTOCOL_CONNECTION_LOST" ||
-        err.code === "ECONNRESET"
-      ) {
-        connection = null;
+      if (retries > 0) {
+        console.log(`⏳ 5초 후 재시도...`);
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
-    });
-
-    return connection;
-  } catch (error) {
-    console.error("❌ MySQL 연결 실패:", error.message);
-    throw error;
+    }
   }
+
+  // 모든 재시도 실패
+  console.error("❌ MySQL 연결 최종 실패:", lastError.message);
+  throw lastError;
 };
 
-// 데이터베이스 연결 가져오기 (재연결 로직 포함)
+// 데이터베이스 연결 가져오기
 export const getDB = async () => {
-  // 연결이 없거나 죽었으면 재연결
-  if (!connection || !(await isConnectionAlive(connection))) {
-    console.log("🔄 MySQL 재연결 시도...");
+  if (!pool) {
+    console.log("🔄 MySQL 풀이 없습니다. 새로 생성합니다...");
     await connectDB();
   }
-  return connection;
+
+  try {
+    // 연결 테스트
+    const conn = await pool.getConnection();
+    await conn.ping();
+    conn.release();
+    return pool;
+  } catch (error) {
+    console.error("❌ MySQL 풀 연결 테스트 실패:", error.message);
+    // 풀 재생성 시도
+    pool = null;
+    await connectDB();
+    return pool;
+  }
 };
 
 // 데이터베이스 연결 종료
 export const closeDB = async () => {
-  if (connection) {
-    await connection.end();
-    connection = null;
-    console.log("✅ MySQL 연결 종료");
+  if (pool) {
+    await pool.end();
+    pool = null;
+    console.log("✅ MySQL 연결 풀 종료");
   }
 };

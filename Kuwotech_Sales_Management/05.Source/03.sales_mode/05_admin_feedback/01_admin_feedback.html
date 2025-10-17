@@ -139,18 +139,19 @@
             padding: var(--spacing-md) var(--spacing-lg);
             font-size: var(--font-md);
             font-weight: var(--font-weight-semibold);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(0, 0, 0, 0.2);
             border-radius: var(--radius-lg);
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-on-layer-1);
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .tab-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 1);
+            border-color: var(--primary-color);
             transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .tab-button.active {

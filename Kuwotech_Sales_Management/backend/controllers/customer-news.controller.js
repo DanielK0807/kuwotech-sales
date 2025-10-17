@@ -85,6 +85,18 @@ export const getAllCustomerNews = async (req, res) => {
 
     const [news] = await db.execute(query, params);
 
+    // 각 뉴스에 대한 comments 조회 (프론트엔드에서 필요)
+    for (const newsItem of news) {
+      const [comments] = await db.execute(`
+        SELECT id, newsId, commentBy, commentByRole, comment, commentType, isRead, createdAt, readAt
+        FROM customer_news_comments
+        WHERE newsId = ?
+        ORDER BY createdAt DESC
+      `, [newsItem.id]);
+      
+      newsItem.comments = comments || [];
+    }
+
     // 총 개수 조회
     let countQuery = 'SELECT COUNT(*) as total FROM customer_news cn WHERE cn.status = ?';
     const countParams = [status];
