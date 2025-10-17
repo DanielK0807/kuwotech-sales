@@ -510,6 +510,7 @@ const createCustomerNewsTriggers = async (connection) => {
   try {
     await connection.query('DROP TRIGGER IF EXISTS increment_comment_count');
     await connection.query('DROP TRIGGER IF EXISTS decrement_comment_count');
+    await connection.query('DROP TRIGGER IF EXISTS sync_activityNotes_on_insert');
   } catch (error) {
     // 무시
   }
@@ -535,6 +536,18 @@ const createCustomerNewsTriggers = async (connection) => {
       UPDATE customer_news
       SET commentCount = GREATEST(0, commentCount - 1)
       WHERE id = OLD.newsId;
+    END
+  `);
+
+  // 트리거 3: 고객소식 작성 시 companies.activityNotes 동기화 (최신 내용만)
+  await connection.query(`
+    CREATE TRIGGER sync_activityNotes_on_insert
+    AFTER INSERT ON customer_news
+    FOR EACH ROW
+    BEGIN
+      UPDATE companies
+      SET activityNotes = CONCAT('[', DATE_FORMAT(NEW.newsDate, '%Y-%m-%d'), '] ', NEW.content)
+      WHERE keyValue = NEW.companyId;
     END
   `);
 };

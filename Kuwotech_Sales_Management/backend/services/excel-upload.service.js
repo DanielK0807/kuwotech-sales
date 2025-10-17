@@ -45,6 +45,38 @@ const trackChanges = async (connection, tableName, recordId, oldData, newData, c
   }
 };
 
+// activityNotes를 customer_news 테이블에 자동 저장
+const insertCustomerNewsFromActivityNotes = async (connection, companyId, companyName, activityNotes, createdBy) => {
+  try {
+    const newsId = randomUUID();
+    const today = new Date().toISOString().split('T')[0];
+
+    await connection.execute(
+      `INSERT INTO customer_news (
+        id, companyId, companyName, createdBy, department,
+        category, title, content, newsDate, priority, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newsId,
+        companyId,
+        companyName,
+        createdBy || '시스템',
+        '시스템',
+        '일반소식',
+        `[엑셀 업로드] ${companyName} 영업활동`,
+        activityNotes,
+        today,
+        '보통',
+        '활성'
+      ]
+    );
+
+    console.log(`   📰 [고객소식 자동 저장] ${companyName} - 엑셀 업로드 내용 저장 완료`);
+  } catch (error) {
+    console.error(`   ⚠️ [고객소식 자동 저장 실패] ${companyName}:`, error.message);
+  }
+};
+
 // 고객사 지역(customerRegion)에서 region_id 추출
 const getRegionIdFromCustomerRegion = async (connection, customerRegion) => {
   if (!customerRegion || customerRegion === '') return null;
@@ -153,7 +185,7 @@ export const upsertCompaniesFromExcel = async (filePath, uploadedBy) => {
           accumulatedSales: row['누적매출금액'] || 0,
           accumulatedCollection: row['누적수금금액'] || 0,
           accountsReceivable: row['매출채권잔액'] || 0,
-          activityNotes: row['고객 소식'] || null
+          activityNotes: row['고객 소식'] || row['영업활동(특이사항)'] || null
         };
 
         if (existing.length === 0) {
@@ -177,6 +209,18 @@ export const upsertCompaniesFromExcel = async (filePath, uploadedBy) => {
               newData.activityNotes
             ]
           );
+
+          // activityNotes가 있으면 customer_news에 자동 저장
+          if (newData.activityNotes && newData.activityNotes.trim()) {
+            await insertCustomerNewsFromActivityNotes(
+              connection,
+              newData.keyValue,
+              newData.finalCompanyName,
+              newData.activityNotes,
+              uploadedBy
+            );
+          }
+
           results.inserted++;
           results.changes.push({
             keyValue,
@@ -223,6 +267,18 @@ export const upsertCompaniesFromExcel = async (filePath, uploadedBy) => {
                 keyValue
               ]
             );
+
+            // activityNotes가 변경되었고 새 값이 있으면 customer_news에 자동 저장
+            const activityNotesChanged = changedFields.find(f => f.field === 'activityNotes');
+            if (activityNotesChanged && newData.activityNotes && newData.activityNotes.trim()) {
+              await insertCustomerNewsFromActivityNotes(
+                connection,
+                newData.keyValue,
+                newData.finalCompanyName,
+                newData.activityNotes,
+                uploadedBy
+              );
+            }
 
             // 변경 이력 저장
             await trackChanges(connection, 'companies', keyValue, oldData, newData, uploadedBy);
