@@ -871,8 +871,10 @@
         border: 2px solid rgba(16, 185, 129, 0.3);
         border-radius: var(--radius-md);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
+        z-index: 99999 !important;
         margin-top: var(--spacing-xs);
+        isolation: isolate;
+        will-change: transform;
     }
 
     .autocomplete-item {
