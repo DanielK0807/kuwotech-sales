@@ -166,7 +166,10 @@ async function loadCustomerNews() {
         }
 
         const data = await response.json();
-        allNewsData = data.news || [];
+        allNewsData = data.data?.news || [];
+
+        console.log('✅ [고객소식] API 응답:', data);
+        console.log('📊 [고객소식] 로드된 데이터:', allNewsData.length, '건');
 
         if (allNewsData.length === 0) {
             showEmptyState(true);
@@ -414,7 +417,8 @@ async function loadNewsDetail(newsId) {
         }
 
         const data = await response.json();
-        displayNewsDetail(data.news);
+        console.log('✅ [고객소식 상세] API 응답:', data);
+        displayNewsDetail(data.data?.news);
 
     } catch (error) {
         console.error('고객소식 상세 로드 오류:', error);
