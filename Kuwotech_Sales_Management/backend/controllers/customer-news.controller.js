@@ -988,12 +988,12 @@ export const migrateActivityNotesToCustomerNews = async (req, res) => {
     // 2. 각 거래처의 activityNotes를 customer_news에 삽입
     for (const company of companies) {
       try {
-        // 이미 해당 거래처의 시스템 생성 고객소식이 있는지 확인
+        // 이미 해당 거래처의 마이그레이션 생성 고객소식이 있는지 확인
         const [existing] = await db.execute(`
           SELECT id FROM customer_news
           WHERE companyId = ?
-            AND createdBy = '시스템'
             AND category = '일반소식'
+            AND title LIKE '[마이그레이션]%'
             AND content = ?
           LIMIT 1
         `, [company.keyValue, company.activityNotes]);
@@ -1008,6 +1008,13 @@ export const migrateActivityNotesToCustomerNews = async (req, res) => {
         const newsId = uuidv4();
         const today = new Date().toISOString().split('T')[0];
 
+        // 시스템 사용자가 employees 테이블에 없으므로, companyId의 담당자를 createdBy로 사용
+        const [companyInfo] = await db.execute(`
+          SELECT internalManager FROM companies WHERE keyValue = ? LIMIT 1
+        `, [company.keyValue]);
+
+        const createdBy = companyInfo[0]?.internalManager || '정철웅'; // 기본값: 정철웅
+
         await db.execute(`
           INSERT INTO customer_news (
             id, companyId, companyName, createdBy, department,
@@ -1017,8 +1024,8 @@ export const migrateActivityNotesToCustomerNews = async (req, res) => {
           newsId,
           company.keyValue,
           company.finalCompanyName,
-          '시스템',
-          '시스템',
+          createdBy,
+          '영업부',
           '일반소식',
           `[마이그레이션] ${company.finalCompanyName} 영업활동`,
           company.activityNotes,
