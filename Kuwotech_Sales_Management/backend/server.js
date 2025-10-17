@@ -269,7 +269,9 @@ app.get("/api/health", async (req, res) => {
   try {
     const { getDB } = await import("./config/database.js");
     const db = await getDB();
-    await db.ping();
+
+    // Connection Pool 헬스체크: SELECT 1 쿼리 실행
+    await db.query('SELECT 1');
 
     res.json({
       status: "OK",
