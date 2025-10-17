@@ -265,11 +265,16 @@ async function loadCompanies() {
 // ============================================
 
 function registerEventListeners() {
+    console.warn('🎯 [고객소식] 이벤트 리스너 등록 시작');
+
     // 탭 전환
     const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => {
+    console.warn(`  - 탭 버튼 ${tabButtons.length}개 발견`);
+    tabButtons.forEach((button, index) => {
+        console.warn(`    * 버튼 ${index + 1}: data-tab="${button.dataset.tab}"`);
         button.addEventListener('click', handleTabSwitch);
     });
+    console.warn('  ✅ 탭 버튼 이벤트 리스너 등록 완료');
 
     // 새로고침 버튼
     const btnRefresh = document.getElementById('btnRefresh');
