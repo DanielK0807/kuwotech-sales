@@ -3,9 +3,27 @@
  * 영업담당자가 작성한 고객소식을 확인하고 의견 작성
  */
 
-import { getAuthToken, getUserName } from '../../01.common/01_utils.js';
-import { API_BASE_URL } from '../../01.common/02_config.js';
-import { showNotification } from '../../01.common/03_notifications.js';
+import {
+    GlobalConfig,
+    showToast,
+    showModal
+} from '../../01.common/10_index.js';
+
+// 유틸리티 함수
+const API_BASE_URL = GlobalConfig.API_BASE_URL;
+
+function getAuthToken() {
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+}
+
+function getUserName() {
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+    return user.name || '';
+}
+
+function showNotification(message, type = 'info') {
+    showToast(message, type);
+}
 
 // DOM 요소
 let btnRefresh;
