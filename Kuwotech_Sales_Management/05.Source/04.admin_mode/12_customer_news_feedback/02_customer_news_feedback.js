@@ -320,7 +320,7 @@ function renderNewsList() {
 
     // 날짜 순으로 정렬 (최신순)
     const sortedNews = [...filteredNewsData].sort((a, b) =>
-        new Date(b.created_at) - new Date(a.created_at)
+        new Date(b.createdAt) - new Date(a.createdAt)
     );
 
     sortedNews.forEach(news => {
@@ -361,8 +361,8 @@ function createNewsItem(news) {
         </div>
         <div class="news-item-title">${escapeHtml(news.title || '제목 없음')}</div>
         <div class="news-item-info">
-            <span class="news-company">${escapeHtml(news.company_name || '-')}</span>
-            <span class="news-author">${escapeHtml(news.writer_name || '-')}</span>
+            <span class="news-company">${escapeHtml(news.companyName || '-')}</span>
+            <span class="news-author">${escapeHtml(news.createdBy || '-')}</span>
         </div>
     `;
 
@@ -437,10 +437,10 @@ function displayNewsDetail(news) {
     // 기본 정보
     document.getElementById('detailNewsId').textContent = news.id || '-';
     document.getElementById('detailCategory').textContent = news.category || '-';
-    document.getElementById('detailAuthor').textContent = news.writer_name || '-';
-    document.getElementById('detailCompany').textContent = news.company_name || '-';
-    document.getElementById('detailNewsDate').textContent = formatDate(news.news_date);
-    document.getElementById('detailCreatedDate').textContent = formatDateTime(news.created_at);
+    document.getElementById('detailAuthor').textContent = news.createdBy || '-';
+    document.getElementById('detailCompany').textContent = news.companyName || '-';
+    document.getElementById('detailNewsDate').textContent = formatDate(news.newsDate);
+    document.getElementById('detailCreatedDate').textContent = formatDateTime(news.createdAt);
 
     const priorityLabel = getPriorityLabel(news.priority);
     document.getElementById('detailPriority').textContent = priorityLabel;
@@ -475,7 +475,7 @@ function renderExistingComments(comments) {
 
     // 날짜 순으로 정렬 (최신순)
     const sortedComments = [...comments].sort((a, b) =>
-        new Date(b.created_at) - new Date(a.created_at)
+        new Date(b.createdAt) - new Date(a.createdAt)
     );
 
     sortedComments.forEach(comment => {
@@ -491,17 +491,17 @@ function createExistingCommentItem(comment) {
     const div = document.createElement('div');
     div.className = 'existing-comment-item';
 
-    const typeLabel = getCommentTypeLabel(comment.comment_type);
+    const typeLabel = getCommentTypeLabel(comment.commentType);
 
     div.innerHTML = `
         <div class="comment-item-header">
             <div>
-                <span class="comment-author">${comment.admin_name || '관리자'}</span>
+                <span class="comment-author">${comment.commentBy || '관리자'}</span>
                 <span class="comment-type">${typeLabel}</span>
             </div>
-            <span class="comment-date">${formatDateTime(comment.created_at)}</span>
+            <span class="comment-date">${formatDateTime(comment.createdAt)}</span>
         </div>
-        <div class="comment-content">${escapeHtml(comment.content)}</div>
+        <div class="comment-content">${escapeHtml(comment.comment)}</div>
     `;
 
     return div;
