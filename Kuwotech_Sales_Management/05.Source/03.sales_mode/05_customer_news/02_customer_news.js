@@ -348,11 +348,13 @@ function handleTabSwitch(e) {
         console.warn('✅ [고객소식] 작성 탭 활성화됨');
 
         // 작성 탭으로 전환 시 자동완성 재초기화 (탭이 보이는 상태에서 초기화)
-        // 약간의 딜레이를 주어 DOM이 완전히 렌더링된 후 초기화
-        console.warn('⏳ [고객소식] 100ms 후 자동완성 초기화 예약...');
-        setTimeout(() => {
-            initWriteTabAutocomplete();
-        }, 100);
+        // requestAnimationFrame을 사용하여 DOM 렌더링 완료 후 확실하게 초기화
+        console.warn('⏳ [고객소식] 자동완성 초기화 예약 (requestAnimationFrame)...');
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                initWriteTabAutocomplete();
+            }, 50);
+        });
     }
 }
 
@@ -361,11 +363,14 @@ function handleTabSwitch(e) {
 // ============================================
 
 function initCompanyAutocomplete() {
-    // 조회 탭은 항상 보이므로 바로 초기화
+    // 조회 탭 자동완성 초기화
     initViewTabAutocomplete();
 
-    // 작성 탭은 보이지 않으므로 나중에 탭 전환 시 초기화
-    // (initWriteTabAutocomplete는 handleTabSwitch에서 호출됨)
+    // 작성 탭 자동완성도 미리 초기화 (탭이 숨겨져 있어도 DOM 요소는 존재)
+    // 약간의 딜레이 후 초기화하여 DOM이 준비되도록 함
+    setTimeout(() => {
+        initWriteTabAutocomplete();
+    }, 200);
 }
 
 /**
@@ -420,43 +425,58 @@ function initWriteTabAutocomplete() {
     console.warn('  - 거래처 데이터 개수:', allCompanies.length);
 
     if (!companyName || !companyAutocomplete) {
-        console.warn('⚠️ [고객소식] 작성 탭 자동완성 요소를 찾을 수 없음');
+        console.error('❌ [고객소식] 작성 탭 자동완성 요소를 찾을 수 없음!');
+        console.error('  - companyName 존재 여부:', !!companyName);
+        console.error('  - companyAutocomplete 존재 여부:', !!companyAutocomplete);
         return;
     }
 
     // 기존 인스턴스 정리
     if (companyAutocompleteManager) {
+        console.warn('  - 기존 인스턴스 정리 중...');
         companyAutocompleteManager.destroy();
         companyAutocompleteManager = null;
     }
 
-    // 새 인스턴스 생성
-    companyAutocompleteManager = new AutocompleteManager({
-        inputElement: companyName,
-        listElement: companyAutocomplete,
-        dataSource: allCompanies,
-        getDisplayText: (company) => {
-            const mainName = company.finalCompanyName || company.erpCompanyName;
-            if (company.erpCompanyName && company.finalCompanyName !== company.erpCompanyName) {
-                return `${mainName} (${company.erpCompanyName})`;
-            }
-            return mainName;
-        },
-        onSelect: (company) => {
-            companyName.value = company.finalCompanyName || company.erpCompanyName;
-            // Hidden input에 companyId 저장
-            const companyIdInput = document.getElementById('companyId');
-            if (companyIdInput) {
-                companyIdInput.value = company.keyValue;
-            }
-            console.warn('✅ [고객소식] 거래처 선택됨:', company);
-        },
-        maxResults: 10,
-        placeholder: '검색 결과가 없습니다',
-        highlightSearch: true
-    });
+    // 거래처 데이터 확인
+    if (!allCompanies || allCompanies.length === 0) {
+        console.error('❌ [고객소식] 거래처 데이터가 없습니다!');
+        return;
+    }
 
-    console.warn('✅ [고객소식] 작성 탭 자동완성 초기화 완료 (재초기화)');
+    // 새 인스턴스 생성
+    try {
+        companyAutocompleteManager = new AutocompleteManager({
+            inputElement: companyName,
+            listElement: companyAutocomplete,
+            dataSource: allCompanies,
+            getDisplayText: (company) => {
+                const mainName = company.finalCompanyName || company.erpCompanyName;
+                if (company.erpCompanyName && company.finalCompanyName !== company.erpCompanyName) {
+                    return `${mainName} (${company.erpCompanyName})`;
+                }
+                return mainName;
+            },
+            onSelect: (company) => {
+                companyName.value = company.finalCompanyName || company.erpCompanyName;
+                // Hidden input에 companyId 저장
+                const companyIdInput = document.getElementById('companyId');
+                if (companyIdInput) {
+                    companyIdInput.value = company.keyValue;
+                }
+                console.warn('✅ [고객소식] 거래처 선택됨:', company.finalCompanyName || company.erpCompanyName);
+            },
+            maxResults: 10,
+            placeholder: '검색 결과가 없습니다',
+            highlightSearch: true
+        });
+
+        console.warn('✅ [고객소식] 작성 탭 자동완성 초기화 완료!');
+        console.warn('  - 인스턴스 생성됨:', !!companyAutocompleteManager);
+        console.warn('  - 데이터 소스 개수:', allCompanies.length);
+    } catch (error) {
+        console.error('❌ [고객소식] 자동완성 생성 중 오류:', error);
+    }
 }
 
 // ============================================
