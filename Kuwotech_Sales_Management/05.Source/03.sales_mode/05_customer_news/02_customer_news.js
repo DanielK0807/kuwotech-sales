@@ -171,8 +171,8 @@ const TEMPLATES = {
 // DOM 로드 완료 시 실행
 // ============================================
 
-document.addEventListener('DOMContentLoaded', async () => {
-    console.warn('✅ [고객소식] 페이지 로드 시작');
+async function initializePage() {
+    console.warn('✅ [고객소식] 페이지 초기화 시작');
 
     // 초기화
     await init();
@@ -183,8 +183,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 기본 조회 탭 데이터 로드
     await loadCustomerNews();
 
-    console.warn('✅ [고객소식] 페이지 로드 완료');
-});
+    console.warn('✅ [고객소식] 페이지 초기화 완료');
+}
+
+// DOMContentLoaded가 이미 발생했는지 확인
+if (document.readyState === 'loading') {
+    // 아직 로딩 중이면 DOMContentLoaded 이벤트 대기
+    console.warn('⏳ [고객소식] DOM 로딩 중... DOMContentLoaded 대기');
+    document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+    // 이미 로드 완료되었으면 즉시 실행 (동적 로드 시)
+    console.warn('⚡ [고객소식] DOM 이미 로드됨 - 즉시 초기화 실행');
+    initializePage();
+}
 
 // ============================================
 // 초기화 함수
