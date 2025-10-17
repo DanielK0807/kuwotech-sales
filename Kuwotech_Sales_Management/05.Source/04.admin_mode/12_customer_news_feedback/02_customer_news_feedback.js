@@ -152,8 +152,21 @@ function init() {
         });
     });
 
-    // 초기 데이터 로드
-    loadCustomerNews();
+    // 초기 상태: 로딩 숨김, 빈 화면 표시
+    showLoading(false);
+    showEmptyState(false);
+    showMainLayout(true);
+
+    // 초기 메시지 표시
+    if (newsItemsContainer) {
+        newsItemsContainer.innerHTML = `
+            <div style="text-align: center; padding: var(--spacing-3xl); color: var(--text-secondary);">
+                <div style="font-size: 48px; margin-bottom: var(--spacing-lg);">🔍</div>
+                <p style="font-size: var(--font-lg); margin-bottom: var(--spacing-md);">검색 조건을 입력하고</p>
+                <p style="font-size: var(--font-lg); font-weight: 600;">🔍 검색 버튼을 눌러주세요</p>
+            </div>
+        `;
+    }
 }
 
 /**
@@ -309,15 +322,20 @@ function handleCommentStatusFilter(status) {
 /**
  * 검색 필터 적용 핸들러
  */
-function handleApplyFilters() {
+async function handleApplyFilters() {
     // 입력값 가져오기
     searchCompanyText = filterCompanyName?.value?.trim() || '';
     searchCreatedByText = filterCreatedBy?.value?.trim() || '';
     searchStartDate = filterStartDate?.value || '';
     searchEndDate = filterEndDate?.value || '';
 
-    // 필터 적용
-    applyFilters();
+    // 데이터가 없으면 먼저 로드
+    if (allNewsData.length === 0) {
+        await loadCustomerNews();
+    } else {
+        // 데이터가 이미 있으면 필터만 적용
+        applyFilters();
+    }
 
     // 사용자 피드백
     const filterCount = [searchCompanyText, searchCreatedByText, searchStartDate, searchEndDate].filter(f => f).length;
