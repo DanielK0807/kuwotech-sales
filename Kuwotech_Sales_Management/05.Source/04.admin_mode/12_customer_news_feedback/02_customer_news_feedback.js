@@ -222,14 +222,23 @@ function renderExistingComments(container, comments) {
  * 검색 버튼 클릭 핸들러
  */
 async function handleSearch() {
+    console.log('🔍 [검색] handleSearch() 함수 호출됨!');
+
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
+
+    console.log('🔍 [검색] 요소 확인:', {
+        loadingState: !!loadingState,
+        emptyState: !!emptyState,
+        newsList: !!document.getElementById('newsList')
+    });
 
     try {
         // 로딩 상태 표시
         loadingState.classList.remove('hidden');
         emptyState.classList.add('hidden');
         document.getElementById('newsList').innerHTML = '';
+        console.log('🔍 [검색] 로딩 상태 표시됨');
 
         // 필터 조건 수집
         const filters = {
@@ -594,12 +603,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnSearch = document.getElementById('btnSearch');
     const btnRefresh = document.getElementById('btnRefresh');
 
+    console.log('🔍 [이벤트 등록] 버튼 요소 확인:', {
+        btnSearch: !!btnSearch,
+        btnRefresh: !!btnRefresh
+    });
+
     if (btnSearch) {
-        btnSearch.addEventListener('click', handleSearch);
+        btnSearch.addEventListener('click', () => {
+            console.log('🔍 [검색 버튼] 클릭됨!');
+            handleSearch();
+        });
+        console.log('✅ [이벤트 등록] 검색 버튼 이벤트 리스너 등록 완료');
+    } else {
+        console.error('❌ [이벤트 등록] 검색 버튼을 찾을 수 없음!');
     }
 
     if (btnRefresh) {
         btnRefresh.addEventListener('click', handleRefresh);
+        console.log('✅ [이벤트 등록] 새로고침 버튼 이벤트 리스너 등록 완료');
+    } else {
+        console.error('❌ [이벤트 등록] 새로고침 버튼을 찾을 수 없음!');
     }
 
     // Enter 키로 검색
