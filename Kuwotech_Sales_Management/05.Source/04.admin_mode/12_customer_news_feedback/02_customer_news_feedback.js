@@ -177,7 +177,8 @@ async function loadCustomerNews() {
     try {
         showLoading(true);
 
-        const response = await fetch(`${API_BASE_URL}/api/customer-news`, {
+        // 전체 데이터 가져오기 (limit=10000)
+        const response = await fetch(`${API_BASE_URL}/api/customer-news?limit=10000`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
