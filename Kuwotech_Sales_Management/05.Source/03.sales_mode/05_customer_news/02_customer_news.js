@@ -180,8 +180,8 @@ async function initializePage() {
     // 이벤트 리스너 등록
     registerEventListeners();
 
-    // 기본 조회 탭 데이터 로드
-    await loadCustomerNews();
+    // 초기 화면은 빈 상태 표시 (검색하기 버튼 클릭 시에만 데이터 로드)
+    showInitialEmptyState();
 
     console.warn('✅ [고객소식] 페이지 초기화 완료');
 }
@@ -516,6 +516,33 @@ function handleTemplateClick(e) {
 }
 
 // ============================================
+// 초기 빈 상태 표시
+// ============================================
+
+function showInitialEmptyState() {
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const newsList = document.getElementById('newsList');
+
+    // 로딩 숨김
+    loadingState.classList.add('hidden');
+
+    // 빈 상태 메시지 설정 (초기 상태용)
+    const emptyIcon = emptyState.querySelector('.empty-icon');
+    const emptyMessage = emptyState.querySelector('p');
+    if (emptyIcon) emptyIcon.textContent = '🔍';
+    if (emptyMessage) emptyMessage.textContent = '검색하기 버튼을 클릭하여 고객소식을 조회하세요.';
+
+    // 빈 상태 표시
+    emptyState.classList.remove('hidden');
+
+    // 목록 비우기
+    newsList.innerHTML = '';
+
+    console.warn('📋 [고객소식] 초기 빈 상태 표시 - 검색하기 버튼을 클릭하여 조회하세요');
+}
+
+// ============================================
 // 고객소식 조회
 // ============================================
 
@@ -565,6 +592,12 @@ async function loadCustomerNews(filters = {}) {
         loadingState.classList.add('hidden');
 
         if (allNews.length === 0) {
+            // 검색 결과가 없을 때 메시지 설정
+            const emptyIcon = emptyState.querySelector('.empty-icon');
+            const emptyMessage = emptyState.querySelector('p');
+            if (emptyIcon) emptyIcon.textContent = '📭';
+            if (emptyMessage) emptyMessage.textContent = '검색 조건에 맞는 고객소식이 없습니다.';
+
             emptyState.classList.remove('hidden');
             return;
         }
