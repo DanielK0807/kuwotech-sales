@@ -130,7 +130,7 @@ const createReportsTable = async (connection) => {
       actualCollectionAmount DECIMAL(15,2) DEFAULT 0 COMMENT '실제 수금금액',
       soldProducts TEXT COMMENT '판매한 제품',
       includeVAT BOOLEAN DEFAULT TRUE COMMENT '부가세 포함 여부',
-      status ENUM('임시저장', '제출완료', '승인', '반려') DEFAULT '임시저장' COMMENT '상태',
+      status ENUM('임시저장', '확인') DEFAULT '임시저장' COMMENT '상태',
       processedBy VARCHAR(100) COMMENT '처리자',
       processedDate TIMESTAMP NULL COMMENT '처리일',
       adminComment TEXT COMMENT '관리자코멘트',
@@ -412,6 +412,134 @@ const createAccessLogsTable = async (connection) => {
 };
 
 // ==========================================
+// 11. customer_news 테이블 생성 (고객소식)
+// ==========================================
+const createCustomerNewsTable = async (connection) => {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS customer_news (
+      id VARCHAR(36) PRIMARY KEY COMMENT '고객소식 ID (UUID)',
+      companyId VARCHAR(100) NOT NULL COMMENT '거래처 ID',
+      companyName VARCHAR(200) NOT NULL COMMENT '거래처명 (조회용)',
+      createdBy VARCHAR(100) NOT NULL COMMENT '작성자 (영업담당자)',
+      department VARCHAR(100) COMMENT '작성자 부서',
+      category ENUM('경조사', '생일', '개업기념일', '일반소식', '중요공지', '기타') NOT NULL COMMENT '카테고리',
+      title VARCHAR(200) NOT NULL COMMENT '제목',
+      content TEXT NOT NULL COMMENT '내용',
+      newsDate DATE NOT NULL COMMENT '소식 발생일',
+      isYearlyRecurring BOOLEAN DEFAULT FALSE COMMENT '매년 반복 여부 (생일, 기념일 등)',
+      priority ENUM('낮음', '보통', '높음', '긴급') DEFAULT '보통' COMMENT '중요도',
+      showAsNotification BOOLEAN DEFAULT FALSE COMMENT '로그인 시 알림 표시 여부',
+      status ENUM('활성', '비활성', '삭제됨') DEFAULT '활성' COMMENT '상태',
+      viewCount INT DEFAULT 0 COMMENT '조회수',
+      commentCount INT DEFAULT 0 COMMENT '의견 수',
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '작성일시',
+      updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+      FOREIGN KEY (companyId) REFERENCES companies(keyValue) ON UPDATE CASCADE ON DELETE RESTRICT,
+      FOREIGN KEY (createdBy) REFERENCES employees(name) ON UPDATE CASCADE ON DELETE RESTRICT,
+      INDEX idx_companyId (companyId),
+      INDEX idx_createdBy (createdBy),
+      INDEX idx_category (category),
+      INDEX idx_newsDate (newsDate),
+      INDEX idx_showAsNotification (showAsNotification),
+      INDEX idx_status (status),
+      INDEX idx_createdAt (createdAt)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    COMMENT='고객소식 관리 테이블 - 영업담당자가 작성'
+  `);
+};
+
+// ==========================================
+// 12. customer_news_comments 테이블 생성 (관리자 의견)
+// ==========================================
+const createCustomerNewsCommentsTable = async (connection) => {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS customer_news_comments (
+      id VARCHAR(36) PRIMARY KEY COMMENT '의견 ID (UUID)',
+      newsId VARCHAR(36) NOT NULL COMMENT '고객소식 ID',
+      commentBy VARCHAR(100) NOT NULL COMMENT '의견 작성자 (주로 관리자)',
+      commentByRole VARCHAR(50) COMMENT '작성자 역할',
+      comment TEXT NOT NULL COMMENT '의견 내용',
+      commentType ENUM('일반', '질문', '제안', '승인', '반려') DEFAULT '일반' COMMENT '의견 유형',
+      isRead BOOLEAN DEFAULT FALSE COMMENT '영업담당자 읽음 여부',
+      readAt TIMESTAMP NULL COMMENT '읽은 시간',
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '작성일시',
+      updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+      FOREIGN KEY (newsId) REFERENCES customer_news(id) ON UPDATE CASCADE ON DELETE CASCADE,
+      FOREIGN KEY (commentBy) REFERENCES employees(name) ON UPDATE CASCADE ON DELETE RESTRICT,
+      INDEX idx_newsId (newsId),
+      INDEX idx_commentBy (commentBy),
+      INDEX idx_isRead (isRead),
+      INDEX idx_createdAt (createdAt)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    COMMENT='고객소식 의견 테이블 - 관리자가 작성'
+  `);
+};
+
+// ==========================================
+// 13. customer_news_notifications 테이블 생성 (알림 읽음 상태)
+// ==========================================
+const createCustomerNewsNotificationsTable = async (connection) => {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS customer_news_notifications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      newsId VARCHAR(36) NOT NULL COMMENT '고객소식 ID',
+      employeeName VARCHAR(100) NOT NULL COMMENT '직원명',
+      viewCount INT DEFAULT 0 COMMENT '조회 횟수 (최대 3회)',
+      isDismissed BOOLEAN DEFAULT FALSE COMMENT '더이상 보지 않기 클릭 여부',
+      dismissedAt TIMESTAMP NULL COMMENT '더이상 보지 않기 클릭 시간',
+      firstViewedAt TIMESTAMP NULL COMMENT '첫 조회 시간',
+      lastViewedAt TIMESTAMP NULL COMMENT '마지막 조회 시간',
+      createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
+      updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+      FOREIGN KEY (newsId) REFERENCES customer_news(id) ON UPDATE CASCADE ON DELETE CASCADE,
+      FOREIGN KEY (employeeName) REFERENCES employees(name) ON UPDATE CASCADE ON DELETE CASCADE,
+      UNIQUE KEY uk_news_employee (newsId, employeeName),
+      INDEX idx_employeeName (employeeName),
+      INDEX idx_isDismissed (isDismissed),
+      INDEX idx_viewCount (viewCount)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    COMMENT='고객소식 알림 읽음 상태 추적 테이블'
+  `);
+};
+
+// ==========================================
+// 14. customer_news 관련 트리거 생성
+// ==========================================
+const createCustomerNewsTriggers = async (connection) => {
+  // 기존 트리거 삭제
+  try {
+    await connection.query('DROP TRIGGER IF EXISTS increment_comment_count');
+    await connection.query('DROP TRIGGER IF EXISTS decrement_comment_count');
+  } catch (error) {
+    // 무시
+  }
+
+  // 트리거 1: 의견 작성 시 commentCount 증가
+  await connection.query(`
+    CREATE TRIGGER increment_comment_count
+    AFTER INSERT ON customer_news_comments
+    FOR EACH ROW
+    BEGIN
+      UPDATE customer_news
+      SET commentCount = commentCount + 1
+      WHERE id = NEW.newsId;
+    END
+  `);
+
+  // 트리거 2: 의견 삭제 시 commentCount 감소
+  await connection.query(`
+    CREATE TRIGGER decrement_comment_count
+    AFTER DELETE ON customer_news_comments
+    FOR EACH ROW
+    BEGIN
+      UPDATE customer_news
+      SET commentCount = GREATEST(0, commentCount - 1)
+      WHERE id = OLD.newsId;
+    END
+  `);
+};
+
+// ==========================================
 // 제품 마스터 데이터 삽입 (37개)
 // ==========================================
 const insertProducts = async (connection) => {
@@ -455,18 +583,18 @@ const insertProducts = async (connection) => {
 const createTriggers = async (connection) => {
   // 기존 트리거 삭제
   try {
-    await connection.query('DROP TRIGGER IF EXISTS update_company_after_report_approval');
+    await connection.query('DROP TRIGGER IF EXISTS update_company_after_report_confirmation');
   } catch (error) {
     // 무시
   }
 
-  // 트리거 생성 (query 사용 - prepared statement는 CREATE TRIGGER 미지원)
+  // 트리거 생성: 영업담당자가 실적보고서 확인 시 companies 테이블 자동 업데이트
   await connection.query(`
-    CREATE TRIGGER update_company_after_report_approval
+    CREATE TRIGGER update_company_after_report_confirmation
     AFTER UPDATE ON reports
     FOR EACH ROW
     BEGIN
-      IF NEW.status = '승인' AND OLD.status != '승인' THEN
+      IF NEW.status = '확인' AND OLD.status != '확인' THEN
         UPDATE companies
         SET
           salesProduct = CASE
@@ -678,6 +806,9 @@ export const initializeDatabase = async () => {
       console.log('⚠️  모든 테이블이 삭제됩니다!');
 
       const tables = [
+        'customer_news_notifications',
+        'customer_news_comments',
+        'customer_news',
         'change_history',
         'kpi_admin',
         'kpi_sales',
@@ -854,9 +985,31 @@ export const initializeDatabase = async () => {
       console.log('   ✅ access_logs 생성 완료');
     }
 
-    // 11. 트리거 생성
+    // 11. customer_news 테이블 확인 및 생성
+    if (!(await checkTableExists(connection, 'customer_news'))) {
+      console.log('   📦 customer_news 테이블 생성 중...');
+      await createCustomerNewsTable(connection);
+      console.log('   ✅ customer_news 생성 완료');
+    }
+
+    // 12. customer_news_comments 테이블 확인 및 생성
+    if (!(await checkTableExists(connection, 'customer_news_comments'))) {
+      console.log('   📦 customer_news_comments 테이블 생성 중...');
+      await createCustomerNewsCommentsTable(connection);
+      console.log('   ✅ customer_news_comments 생성 완료');
+    }
+
+    // 13. customer_news_notifications 테이블 확인 및 생성
+    if (!(await checkTableExists(connection, 'customer_news_notifications'))) {
+      console.log('   📦 customer_news_notifications 테이블 생성 중...');
+      await createCustomerNewsNotificationsTable(connection);
+      console.log('   ✅ customer_news_notifications 생성 완료');
+    }
+
+    // 14. 트리거 생성 (reports + customer_news)
     console.log('   📦 트리거 생성 중...');
     await createTriggers(connection);
+    await createCustomerNewsTriggers(connection);
     console.log('   ✅ 트리거 생성 완료');
 
     console.log('✅ 데이터베이스 초기화 완료!\n');

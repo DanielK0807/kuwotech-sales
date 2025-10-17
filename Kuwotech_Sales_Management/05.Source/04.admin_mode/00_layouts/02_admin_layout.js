@@ -79,6 +79,11 @@ const pageFileMap = {
         file: '01_report_confirm',
         script: '02_report_confirm.js'
     },
+    'customer-news-feedback': {
+        folder: '12_customer_news_feedback',
+        file: '01_customer_news_feedback',
+        script: '02_customer_news_feedback.js'
+    },
     'presentation': {
         folder: '04_presentation',
         file: '01_presentation',

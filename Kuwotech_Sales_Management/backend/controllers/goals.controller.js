@@ -38,7 +38,7 @@ export const getEmployeeMonthlyGoals = async (req, res) => {
 
     const employee = employees[0];
 
-    // 해당 월의 실제 실적 계산 (승인된 reports 기준)
+    // 해당 월의 실제 실적 계산 (영업담당자가 확인한 reports 기준)
     const [monthlyActuals] = await db.query(`
       SELECT
         COALESCE(SUM(actualCollectionAmount), 0) as actualCollection,
@@ -48,7 +48,7 @@ export const getEmployeeMonthlyGoals = async (req, res) => {
         END), 0) as actualSales
       FROM reports
       WHERE submittedBy = ?
-        AND status = '승인'
+        AND status = '확인'
         AND YEAR(submittedDate) = ?
         AND MONTH(submittedDate) = ?
     `, [employee.name, year, month]);
@@ -63,7 +63,7 @@ export const getEmployeeMonthlyGoals = async (req, res) => {
         END), 0) as actualSales
       FROM reports
       WHERE submittedBy = ?
-        AND status = '승인'
+        AND status = '확인'
         AND YEAR(submittedDate) = ?
     `, [employee.name, year]);
 
@@ -156,7 +156,7 @@ export const getEmployeeAnnualGoals = async (req, res) => {
         END), 0) as actualSales
       FROM reports
       WHERE submittedBy = ?
-        AND status = '승인'
+        AND status = '확인'
         AND YEAR(submittedDate) = ?
     `, [employee.name, year]);
 
@@ -237,7 +237,7 @@ export const getCompanyMonthlyGoals = async (req, res) => {
         END), 0) as actualSales
       FROM reports
       WHERE companyId = ?
-        AND status = '승인'
+        AND status = '확인'
         AND YEAR(submittedDate) = ?
         AND MONTH(submittedDate) = ?
     `, [id, year, month]);
@@ -341,7 +341,7 @@ export const getDepartmentMonthlyGoals = async (req, res) => {
       FROM reports r
       INNER JOIN employees e ON r.submittedBy = e.name
       WHERE e.departmentId = ?
-        AND r.status = '승인'
+        AND r.status = '확인'
         AND YEAR(r.submittedDate) = ?
         AND MONTH(r.submittedDate) = ?
     `, [id, year, month]);
@@ -428,7 +428,7 @@ export const getTotalMonthlyGoals = async (req, res) => {
           ELSE actualSalesAmount
         END), 0) as actualSales
       FROM reports
-      WHERE status = '승인'
+      WHERE status = '확인'
         AND YEAR(submittedDate) = ?
         AND MONTH(submittedDate) = ?
     `, [year, month]);

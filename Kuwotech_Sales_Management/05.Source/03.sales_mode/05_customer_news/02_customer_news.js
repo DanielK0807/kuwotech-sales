@@ -287,8 +287,10 @@ function registerEventListeners() {
 
     // 검색 버튼
     const btnSearch = document.getElementById('btnSearch');
+    console.warn(`  - 검색 버튼 발견: ${btnSearch ? 'O' : 'X'}`);
     if (btnSearch) {
         btnSearch.addEventListener('click', handleSearch);
+        console.warn('  ✅ 검색 버튼 이벤트 리스너 등록 완료');
     }
 
     // 거래처 자동완성은 initCompanyAutocomplete()에서 처리됨
@@ -551,9 +553,10 @@ async function loadCustomerNews(filters = {}) {
         }
 
         const data = await response.json();
-        allNews = data.news || [];
+        allNews = data.data?.news || [];
 
         console.warn(`✅ [고객소식] 소식 ${allNews.length}개 로드 완료`);
+        console.warn('📦 [고객소식] 응답 데이터 구조:', data);
 
         // 로딩 숨김
         loadingState.classList.add('hidden');
@@ -631,6 +634,8 @@ function renderNewsList(newsItems) {
 // ============================================
 
 function handleSearch() {
+    console.warn('🔍 [고객소식] 검색 버튼 클릭됨');
+
     const filters = {
         companyName: document.getElementById('filterCompany').value.trim(),
         startDate: document.getElementById('filterStartDate').value,
@@ -638,6 +643,7 @@ function handleSearch() {
         category: document.getElementById('filterCategory').value
     };
 
+    console.warn('📋 [고객소식] 검색 조건:', filters);
     loadCustomerNews(filters);
 }
 

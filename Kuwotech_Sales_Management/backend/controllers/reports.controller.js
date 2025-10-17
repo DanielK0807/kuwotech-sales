@@ -9,7 +9,7 @@ import { refreshAllSalesKPI, refreshAdminKPI } from '../services/kpi.service.js'
 export const getAllReports = async (req, res) => {
   try {
     const {
-      status,          // 상태 (임시저장/제출완료/승인/반려)
+      status,          // 상태 (임시저장/확인)
       submittedBy,     // 작성자명
       companyId,       // 거래처ID
       reportType,      // 보고서유형
@@ -443,16 +443,16 @@ export const updateReport = async (req, res) => {
     await db.execute(query, params);
 
     // ============================================
-    // 📊 KPI 자동 재계산 (보고서 승인 시)
+    // 📊 KPI 자동 재계산 (영업담당자가 실적보고서 확인 시)
     // ============================================
-    if (status === '승인') {
-      console.log('🔄 [보고서 승인] KPI 재계산 시작...');
+    if (status === '확인') {
+      console.log('🔄 [실적보고서 확인] KPI 재계산 시작...');
       try {
         await refreshAllSalesKPI();
         await refreshAdminKPI();
-        console.log('✅ [보고서 승인] KPI 재계산 완료');
+        console.log('✅ [실적보고서 확인] KPI 재계산 완료');
       } catch (kpiError) {
-        console.error('⚠️ [보고서 승인] KPI 재계산 실패:', kpiError.message);
+        console.error('⚠️ [실적보고서 확인] KPI 재계산 실패:', kpiError.message);
       }
     }
 

@@ -559,6 +559,37 @@ export const updateCompany = async (req, res) => {
       ? (normalizeNumericField(companyData.accountsReceivable) || 0)
       : oldData.accountsReceivable;
 
+    // ============================================
+    // 📝 activityNotes 누적 추가 로직
+    // ============================================
+    let finalActivityNotes;
+    let finalCustomerNewsDate;
+
+    if (companyData.activityNotes !== undefined &&
+        companyData.activityNotes !== null &&
+        companyData.activityNotes.trim() !== '') {
+
+      const newEntry = companyData.activityNotes.trim();
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const formattedEntry = `[${today}] ${newEntry}`;
+
+      if (!oldData.activityNotes || oldData.activityNotes.trim() === '') {
+        // 기존 내용이 없으면: 새로운 내용만 저장
+        finalActivityNotes = formattedEntry;
+        console.log('📝 고객소식 최초 작성:', formattedEntry);
+      } else {
+        // 기존 내용이 있으면: 기존 내용 + 새 내용 추가 (누적)
+        finalActivityNotes = `${oldData.activityNotes}\n${formattedEntry}`;
+        console.log('📝 고객소식 누적 추가:', formattedEntry);
+      }
+
+      finalCustomerNewsDate = today;
+    } else {
+      // 새로운 내용이 없으면: 기존 내용 유지
+      finalActivityNotes = oldData.activityNotes;
+      finalCustomerNewsDate = oldData.customerNewsDate;
+    }
+
     // 업데이트 쿼리
     const [result] = await db.execute(`
       UPDATE companies SET
@@ -592,8 +623,8 @@ export const updateCompany = async (req, res) => {
       jcwContribution,
       companyContribution,
       accountsReceivable,
-      companyData.activityNotes !== undefined ? companyData.activityNotes : oldData.activityNotes,
-      companyData.customerNewsDate !== undefined ? companyData.customerNewsDate : oldData.customerNewsDate,
+      finalActivityNotes, // ✅ 누적 추가 로직 적용
+      finalCustomerNewsDate, // ✅ 최신 날짜로 업데이트
       companyData.businessRegistrationNumber || oldData.businessRegistrationNumber,
       companyData.detailedAddress || oldData.detailedAddress,
       companyData.phoneNumber || oldData.phoneNumber,

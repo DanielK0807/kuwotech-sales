@@ -155,14 +155,14 @@ const createTables = async () => {
         targetProducts VARCHAR(200) COMMENT '판매목표제품',
         activityNotes TEXT COMMENT '활동내역',
 
-        -- 실적 (승인 시 companies 업데이트용)
+        -- 실적 (영업담당자 확인 시 companies 업데이트용)
         actualSalesAmount DECIMAL(15,2) DEFAULT 0 COMMENT '실제 매출금액',
         actualCollectionAmount DECIMAL(15,2) DEFAULT 0 COMMENT '실제 수금금액',
         soldProducts TEXT COMMENT '판매한 제품 (콤마구분)',
         includeVAT BOOLEAN DEFAULT TRUE COMMENT '부가세 포함 여부',
 
         -- 상태
-        status ENUM('임시저장', '제출완료', '승인', '반려') DEFAULT '임시저장' COMMENT '상태',
+        status ENUM('임시저장', '확인') DEFAULT '임시저장' COMMENT '상태',
         processedBy VARCHAR(100) COMMENT '처리자 (관리자)',
         processedDate TIMESTAMP NULL COMMENT '처리일',
         adminComment TEXT COMMENT '관리자코멘트',

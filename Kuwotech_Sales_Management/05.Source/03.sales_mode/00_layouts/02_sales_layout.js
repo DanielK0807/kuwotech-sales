@@ -48,6 +48,9 @@ import {
     setupMenuEvents
 } from '../../01.common/18_layout_common.js';
 
+// API Manager 임포트
+import ApiManager from '../../01.common/13_api_manager.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -256,9 +259,6 @@ async function initSalesMode() {
         // 6. 로그아웃 버튼 설정
         setupLogoutButton(handleLogout, showToast, user);
 
-        // 7. 햄버거 메뉴 토글 설정 (모바일)
-        setupMobileMenuToggle();
-
         // 8. 글로벌 이벤트 설정
         setupGlobalEvents(loadPage, { value: isInitialized }, { isAdmin: false, user: user });
         
@@ -275,6 +275,9 @@ async function initSalesMode() {
         await loadPage(targetPage);
 
         isInitialized = true;
+
+        // 7. 햄버거 메뉴 토글 설정 (페이지 로드 후 실행)
+        setupMobileMenuToggle();
 
         // 환영 메시지
         showToast(`안녕하세요, ${user.name}님! 영업관리 시스템에 오신 것을 환영합니다.`, 'success');
@@ -299,6 +302,112 @@ async function initSalesMode() {
             }),
             { showToUser: true }
         );
+    }
+}
+
+// ============================================
+// [SECTION: 읽지 않은 관리자 의견 확인]
+// ============================================
+
+/**
+ * 읽지 않은 관리자 의견 확인 및 알림
+ * - 보고서 의견과 고객소식 의견을 모두 확인
+ * - 읽지 않은 의견이 있으면 토스트 알림 표시
+ */
+async function checkUnreadComments() {
+    try {
+        const apiManager = ApiManager.getInstance();
+        let reportFeedbackCount = 0;
+        let newsFeedbackCount = 0;
+
+        // 1. 보고서 의견 확인
+        try {
+            const response = await apiManager.getReports({
+                employeeName: user.name
+            });
+
+            let reports = [];
+            if (Array.isArray(response)) {
+                reports = response;
+            } else if (response && Array.isArray(response.data)) {
+                reports = response.data;
+            } else if (response && response.data && Array.isArray(response.data.reports)) {
+                reports = response.data.reports;
+            } else if (response && response.success && Array.isArray(response.reports)) {
+                reports = response.reports;
+            }
+
+            // 관리자 의견이 있는 보고서 카운트
+            reportFeedbackCount = reports.filter(report => {
+                return report.adminComment && report.adminComment.trim().length > 0;
+            }).length;
+
+        } catch (error) {
+            logger.warn('[의견 확인] 보고서 의견 확인 실패:', error);
+        }
+
+        // 2. 고객소식 의견 확인
+        try {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            if (token) {
+                const API_BASE_URL = GlobalConfig.API_BASE_URL || 'https://kuwotech-sales-production-aa64.up.railway.app';
+                const newsResponse = await fetch(`${API_BASE_URL}/api/customer-news/my-news-with-comments`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (newsResponse.ok) {
+                    const newsData = await newsResponse.json();
+                    const allNews = newsData.news || [];
+
+                    // 관리자 의견이 있는 고객소식 카운트
+                    newsFeedbackCount = allNews.filter(news => {
+                        const comments = news.comments || [];
+                        return comments.some(c => c.commentByRole === '관리자');
+                    }).length;
+                } else if (newsResponse.status === 404) {
+                    // 404는 엔드포인트가 아직 배포되지 않았을 수 있으므로 조용히 무시
+                    logger.debug('[의견 확인] 고객소식 API 엔드포인트 없음 (배포 대기 중일 수 있음)');
+                } else {
+                    logger.warn(`[의견 확인] 고객소식 API 응답 오류: ${newsResponse.status}`);
+                }
+            }
+        } catch (error) {
+            // 네트워크 오류는 조용히 무시
+            logger.debug('[의견 확인] 고객소식 의견 확인 실패:', error.message);
+        }
+
+        // 3. 알림 표시
+        const totalFeedback = reportFeedbackCount + newsFeedbackCount;
+
+        if (totalFeedback > 0) {
+            let message = '💬 새로운 관리자 의견이 있습니다!\n';
+
+            if (reportFeedbackCount > 0) {
+                message += `📊 보고서 의견: ${reportFeedbackCount}건`;
+            }
+
+            if (newsFeedbackCount > 0) {
+                if (reportFeedbackCount > 0) message += ' | ';
+                message += `📰 고객소식 의견: ${newsFeedbackCount}건`;
+            }
+
+            // 3초 후 알림 표시 (환영 메시지 후)
+            setTimeout(() => {
+                showToast(message, 'info', 5000);
+            }, 3500);
+
+            logger.info(`[의견 확인] 총 ${totalFeedback}건의 관리자 의견 확인됨`);
+        } else {
+            logger.debug('[의견 확인] 새로운 관리자 의견 없음');
+        }
+
+    } catch (error) {
+        // 에러가 발생해도 앱 실행을 막지 않음
+        logger.error('[의견 확인] 의견 확인 중 오류 발생:', error);
     }
 }
 

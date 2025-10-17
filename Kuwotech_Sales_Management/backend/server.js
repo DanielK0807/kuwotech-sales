@@ -38,6 +38,7 @@ import debugRoutes from "./routes/debug.routes.js";
 import errorsRoutes from "./routes/errors.routes.js";
 import accessLogsRoutes from "./routes/access-logs.routes.js";
 import regionsRoutes from "./routes/regions.routes.js";
+import customerNewsRoutes from "./routes/customer-news.routes.js";
 
 // KPI 스케줄러 임포트
 import { startKpiScheduler } from "./services/kpi.scheduler.js";
@@ -205,6 +206,9 @@ app.use("/api/errors", errorsRoutes);
 
 // 웹사용기록 (접속 로그) 라우트
 app.use("/api/access-logs", accessLogsRoutes);
+
+// 고객소식 관리 라우트
+app.use("/api/customer-news", customerNewsRoutes);
 
 // 디버그 라우트 (개발 환경에서만)
 if (process.env.NODE_ENV !== "production") {

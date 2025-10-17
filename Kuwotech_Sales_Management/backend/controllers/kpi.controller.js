@@ -461,19 +461,19 @@ export const getSalesConcentrationDetail = async (req, res) => {
 
         console.log('[KPI API] 매출집중도 상세 데이터 조회');
 
-        // 거래처별 누적매출 및 월수 집계 조회
+        // 거래처별 누적매출 및 월수 집계 조회 (영업담당자가 확인한 보고서만)
         const [concentrationData] = await connection.execute(
             `SELECT
-                c.id,
-                c.companyName,
-                COALESCE(SUM(r.salesAmount), 0) as salesAmount,
-                COUNT(DISTINCT DATE_FORMAT(r.reportDate, '%Y-%m')) as monthCount
+                c.keyValue as id,
+                c.finalCompanyName as companyName,
+                COALESCE(SUM(r.actualSalesAmount), 0) as salesAmount,
+                COUNT(DISTINCT DATE_FORMAT(r.submittedDate, '%Y-%m')) as monthCount
             FROM companies c
-            INNER JOIN reports r ON c.id = r.companyId
-            WHERE r.approvalStatus = '승인'
-                AND r.reportDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-                AND c.status = '활성'
-            GROUP BY c.id, c.companyName
+            INNER JOIN reports r ON c.keyValue = r.companyId
+            WHERE r.status = '확인'
+                AND r.submittedDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+                AND c.businessStatus = '활성'
+            GROUP BY c.keyValue, c.finalCompanyName
             HAVING salesAmount > 0
             ORDER BY salesAmount DESC
             LIMIT 100`
