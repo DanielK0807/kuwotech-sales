@@ -151,6 +151,57 @@
                 </ul>
             </section>
 
+            <!-- 검색/필터 섹션 -->
+            <section class="sidebar-section">
+                <h3 class="sidebar-title">🔍 검색 & 필터</h3>
+
+                <!-- 거래처명 검색 -->
+                <div class="filter-group">
+                    <label class="filter-label">거래처명</label>
+                    <input
+                        type="text"
+                        id="filterCompanyName"
+                        class="glass-input filter-input"
+                        placeholder="거래처명 입력...">
+                </div>
+
+                <!-- 영업담당자 검색 -->
+                <div class="filter-group">
+                    <label class="filter-label">영업담당자</label>
+                    <input
+                        type="text"
+                        id="filterCreatedBy"
+                        class="glass-input filter-input"
+                        placeholder="담당자명 입력...">
+                </div>
+
+                <!-- 날짜 범위 -->
+                <div class="filter-group">
+                    <label class="filter-label">기간 (소식 발생일)</label>
+                    <div class="date-range-inputs">
+                        <input
+                            type="date"
+                            id="filterStartDate"
+                            class="glass-input date-input">
+                        <span class="date-separator">~</span>
+                        <input
+                            type="date"
+                            id="filterEndDate"
+                            class="glass-input date-input">
+                    </div>
+                </div>
+
+                <!-- 버튼 그룹 -->
+                <div class="filter-actions">
+                    <button class="glass-button filter-apply-btn" id="applyFiltersBtn">
+                        🔍 검색
+                    </button>
+                    <button class="glass-button filter-reset-btn" id="resetFiltersBtn">
+                        🔄 초기화
+                    </button>
+                </div>
+            </section>
+
         </aside>
 
         <!-- 2. 고객소식 리스트 (35%) -->
@@ -497,6 +548,94 @@
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
         border-color: #3b82f6;
+    }
+
+    /* 검색/필터 섹션 */
+    .filter-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .filter-label {
+        display: block;
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .filter-input,
+    .date-input {
+        width: 100%;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-sm);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .filter-input:focus,
+    .date-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .date-range-inputs {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+    }
+
+    .date-separator {
+        font-size: var(--font-sm);
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .date-input {
+        flex: 1;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+    }
+
+    .filter-apply-btn,
+    .filter-reset-btn {
+        flex: 1;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-apply-btn {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .filter-apply-btn:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .filter-reset-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .filter-reset-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 
     /* 2. 고객소식 리스트 (35%) */

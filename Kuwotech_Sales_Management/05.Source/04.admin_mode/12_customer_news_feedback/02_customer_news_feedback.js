@@ -59,12 +59,26 @@ let commentType;
 let commentContent;
 let saveCommentBtn;
 
+// 검색/필터 요소
+let filterCompanyName;
+let filterCreatedBy;
+let filterStartDate;
+let filterEndDate;
+let applyFiltersBtn;
+let resetFiltersBtn;
+
 // 상태 관리
 let allNewsData = [];
 let filteredNewsData = [];
 let selectedCategory = 'all';
 let selectedCommentStatus = 'all';
 let currentSelectedNewsId = null;
+
+// 검색/필터 상태
+let searchCompanyText = '';
+let searchCreatedByText = '';
+let searchStartDate = '';
+let searchEndDate = '';
 
 /**
  * 초기화
@@ -107,9 +121,19 @@ function init() {
     commentContent = document.getElementById('commentContent');
     saveCommentBtn = document.getElementById('saveCommentBtn');
 
+    // 검색/필터 요소
+    filterCompanyName = document.getElementById('filterCompanyName');
+    filterCreatedBy = document.getElementById('filterCreatedBy');
+    filterStartDate = document.getElementById('filterStartDate');
+    filterEndDate = document.getElementById('filterEndDate');
+    applyFiltersBtn = document.getElementById('applyFiltersBtn');
+    resetFiltersBtn = document.getElementById('resetFiltersBtn');
+
     // 이벤트 리스너
     btnRefresh?.addEventListener('click', handleRefresh);
     saveCommentBtn?.addEventListener('click', handleSaveComment);
+    applyFiltersBtn?.addEventListener('click', handleApplyFilters);
+    resetFiltersBtn?.addEventListener('click', handleResetFilters);
 
     // 필터 버튼 이벤트
     categoryFilterButtons = document.querySelectorAll('.category-filter-btn');
@@ -282,6 +306,49 @@ function handleCommentStatusFilter(status) {
 }
 
 /**
+ * 검색 필터 적용 핸들러
+ */
+function handleApplyFilters() {
+    // 입력값 가져오기
+    searchCompanyText = filterCompanyName?.value?.trim() || '';
+    searchCreatedByText = filterCreatedBy?.value?.trim() || '';
+    searchStartDate = filterStartDate?.value || '';
+    searchEndDate = filterEndDate?.value || '';
+
+    // 필터 적용
+    applyFilters();
+
+    // 사용자 피드백
+    const filterCount = [searchCompanyText, searchCreatedByText, searchStartDate, searchEndDate].filter(f => f).length;
+    if (filterCount > 0) {
+        showNotification(`${filterCount}개의 검색 조건이 적용되었습니다.`, 'success');
+    }
+}
+
+/**
+ * 검색 필터 초기화 핸들러
+ */
+function handleResetFilters() {
+    // 입력 필드 초기화
+    if (filterCompanyName) filterCompanyName.value = '';
+    if (filterCreatedBy) filterCreatedBy.value = '';
+    if (filterStartDate) filterStartDate.value = '';
+    if (filterEndDate) filterEndDate.value = '';
+
+    // 상태 초기화
+    searchCompanyText = '';
+    searchCreatedByText = '';
+    searchStartDate = '';
+    searchEndDate = '';
+
+    // 필터 적용
+    applyFilters();
+
+    // 사용자 피드백
+    showNotification('검색 조건이 초기화되었습니다.', 'info');
+}
+
+/**
  * 필터 적용
  */
 function applyFilters() {
@@ -297,7 +364,37 @@ function applyFilters() {
             commentStatusMatch = news.comments && news.comments.length > 0;
         }
 
-        return categoryMatch && commentStatusMatch;
+        // 거래처명 검색 (부분 일치, 대소문자 무시)
+        const companyMatch = !searchCompanyText ||
+            (news.companyName && news.companyName.toLowerCase().includes(searchCompanyText.toLowerCase()));
+
+        // 영업담당자 검색 (부분 일치, 대소문자 무시)
+        const createdByMatch = !searchCreatedByText ||
+            (news.createdBy && news.createdBy.toLowerCase().includes(searchCreatedByText.toLowerCase()));
+
+        // 날짜 범위 필터 (소식 발생일 기준)
+        let dateMatch = true;
+        if (searchStartDate || searchEndDate) {
+            const newsDate = new Date(news.newsDate);
+
+            if (searchStartDate) {
+                const startDate = new Date(searchStartDate);
+                startDate.setHours(0, 0, 0, 0);
+                if (newsDate < startDate) {
+                    dateMatch = false;
+                }
+            }
+
+            if (searchEndDate) {
+                const endDate = new Date(searchEndDate);
+                endDate.setHours(23, 59, 59, 999);
+                if (newsDate > endDate) {
+                    dateMatch = false;
+                }
+            }
+        }
+
+        return categoryMatch && commentStatusMatch && companyMatch && createdByMatch && dateMatch;
     });
 
     // 목록 렌더링
