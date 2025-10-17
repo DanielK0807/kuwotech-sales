@@ -32,6 +32,9 @@ import {
   // 통계
   getNewsStatistics,
   getUpcomingEvents,
+
+  // 관리자 전용
+  migrateActivityNotesToCustomerNews,
 } from "../controllers/customer-news.controller.js";
 
 const router = express.Router();
@@ -125,5 +128,12 @@ router.get("/statistics/overview", authenticate, getNewsStatistics);
 
 // GET /api/customer-news/events/upcoming - 다가오는 이벤트 (생일, 기념일 등)
 router.get("/events/upcoming", authenticate, getUpcomingEvents);
+
+// ============================================
+// 관리자 전용
+// ============================================
+
+// POST /api/customer-news/admin/migrate-activitynotes - activityNotes 마이그레이션
+router.post("/admin/migrate-activitynotes", authenticate, migrateActivityNotesToCustomerNews);
 
 export default router;

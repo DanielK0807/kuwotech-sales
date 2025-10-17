@@ -942,3 +942,128 @@ export const getMyNewsWithComments = async (req, res) => {
     });
   }
 };
+
+// ============================================
+// 관리자 전용 - 데이터 마이그레이션
+// ============================================
+
+// POST /api/customer-news/admin/migrate-activitynotes
+// companies.activityNotes → customer_news 일괄 마이그레이션
+export const migrateActivityNotesToCustomerNews = async (req, res) => {
+  try {
+    // 관리자 권한 확인
+    if (req.user.role2 !== '관리자') {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: '관리자만 실행할 수 있습니다.'
+      });
+    }
+
+    const db = await getDB();
+    console.log('🔄 [마이그레이션] companies.activityNotes → customer_news 시작\n');
+
+    // 1. activityNotes가 있는 거래처 조회
+    const [companies] = await db.execute(`
+      SELECT keyValue, finalCompanyName, activityNotes
+      FROM companies
+      WHERE activityNotes IS NOT NULL
+        AND activityNotes != ''
+    `);
+
+    console.log(`📊 activityNotes가 있는 거래처: ${companies.length}개`);
+
+    if (companies.length === 0) {
+      return res.json({
+        success: true,
+        message: '마이그레이션할 데이터가 없습니다.',
+        data: { inserted: 0, skipped: 0, errors: 0, total: 0 }
+      });
+    }
+
+    let insertedCount = 0;
+    let skippedCount = 0;
+    let errorCount = 0;
+    const errors = [];
+
+    // 2. 각 거래처의 activityNotes를 customer_news에 삽입
+    for (const company of companies) {
+      try {
+        // 이미 해당 거래처의 시스템 생성 고객소식이 있는지 확인
+        const [existing] = await db.execute(`
+          SELECT id FROM customer_news
+          WHERE companyId = ?
+            AND createdBy = '시스템'
+            AND category = '일반소식'
+            AND content = ?
+          LIMIT 1
+        `, [company.keyValue, company.activityNotes]);
+
+        if (existing.length > 0) {
+          console.log(`⏭️  ${company.finalCompanyName} - 이미 존재함 (건너뜀)`);
+          skippedCount++;
+          continue;
+        }
+
+        // customer_news에 삽입
+        const newsId = uuidv4();
+        const today = new Date().toISOString().split('T')[0];
+
+        await db.execute(`
+          INSERT INTO customer_news (
+            id, companyId, companyName, createdBy, department,
+            category, title, content, newsDate, priority, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          newsId,
+          company.keyValue,
+          company.finalCompanyName,
+          '시스템',
+          '시스템',
+          '일반소식',
+          `[마이그레이션] ${company.finalCompanyName} 영업활동`,
+          company.activityNotes,
+          today,
+          '보통',
+          '활성'
+        ]);
+
+        console.log(`✅ ${company.finalCompanyName} - 고객소식 생성 완료`);
+        insertedCount++;
+
+      } catch (error) {
+        console.error(`❌ ${company.finalCompanyName} - 실패: ${error.message}`);
+        errorCount++;
+        errors.push({
+          companyName: company.finalCompanyName,
+          error: error.message
+        });
+      }
+    }
+
+    console.log('\n=== 마이그레이션 결과 ===');
+    console.log(`✅ 성공: ${insertedCount}개`);
+    console.log(`⏭️  건너뜀: ${skippedCount}개`);
+    console.log(`❌ 실패: ${errorCount}개`);
+    console.log(`📋 전체: ${companies.length}개`);
+
+    res.json({
+      success: true,
+      message: '마이그레이션이 완료되었습니다.',
+      data: {
+        inserted: insertedCount,
+        skipped: skippedCount,
+        errors: errorCount,
+        total: companies.length,
+        errorDetails: errors
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ 마이그레이션 실패:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: '마이그레이션 중 오류가 발생했습니다.',
+      details: error.message
+    });
+  }
+};
