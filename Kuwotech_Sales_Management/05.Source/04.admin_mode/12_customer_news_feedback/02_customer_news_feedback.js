@@ -222,11 +222,11 @@ function updateCategoryCounts() {
         '수상/인증': 0,
         '확장/이전': 0,
         '클레임/이슈': 0,
-        '일반': 0
+        '일반소식': 0
     };
 
     allNewsData.forEach(news => {
-        const category = news.category || '일반';
+        const category = news.category || '일반소식';
         if (categoryCounts.hasOwnProperty(category)) {
             categoryCounts[category]++;
         }
@@ -240,7 +240,7 @@ function updateCategoryCounts() {
     if (awardCount) awardCount.textContent = categoryCounts['수상/인증'];
     if (expansionCount) expansionCount.textContent = categoryCounts['확장/이전'];
     if (claimCount) claimCount.textContent = categoryCounts['클레임/이슈'];
-    if (generalCount) generalCount.textContent = categoryCounts['일반'];
+    if (generalCount) generalCount.textContent = categoryCounts['일반소식'];
 }
 
 /**
@@ -356,7 +356,7 @@ function createNewsItem(news) {
 
     div.innerHTML = `
         <div class="news-item-header">
-            <span class="news-category-badge">${news.category || '일반'}</span>
+            <span class="news-category-badge">${news.category || '일반소식'}</span>
             ${commentStatusHtml}
         </div>
         <div class="news-item-title">${escapeHtml(news.title || '제목 없음')}</div>
