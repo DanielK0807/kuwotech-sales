@@ -222,12 +222,12 @@ function renderExistingComments(container, comments) {
  * 검색 버튼 클릭 핸들러
  */
 async function handleSearch() {
-    console.log('🔍 [검색] handleSearch() 함수 호출됨!');
+    console.error('🔍 [검색] handleSearch() 함수 호출됨!');
 
     const loadingState = document.getElementById('loadingState');
     const emptyState = document.getElementById('emptyState');
 
-    console.log('🔍 [검색] 요소 확인:', {
+    console.error('🔍 [검색] 요소 확인:', {
         loadingState: !!loadingState,
         emptyState: !!emptyState,
         newsList: !!document.getElementById('newsList')
@@ -238,7 +238,7 @@ async function handleSearch() {
         loadingState.classList.remove('hidden');
         emptyState.classList.add('hidden');
         document.getElementById('newsList').innerHTML = '';
-        console.log('🔍 [검색] 로딩 상태 표시됨');
+        console.error('🔍 [검색] 로딩 상태 표시됨');
 
         // 필터 조건 수집
         const filters = {
@@ -253,18 +253,19 @@ async function handleSearch() {
             if (!filters[key]) delete filters[key];
         });
 
-        console.log('🔍 [검색] 필터 조건:', filters);
-        console.log('🔍 [검색] 선택된 내부담당자:', currentFilter.employee);
+        console.error('🔍 [검색] 필터 조건:', filters);
+        console.error('🔍 [검색] 선택된 내부담당자:', currentFilter.employee);
 
         // API 호출 (내부담당자 필터 없이 모든 데이터 가져오기)
         let newsData = await fetchCustomerNews(filters);
+        console.error(`🔍 [검색] API 응답 받음: ${newsData.length}건`);
 
         // 클라이언트 사이드에서 내부담당자 필터링 (다중 선택 지원)
         if (currentFilter.employee.length > 0) {
             newsData = newsData.filter(news =>
                 currentFilter.employee.includes(news.createdBy)
             );
-            console.log(`🔍 [검색] 내부담당자 필터 적용 후: ${newsData.length}건`);
+            console.error(`🔍 [검색] 내부담당자 필터 적용 후: ${newsData.length}건`);
         }
 
         currentNewsData = newsData;
@@ -610,10 +611,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnSearch) {
         btnSearch.addEventListener('click', () => {
-            console.log('🔍 [검색 버튼] 클릭됨!');
+            console.error('🔍 [검색 버튼] 클릭됨!');
             handleSearch();
         });
-        console.log('✅ [이벤트 등록] 검색 버튼 이벤트 리스너 등록 완료');
+        console.error('✅ [이벤트 등록] 검색 버튼 이벤트 리스너 등록 완료');
     } else {
         console.error('❌ [이벤트 등록] 검색 버튼을 찾을 수 없음!');
     }
