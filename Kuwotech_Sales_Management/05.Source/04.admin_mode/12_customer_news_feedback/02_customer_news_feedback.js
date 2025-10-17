@@ -617,18 +617,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     const employeeDropdownMenu = document.getElementById('employee-dropdown-menu');
 
     if (employeeDropdownButton && employeeDropdownMenu) {
+        console.log('✅ [드롭다운] 버튼과 메뉴 요소 찾음');
+
         employeeDropdownButton.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
-            employeeDropdownMenu.classList.toggle('show');
-            console.log('🔽 [드롭다운] 토글:', employeeDropdownMenu.classList.contains('show'));
+
+            const isOpen = employeeDropdownMenu.classList.contains('show');
+            console.log('🔽 [드롭다운] 클릭 - 현재 상태:', isOpen ? '열림' : '닫힘');
+
+            if (isOpen) {
+                employeeDropdownMenu.classList.remove('show');
+                employeeDropdownButton.classList.remove('active');
+                console.log('🔽 [드롭다운] 메뉴 닫음');
+            } else {
+                employeeDropdownMenu.classList.add('show');
+                employeeDropdownButton.classList.add('active');
+                console.log('🔽 [드롭다운] 메뉴 열림');
+            }
         });
 
         // 드롭다운 외부 클릭 시 닫기
         document.addEventListener('click', (e) => {
             if (!employeeDropdownButton.contains(e.target) && !employeeDropdownMenu.contains(e.target)) {
-                employeeDropdownMenu.classList.remove('show');
+                if (employeeDropdownMenu.classList.contains('show')) {
+                    employeeDropdownMenu.classList.remove('show');
+                    employeeDropdownButton.classList.remove('active');
+                    console.log('🔽 [드롭다운] 외부 클릭으로 닫힘');
+                }
             }
         });
+    } else {
+        console.error('❌ [드롭다운] 버튼 또는 메뉴 요소를 찾을 수 없음!');
+        console.log('버튼:', employeeDropdownButton);
+        console.log('메뉴:', employeeDropdownMenu);
     }
 
     console.log('✅ [고객소식 의견제시] 초기화 완료');
