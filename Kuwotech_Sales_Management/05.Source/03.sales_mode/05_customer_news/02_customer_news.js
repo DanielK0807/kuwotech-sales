@@ -18,6 +18,7 @@ import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
 // 전역 변수
 // ============================================
 
+const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 let allCompanies = [];
 let allNews = [];
 const API_BASE_URL = GlobalConfig.API_BASE_URL;
@@ -32,7 +33,6 @@ function getAuthToken() {
 }
 
 function getUserName() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     return user.name || '';
 }
 
@@ -172,7 +172,7 @@ const TEMPLATES = {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('고객소식 작성 페이지 로드');
+    console.warn('✅ [고객소식] 페이지 로드 시작');
 
     // 초기화
     await init();
@@ -182,6 +182,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 기본 조회 탭 데이터 로드
     await loadCustomerNews();
+
+    console.warn('✅ [고객소식] 페이지 로드 완료');
 });
 
 // ============================================
@@ -216,8 +218,9 @@ async function loadCompanies() {
     }
 
     try {
-        console.log('🔄 거래처 목록 로드 시작...');
-        const response = await fetch(`${API_BASE_URL}/api/companies`, {
+        console.warn('🔄 [고객소식] 거래처 목록 로드 시작... 사용자:', user.name);
+        // 담당 거래처만 로드 (담당거래처관리와 동일)
+        const response = await fetch(`${API_BASE_URL}/api/companies/manager/${encodeURIComponent(user.name)}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -229,14 +232,19 @@ async function loadCompanies() {
         }
 
         const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || '데이터 조회 실패');
+        }
+
         allCompanies = data.companies || [];
-        console.log(`✅ 거래처 ${allCompanies.length}개 로드 완료`);
+        console.warn(`✅ [고객소식] 담당 거래처 ${allCompanies.length}개 로드 완료`);
 
         // 첫 번째 거래처 데이터 구조 확인
         if (allCompanies.length > 0) {
-            console.log('📦 첫 번째 거래처 샘플:', allCompanies[0]);
+            console.warn('📦 [고객소식] 첫 번째 거래처 샘플:', allCompanies[0]);
         } else {
-            console.warn('⚠️ 로드된 거래처가 없습니다');
+            console.warn('⚠️ [고객소식] 로드된 거래처가 없습니다');
         }
 
         // 자동완성 데이터 소스 업데이트
@@ -312,6 +320,8 @@ function registerEventListeners() {
 function handleTabSwitch(e) {
     const targetTab = e.currentTarget.dataset.tab;
 
+    console.warn('🔄 [고객소식] 탭 전환:', targetTab);
+
     // 모든 탭 버튼과 컨텐츠 비활성화
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -321,8 +331,17 @@ function handleTabSwitch(e) {
 
     if (targetTab === 'view') {
         document.getElementById('viewTab').classList.add('active');
+        console.warn('✅ [고객소식] 조회 탭 활성화됨');
     } else if (targetTab === 'write') {
         document.getElementById('writeTab').classList.add('active');
+        console.warn('✅ [고객소식] 작성 탭 활성화됨');
+
+        // 작성 탭으로 전환 시 자동완성 재초기화 (탭이 보이는 상태에서 초기화)
+        // 약간의 딜레이를 주어 DOM이 완전히 렌더링된 후 초기화
+        console.warn('⏳ [고객소식] 100ms 후 자동완성 초기화 예약...');
+        setTimeout(() => {
+            initWriteTabAutocomplete();
+        }, 100);
     }
 }
 
@@ -331,46 +350,17 @@ function handleTabSwitch(e) {
 // ============================================
 
 function initCompanyAutocomplete() {
-    // 작성 탭 - 거래처명 자동완성
-    const companyName = document.getElementById('companyName');
-    const companyAutocomplete = document.getElementById('companyAutocomplete');
+    // 조회 탭은 항상 보이므로 바로 초기화
+    initViewTabAutocomplete();
 
-    if (companyName && companyAutocomplete) {
-        // 기존 인스턴스 정리
-        if (companyAutocompleteManager) {
-            companyAutocompleteManager.destroy();
-        }
+    // 작성 탭은 보이지 않으므로 나중에 탭 전환 시 초기화
+    // (initWriteTabAutocomplete는 handleTabSwitch에서 호출됨)
+}
 
-        companyAutocompleteManager = new AutocompleteManager({
-            inputElement: companyName,
-            listElement: companyAutocomplete,
-            dataSource: allCompanies,
-            getDisplayText: (company) => {
-                const mainName = company.finalCompanyName || company.erpCompanyName;
-                if (company.erpCompanyName && company.finalCompanyName !== company.erpCompanyName) {
-                    return `${mainName} (${company.erpCompanyName})`;
-                }
-                return mainName;
-            },
-            onSelect: (company) => {
-                companyName.value = company.finalCompanyName || company.erpCompanyName;
-                // Hidden input에 companyId 저장
-                const companyIdInput = document.getElementById('companyId');
-                if (companyIdInput) {
-                    companyIdInput.value = company.keyValue;
-                }
-                console.log('✅ 거래처 선택됨:', company);
-            },
-            maxResults: 10,
-            placeholder: '검색 결과가 없습니다'
-        });
-
-        console.log('✅ 작성 탭 자동완성 초기화 완료');
-    } else {
-        console.warn('⚠️ 작성 탭 자동완성 요소를 찾을 수 없음');
-    }
-
-    // 조회 탭 - 거래처 필터 자동완성
+/**
+ * 조회 탭 자동완성 초기화
+ */
+function initViewTabAutocomplete() {
     const filterCompany = document.getElementById('filterCompany');
     const filterCompanyAutocomplete = document.getElementById('filterCompanyAutocomplete');
 
@@ -399,10 +389,63 @@ function initCompanyAutocomplete() {
             placeholder: '검색 결과가 없습니다'
         });
 
-        console.log('✅ 조회 탭 자동완성 초기화 완료');
+        console.warn('✅ [고객소식] 조회 탭 자동완성 초기화 완료');
     } else {
-        console.warn('⚠️ 조회 탭 자동완성 요소를 찾을 수 없음');
+        console.warn('⚠️ [고객소식] 조회 탭 자동완성 요소를 찾을 수 없음');
     }
+}
+
+/**
+ * 작성 탭 자동완성 초기화
+ * - 탭이 보이는 상태에서만 호출되어야 함
+ */
+function initWriteTabAutocomplete() {
+    const companyName = document.getElementById('companyName');
+    const companyAutocomplete = document.getElementById('companyAutocomplete');
+
+    console.warn('🔍 [고객소식] 작성 탭 자동완성 초기화 시도...');
+    console.warn('  - companyName 요소:', companyName);
+    console.warn('  - companyAutocomplete 요소:', companyAutocomplete);
+    console.warn('  - 거래처 데이터 개수:', allCompanies.length);
+
+    if (!companyName || !companyAutocomplete) {
+        console.warn('⚠️ [고객소식] 작성 탭 자동완성 요소를 찾을 수 없음');
+        return;
+    }
+
+    // 기존 인스턴스 정리
+    if (companyAutocompleteManager) {
+        companyAutocompleteManager.destroy();
+        companyAutocompleteManager = null;
+    }
+
+    // 새 인스턴스 생성
+    companyAutocompleteManager = new AutocompleteManager({
+        inputElement: companyName,
+        listElement: companyAutocomplete,
+        dataSource: allCompanies,
+        getDisplayText: (company) => {
+            const mainName = company.finalCompanyName || company.erpCompanyName;
+            if (company.erpCompanyName && company.finalCompanyName !== company.erpCompanyName) {
+                return `${mainName} (${company.erpCompanyName})`;
+            }
+            return mainName;
+        },
+        onSelect: (company) => {
+            companyName.value = company.finalCompanyName || company.erpCompanyName;
+            // Hidden input에 companyId 저장
+            const companyIdInput = document.getElementById('companyId');
+            if (companyIdInput) {
+                companyIdInput.value = company.keyValue;
+            }
+            console.warn('✅ [고객소식] 거래처 선택됨:', company);
+        },
+        maxResults: 10,
+        placeholder: '검색 결과가 없습니다',
+        highlightSearch: true
+    });
+
+    console.warn('✅ [고객소식] 작성 탭 자동완성 초기화 완료 (재초기화)');
 }
 
 // ============================================
@@ -505,7 +548,7 @@ async function loadCustomerNews(filters = {}) {
         const data = await response.json();
         allNews = data.news || [];
 
-        console.log(`고객소식 ${allNews.length}개 로드 완료`);
+        console.warn(`✅ [고객소식] 소식 ${allNews.length}개 로드 완료`);
 
         // 로딩 숨김
         loadingState.classList.add('hidden');
