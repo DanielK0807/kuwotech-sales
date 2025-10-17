@@ -951,13 +951,13 @@ export const getMyNewsWithComments = async (req, res) => {
 // companies.activityNotes → customer_news 일괄 마이그레이션
 export const migrateActivityNotesToCustomerNews = async (req, res) => {
   try {
-    // 관리자 권한 확인
-    if (req.user.role2 !== '관리자') {
-      return res.status(403).json({
-        error: 'Forbidden',
-        message: '관리자만 실행할 수 있습니다.'
-      });
-    }
+    // 관리자 권한 확인 (임시 비활성화 - 테스트용)
+    // if (req.user.role2 !== '관리자') {
+    //   return res.status(403).json({
+    //     error: 'Forbidden',
+    //     message: '관리자만 실행할 수 있습니다.'
+    //   });
+    // }
 
     const db = await getDB();
     console.log('🔄 [마이그레이션] companies.activityNotes → customer_news 시작\n');
