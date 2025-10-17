@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>고객소식 의견 제시 (관리자) - KUWOTECH 영업관리 시스템</title>
+    <title>고객소식 의견제시 - KUWOTECH 영업관리 시스템</title>
 
     <!-- 스타일시트 -->
     <link rel="stylesheet" href="../../07.styles/00_root.css">
     <link rel="stylesheet" href="../../07.styles/01_variables.css">
-    <link rel="stylesheet" href="../../07.styles/09_fonts.css">
     <link rel="stylesheet" href="../../07.styles/02_common.css">
     <link rel="stylesheet" href="../../07.styles/03_glassmorphism.css">
     <link rel="stylesheet" href="../../07.styles/07_theme_colors.css">
@@ -25,14 +24,20 @@
 </head>
 <body class="theme-admin viewport-3d" data-page-type="customer-news-feedback" data-mode="admin">
 
-<div class="news-feedback-container">
+<!-- ============================================
+     KUWOTECH 영업관리 시스템 - 고객소식 의견제시
+     ============================================ -->
 
-    <!-- 페이지 헤더 -->
+<div class="customer-news-feedback-container">
+
+    <!-- ============================================
+         페이지 헤더
+         ============================================ -->
     <header class="page-header bg-layer-1 glass-panel glass-layered glass-shimmer">
         <div class="header-content">
             <div class="header-text">
-                <h1 class="text-on-layer-1">고객소식 의견 제시 (관리자)</h1>
-                <p class="subtitle text-on-layer-1">영업담당자가 작성한 고객소식을 확인하고 의견을 작성합니다</p>
+                <h1 class="text-on-layer-1">고객소식 의견제시 (관리자)</h1>
+                <p class="subtitle text-on-layer-1">영업담당자가 작성한 고객소식을 확인하고 의견을 작성하세요</p>
             </div>
             <button
                 id="btnRefresh"
@@ -43,291 +48,218 @@
         </div>
     </header>
 
-    <!-- 로딩 상태 -->
+    <!-- ============================================
+         검색 필터 영역
+         ============================================ -->
+    <section class="search-filters glass-card glass-3d-element">
+        <div class="filter-group">
+            <label>거래처명:</label>
+            <div class="company-autocomplete-wrapper">
+                <input
+                    type="text"
+                    id="filterCompanyName"
+                    class="glass-input company-autocomplete-input"
+                    placeholder="거래처명 입력 (자동완성)"
+                    autocomplete="off">
+                <div id="filterCompanyAutocomplete" class="autocomplete-list hidden"></div>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label>내부담당자:</label>
+            <div class="custom-dropdown">
+                <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
+                    <span id="employee-selected-text">전체</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="custom-dropdown-menu" id="employee-dropdown-menu">
+                    <!-- JavaScript로 동적 생성됨 -->
+                </div>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label>시작일:</label>
+            <input type="date" id="filterStartDate" class="glass-input">
+        </div>
+        <div class="filter-group">
+            <label>종료일:</label>
+            <input type="date" id="filterEndDate" class="glass-input">
+        </div>
+        <div class="filter-group">
+            <label>카테고리:</label>
+            <select id="filterCategory" class="glass-input">
+                <option value="">전체</option>
+                <option value="경조사">경조사</option>
+                <option value="생일">생일</option>
+                <option value="개업기념일">개업기념일</option>
+                <option value="신규장비구매">신규장비구매</option>
+                <option value="수상/인증">수상/인증</option>
+                <option value="확장/이전">확장/이전</option>
+                <option value="클레임/이슈">클레임/이슈</option>
+                <option value="일반소식">일반소식</option>
+            </select>
+        </div>
+        <button id="btnSearch" class="btn-search glass-button primary">
+            🔍 검색하기
+        </button>
+    </section>
+
+    <!-- ============================================
+         로딩 상태
+         ============================================ -->
     <div id="loadingState" class="loading-state hidden">
         <div class="loading-spinner"></div>
-        <p>고객소식 데이터를 불러오는 중...</p>
+        <p>고객소식을 불러오는 중...</p>
     </div>
 
-    <!-- 데이터 없음 상태 -->
-    <div id="emptyState" class="empty-state hidden">
-        <div class="empty-icon">📭</div>
-        <p>표시할 고객소식이 없습니다.</p>
-        <button class="glass-button primary" onclick="location.reload()">새로고침</button>
+    <!-- ============================================
+         데이터 없음 상태
+         ============================================ -->
+    <div id="emptyState" class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>검색하기 버튼을 클릭하여 고객소식을 조회하세요.</p>
     </div>
 
-    <!-- 메인 컨테이너: 3단 레이아웃 -->
-    <div class="main-layout hidden" id="mainLayout">
-
-        <!-- 1. 사이드바 (25%) -->
-        <aside class="sidebar glass-card glass-3d-element" id="sidebar">
-
-            <!-- 통계 섹션 -->
-            <section class="sidebar-section">
-                <h3 class="sidebar-title">📊 고객소식 통계</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">전체 소식</span>
-                        <span class="stat-value" id="totalNewsCount">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">의견 미작성</span>
-                        <span class="stat-value error" id="noCommentCount">0</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 카테고리 필터 -->
-            <section class="sidebar-section">
-                <h3 class="sidebar-title">📌 카테고리</h3>
-                <ul class="category-filter-list">
-                    <li class="category-filter-item" data-category="all">
-                        <button class="category-filter-btn active">
-                            🔄 전체 (<span id="allCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="경조사">
-                        <button class="category-filter-btn">
-                            🎊 경조사 (<span id="celebrationCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="생일">
-                        <button class="category-filter-btn">
-                            🎂 생일 (<span id="birthdayCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="개업기념일">
-                        <button class="category-filter-btn">
-                            🎉 개업기념일 (<span id="anniversaryCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="신규장비구매">
-                        <button class="category-filter-btn">
-                            🖨️ 신규장비구매 (<span id="equipmentCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="수상/인증">
-                        <button class="category-filter-btn">
-                            🏆 수상/인증 (<span id="awardCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="확장/이전">
-                        <button class="category-filter-btn">
-                            🏢 확장/이전 (<span id="expansionCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="클레임/이슈">
-                        <button class="category-filter-btn">
-                            ⚠️ 클레임/이슈 (<span id="claimCount">0</span>)
-                        </button>
-                    </li>
-                    <li class="category-filter-item" data-category="일반소식">
-                        <button class="category-filter-btn">
-                            📝 일반소식 (<span id="generalCount">0</span>)
-                        </button>
-                    </li>
-                </ul>
-            </section>
-
-            <!-- 의견 상태 필터 -->
-            <section class="sidebar-section">
-                <h3 class="sidebar-title">💬 의견 상태</h3>
-                <ul class="comment-filter-list">
-                    <li class="comment-filter-item" data-status="all">
-                        <button class="comment-filter-btn active">
-                            🔄 전체
-                        </button>
-                    </li>
-                    <li class="comment-filter-item" data-status="no-comment">
-                        <button class="comment-filter-btn">
-                            ❌ 의견 미작성
-                        </button>
-                    </li>
-                    <li class="comment-filter-item" data-status="has-comment">
-                        <button class="comment-filter-btn">
-                            ✅ 의견 작성완료
-                        </button>
-                    </li>
-                </ul>
-            </section>
-
-            <!-- 검색/필터 섹션 -->
-            <section class="sidebar-section">
-                <h3 class="sidebar-title">🔍 검색 & 필터</h3>
-
-                <!-- 거래처명 검색 -->
-                <div class="filter-group">
-                    <label class="filter-label">거래처명</label>
-                    <input
-                        type="text"
-                        id="filterCompanyName"
-                        class="glass-input filter-input"
-                        placeholder="거래처명 입력...">
-                </div>
-
-                <!-- 영업담당자 검색 -->
-                <div class="filter-group">
-                    <label class="filter-label">영업담당자</label>
-                    <input
-                        type="text"
-                        id="filterCreatedBy"
-                        class="glass-input filter-input"
-                        placeholder="담당자명 입력...">
-                </div>
-
-                <!-- 날짜 범위 -->
-                <div class="filter-group">
-                    <label class="filter-label">기간 (소식 발생일)</label>
-                    <div class="date-range-inputs">
-                        <input
-                            type="date"
-                            id="filterStartDate"
-                            class="glass-input date-input">
-                        <span class="date-separator">~</span>
-                        <input
-                            type="date"
-                            id="filterEndDate"
-                            class="glass-input date-input">
-                    </div>
-                </div>
-
-                <!-- 버튼 그룹 -->
-                <div class="filter-actions">
-                    <button class="glass-button filter-apply-btn" id="applyFiltersBtn">
-                        🔍 검색
-                    </button>
-                    <button class="glass-button filter-reset-btn" id="resetFiltersBtn">
-                        🔄 초기화
-                    </button>
-                </div>
-            </section>
-
-        </aside>
-
-        <!-- 2. 고객소식 리스트 (35%) -->
-        <main class="news-list-panel glass-card glass-3d-element" id="newsListPanel">
-
-            <section class="list-section">
-                <h3 class="list-section-title">📋 고객소식 목록</h3>
-                <div class="news-items-container" id="newsItemsContainer">
-                    <!-- JavaScript로 동적 생성 -->
-                </div>
-                <p class="list-count" id="newsListCount">(총 0건)</p>
-            </section>
-
-        </main>
-
-        <!-- 3. 상세 패널 (40%) -->
-        <aside class="detail-panel glass-card glass-3d-element" id="detailPanel">
-
-            <!-- 초기 상태 (플레이스홀더) -->
-            <div class="detail-placeholder" id="detailPlaceholder">
-                <div class="placeholder-icon">💬</div>
-                <p class="placeholder-text">고객소식을 선택하면<br>상세 내용이 표시됩니다</p>
-            </div>
-
-            <!-- 고객소식 상세 내용 (숨김 상태로 시작) -->
-            <div class="detail-content hidden" id="detailContent">
-
-                <!-- 고객소식 기본 정보 -->
-                <section class="detail-section glass-card">
-                    <h3 class="detail-section-title">📝 고객소식 기본 정보</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">소식 ID:</span>
-                            <span class="info-value" id="detailNewsId">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">카테고리:</span>
-                            <span class="info-value" id="detailCategory">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">작성자:</span>
-                            <span class="info-value" id="detailAuthor">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">거래처:</span>
-                            <span class="info-value" id="detailCompany">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">소식 발생일:</span>
-                            <span class="info-value" id="detailNewsDate">-</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">작성일시:</span>
-                            <span class="info-value" id="detailCreatedDate">-</span>
-                        </div>
-                        <div class="info-item full-width">
-                            <span class="info-label">우선순위:</span>
-                            <span class="info-value" id="detailPriority">-</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 고객소식 내용 -->
-                <section class="detail-section glass-card">
-                    <h3 class="detail-section-title">📄 소식 내용</h3>
-                    <div class="news-content-area">
-                        <div class="news-title" id="detailTitle">-</div>
-                        <div class="news-content" id="detailContent">-</div>
-                    </div>
-                </section>
-
-                <!-- 기존 관리자 의견 목록 -->
-                <section class="detail-section glass-card existing-comments-section" id="existingCommentsSection">
-                    <h3 class="detail-section-title">💬 기존 의견</h3>
-                    <div class="existing-comments-list" id="existingCommentsList">
-                        <!-- JavaScript로 동적 생성 -->
-                    </div>
-                    <div class="no-comments-message hidden" id="noCommentsMessage">
-                        <p>아직 작성된 의견이 없습니다.</p>
-                    </div>
-                </section>
-
-                <!-- 새 관리자 의견 작성 -->
-                <section class="detail-section glass-card admin-comment-section">
-                    <h3 class="detail-section-title">✍️ 의견 작성</h3>
-                    <div class="comment-form">
-                        <!-- 의견 타입 선택 -->
-                        <div class="form-group">
-                            <label class="form-label">의견 타입</label>
-                            <select class="glass-input comment-type-select" id="commentType">
-                                <option value="칭찬">👍 칭찬</option>
-                                <option value="개선요청">💡 개선요청</option>
-                                <option value="질문">❓ 질문</option>
-                                <option value="정보공유">📢 정보공유</option>
-                                <option value="기타">💬 기타</option>
-                            </select>
-                        </div>
-
-                        <!-- 의견 내용 -->
-                        <div class="form-group">
-                            <label class="form-label">의견 내용</label>
-                            <textarea
-                                class="glass-input comment-textarea"
-                                id="commentContent"
-                                rows="6"
-                                placeholder="관리자 의견을 작성하세요..."></textarea>
-                        </div>
-
-                        <!-- 버튼 -->
-                        <div class="comment-actions">
-                            <button class="glass-button secondary" id="saveCommentBtn">
-                                💾 의견 저장
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-            </div>
-
-        </aside>
-
-    </div>
+    <!-- ============================================
+         고객소식 목록
+         ============================================ -->
+    <section class="news-list" id="newsList">
+        <!-- JavaScript로 동적 생성됨 -->
+    </section>
 
 </div>
 
-<!-- 인라인 스타일 -->
+<!-- ============================================
+     고객소식 아이템 템플릿
+     ============================================ -->
+<template id="news-item-template">
+    <div class="news-item glass-card glass-3d-element" data-news-id="">
+
+        <!-- 헤더 -->
+        <div class="news-header">
+            <div class="news-basic-info">
+                <div class="info-row">
+                    <span class="category-badge"></span>
+                    <span class="comment-status-badge"></span>
+                </div>
+                <div class="info-row">
+                    <span class="news-company"></span>
+                </div>
+                <div class="info-row">
+                    <span class="news-author"></span>
+                    <span class="news-date"></span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-toggle-detail glass-button primary">
+                    상세보기 <span class="toggle-icon">▼</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 상세 영역 (아코디언) -->
+        <div class="news-detail hidden">
+
+            <!-- 고객소식 내용 -->
+            <div class="detail-section glass-card">
+                <h3 class="section-title">📋 고객소식 상세</h3>
+                <div class="detail-content">
+                    <div class="detail-row full-width">
+                        <span class="detail-label">제목:</span>
+                        <span class="detail-value news-title"></span>
+                    </div>
+                    <div class="detail-row full-width">
+                        <span class="detail-label">내용:</span>
+                        <div class="detail-value news-content"></div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">거래처:</span>
+                        <span class="detail-value news-company-full"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">작성자:</span>
+                        <span class="detail-value news-author-full"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">카테고리:</span>
+                        <span class="detail-value news-category-full"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">소식 발생일:</span>
+                        <span class="detail-value news-date-full"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">작성일시:</span>
+                        <span class="detail-value news-created-at"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">우선순위:</span>
+                        <span class="detail-value news-priority"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기존 의견 목록 -->
+            <div class="detail-section glass-card">
+                <h3 class="section-title">💬 기존 의견</h3>
+                <div class="existing-comments-list">
+                    <!-- JavaScript로 동적 생성 -->
+                </div>
+                <div class="no-comments-message hidden">
+                    <p>아직 작성된 의견이 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 새 의견 작성 -->
+            <div class="detail-section glass-card admin-comment-section">
+                <h3 class="section-title">✍️ 의견 작성</h3>
+                <div class="comment-form">
+                    <div class="form-group">
+                        <label class="form-label">의견 타입</label>
+                        <select class="glass-input comment-type-select">
+                            <option value="칭찬">👍 칭찬</option>
+                            <option value="개선요청">💡 개선요청</option>
+                            <option value="질문">❓ 질문</option>
+                            <option value="정보공유">📢 정보공유</option>
+                            <option value="기타">💬 기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">의견 내용</label>
+                        <textarea
+                            class="glass-input comment-textarea"
+                            rows="6"
+                            placeholder="관리자 의견을 작성하세요..."></textarea>
+                    </div>
+                    <div class="comment-actions">
+                        <button class="btn-save-comment glass-button secondary">
+                            💾 의견 저장
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</template>
+
+<!-- ============================================
+     기존 의견 아이템 템플릿
+     ============================================ -->
+<template id="comment-item-template">
+    <div class="existing-comment-item">
+        <div class="comment-item-header">
+            <div class="comment-author-info">
+                <span class="comment-author"></span>
+                <span class="comment-type-badge"></span>
+            </div>
+            <span class="comment-date"></span>
+        </div>
+        <div class="comment-content"></div>
+    </div>
+</template>
+
+<!-- 스타일 -->
 <style>
     /* 기본 레이아웃 */
     html, body {
@@ -341,7 +273,7 @@
         overflow-y: auto;
     }
 
-    .news-feedback-container {
+    .customer-news-feedback-container {
         padding: 0 5px;
         width: 100%;
         margin: 0 auto;
@@ -358,8 +290,10 @@
         margin-bottom: var(--spacing-2xl) !important;
         background: rgba(2, 16, 36, 0.98) !important;
         backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
         border-radius: 16px !important;
+        will-change: transform !important;
     }
 
     .header-content {
@@ -369,6 +303,8 @@
         gap: var(--spacing-lg) !important;
         width: 95% !important;
         margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
 
     .btn-refresh {
@@ -403,6 +339,138 @@
         opacity: 0.9;
     }
 
+    /* 검색 필터 */
+    .search-filters {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-lg);
+        padding: var(--spacing-lg) var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        overflow: visible;
+        flex-wrap: nowrap;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow: visible;
+        flex-shrink: 0;
+    }
+
+    .filter-group label {
+        font-weight: 700 !important;
+        color: #000000 !important;
+        white-space: nowrap;
+        font-size: 18px !important;
+        text-shadow: none;
+    }
+
+    .filter-group select,
+    .filter-group input[type="date"],
+    .filter-group input[type="text"] {
+        min-width: 120px;
+        width: 120px;
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        color: #000000 !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        padding: 8px 12px !important;
+        border: 2px solid rgba(0, 0, 0, 0.2) !important;
+        border-radius: var(--radius-md);
+    }
+
+    /* 거래처 자동완성 */
+    .company-autocomplete-wrapper {
+        position: relative;
+        display: flex;
+        flex: 1;
+        overflow: visible;
+        min-width: 200px;
+    }
+
+    .company-autocomplete-input {
+        flex: 1;
+        min-width: 200px !important;
+        width: 200px !important;
+    }
+
+    .autocomplete-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+        border-radius: var(--radius-md);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        z-index: 99999 !important;
+        margin-top: var(--spacing-xs);
+        isolation: isolate;
+        will-change: transform;
+    }
+
+    .autocomplete-item {
+        padding: var(--spacing-md);
+        cursor: pointer;
+        color: #1f2937;
+        font-size: var(--font-md);
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+        background: rgba(16, 185, 129, 0.15);
+        color: #2d7a2f !important;
+        font-weight: 600 !important;
+    }
+
+    .autocomplete-item strong {
+        color: #2d7a2f !important;
+        font-weight: 700 !important;
+    }
+
+    .autocomplete-no-results {
+        padding: var(--spacing-md);
+        text-align: center;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
+
+    .btn-search {
+        margin-left: auto;
+        padding: 8px 20px;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: rgba(59, 130, 246, 0.95) !important;
+        color: #FFFFFF !important;
+        font-size: 16px !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .btn-search:hover {
+        background-color: rgba(37, 99, 235, 1) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+    }
+
     /* 로딩 & 빈 상태 */
     .loading-state,
     .empty-state {
@@ -414,14 +482,15 @@
         min-height: 300px;
         text-align: center;
         width: 95%;
-        margin: 0 auto;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .loading-spinner {
         width: 50px;
         height: 50px;
         border: 4px solid rgba(255, 255, 255, 0.1);
-        border-top-color: var(--color-primary);
+        border-top-color: var(--primary-color);
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin-bottom: var(--spacing-lg);
@@ -438,420 +507,188 @@
     }
 
     .empty-state p {
-        margin: var(--spacing-md) 0;
         color: var(--text-secondary);
         font-size: var(--font-lg);
     }
 
-    /* 메인 레이아웃: 3단 구조 */
-    .main-layout {
+    /* 고객소식 목록 */
+    .news-list {
         display: flex;
+        flex-direction: column;
         gap: var(--spacing-lg);
-        height: calc(100vh - 200px);
-        padding: 0 2.5%;
-        margin-bottom: var(--spacing-2xl);
+        width: 95%;
+        margin: 0 auto var(--spacing-2xl);
     }
 
-    /* 1. 사이드바 (25%) */
-    .sidebar {
-        flex: 0 0 25%;
-        min-width: 260px;
-        max-width: 350px;
-        overflow-y: auto;
-        padding: var(--spacing-lg);
-    }
-
-    .sidebar-section {
-        margin-bottom: var(--spacing-xl);
-        padding-bottom: var(--spacing-lg);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar-section:last-child {
-        border-bottom: none;
-    }
-
-    .sidebar-title {
-        font-size: var(--font-lg);
-        font-weight: 600;
-        margin: 0 0 var(--spacing-md) 0;
-        color: var(--text-primary);
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--spacing-md);
-    }
-
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: var(--spacing-md);
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: var(--radius-md);
-    }
-
-    .stat-label {
-        font-size: var(--font-xs);
-        color: var(--text-secondary);
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .stat-value {
-        font-size: var(--font-2xl);
-        font-weight: var(--font-weight-bold);
-        color: var(--text-primary);
-    }
-
-    .stat-value.error {
-        color: var(--color-error);
-    }
-
-    .category-filter-list,
-    .comment-filter-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .category-filter-item,
-    .comment-filter-item {
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .category-filter-btn,
-    .comment-filter-btn {
-        width: 100%;
-        padding: var(--spacing-md);
-        text-align: left;
-        font-size: var(--font-sm);
-        font-weight: 600;
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .category-filter-btn:hover,
-    .comment-filter-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateX(4px);
-        border-color: var(--color-primary);
-    }
-
-    .category-filter-btn.active,
-    .comment-filter-btn.active {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-        border-color: #3b82f6;
-    }
-
-    /* 검색/필터 섹션 */
-    .filter-group {
-        margin-bottom: var(--spacing-md);
-    }
-
-    .filter-label {
-        display: block;
-        font-size: var(--font-sm);
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .filter-input,
-    .date-input {
-        width: 100%;
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: var(--font-sm);
-        border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-primary);
-        transition: all 0.3s ease;
-    }
-
-    .filter-input:focus,
-    .date-input:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        background: rgba(255, 255, 255, 0.08);
-    }
-
-    .date-range-inputs {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-    }
-
-    .date-separator {
-        font-size: var(--font-sm);
-        color: var(--text-secondary);
-        font-weight: 600;
-    }
-
-    .date-input {
-        flex: 1;
-    }
-
-    .filter-actions {
-        display: flex;
-        gap: var(--spacing-sm);
-        margin-top: var(--spacing-md);
-    }
-
-    .filter-apply-btn,
-    .filter-reset-btn {
-        flex: 1;
-        padding: var(--spacing-sm) var(--spacing-md);
-        font-size: var(--font-sm);
-        font-weight: 600;
-        border: none;
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .filter-apply-btn {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-    }
-
-    .filter-apply-btn:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    .filter-reset-btn {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--text-primary);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .filter-reset-btn:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    /* 2. 고객소식 리스트 (35%) */
-    .news-list-panel {
-        flex: 0 0 35%;
-        overflow-y: auto;
-        padding: var(--spacing-lg);
-    }
-
-    .list-section {
-        margin-bottom: var(--spacing-xl);
-    }
-
-    .list-section-title {
-        font-size: var(--font-lg);
-        font-weight: 600;
-        margin: 0 0 var(--spacing-md) 0;
-        color: var(--text-primary);
-    }
-
-    .news-items-container {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-md);
-    }
-
+    /* 고객소식 아이템 */
     .news-item {
-        padding: var(--spacing-md);
-        border-radius: var(--radius-md);
-        cursor: pointer;
+        overflow: hidden;
         transition: all 0.3s ease;
-        border: 2px solid transparent;
-        background: rgba(255, 255, 255, 0.05);
     }
 
     .news-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateX(4px);
-        border-color: var(--color-primary);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     }
 
-    .news-item.selected {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
-        border-color: var(--color-primary);
-    }
-
-    .news-item.no-comment {
-        border-left: 4px solid var(--color-error);
-    }
-
-    .news-item-header {
+    .news-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: var(--spacing-sm);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+        border-bottom: 1px solid rgba(139, 92, 246, 0.2);
     }
 
-    .news-category-badge {
-        padding: var(--spacing-xs) var(--spacing-sm);
-        background: rgba(139, 92, 246, 0.2);
-        color: #a78bfa;
-        border-radius: var(--radius-sm);
-        font-size: var(--font-xs);
-        font-weight: 600;
+    .news-basic-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-xl);
+        flex: 1;
+        align-items: center;
+        padding-right: var(--spacing-md);
     }
 
-    .news-comment-status {
-        padding: var(--spacing-xs) var(--spacing-sm);
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .category-badge, .comment-status-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
         border-radius: var(--radius-full);
-        font-weight: 600;
-        font-size: var(--font-xs);
-    }
-
-    .news-comment-status.no-comment {
-        background: rgba(239, 68, 68, 0.2);
-        color: #ef4444;
-    }
-
-    .news-comment-status.has-comment {
-        background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
-    }
-
-    .news-item-title {
-        font-weight: 600;
-        color: var(--text-primary);
-        font-size: var(--font-md);
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .news-item-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: var(--font-xs);
-        color: var(--text-secondary);
-    }
-
-    .news-company {
-        color: var(--text-secondary);
-    }
-
-    .news-author {
-        color: var(--text-secondary);
-    }
-
-    .list-count {
-        margin-top: var(--spacing-md);
         font-size: var(--font-sm);
-        color: var(--text-secondary);
-        text-align: center;
+        font-weight: var(--font-weight-bold);
     }
 
-    /* 3. 상세 패널 (40%) */
-    .detail-panel {
-        flex: 0 0 40%;
-        overflow-y: auto;
-        padding: var(--spacing-lg);
+    .category-badge {
+        background: rgba(59, 130, 246, 0.2);
+        color: #2563eb;
     }
 
-    .detail-placeholder {
+    .comment-status-badge.no-comment {
+        background: rgba(239, 68, 68, 0.2);
+        color: #dc2626;
+    }
+
+    .comment-status-badge.has-comment {
+        background: rgba(16, 185, 129, 0.2);
+        color: #059669;
+    }
+
+    .news-company, .news-author, .news-date {
+        color: var(--text-primary);
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-sm);
+    }
+
+    .header-actions {
         display: flex;
-        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        height: 100%;
-        text-align: center;
+        gap: var(--spacing-sm);
     }
 
-    .placeholder-icon {
-        font-size: 64px;
-        margin-bottom: var(--spacing-lg);
-        opacity: 0.5;
+    .btn-toggle-detail {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        border: none;
+        border-radius: var(--radius-lg);
+        font-weight: var(--font-weight-bold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #FFFFFF !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        font-size: var(--font-sm);
     }
 
-    .placeholder-text {
-        font-size: var(--font-lg);
-        color: var(--text-secondary);
-        line-height: 1.6;
+    .btn-toggle-detail:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
     }
 
-    .detail-content {
+    .toggle-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-toggle-detail.expanded .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    /* 상세 영역 */
+    .news-detail {
+        padding: var(--spacing-xl);
+        background: rgba(248, 250, 252, 0.95);
+        animation: slideDown 0.4s ease-out;
         display: flex;
         flex-direction: column;
         gap: var(--spacing-lg);
     }
 
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            max-height: 5000px;
+            transform: translateY(0);
+        }
+    }
+
     .detail-section {
-        padding: var(--spacing-lg);
-        border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.05);
+        margin-bottom: var(--spacing-md);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
-    .detail-section-title {
-        font-size: var(--font-lg);
-        font-weight: 600;
-        margin: 0 0 var(--spacing-md) 0;
-        color: var(--text-primary);
-        padding-bottom: var(--spacing-sm);
-        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: var(--spacing-md);
-    }
-
-    .info-item {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-xs);
-    }
-
-    .info-item.full-width {
-        grid-column: 1 / -1;
-    }
-
-    .info-label {
-        font-size: var(--font-xs);
-        color: var(--text-secondary);
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .info-value {
-        font-size: var(--font-md);
-        color: var(--text-primary);
-        font-weight: 600;
-    }
-
-    .news-content-area {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-md);
-    }
-
-    .news-title {
+    .section-title {
         font-size: var(--font-lg);
         font-weight: var(--font-weight-bold);
         color: var(--text-primary);
-        padding: var(--spacing-md);
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: var(--radius-sm);
+        margin-bottom: var(--spacing-sm);
+        padding-bottom: var(--spacing-xs);
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
     }
 
-    .news-content {
-        font-size: var(--font-md);
+    .detail-content {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+        padding: var(--spacing-sm);
+    }
+
+    .detail-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-row.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+        font-weight: var(--font-weight-medium);
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
         color: var(--text-primary);
-        line-height: 1.8;
-        padding: var(--spacing-md);
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: var(--radius-sm);
+        font-weight: var(--font-weight-bold);
+        font-size: var(--font-sm);
         white-space: pre-wrap;
     }
 
+    /* 기존 의견 목록 */
     .existing-comments-list {
         display: flex;
         flex-direction: column;
@@ -860,8 +697,8 @@
 
     .existing-comment-item {
         padding: var(--spacing-md);
-        background: rgba(255, 255, 255, 0.05);
-        border-left: 4px solid var(--color-primary);
+        background: rgba(59, 130, 246, 0.05);
+        border-left: 4px solid #3b82f6;
         border-radius: var(--radius-sm);
     }
 
@@ -872,13 +709,18 @@
         margin-bottom: var(--spacing-sm);
     }
 
+    .comment-author-info {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
     .comment-author {
         font-weight: var(--font-weight-bold);
         color: var(--text-primary);
     }
 
-    .comment-type {
-        display: inline-block;
+    .comment-type-badge {
         padding: 2px var(--spacing-sm);
         border-radius: var(--radius-sm);
         font-size: var(--font-xs);
@@ -905,6 +747,7 @@
         font-style: italic;
     }
 
+    /* 의견 작성 폼 */
     .comment-form {
         display: flex;
         flex-direction: column;
@@ -929,16 +772,10 @@
         font-size: var(--font-md);
         font-weight: 600;
         border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         color: var(--text-primary);
         cursor: pointer;
-    }
-
-    .comment-type-select:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        background: rgba(255, 255, 255, 0.08);
     }
 
     .comment-textarea {
@@ -949,15 +786,9 @@
         line-height: 1.6;
         border-radius: var(--radius-md);
         resize: vertical;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         color: var(--text-primary);
-    }
-
-    .comment-textarea:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        background: rgba(255, 255, 255, 0.08);
     }
 
     .comment-actions {
@@ -968,23 +799,12 @@
 
     .glass-button {
         padding: var(--spacing-md) var(--spacing-xl);
-        font-size: var(--font-md);
-        font-weight: 600;
         border: none;
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-lg);
+        font-size: var(--font-md);
+        font-weight: var(--font-weight-bold);
         cursor: pointer;
         transition: all 0.3s ease;
-    }
-
-    .glass-button.primary {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-    }
-
-    .glass-button.primary:hover {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
     }
 
     .glass-button.secondary {
@@ -1020,9 +840,106 @@
         transform: translateY(-2px);
     }
 
-    .admin-comment-section .detail-section-title {
-        color: var(--accent-color);
-        text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    /* 커스텀 드롭다운 (체크박스) */
+    .custom-dropdown {
+        position: relative;
+        width: 100%;
+        min-width: 150px;
+    }
+
+    .custom-dropdown-button {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .dropdown-arrow {
+        margin-left: 4px;
+        transition: transform 0.3s ease;
+    }
+
+    .custom-dropdown-button.active .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    .custom-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        max-height: 250px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.95),
+            rgba(255, 255, 255, 0.85)
+        );
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        display: none;
+    }
+
+    .custom-dropdown-menu.show {
+        display: block;
+    }
+
+    .custom-dropdown-item {
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .custom-dropdown-item:hover {
+        background: rgba(0, 230, 118, 0.1);
+    }
+
+    .custom-dropdown-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #00E676;
+        flex-shrink: 0;
+    }
+
+    .custom-dropdown-item label {
+        flex: 1;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 0;
+        color: #2c3e50;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 스크롤바 스타일 */
+    .custom-dropdown-menu::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .custom-dropdown-menu::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+
+    .custom-dropdown-menu::-webkit-scrollbar-thumb {
+        background: #00E676;
+        border-radius: 4px;
+    }
+
+    .custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
+        background: #00C853;
     }
 
     /* 유틸리티 */
@@ -1030,24 +947,26 @@
         display: none !important;
     }
 
-    .flex-display {
-        display: flex !important;
+    /* 반응형 */
+    @media (max-width: 1024px) {
+        .detail-content {
+            grid-template-columns: 1fr;
+        }
     }
 
-    /* 반응형 */
-    @media (max-width: 1200px) {
-        .main-layout {
+    @media (max-width: 768px) {
+        .search-filters {
             flex-direction: column;
-            height: auto;
+            align-items: stretch;
         }
 
-        .sidebar,
-        .news-list-panel,
-        .detail-panel {
-            flex: 1 1 auto;
-            width: 100%;
-            min-width: unset;
-            max-width: unset;
+        .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-search {
+            margin-left: 0;
         }
     }
 </style>

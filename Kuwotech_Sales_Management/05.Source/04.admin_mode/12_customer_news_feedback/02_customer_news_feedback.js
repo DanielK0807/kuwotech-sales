@@ -1,778 +1,635 @@
-/**
- * 고객소식 의견 제시 (관리자 모드)
- * 영업담당자가 작성한 고객소식을 확인하고 의견 작성
- */
+// ============================================
+// 고객소식 의견제시 (관리자) - JavaScript
+// ============================================
 
 import {
     GlobalConfig,
-    showToast,
-    showModal
+    showToast
 } from '../../01.common/10_index.js';
+import { getCompanyDisplayName } from '../../01.common/02_utils.js';
+import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
 
-// 유틸리티 함수
+console.log('📰 [고객소식 의견제시] 모듈 로드');
+
+// ============================================
+// 전역 변수
+// ============================================
+
 const API_BASE_URL = GlobalConfig.API_BASE_URL;
+let currentNewsData = [];
+let allCompanies = [];
+let companyAutocompleteManager = null;
+let currentFilter = {
+    employee: []  // 내부담당자 배열 (다중 선택)
+};
 
-function getAuthToken() {
-    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-}
-
-function getUserName() {
-    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-    return user.name || '';
-}
-
-function showNotification(message, type = 'info') {
-    showToast(message, type);
-}
-
-// DOM 요소
-let btnRefresh;
-let mainLayout;
-let loadingState;
-let emptyState;
-
-// 사이드바 통계
-let totalNewsCount;
-let noCommentCount;
-
-// 필터 버튼
-let categoryFilterButtons;
-let commentFilterButtons;
-
-// 카테고리별 카운트
-let allCount, celebrationCount, birthdayCount, anniversaryCount;
-let equipmentCount, awardCount, expansionCount, claimCount, generalCount;
-
-// 고객소식 리스트
-let newsItemsContainer;
-let newsListCount;
-
-// 상세 패널
-let detailPlaceholder;
-let detailContent;
-let existingCommentsSection;
-let existingCommentsList;
-let noCommentsMessage;
-
-// 폼 요소
-let commentType;
-let commentContent;
-let saveCommentBtn;
-
-// 검색/필터 요소
-let filterCompanyName;
-let filterCreatedBy;
-let filterStartDate;
-let filterEndDate;
-let applyFiltersBtn;
-let resetFiltersBtn;
-
-// 상태 관리
-let allNewsData = [];
-let filteredNewsData = [];
-let selectedCategory = 'all';
-let selectedCommentStatus = 'all';
-let currentSelectedNewsId = null;
-
-// 검색/필터 상태
-let searchCompanyText = '';
-let searchCreatedByText = '';
-let searchStartDate = '';
-let searchEndDate = '';
+// ============================================
+// API 호출 함수
+// ============================================
 
 /**
- * 초기화
+ * 고객소식 조회 API
  */
-function init() {
-    // DOM 요소 가져오기
-    btnRefresh = document.getElementById('btnRefresh');
-    mainLayout = document.getElementById('mainLayout');
-    loadingState = document.getElementById('loadingState');
-    emptyState = document.getElementById('emptyState');
-
-    // 통계 요소
-    totalNewsCount = document.getElementById('totalNewsCount');
-    noCommentCount = document.getElementById('noCommentCount');
-
-    // 카테고리별 카운트
-    allCount = document.getElementById('allCount');
-    celebrationCount = document.getElementById('celebrationCount');
-    birthdayCount = document.getElementById('birthdayCount');
-    anniversaryCount = document.getElementById('anniversaryCount');
-    equipmentCount = document.getElementById('equipmentCount');
-    awardCount = document.getElementById('awardCount');
-    expansionCount = document.getElementById('expansionCount');
-    claimCount = document.getElementById('claimCount');
-    generalCount = document.getElementById('generalCount');
-
-    // 리스트 요소
-    newsItemsContainer = document.getElementById('newsItemsContainer');
-    newsListCount = document.getElementById('newsListCount');
-
-    // 상세 패널 요소
-    detailPlaceholder = document.getElementById('detailPlaceholder');
-    detailContent = document.getElementById('detailContent');
-    existingCommentsSection = document.getElementById('existingCommentsSection');
-    existingCommentsList = document.getElementById('existingCommentsList');
-    noCommentsMessage = document.getElementById('noCommentsMessage');
-
-    // 폼 요소
-    commentType = document.getElementById('commentType');
-    commentContent = document.getElementById('commentContent');
-    saveCommentBtn = document.getElementById('saveCommentBtn');
-
-    // 검색/필터 요소
-    filterCompanyName = document.getElementById('filterCompanyName');
-    filterCreatedBy = document.getElementById('filterCreatedBy');
-    filterStartDate = document.getElementById('filterStartDate');
-    filterEndDate = document.getElementById('filterEndDate');
-    applyFiltersBtn = document.getElementById('applyFiltersBtn');
-    resetFiltersBtn = document.getElementById('resetFiltersBtn');
-
-    // 이벤트 리스너
-    btnRefresh?.addEventListener('click', handleRefresh);
-    saveCommentBtn?.addEventListener('click', handleSaveComment);
-    applyFiltersBtn?.addEventListener('click', handleApplyFilters);
-    resetFiltersBtn?.addEventListener('click', handleResetFilters);
-
-    // 필터 버튼 이벤트
-    categoryFilterButtons = document.querySelectorAll('.category-filter-btn');
-    categoryFilterButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const category = e.target.closest('.category-filter-item').dataset.category;
-            handleCategoryFilter(category);
-        });
-    });
-
-    commentFilterButtons = document.querySelectorAll('.comment-filter-btn');
-    commentFilterButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const status = e.target.closest('.comment-filter-item').dataset.status;
-            handleCommentStatusFilter(status);
-        });
-    });
-
-    // 초기 상태: 로딩 숨김, 빈 화면 표시
-    showLoading(false);
-    showEmptyState(false);
-    showMainLayout(true);
-
-    // 초기 메시지 표시
-    if (newsItemsContainer) {
-        newsItemsContainer.innerHTML = `
-            <div style="text-align: center; padding: var(--spacing-3xl); color: var(--text-secondary);">
-                <div style="font-size: 48px; margin-bottom: var(--spacing-lg);">🔍</div>
-                <p style="font-size: var(--font-lg); margin-bottom: var(--spacing-md);">검색 조건을 입력하고</p>
-                <p style="font-size: var(--font-lg); font-weight: 600;">🔍 검색 버튼을 눌러주세요</p>
-            </div>
-        `;
-    }
-}
-
-/**
- * 새로고침 핸들러
- */
-async function handleRefresh() {
-    await loadCustomerNews();
-    showNotification('데이터를 새로고침했습니다.', 'success');
-}
-
-/**
- * 고객소식 목록 로드
- */
-async function loadCustomerNews() {
-    const token = getAuthToken();
-    if (!token) {
-        showNotification('로그인이 필요합니다.', 'error');
-        return;
-    }
-
+async function fetchCustomerNews(filters = {}) {
     try {
-        showLoading(true);
+        const params = new URLSearchParams();
 
-        // 전체 데이터 가져오기 (limit=10000)
-        const response = await fetch(`${API_BASE_URL}/api/customer-news?limit=10000`, {
-            method: 'GET',
+        if (filters.category) params.append('category', filters.category);
+        if (filters.companyName) params.append('companyName', filters.companyName);
+        if (filters.createdBy) params.append('createdBy', filters.createdBy);
+        if (filters.startDate) params.append('startDate', filters.startDate);
+        if (filters.endDate) params.append('endDate', filters.endDate);
+        params.append('limit', '10000'); // 전체 데이터 로드
+
+        const queryString = params.toString();
+        const url = `/api/customer-news${queryString ? '?' + queryString : ''}`;
+
+        console.log('🔍 [고객소식 조회] 요청:', url);
+
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const response = await fetch(url, {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Authorization': `Bearer ${token}`
             }
         });
 
         if (!response.ok) {
-            throw new Error('고객소식 데이터를 불러오는데 실패했습니다.');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        allNewsData = data.data?.news || [];
-
-        console.log('✅ [고객소식] API 응답:', data);
-        console.log('📊 [고객소식] 로드된 데이터:', allNewsData.length, '건');
-
-        if (allNewsData.length === 0) {
-            showEmptyState(true);
-            showMainLayout(false);
-        } else {
-            showEmptyState(false);
-            showMainLayout(true);
-
-            // 통계 업데이트
-            updateStatistics();
-
-            // 카테고리별 카운트 업데이트
-            updateCategoryCounts();
-
-            // 필터 적용
-            applyFilters();
-        }
+        const result = await response.json();
+        console.log('✅ [고객소식 조회] 성공:', result.count, '건');
+        return result.data.news || [];
 
     } catch (error) {
-        console.error('고객소식 로드 오류:', error);
-        showNotification(error.message || '데이터를 불러오는데 실패했습니다.', 'error');
-        showEmptyState(true);
-        showMainLayout(false);
-    } finally {
-        showLoading(false);
+        console.error('❌ [고객소식 조회] 오류:', error);
+        alert('고객소식을 불러오는 중 오류가 발생했습니다.');
+        return [];
     }
 }
 
 /**
- * 통계 업데이트
+ * 의견 저장 API
  */
-function updateStatistics() {
-    const total = allNewsData.length;
-    const noComment = allNewsData.filter(news => !news.comments || news.comments.length === 0).length;
+async function saveComment(newsId, commentType, commentContent) {
+    try {
+        console.log('💾 [의견 저장] 요청:', newsId);
 
-    if (totalNewsCount) totalNewsCount.textContent = total;
-    if (noCommentCount) noCommentCount.textContent = noComment;
-}
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const response = await fetch(`/api/customer-news/${newsId}/comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                comment: commentContent,
+                commentType: commentType
+            })
+        });
 
-/**
- * 카테고리별 카운트 업데이트
- */
-function updateCategoryCounts() {
-    const categoryCounts = {
-        'all': allNewsData.length,
-        '경조사': 0,
-        '생일': 0,
-        '개업기념일': 0,
-        '신규장비구매': 0,
-        '수상/인증': 0,
-        '확장/이전': 0,
-        '클레임/이슈': 0,
-        '일반소식': 0
-    };
-
-    allNewsData.forEach(news => {
-        const category = news.category || '일반소식';
-        if (categoryCounts.hasOwnProperty(category)) {
-            categoryCounts[category]++;
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
 
-    if (allCount) allCount.textContent = categoryCounts['all'];
-    if (celebrationCount) celebrationCount.textContent = categoryCounts['경조사'];
-    if (birthdayCount) birthdayCount.textContent = categoryCounts['생일'];
-    if (anniversaryCount) anniversaryCount.textContent = categoryCounts['개업기념일'];
-    if (equipmentCount) equipmentCount.textContent = categoryCounts['신규장비구매'];
-    if (awardCount) awardCount.textContent = categoryCounts['수상/인증'];
-    if (expansionCount) expansionCount.textContent = categoryCounts['확장/이전'];
-    if (claimCount) claimCount.textContent = categoryCounts['클레임/이슈'];
-    if (generalCount) generalCount.textContent = categoryCounts['일반소식'];
-}
+        const result = await response.json();
+        console.log('✅ [의견 저장] 성공:', result);
+        return result;
 
-/**
- * 카테고리 필터 핸들러
- */
-function handleCategoryFilter(category) {
-    selectedCategory = category;
-
-    // 버튼 활성 상태 업데이트
-    categoryFilterButtons.forEach(btn => {
-        if (btn.closest('.category-filter-item').dataset.category === category) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    // 필터 적용
-    applyFilters();
-}
-
-/**
- * 의견 상태 필터 핸들러
- */
-function handleCommentStatusFilter(status) {
-    selectedCommentStatus = status;
-
-    // 버튼 활성 상태 업데이트
-    commentFilterButtons.forEach(btn => {
-        if (btn.closest('.comment-filter-item').dataset.status === status) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    // 필터 적용
-    applyFilters();
-}
-
-/**
- * 검색 필터 적용 핸들러
- */
-async function handleApplyFilters() {
-    // 입력값 가져오기
-    searchCompanyText = filterCompanyName?.value?.trim() || '';
-    searchCreatedByText = filterCreatedBy?.value?.trim() || '';
-    searchStartDate = filterStartDate?.value || '';
-    searchEndDate = filterEndDate?.value || '';
-
-    // 데이터가 없으면 먼저 로드
-    if (allNewsData.length === 0) {
-        await loadCustomerNews();
-    } else {
-        // 데이터가 이미 있으면 필터만 적용
-        applyFilters();
-    }
-
-    // 사용자 피드백
-    const filterCount = [searchCompanyText, searchCreatedByText, searchStartDate, searchEndDate].filter(f => f).length;
-    if (filterCount > 0) {
-        showNotification(`${filterCount}개의 검색 조건이 적용되었습니다.`, 'success');
+    } catch (error) {
+        console.error('❌ [의견 저장] 오류:', error);
+        alert('의견 저장 중 오류가 발생했습니다.');
+        return null;
     }
 }
 
-/**
- * 검색 필터 초기화 핸들러
- */
-function handleResetFilters() {
-    // 입력 필드 초기화
-    if (filterCompanyName) filterCompanyName.value = '';
-    if (filterCreatedBy) filterCreatedBy.value = '';
-    if (filterStartDate) filterStartDate.value = '';
-    if (filterEndDate) filterEndDate.value = '';
-
-    // 상태 초기화
-    searchCompanyText = '';
-    searchCreatedByText = '';
-    searchStartDate = '';
-    searchEndDate = '';
-
-    // 필터 적용
-    applyFilters();
-
-    // 사용자 피드백
-    showNotification('검색 조건이 초기화되었습니다.', 'info');
-}
-
-/**
- * 필터 적용
- */
-function applyFilters() {
-    filteredNewsData = allNewsData.filter(news => {
-        // 카테고리 필터
-        const categoryMatch = selectedCategory === 'all' || news.category === selectedCategory;
-
-        // 의견 상태 필터
-        let commentStatusMatch = true;
-        if (selectedCommentStatus === 'no-comment') {
-            commentStatusMatch = !news.comments || news.comments.length === 0;
-        } else if (selectedCommentStatus === 'has-comment') {
-            commentStatusMatch = news.comments && news.comments.length > 0;
-        }
-
-        // 거래처명 검색 (부분 일치, 대소문자 무시)
-        const companyMatch = !searchCompanyText ||
-            (news.companyName && news.companyName.toLowerCase().includes(searchCompanyText.toLowerCase()));
-
-        // 영업담당자 검색 (부분 일치, 대소문자 무시)
-        const createdByMatch = !searchCreatedByText ||
-            (news.createdBy && news.createdBy.toLowerCase().includes(searchCreatedByText.toLowerCase()));
-
-        // 날짜 범위 필터 (소식 발생일 기준)
-        let dateMatch = true;
-        if (searchStartDate || searchEndDate) {
-            const newsDate = new Date(news.newsDate);
-
-            if (searchStartDate) {
-                const startDate = new Date(searchStartDate);
-                startDate.setHours(0, 0, 0, 0);
-                if (newsDate < startDate) {
-                    dateMatch = false;
-                }
-            }
-
-            if (searchEndDate) {
-                const endDate = new Date(searchEndDate);
-                endDate.setHours(23, 59, 59, 999);
-                if (newsDate > endDate) {
-                    dateMatch = false;
-                }
-            }
-        }
-
-        return categoryMatch && commentStatusMatch && companyMatch && createdByMatch && dateMatch;
-    });
-
-    // 목록 렌더링
-    renderNewsList();
-}
+// ============================================
+// UI 렌더링 함수
+// ============================================
 
 /**
  * 고객소식 목록 렌더링
  */
-function renderNewsList() {
-    if (!newsItemsContainer) return;
+function renderNewsList(newsArray) {
+    const newsList = document.getElementById('newsList');
+    const emptyState = document.getElementById('emptyState');
+    const template = document.getElementById('news-item-template');
 
-    newsItemsContainer.innerHTML = '';
+    // 목록 초기화
+    newsList.innerHTML = '';
 
-    if (filteredNewsData.length === 0) {
-        newsItemsContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: var(--spacing-xl);">조건에 맞는 고객소식이 없습니다.</p>';
-        if (newsListCount) newsListCount.textContent = '(총 0건)';
+    if (newsArray.length === 0) {
+        emptyState.style.display = 'flex';
+        emptyState.innerHTML = `
+            <div class="empty-icon">📭</div>
+            <p>검색 조건에 맞는 고객소식이 없습니다.</p>
+        `;
         return;
     }
 
-    // 날짜 순으로 정렬 (최신순)
-    const sortedNews = [...filteredNewsData].sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-    );
+    emptyState.style.display = 'none';
 
-    sortedNews.forEach(news => {
-        const newsItem = createNewsItem(news);
-        newsItemsContainer.appendChild(newsItem);
-    });
+    // 각 고객소식 아이템 렌더링
+    newsArray.forEach(news => {
+        const clone = template.content.cloneNode(true);
+        const newsItem = clone.querySelector('.news-item');
 
-    if (newsListCount) {
-        newsListCount.textContent = `(총 ${filteredNewsData.length}건)`;
-    }
-}
+        // 데이터 속성 설정
+        newsItem.dataset.newsId = news.id;
 
-/**
- * 고객소식 아이템 생성
- */
-function createNewsItem(news) {
-    const div = document.createElement('div');
-    div.className = 'news-item';
-    div.dataset.newsId = news.id;
+        // 헤더 정보
+        const categoryBadge = clone.querySelector('.category-badge');
+        categoryBadge.textContent = news.category;
 
-    const hasComments = news.comments && news.comments.length > 0;
-    if (!hasComments) {
-        div.classList.add('no-comment');
-    }
-
-    if (currentSelectedNewsId === news.id) {
-        div.classList.add('selected');
-    }
-
-    const commentStatusHtml = hasComments
-        ? '<span class="news-comment-status has-comment">✅ 의견작성</span>'
-        : '<span class="news-comment-status no-comment">❌ 미작성</span>';
-
-    div.innerHTML = `
-        <div class="news-item-header">
-            <span class="news-category-badge">${news.category || '일반소식'}</span>
-            ${commentStatusHtml}
-        </div>
-        <div class="news-item-title">${escapeHtml(news.title || '제목 없음')}</div>
-        <div class="news-item-info">
-            <span class="news-company">${escapeHtml(news.companyName || '-')}</span>
-            <span class="news-author">${escapeHtml(news.createdBy || '-')}</span>
-        </div>
-    `;
-
-    // 클릭 이벤트
-    div.addEventListener('click', () => {
-        selectNews(news.id);
-    });
-
-    return div;
-}
-
-/**
- * 고객소식 선택
- */
-async function selectNews(newsId) {
-    currentSelectedNewsId = newsId;
-
-    // 선택 상태 업데이트
-    document.querySelectorAll('.news-item').forEach(item => {
-        if (item.dataset.newsId === String(newsId)) {
-            item.classList.add('selected');
+        const commentStatusBadge = clone.querySelector('.comment-status-badge');
+        const hasComments = news.comments && news.comments.length > 0;
+        if (hasComments) {
+            commentStatusBadge.textContent = `✅ 의견 ${news.comments.length}개`;
+            commentStatusBadge.classList.add('has-comment');
         } else {
-            item.classList.remove('selected');
+            commentStatusBadge.textContent = '❌ 의견 미작성';
+            commentStatusBadge.classList.add('no-comment');
         }
-    });
 
-    // 상세 정보 로드
-    await loadNewsDetail(newsId);
-}
+        clone.querySelector('.news-company').textContent = news.companyName;
+        clone.querySelector('.news-author').textContent = `작성자: ${news.createdBy}`;
+        clone.querySelector('.news-date').textContent = `날짜: ${news.newsDate}`;
 
-/**
- * 고객소식 상세 정보 로드
- */
-async function loadNewsDetail(newsId) {
-    const token = getAuthToken();
-    if (!token) {
-        showNotification('로그인이 필요합니다.', 'error');
-        return;
-    }
+        // 상세 정보
+        clone.querySelector('.news-title').textContent = news.title;
+        clone.querySelector('.news-content').textContent = news.content;
+        clone.querySelector('.news-company-full').textContent = news.companyName;
+        clone.querySelector('.news-author-full').textContent = news.createdBy;
+        clone.querySelector('.news-category-full').textContent = news.category;
+        clone.querySelector('.news-date-full').textContent = news.newsDate;
+        clone.querySelector('.news-created-at').textContent = formatDateTime(news.createdAt);
+        clone.querySelector('.news-priority').textContent = news.priority || '보통';
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/customer-news/${newsId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+        // 기존 의견 목록 렌더링
+        const existingCommentsList = clone.querySelector('.existing-comments-list');
+        const noCommentsMessage = clone.querySelector('.no-comments-message');
+
+        if (hasComments) {
+            renderExistingComments(existingCommentsList, news.comments);
+            noCommentsMessage.classList.add('hidden');
+        } else {
+            noCommentsMessage.classList.remove('hidden');
+        }
+
+        // 상세보기 토글 버튼 이벤트
+        const btnToggle = clone.querySelector('.btn-toggle-detail');
+        btnToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleNewsDetail(newsItem);
         });
 
-        if (!response.ok) {
-            throw new Error('고객소식 상세 정보를 불러오는데 실패했습니다.');
-        }
+        // 의견 저장 버튼 이벤트
+        const btnSaveComment = clone.querySelector('.btn-save-comment');
+        btnSaveComment.addEventListener('click', () => {
+            handleSaveComment(newsItem, news.id);
+        });
 
-        const data = await response.json();
-        console.log('✅ [고객소식 상세] API 응답:', data);
-        displayNewsDetail(data.data?.news);
+        newsList.appendChild(clone);
+    });
 
-    } catch (error) {
-        console.error('고객소식 상세 로드 오류:', error);
-        showNotification(error.message || '상세 정보를 불러오는데 실패했습니다.', 'error');
-    }
-}
-
-/**
- * 고객소식 상세 정보 표시
- */
-function displayNewsDetail(news) {
-    // 플레이스홀더 숨기기, 상세 내용 표시
-    if (detailPlaceholder) detailPlaceholder.classList.add('hidden');
-    if (detailContent) detailContent.classList.remove('hidden');
-
-    // 기본 정보
-    document.getElementById('detailNewsId').textContent = news.id || '-';
-    document.getElementById('detailCategory').textContent = news.category || '-';
-    document.getElementById('detailAuthor').textContent = news.createdBy || '-';
-    document.getElementById('detailCompany').textContent = news.companyName || '-';
-    document.getElementById('detailNewsDate').textContent = formatDate(news.newsDate);
-    document.getElementById('detailCreatedDate').textContent = formatDateTime(news.createdAt);
-
-    const priorityLabel = getPriorityLabel(news.priority);
-    document.getElementById('detailPriority').textContent = priorityLabel;
-
-    // 소식 내용
-    document.getElementById('detailTitle').textContent = news.title || '-';
-    document.getElementById('detailContent').textContent = news.content || '-';
-
-    // 기존 의견 목록
-    const comments = news.comments || [];
-    if (comments.length > 0) {
-        renderExistingComments(comments);
-        if (noCommentsMessage) noCommentsMessage.classList.add('hidden');
-        if (existingCommentsList) existingCommentsList.classList.remove('hidden');
-    } else {
-        if (noCommentsMessage) noCommentsMessage.classList.remove('hidden');
-        if (existingCommentsList) existingCommentsList.classList.add('hidden');
-    }
-
-    // 폼 초기화
-    if (commentType) commentType.value = '칭찬';
-    if (commentContent) commentContent.value = '';
+    console.log(`📋 [목록 렌더링] ${newsArray.length}건 표시 완료`);
 }
 
 /**
  * 기존 의견 목록 렌더링
  */
-function renderExistingComments(comments) {
-    if (!existingCommentsList) return;
+function renderExistingComments(container, comments) {
+    const template = document.getElementById('comment-item-template');
+    container.innerHTML = '';
 
-    existingCommentsList.innerHTML = '';
+    comments.forEach(comment => {
+        const clone = template.content.cloneNode(true);
 
-    // 날짜 순으로 정렬 (최신순)
-    const sortedComments = [...comments].sort((a, b) =>
-        new Date(b.createdAt) - new Date(a.createdAt)
-    );
+        clone.querySelector('.comment-author').textContent = comment.commentBy;
+        clone.querySelector('.comment-type-badge').textContent = comment.commentType || '일반';
+        clone.querySelector('.comment-date').textContent = formatDateTime(comment.createdAt);
+        clone.querySelector('.comment-content').textContent = comment.comment;
 
-    sortedComments.forEach(comment => {
-        const commentItem = createExistingCommentItem(comment);
-        existingCommentsList.appendChild(commentItem);
+        container.appendChild(clone);
     });
 }
 
+// ============================================
+// 이벤트 핸들러
+// ============================================
+
 /**
- * 기존 의견 아이템 생성
+ * 검색 버튼 클릭 핸들러
  */
-function createExistingCommentItem(comment) {
-    const div = document.createElement('div');
-    div.className = 'existing-comment-item';
+async function handleSearch() {
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
 
-    const typeLabel = getCommentTypeLabel(comment.commentType);
+    try {
+        // 로딩 상태 표시
+        loadingState.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        document.getElementById('newsList').innerHTML = '';
 
-    div.innerHTML = `
-        <div class="comment-item-header">
-            <div>
-                <span class="comment-author">${comment.commentBy || '관리자'}</span>
-                <span class="comment-type">${typeLabel}</span>
-            </div>
-            <span class="comment-date">${formatDateTime(comment.createdAt)}</span>
-        </div>
-        <div class="comment-content">${escapeHtml(comment.comment)}</div>
-    `;
+        // 필터 조건 수집
+        const filters = {
+            category: document.getElementById('filterCategory').value,
+            companyName: document.getElementById('filterCompanyName').value.trim(),
+            startDate: document.getElementById('filterStartDate').value,
+            endDate: document.getElementById('filterEndDate').value
+        };
 
-    return div;
+        // 빈 값 제거
+        Object.keys(filters).forEach(key => {
+            if (!filters[key]) delete filters[key];
+        });
+
+        console.log('🔍 [검색] 필터 조건:', filters);
+        console.log('🔍 [검색] 선택된 내부담당자:', currentFilter.employee);
+
+        // API 호출 (내부담당자 필터 없이 모든 데이터 가져오기)
+        let newsData = await fetchCustomerNews(filters);
+
+        // 클라이언트 사이드에서 내부담당자 필터링 (다중 선택 지원)
+        if (currentFilter.employee.length > 0) {
+            newsData = newsData.filter(news =>
+                currentFilter.employee.includes(news.createdBy)
+            );
+            console.log(`🔍 [검색] 내부담당자 필터 적용 후: ${newsData.length}건`);
+        }
+
+        currentNewsData = newsData;
+
+        // 목록 렌더링
+        renderNewsList(currentNewsData);
+
+    } catch (error) {
+        console.error('❌ [검색] 오류:', error);
+        emptyState.style.display = 'flex';
+        emptyState.innerHTML = `
+            <div class="empty-icon">⚠️</div>
+            <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+        `;
+    } finally {
+        loadingState.classList.add('hidden');
+    }
+}
+
+/**
+ * 상세보기 토글
+ */
+function toggleNewsDetail(newsItem) {
+    const detailArea = newsItem.querySelector('.news-detail');
+    const btnToggle = newsItem.querySelector('.btn-toggle-detail');
+
+    if (detailArea.classList.contains('hidden')) {
+        // 다른 모든 아이템 닫기
+        document.querySelectorAll('.news-item').forEach(item => {
+            if (item !== newsItem) {
+                item.querySelector('.news-detail').classList.add('hidden');
+                item.querySelector('.btn-toggle-detail').classList.remove('expanded');
+            }
+        });
+
+        // 현재 아이템 열기
+        detailArea.classList.remove('hidden');
+        btnToggle.classList.add('expanded');
+    } else {
+        // 현재 아이템 닫기
+        detailArea.classList.add('hidden');
+        btnToggle.classList.remove('expanded');
+    }
 }
 
 /**
  * 의견 저장 핸들러
  */
-async function handleSaveComment() {
-    if (!currentSelectedNewsId) {
-        showNotification('고객소식을 선택해주세요.', 'warning');
+async function handleSaveComment(newsItem, newsId) {
+    const commentTypeSelect = newsItem.querySelector('.comment-type-select');
+    const commentTextarea = newsItem.querySelector('.comment-textarea');
+
+    const commentType = commentTypeSelect.value;
+    const commentContent = commentTextarea.value.trim();
+
+    if (!commentContent) {
+        alert('의견 내용을 입력해주세요.');
+        commentTextarea.focus();
         return;
     }
 
-    const type = commentType?.value;
-    const content = commentContent?.value?.trim();
-
-    if (!content) {
-        showNotification('의견 내용을 입력해주세요.', 'warning');
+    // 확인 대화상자
+    if (!confirm('의견을 저장하시겠습니까?')) {
         return;
     }
 
-    const token = getAuthToken();
+    // API 호출
+    const result = await saveComment(newsId, commentType, commentContent);
+
+    if (result) {
+        alert('의견이 성공적으로 저장되었습니다.');
+
+        // 폼 초기화
+        commentTextarea.value = '';
+        commentTypeSelect.selectedIndex = 0;
+
+        // 목록 새로고침
+        await handleSearch();
+    }
+}
+
+/**
+ * 새로고침 버튼 핸들러
+ */
+async function handleRefresh() {
+    // 필터 초기화
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterCompanyName').value = '';
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+
+    // 내부담당자 체크박스 초기화
+    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    document.getElementById('employee-selected-text').textContent = '전체';
+    currentFilter.employee = [];
+
+    // 목록 초기화
+    document.getElementById('newsList').innerHTML = '';
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('emptyState').innerHTML = `
+        <div class="empty-icon">🔍</div>
+        <p>검색하기 버튼을 클릭하여 고객소식을 조회하세요.</p>
+    `;
+
+    currentNewsData = [];
+
+    // 거래처 목록 재로드
+    await loadCompanies();
+
+    // 내부담당자 목록 재로드
+    await loadSalesReps();
+
+    console.log('🔄 [새로고침] 초기화 완료');
+}
+
+// ============================================
+// 유틸리티 함수
+// ============================================
+
+/**
+ * 날짜/시간 포맷
+ */
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+// ============================================
+// 거래처 목록 로드
+// ============================================
+
+async function loadCompanies() {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     if (!token) {
-        showNotification('로그인이 필요합니다.', 'error');
+        showToast('로그인이 필요합니다', 'error');
         return;
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/customer-news/${currentSelectedNewsId}/comments`, {
-            method: 'POST',
+        const response = await fetch(`${API_BASE_URL}/api/companies`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                commentType: type,
-                content: content
-            })
+            }
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || '의견 저장에 실패했습니다.');
+            throw new Error('거래처 목록 로드 실패');
         }
 
-        showNotification('의견이 성공적으로 저장되었습니다.', 'success');
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.message || '데이터 조회 실패');
+        }
 
-        // 폼 초기화
-        if (commentType) commentType.value = '칭찬';
-        if (commentContent) commentContent.value = '';
+        allCompanies = data.companies || [];
+        console.log(`✅ [거래처] ${allCompanies.length}개 로드 완료`);
 
-        // 데이터 새로고침
-        await loadCustomerNews();
+        // 자동완성 데이터 소스 업데이트
+        if (companyAutocompleteManager) {
+            companyAutocompleteManager.updateDataSource(allCompanies);
+        }
+    } catch (error) {
+        console.error('❌ 거래처 목록 로드 오류:', error);
+        showToast('거래처 목록을 불러오는데 실패했습니다', 'error');
+    }
+}
 
-        // 현재 선택된 소식 다시 로드
-        await loadNewsDetail(currentSelectedNewsId);
+// ============================================
+// 영업담당자 목록 로드 (employees 테이블에서)
+// ============================================
+
+async function loadSalesReps() {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    if (!token) {
+        showToast('로그인이 필요합니다', 'error');
+        return;
+    }
+
+    try {
+        // employees 테이블에서 직원 목록 조회
+        const response = await fetch(`${API_BASE_URL}/api/employees`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('내부담당자 목록 로드 실패');
+        }
+
+        const data = await response.json();
+        const employees = data.employees || [];
+
+        // 영업담당자만 필터링 (role1 또는 role2가 '영업담당'인 직원)
+        const salesReps = employees
+            .filter(emp => emp.role1 === '영업담당' || emp.role2 === '영업담당')
+            .map(emp => ({
+                name: emp.name,
+                department: emp.department || ''
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        console.log(`✅ [내부담당자] ${salesReps.length}명 로드 완료`);
+
+        // 체크박스 드롭다운 메뉴 채우기
+        const dropdownMenu = document.getElementById('employee-dropdown-menu');
+        if (!dropdownMenu) {
+            console.error('❌ employee-dropdown-menu 요소를 찾을 수 없습니다');
+            return;
+        }
+
+        // 기존 항목 제거
+        dropdownMenu.innerHTML = '';
+
+        // 각 영업담당자에 대해 체크박스 아이템 생성
+        salesReps.forEach(rep => {
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `emp-${rep.name}`;
+            checkbox.value = rep.name;
+            checkbox.addEventListener('change', updateEmployeeSelection);
+
+            const label = document.createElement('label');
+            label.htmlFor = `emp-${rep.name}`;
+            label.textContent = rep.department ? `${rep.name} (${rep.department})` : rep.name;
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            dropdownMenu.appendChild(item);
+        });
 
     } catch (error) {
-        console.error('의견 저장 오류:', error);
-        showNotification(error.message || '의견 저장에 실패했습니다.', 'error');
+        console.error('❌ [내부담당자] 로드 오류:', error);
+        showToast('내부담당자 목록을 불러오는데 실패했습니다', 'error');
     }
 }
 
-/**
- * 우선순위 라벨
- */
-function getPriorityLabel(priority) {
-    const labels = {
-        '높음': '🔴 높음',
-        '보통': '🟡 보통',
-        '낮음': '🟢 낮음'
-    };
-    return labels[priority] || priority || '-';
-}
+// ============================================
+// 내부담당자 선택 업데이트
+// ============================================
 
-/**
- * 의견 타입 라벨
- */
-function getCommentTypeLabel(type) {
-    const labels = {
-        '칭찬': '👍 칭찬',
-        '개선요청': '💡 개선요청',
-        '질문': '❓ 질문',
-        '정보공유': '📢 정보공유',
-        '기타': '💬 기타'
-    };
-    return labels[type] || '💬 기타';
-}
+function updateEmployeeSelection() {
+    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
 
-/**
- * 날짜 포맷팅 (YYYY-MM-DD)
- */
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    }).replace(/\./g, '-').replace(/\s/g, '');
-}
+    const selectedText = document.getElementById('employee-selected-text');
 
-/**
- * 날짜/시간 포맷팅 (YYYY-MM-DD HH:mm)
- */
-function formatDateTime(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    }).replace(/\./g, '-').replace(/\s/g, ' ');
-}
-
-/**
- * HTML 이스케이프
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-/**
- * 로딩 상태 표시
- */
-function showLoading(show) {
-    if (loadingState) {
-        loadingState.classList.toggle('hidden', !show);
-        loadingState.classList.toggle('flex-display', show);
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}명`;
     }
+
+    // currentFilter 업데이트
+    currentFilter.employee = selectedValues;
+    console.log('✅ [내부담당자] 선택 업데이트:', selectedValues);
 }
 
-/**
- * 빈 상태 표시
- */
-function showEmptyState(show) {
-    if (emptyState) {
-        emptyState.classList.toggle('hidden', !show);
+// ============================================
+// 거래처 자동완성 초기화
+// ============================================
+
+function initCompanyAutocomplete() {
+    const inputElement = document.getElementById('filterCompanyName');
+    const listElement = document.getElementById('filterCompanyAutocomplete');
+
+    if (!inputElement || !listElement) {
+        console.error('❌ [자동완성] 필수 요소를 찾을 수 없음!');
+        return;
     }
-}
 
-/**
- * 메인 레이아웃 표시
- */
-function showMainLayout(show) {
-    if (mainLayout) {
-        mainLayout.classList.toggle('hidden', !show);
+    if (allCompanies.length === 0) {
+        console.warn('⚠️ [자동완성] 거래처 데이터가 없습니다!');
+        return;
     }
+
+    // 기존 인스턴스 정리
+    if (companyAutocompleteManager) {
+        companyAutocompleteManager.destroy();
+    }
+
+    // AutocompleteManager 생성 (작동하는 패턴과 동일)
+    companyAutocompleteManager = new AutocompleteManager({
+        inputElement,
+        listElement,
+        dataSource: allCompanies,
+        getDisplayText: (company) => getCompanyDisplayName(company),
+        onSelect: (company) => {
+            const companyName = getCompanyDisplayName(company);
+            inputElement.value = companyName;
+            console.log('✅ 거래처 선택됨:', company);
+        },
+        maxResults: 10,
+        placeholder: '검색 결과가 없습니다',
+        highlightSearch: true
+    });
+
+    console.log('✅ [자동완성] 초기화 완료! 거래처 수:', allCompanies.length);
 }
 
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', init);
+// ============================================
+// 초기화
+// ============================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 [고객소식 의견제시] 초기화 시작');
+
+    // 거래처 목록 로드
+    await loadCompanies();
+
+    // 내부담당자 목록 로드
+    await loadSalesReps();
+
+    // 거래처 자동완성 초기화
+    initCompanyAutocomplete();
+
+    // 이벤트 리스너 등록
+    const btnSearch = document.getElementById('btnSearch');
+    const btnRefresh = document.getElementById('btnRefresh');
+
+    if (btnSearch) {
+        btnSearch.addEventListener('click', handleSearch);
+    }
+
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', handleRefresh);
+    }
+
+    // Enter 키로 검색
+    const filterCompanyName = document.getElementById('filterCompanyName');
+    if (filterCompanyName) {
+        filterCompanyName.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+    }
+
+    // 내부담당자 드롭다운 토글
+    const employeeDropdownButton = document.getElementById('employee-dropdown-button');
+    const employeeDropdownMenu = document.getElementById('employee-dropdown-menu');
+
+    if (employeeDropdownButton && employeeDropdownMenu) {
+        employeeDropdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            employeeDropdownMenu.classList.toggle('show');
+            console.log('🔽 [드롭다운] 토글:', employeeDropdownMenu.classList.contains('show'));
+        });
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            if (!employeeDropdownButton.contains(e.target) && !employeeDropdownMenu.contains(e.target)) {
+                employeeDropdownMenu.classList.remove('show');
+            }
+        });
+    }
+
+    console.log('✅ [고객소식 의견제시] 초기화 완료');
+});
