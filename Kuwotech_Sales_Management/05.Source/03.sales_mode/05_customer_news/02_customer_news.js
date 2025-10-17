@@ -251,13 +251,6 @@ async function loadCompanies() {
         allCompanies = data.companies || [];
         console.warn(`✅ [고객소식] 담당 거래처 ${allCompanies.length}개 로드 완료`);
 
-        // 첫 번째 거래처 데이터 구조 확인
-        if (allCompanies.length > 0) {
-            console.warn('📦 [고객소식] 첫 번째 거래처 샘플:', allCompanies[0]);
-        } else {
-            console.warn('⚠️ [고객소식] 로드된 거래처가 없습니다');
-        }
-
         // 자동완성 데이터 소스 업데이트
         if (companyAutocompleteManager) {
             companyAutocompleteManager.updateDataSource(allCompanies);
@@ -567,7 +560,6 @@ async function loadCustomerNews(filters = {}) {
         allNews = data.data?.news || [];
 
         console.warn(`✅ [고객소식] 소식 ${allNews.length}개 로드 완료`);
-        console.warn('📦 [고객소식] 응답 데이터 구조:', data);
 
         // 로딩 숨김
         loadingState.classList.add('hidden');
