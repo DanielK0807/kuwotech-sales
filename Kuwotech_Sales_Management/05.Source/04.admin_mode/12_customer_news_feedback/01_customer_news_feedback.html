@@ -46,7 +46,7 @@
          ============================================ -->
     <section class="search-filters glass-card glass-3d-element">
         <div class="filter-group">
-            <label>거래처명:</label>
+            <label>거래처명</label>
             <div class="company-autocomplete-wrapper">
                 <input
                     type="text"
@@ -58,7 +58,7 @@
             </div>
         </div>
         <div class="filter-group">
-            <label>내부담당자:</label>
+            <label>내부담당자</label>
             <div class="custom-dropdown">
                 <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
                     <span id="employee-selected-text">전체</span>
@@ -70,15 +70,15 @@
             </div>
         </div>
         <div class="filter-group">
-            <label>시작일:</label>
+            <label>시작일</label>
             <input type="date" id="filterStartDate" class="glass-input">
         </div>
         <div class="filter-group">
-            <label>종료일:</label>
+            <label>종료일</label>
             <input type="date" id="filterEndDate" class="glass-input">
         </div>
         <div class="filter-group">
-            <label>카테고리:</label>
+            <label>카테고리</label>
             <select id="filterCategory" class="glass-input">
                 <option value="">전체</option>
                 <option value="경조사">경조사</option>
@@ -348,18 +348,20 @@
 
     .filter-group {
         display: flex;
-        align-items: center;
-        gap: 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
         overflow: visible;
         flex-shrink: 0;
     }
 
     .filter-group label {
-        font-weight: 700 !important;
-        color: #000000 !important;
+        font-weight: 600 !important;
+        color: rgba(255, 255, 255, 0.9) !important;
         white-space: nowrap;
-        font-size: 18px !important;
-        text-shadow: none;
+        font-size: 13px !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2px;
     }
 
     .filter-group select,
