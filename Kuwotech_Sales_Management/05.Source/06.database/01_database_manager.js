@@ -84,12 +84,65 @@ export class DatabaseManager {
                 throw new Error(response.message || response.error?.message || '로그인 실패');
             }
         } catch (error) {
+            // 🔒 중복 로그인 에러인 경우 특별 처리
+            if (error.duplicateSession) {
+                // 중복 로그인 에러를 그대로 throw하여 UI에서 처리할 수 있도록 함
+                throw error;
+            }
+
             await errorHandler.handle(
                 new AuthError('로그인 요청 실패', error, {
                     userMessage: '로그인 처리 중 오류가 발생했습니다.',
                     context: {
                         module: 'database_manager',
                         action: 'login',
+                        username: name
+                    }
+                }),
+                { showToUser: false }
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * [기능: 강제 로그인 (기존 세션 종료)]
+     * @param {string} name - 직원 이름
+     * @param {string} password - 비밀번호
+     * @param {string} selectedRole - 선택한 역할 (영업담당 또는 관리자)
+     */
+    async forceLogin(name, password, selectedRole) {
+        try {
+            const response = await this.request(`${ENDPOINTS.AUTH}/force-login`, {
+                method: 'POST',
+                body: JSON.stringify({ name, password, selectedRole })
+            });
+
+            if (response.success) {
+                this.token = response.token;
+                this.user = response.user;
+                this.accessLogId = response.accessLogId; // 📊 웹사용기록: 접속 로그 ID 저장
+
+                // localStorage에 영구 저장
+                localStorage.setItem('authToken', this.token);
+                localStorage.setItem('user', JSON.stringify(this.user));
+                localStorage.setItem('loginData', JSON.stringify({ user: this.user, token: this.token }));
+
+                // sessionStorage에 사용자 정보만 임시 저장
+                sessionStorage.setItem('user', JSON.stringify(this.user));
+                sessionStorage.setItem('accessLogId', response.accessLogId);
+
+                return response.user;
+            } else {
+                throw new Error(response.message || response.error?.message || '강제 로그인 실패');
+            }
+        } catch (error) {
+            await errorHandler.handle(
+                new AuthError('강제 로그인 요청 실패', error, {
+                    userMessage: '로그인 처리 중 오류가 발생했습니다.',
+                    context: {
+                        module: 'database_manager',
+                        action: 'forceLogin',
                         username: name
                     }
                 }),
@@ -863,6 +916,14 @@ export class DatabaseManager {
             const data = await response.json();
 
             if (!response.ok) {
+                // 🔒 중복 로그인 에러 처리 (409 Conflict)
+                if (response.status === 409 && data.duplicateSession) {
+                    const error = new Error(data.message || '중복 로그인 감지');
+                    error.duplicateSession = true;
+                    error.activeSessionInfo = data.activeSessionInfo;
+                    throw error;
+                }
+
                 throw new Error(data.error?.message || data.message || '요청 실패');
             }
 

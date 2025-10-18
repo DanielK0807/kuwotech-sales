@@ -3,13 +3,16 @@
 // ============================================
 
 import express from 'express';
-import { login, logout, getCurrentUser, getEmployeesByRole } from '../controllers/auth.controller.js';
+import { login, logout, getCurrentUser, getEmployeesByRole, forceLogin } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 // POST /api/auth/login - 로그인
 router.post('/login', login);
+
+// POST /api/auth/force-login - 강제 로그인 (기존 세션 종료)
+router.post('/force-login', forceLogin);
 
 // POST /api/auth/logout - 로그아웃 (인증 필요)
 router.post('/logout', authenticate, logout);

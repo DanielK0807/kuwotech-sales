@@ -330,7 +330,52 @@ async function handleLogin(event) {
     } catch (error) {
         logger.error('❌ 로그인 실패:', error);
 
-        // 에러 메시지 처리
+        // 🔒 중복 로그인 에러 처리
+        if (error.duplicateSession) {
+            const activeSession = error.activeSessionInfo;
+            const loginTimeStr = new Date(activeSession.loginTime).toLocaleString('ko-KR');
+
+            const confirmMessage =
+                `⚠️ 이미 다른 곳에서 로그인되어 있습니다.\n\n` +
+                `로그인 시간: ${loginTimeStr}\n` +
+                `IP 주소: ${activeSession.ipAddress || '알 수 없음'}\n\n` +
+                `기존 세션을 종료하고 로그인하시겠습니까?`;
+
+            if (confirm(confirmMessage)) {
+                // 사용자가 "확인"을 선택한 경우 → 강제 로그인
+                try {
+                    elements.loginButton.textContent = '기존 세션 종료 중...';
+                    const user = await dbManager.forceLogin(name, password, selectedRole);
+
+                    // 선택한 역할 저장
+                    localStorage.setItem('selectedRole', selectedRole);
+
+                    showToast(`환영합니다, ${user.name}님! (기존 세션이 종료되었습니다)`, 'success');
+
+                    // 역할에 따라 리다이렉트
+                    setTimeout(() => {
+                        redirectToMainPage(selectedRole);
+                    }, 1000);
+                    return; // 성공 시 함수 종료
+
+                } catch (forceLoginError) {
+                    logger.error('❌ 강제 로그인 실패:', forceLoginError);
+                    showToast('강제 로그인에 실패했습니다. 다시 시도해주세요.', 'error');
+                }
+            } else {
+                // 사용자가 "취소"를 선택한 경우
+                showToast('로그인이 취소되었습니다.', 'info');
+            }
+
+            // 버튼 복구
+            elements.loginButton.disabled = false;
+            elements.loginButton.textContent = '확인';
+            elements.passwordInput.value = '';
+            elements.passwordInput.focus();
+            return;
+        }
+
+        // 일반 에러 메시지 처리
         let errorMessage = '로그인에 실패했습니다';
 
         if (error.message) {
