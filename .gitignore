@@ -27,6 +27,14 @@ desktop.ini
 *.tmp
 *.temp
 test-db-connection.js
+check_loading_issue.js
+debug_*.js
+
+# Local development files
+**/setup-local-db.sql
+
+# Documentation and analysis files (Claude-generated)
+claudedocs/
 
 # 중요: 프론트엔드 파일은 포함 (Railway 배포를 위해)
 # 05.Source/

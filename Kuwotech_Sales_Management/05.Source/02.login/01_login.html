@@ -384,6 +384,30 @@
         }
       }
 
+      /* Creator 정보 */
+      .creator-info {
+        margin-top: var(--spacing-xl);
+        text-align: center;
+        padding: var(--spacing-md);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        border-radius: var(--border-radius-md);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: clamp(10px, 2vw, 12px);
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.6;
+      }
+
+      .creator-info div {
+        margin: 2px 0;
+      }
+
+      .creator-info .label {
+        color: rgba(255, 193, 7, 0.9);
+        font-weight: 600;
+        margin-right: 4px;
+      }
+
       /* 추가 모바일 최적화 (480px 이하) */
       @media (max-width: 480px) {
         .login-card {
@@ -411,6 +435,11 @@
         .form-select,
         .form-input {
           min-height: 44px;
+        }
+
+        .creator-info {
+          backdrop-filter: blur(5px);
+          font-size: 10px;
         }
       }
     </style>
@@ -485,6 +514,13 @@
             확인
           </button>
         </form>
+
+        <!-- Creator 정보 -->
+        <div class="creator-info">
+          <div><span class="label">Creator:</span>Daniel.K</div>
+          <div><span class="label">Contact:</span>kinggo750807@gmail.com</div>
+          <div><span class="label">Owner:</span>KUWOTECH</div>
+        </div>
       </div>
     </div>
 

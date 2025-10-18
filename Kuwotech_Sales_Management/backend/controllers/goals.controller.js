@@ -340,11 +340,11 @@ export const getDepartmentMonthlyGoals = async (req, res) => {
         END), 0) as actualSales
       FROM reports r
       INNER JOIN employees e ON r.submittedBy = e.name
-      WHERE e.departmentId = ?
+      WHERE e.department = ?
         AND r.status = '확인'
         AND YEAR(r.submittedDate) = ?
         AND MONTH(r.submittedDate) = ?
-    `, [id, year, month]);
+    `, [department.department_name, year, month]);
 
     const actualData = actuals[0];
 

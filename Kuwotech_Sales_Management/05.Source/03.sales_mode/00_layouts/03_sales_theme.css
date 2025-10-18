@@ -721,3 +721,33 @@ body[data-mode="sales"] {
     background-color: #FFFFFF !important;
     color: #37474F !important;
 }
+
+/* ============================================
+   [10] Creator 정보 스타일
+   ============================================ */
+.sidebar-footer {
+    margin-top: auto;
+    padding: var(--spacing-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.creator-info {
+    padding: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+    border-radius: var(--border-radius-sm);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.5;
+    text-align: center;
+}
+
+.creator-info div {
+    margin: 2px 0;
+}
+
+.creator-info .label {
+    color: rgba(0, 151, 167, 0.9);
+    font-weight: 600;
+    margin-right: 4px;
+}

@@ -7,6 +7,7 @@
 
 import ApiManager from '../../01.common/13_api_manager.js';
 import { showToast } from '../../01.common/14_toast.js';
+import { formatDate } from '../../01.common/10_index.js';
 
 // 전역 변수
 let accessLogs = [];
@@ -408,16 +409,6 @@ const closeModal = () => {
   if (modal) {
     modal.classList.remove('active');
   }
-};
-
-/**
- * 날짜 포맷팅 (YYYY-MM-DD)
- */
-const formatDate = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 };
 
 /**

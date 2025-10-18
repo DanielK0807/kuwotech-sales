@@ -27,6 +27,33 @@ const API_BASE_URL = GlobalConfig.API_BASE_URL;
 let companyAutocompleteManager = null;
 let filterCompanyAutocompleteManager = null;
 
+// ============================================
+// 초기 빈 상태 표시 함수 (호이스팅 문제 해결을 위해 상단 배치)
+// ============================================
+
+function showInitialEmptyState() {
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const newsList = document.getElementById('newsList');
+
+    // 로딩 숨김
+    if (loadingState) loadingState.classList.add('hidden');
+
+    // 빈 상태 메시지 설정 (초기 상태용)
+    if (emptyState) {
+        const emptyIcon = emptyState.querySelector('.empty-icon');
+        const emptyMessage = emptyState.querySelector('p');
+        if (emptyIcon) emptyIcon.textContent = '🔍';
+        if (emptyMessage) emptyMessage.textContent = '검색하기 버튼을 클릭하여 고객소식을 조회하세요.';
+        emptyState.classList.remove('hidden');
+    }
+
+    // 목록 비우기
+    if (newsList) newsList.innerHTML = '';
+
+    console.warn('📋 [고객소식] 초기 빈 상태 표시 - 검색하기 버튼을 클릭하여 조회하세요');
+}
+
 // 인증 토큰 및 사용자 정보 유틸리티 함수
 function getAuthToken() {
     return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -541,33 +568,6 @@ function handleTemplateClick(e) {
     updateCharCounter();
 
     showToast('템플릿이 적용되었습니다', 'success');
-}
-
-// ============================================
-// 초기 빈 상태 표시
-// ============================================
-
-function showInitialEmptyState() {
-    const loadingState = document.getElementById('loadingState');
-    const emptyState = document.getElementById('emptyState');
-    const newsList = document.getElementById('newsList');
-
-    // 로딩 숨김
-    loadingState.classList.add('hidden');
-
-    // 빈 상태 메시지 설정 (초기 상태용)
-    const emptyIcon = emptyState.querySelector('.empty-icon');
-    const emptyMessage = emptyState.querySelector('p');
-    if (emptyIcon) emptyIcon.textContent = '🔍';
-    if (emptyMessage) emptyMessage.textContent = '검색하기 버튼을 클릭하여 고객소식을 조회하세요.';
-
-    // 빈 상태 표시
-    emptyState.classList.remove('hidden');
-
-    // 목록 비우기
-    newsList.innerHTML = '';
-
-    console.warn('📋 [고객소식] 초기 빈 상태 표시 - 검색하기 버튼을 클릭하여 조회하세요');
 }
 
 // ============================================
