@@ -51,6 +51,9 @@ import {
 // API Manager 임포트
 import ApiManager from '../../01.common/13_api_manager.js';
 
+// 알림 매니저 임포트
+import notificationManager from '../../01.common/27_notification_manager.js';
+
 // ============================================
 // [SECTION: 전역 변수]
 // ============================================
@@ -287,6 +290,19 @@ async function initSalesMode() {
         if (user.role === '영업담당' && !sessionStorage.getItem('commentsChecked')) {
             sessionStorage.setItem('commentsChecked', 'true');
             await checkUnreadComments();
+        }
+
+        // 고객소식 알림 확인 (최초 로그인 시 1회만)
+        if (!sessionStorage.getItem('notificationsChecked')) {
+            sessionStorage.setItem('notificationsChecked', 'true');
+            // 약간의 지연 후 알림 표시 (환영 메시지 후)
+            setTimeout(async () => {
+                try {
+                    await notificationManager.initialize();
+                } catch (error) {
+                    logger.error('[알림] 알림 매니저 초기화 실패:', error);
+                }
+            }, 1500);
         }
 
     } catch (error) {
