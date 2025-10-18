@@ -197,6 +197,14 @@ if (document.readyState === 'loading') {
     initializePage();
 }
 
+// 페이지 재진입 시 초기 상태 표시 (SPA 페이지 전환 대응)
+window.addEventListener('pageLoaded', (event) => {
+    if (event.detail.page === 'customer-news') {
+        console.warn('🔄 [고객소식] 페이지 재진입 감지 - 초기 상태 표시');
+        showInitialEmptyState();
+    }
+});
+
 // ============================================
 // 초기화 함수
 // ============================================

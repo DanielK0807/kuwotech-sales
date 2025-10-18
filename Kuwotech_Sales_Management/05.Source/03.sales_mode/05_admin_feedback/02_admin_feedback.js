@@ -14,7 +14,7 @@ import ApiManager from '../../01.common/13_api_manager.js';
 import { formatDate, formatCurrency } from '../../01.common/03_format.js';
 import { parseJSON } from '../../01.common/02_utils.js';
 import logger from '../../01.common/23_logger.js';
-import { GlobalConfig } from '../../01.common/20_common_index.js';
+import { GlobalConfig, showToast } from '../../01.common/20_common_index.js';
 
 // ============================================
 // 전역 변수
@@ -31,6 +31,7 @@ let selectedNewsId = null;
 
 let currentUserName = null;
 let currentTab = 'reports'; // 기본 탭
+let isEventListenersAttached = false; // 이벤트 리스너 중복 방지
 
 // ============================================
 // 초기화
@@ -53,15 +54,22 @@ async function init() {
         return;
     }
 
-    // 탭 버튼 이벤트
-    setupTabButtons();
+    // 이벤트 리스너는 한 번만 등록
+    if (!isEventListenersAttached) {
+        // 탭 버튼 이벤트
+        setupTabButtons();
 
-    // 새로고침 버튼 이벤트
-    const btnRefresh = document.getElementById('btnRefresh');
-    if (btnRefresh) {
-        btnRefresh.addEventListener('click', async () => {
-            await loadCurrentTabData();
-        });
+        // 새로고침 버튼 이벤트
+        const btnRefresh = document.getElementById('btnRefresh');
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', async () => {
+                console.log('🔄 [관리자의견] 새로고침 버튼 클릭');
+                await loadCurrentTabData();
+                showToast('데이타가 새로고침되었습니다.', 'success');
+            });
+        }
+
+        isEventListenersAttached = true;
     }
 
     // 데이터 로드
@@ -553,3 +561,11 @@ document.addEventListener('DOMContentLoaded', () => {
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(() => init(), 100);
 }
+
+// 페이지 재진입 시 초기화 (SPA 페이지 전환 대응)
+window.addEventListener('pageLoaded', (event) => {
+    if (event.detail.page === 'admin-feedback') {
+        console.log('🔄 [관리자의견] 페이지 재진입 감지 - 데이터 로드');
+        init();
+    }
+});

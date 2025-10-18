@@ -94,13 +94,15 @@
                     <option value="경조사">경조사</option>
                     <option value="생일">생일</option>
                     <option value="개업기념일">개업기념일</option>
+                    <option value="신규장비구매">신규장비구매</option>
+                    <option value="수상/인증">수상/인증</option>
+                    <option value="확장/이전">확장/이전</option>
+                    <option value="클레임/이슈">클레임/이슈</option>
                     <option value="일반소식">일반소식</option>
-                    <option value="중요공지">중요공지</option>
-                    <option value="기타">기타</option>
                 </select>
             </div>
-            <button id="btnSearch" class="btn-search glass-button primary">
-                🔍 검색하기
+            <button id="btnSearch" class="glass-button primary">
+                🔍 검색
             </button>
         </section>
 
@@ -158,47 +160,43 @@
 
                 <div class="form-row">
                     <div class="form-field">
-                        <label>카테고리 <span class="required">*</span></label>
-                        <select id="category" class="glass-input" required>
-                            <option value="">선택하세요</option>
-                            <option value="경조사">경조사 (결혼, 부고)</option>
-                            <option value="생일">생일</option>
-                            <option value="개업기념일">개업기념일</option>
-                            <option value="일반소식">일반소식</option>
-                            <option value="중요공지">중요공지</option>
-                            <option value="기타">기타</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label>매년 반복 <span class="optional">(생일, 기념일 등)</span></label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="isYearlyRecurring">
-                                <span>매년 반복 알림</span>
-                            </label>
+                        <label>카테고리 <span class="required">*</span> <span class="optional">(매년 반복: 생일, 기념일 등)</span></label>
+                        <div class="field-with-checkbox">
+                            <select id="category" class="glass-input" required>
+                                <option value="">선택하세요</option>
+                                <option value="경조사">경조사</option>
+                                <option value="생일">생일</option>
+                                <option value="개업기념일">개업기념일</option>
+                                <option value="신규장비구매">신규장비구매</option>
+                                <option value="수상/인증">수상/인증</option>
+                                <option value="확장/이전">확장/이전</option>
+                                <option value="클레임/이슈">클레임/이슈</option>
+                                <option value="일반소식">일반소식</option>
+                            </select>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="isYearlyRecurring">
+                                    <span>매년 반복 알림</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>중요도</label>
-                        <select id="priority" class="glass-input">
-                            <option value="보통">보통</option>
-                            <option value="낮음">낮음</option>
-                            <option value="높음">높음</option>
-                            <option value="긴급">긴급</option>
-                        </select>
-                    </div>
 
                     <div class="form-field">
-                        <label>로그인 시 알림 표시</label>
-                        <div class="checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="showAsNotification">
-                                <span>모든 직원에게 알림 (최대 3회)</span>
-                            </label>
+                        <label>중요도 <span class="optional">(로그인 시 알림 표시)</span></label>
+                        <div class="field-with-checkbox">
+                            <select id="priority" class="glass-input">
+                                <option value="보통">보통</option>
+                                <option value="낮음">낮음</option>
+                                <option value="높음">높음</option>
+                                <option value="긴급">긴급</option>
+                            </select>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="showAsNotification">
+                                    <span>모든 직원에게 알림 (최대 3회)</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -442,9 +440,10 @@
     /* 검색 필터 */
     .search-filters {
         display: flex;
-        align-items: center;
-        gap: var(--spacing-lg);
-        padding: var(--spacing-md);
+        align-items: flex-end;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding: 24px;
         margin-bottom: var(--spacing-xl);
         width: 95%;
         margin-left: auto;
@@ -454,16 +453,18 @@
 
     .filter-group {
         display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+        min-width: 150px;
+        position: relative;
         overflow: visible;
     }
 
     .filter-group label {
-        font-weight: var(--font-weight-medium);
-        color: #000000 !important;
-        white-space: nowrap;
-        font-size: 20px !important;
+        font-size: 15px;
+        color: var(--text-secondary);
+        font-weight: 500;
     }
 
     .filter-group select, .filter-group input[type="date"] {
@@ -476,25 +477,31 @@
         border: 2px solid rgba(0, 0, 0, 0.2) !important;
     }
 
-    .btn-search {
-        margin-left: auto;
-        padding: var(--spacing-sm) var(--spacing-lg);
+    /* 검색 버튼 스타일 (accent-color 적용) */
+    .glass-button.primary {
+        background: linear-gradient(
+            135deg,
+            var(--accent-color),
+            rgba(0, 230, 118, 0.8)
+        );
+        color: white;
+        padding: 12px 24px;
+        font-weight: 600;
         border: none;
         border-radius: var(--radius-lg);
-        font-weight: var(--font-weight-bold);
         cursor: pointer;
-        transition: all 0.3s ease;
-        background-color: rgba(59, 130, 246, 0.95) !important;
-        color: #FFFFFF !important;
-        font-size: 18px !important;
-        border: 2px solid rgba(255, 255, 255, 0.3) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateZ(10px);
+        box-shadow:
+            0 8px 24px -8px rgba(0, 0, 0, 0.3),
+            0 4px 12px -4px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-search:hover {
-        background-color: rgba(37, 99, 235, 1) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+    .glass-button.primary:hover {
+        transform: translateY(-2px) translateZ(15px) scale(1.05);
+        box-shadow:
+            0 10px 20px -6px rgba(0, 230, 118, 0.5),
+            0 6px 12px -4px rgba(0, 230, 118, 0.3);
     }
 
     /* 로딩 & 빈 상태 */
@@ -737,6 +744,22 @@
         font-size: var(--font-md);
     }
 
+    .field-with-checkbox {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .field-with-checkbox select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .field-with-checkbox .checkbox-group {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
     .required {
         color: #ef4444;
     }
@@ -820,18 +843,6 @@
         font-weight: var(--font-weight-bold);
         cursor: pointer;
         transition: all 0.3s ease;
-    }
-
-    .glass-button.primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    }
-
-    .glass-button.primary:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
     }
 
     .glass-button.secondary {

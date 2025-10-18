@@ -430,7 +430,7 @@ class ApiManager {
                 margin-top: 5px;
                 font-size: 12px;
                 opacity: 0.8;
-                font-family: 'Courier New', monospace;
+                font-family: var(--font-mono);
             }
             
             .api-error-text code {

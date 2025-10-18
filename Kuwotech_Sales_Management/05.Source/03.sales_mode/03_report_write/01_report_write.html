@@ -146,7 +146,7 @@
             <form id="reportForm" class="report-form">
 
                 <!-- 헤더 정보 -->
-                <div class="form-section glass-card glass-3d-element">
+                <div class="form-section glass-card glass-3d-element header-section">
                     <div class="form-row form-row-three">
                         <div class="form-field">
                             <label class="field-label">📋 보고서 유형 *</label>
@@ -815,6 +815,12 @@
         overflow: visible !important;
     }
 
+    /* 헤더 섹션 (거래처 자동완성이 다른 섹션 위에 표시되도록) */
+    .header-section {
+        position: relative;
+        z-index: 200 !important;
+    }
+
     .section-title-fixed {
         font-size: var(--font-lg);
         font-weight: 600;
@@ -884,6 +890,8 @@
         gap: var(--spacing-sm);
         align-items: center;
         overflow: visible !important;
+        position: relative;
+        z-index: 100; /* 자동완성이 다른 요소 위에 표시되도록 */
     }
 
     .input-with-button input {
@@ -1295,6 +1303,7 @@
         position: relative;
         flex: 1;
         overflow: visible !important;
+        z-index: 10000 !important; /* 다른 컨테이너보다 앞에 표시 */
     }
 
     /* 자동완성 목록 */

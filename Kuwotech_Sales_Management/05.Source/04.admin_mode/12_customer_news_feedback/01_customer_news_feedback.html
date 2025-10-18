@@ -44,57 +44,57 @@
     <!-- ============================================
          검색 필터 영역
          ============================================ -->
-    <section class="search-filters glass-card glass-3d-element">
-        <div class="filter-group">
-            <label>거래처명</label>
-            <div class="company-autocomplete-wrapper">
-                <input
-                    type="text"
-                    id="filterCompanyName"
-                    class="glass-input company-autocomplete-input"
-                    placeholder="거래처명 입력 (자동완성)"
-                    autocomplete="off">
-                <div id="filterCompanyAutocomplete" class="autocomplete-list hidden"></div>
-            </div>
-        </div>
-        <div class="filter-group">
-            <label>내부담당자</label>
-            <div class="custom-dropdown">
-                <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
-                    <span id="employee-selected-text">전체</span>
-                    <span class="dropdown-arrow">▼</span>
-                </button>
-                <div class="custom-dropdown-menu" id="employee-dropdown-menu">
-                    <!-- JavaScript로 동적 생성됨 -->
+    <div class="filter-section glass-card glass-3d-element">
+        <div class="filter-row">
+            <div class="filter-item">
+                <label>거래처명</label>
+                <div class="autocomplete-wrapper">
+                    <input
+                        type="text"
+                        id="filterCompanyName"
+                        class="glass-input"
+                        placeholder="거래처명 입력(자동완성)"
+                        autocomplete="off">
+                    <div id="filterCompanyAutocomplete" class="autocomplete-list hidden"></div>
                 </div>
             </div>
+            <div class="filter-item">
+                <label>내부담당자</label>
+                <div class="custom-dropdown">
+                    <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
+                        <span id="employee-selected-text">전체</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="custom-dropdown-menu" id="employee-dropdown-menu">
+                        <!-- JavaScript로 동적 생성됨 -->
+                    </div>
+                </div>
+            </div>
+            <div class="filter-item">
+                <label>시작일</label>
+                <input type="date" id="filterStartDate" class="glass-input">
+            </div>
+            <div class="filter-item">
+                <label>종료일</label>
+                <input type="date" id="filterEndDate" class="glass-input">
+            </div>
+            <div class="filter-item">
+                <label>카테고리</label>
+                <div class="custom-dropdown">
+                    <button type="button" class="custom-dropdown-button glass-input" id="category-dropdown-button">
+                        <span id="category-selected-text">전체</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="custom-dropdown-menu" id="category-dropdown-menu">
+                        <!-- JavaScript로 동적 생성됨 -->
+                    </div>
+                </div>
+            </div>
+            <button id="btnSearch" class="glass-button primary">
+                🔍 검색
+            </button>
         </div>
-        <div class="filter-group">
-            <label>시작일</label>
-            <input type="date" id="filterStartDate" class="glass-input">
-        </div>
-        <div class="filter-group">
-            <label>종료일</label>
-            <input type="date" id="filterEndDate" class="glass-input">
-        </div>
-        <div class="filter-group">
-            <label>카테고리</label>
-            <select id="filterCategory" class="glass-input">
-                <option value="">전체</option>
-                <option value="경조사">경조사</option>
-                <option value="생일">생일</option>
-                <option value="개업기념일">개업기념일</option>
-                <option value="신규장비구매">신규장비구매</option>
-                <option value="수상/인증">수상/인증</option>
-                <option value="확장/이전">확장/이전</option>
-                <option value="클레임/이슈">클레임/이슈</option>
-                <option value="일반소식">일반소식</option>
-            </select>
-        </div>
-        <button id="btnSearch" class="btn-search glass-button primary">
-            🔍 검색하기
-        </button>
-    </section>
+    </div>
 
     <!-- ============================================
          로딩 상태
@@ -191,31 +191,10 @@
                 </div>
             </div>
 
-            <!-- 기존 의견 목록 -->
-            <div class="detail-section glass-card">
-                <h3 class="section-title">💬 기존 의견</h3>
-                <div class="existing-comments-list">
-                    <!-- JavaScript로 동적 생성 -->
-                </div>
-                <div class="no-comments-message hidden">
-                    <p>아직 작성된 의견이 없습니다.</p>
-                </div>
-            </div>
-
-            <!-- 새 의견 작성 -->
+            <!-- 의견 작성 -->
             <div class="detail-section glass-card admin-comment-section">
                 <h3 class="section-title">✍️ 의견 작성</h3>
                 <div class="comment-form">
-                    <div class="form-group">
-                        <label class="form-label">의견 타입</label>
-                        <select class="glass-input comment-type-select">
-                            <option value="칭찬">👍 칭찬</option>
-                            <option value="개선요청">💡 개선요청</option>
-                            <option value="질문">❓ 질문</option>
-                            <option value="정보공유">📢 정보공유</option>
-                            <option value="기타">💬 기타</option>
-                        </select>
-                    </div>
                     <div class="form-group">
                         <label class="form-label">의견 내용</label>
                         <textarea
@@ -233,22 +212,6 @@
 
         </div>
 
-    </div>
-</template>
-
-<!-- ============================================
-     기존 의견 아이템 템플릿
-     ============================================ -->
-<template id="comment-item-template">
-    <div class="existing-comment-item">
-        <div class="comment-item-header">
-            <div class="comment-author-info">
-                <span class="comment-author"></span>
-                <span class="comment-type-badge"></span>
-            </div>
-            <span class="comment-date"></span>
-        </div>
-        <div class="comment-content"></div>
     </div>
 </template>
 
@@ -332,67 +295,92 @@
         opacity: 0.9;
     }
 
-    /* 검색 필터 */
-    .search-filters {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-lg);
-        padding: var(--spacing-lg) var(--spacing-md);
-        margin-bottom: var(--spacing-xl);
-        width: 95%;
+    /* 필터 섹션 */
+    .filter-section {
+        padding: 24px;
+        margin-bottom: 30px;
         margin-left: auto;
         margin-right: auto;
+        width: 95%;
+        border-radius: 16px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
+        backdrop-filter: blur(25px) saturate(180%);
+        -webkit-backdrop-filter: blur(25px) saturate(180%);
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        transform: translateZ(30px) rotateX(1deg);
+        transform-style: preserve-3d;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 15px 30px -8px rgba(0, 0, 0, 0.25), 0 8px 16px -4px rgba(0, 0, 0, 0.15), inset 0 2px 6px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.1);
         overflow: visible;
-        flex-wrap: nowrap;
     }
 
-    .filter-group {
+    .filter-section:hover {
+        transform: translateY(-4px) translateZ(40px) rotateX(2deg) scale(1.01);
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.4), 0 20px 40px -10px rgba(0, 0, 0, 0.3), 0 10px 20px -5px rgba(0, 0, 0, 0.2), inset 0 3px 8px rgba(255, 255, 255, 0.35), inset 0 -3px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .filter-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 15px;
+        flex-wrap: wrap;
+        overflow: visible;
+    }
+
+    .filter-item {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-        overflow: visible;
-        flex-shrink: 0;
-    }
-
-    .filter-group label {
-        font-weight: 600 !important;
-        color: rgba(255, 255, 255, 0.9) !important;
-        white-space: nowrap;
-        font-size: 13px !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        margin-bottom: 2px;
-    }
-
-    .filter-group select,
-    .filter-group input[type="date"],
-    .filter-group input[type="text"] {
-        min-width: 120px;
-        width: 120px;
-        background-color: rgba(255, 255, 255, 0.95) !important;
-        color: #000000 !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        padding: 8px 12px !important;
-        border: 2px solid rgba(0, 0, 0, 0.2) !important;
-        border-radius: var(--radius-md);
-    }
-
-    /* 거래처 자동완성 */
-    .company-autocomplete-wrapper {
+        gap: 5px;
+        flex: 1;
+        min-width: 150px;
         position: relative;
-        display: flex;
-        flex: 1;
         overflow: visible;
-        min-width: 180px;
     }
 
-    .company-autocomplete-input {
+    .filter-item label {
+        font-size: 15px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* 입력 필드 스타일 */
+    .glass-input {
+        padding: 12px 16px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+        backdrop-filter: blur(12px) saturate(150%);
+        -webkit-backdrop-filter: blur(12px) saturate(150%);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 16px;
+        transform: translateZ(10px);
+        transform-style: preserve-3d;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.3), 0 4px 12px -4px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    }
+
+    .glass-input:hover {
+        transform: translateZ(12px) scale(1.01);
+        border-color: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.35), 0 6px 16px -4px rgba(0, 0, 0, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.3);
+    }
+
+    .glass-input:focus {
+        outline: none;
+        transform: translateZ(15px) scale(1.02);
+        border-color: var(--accent-color);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.12));
+        box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.3), 0 0 20px rgba(0, 230, 118, 0.2), 0 12px 32px -8px rgba(0, 0, 0, 0.35), 0 6px 16px -4px rgba(0, 0, 0, 0.25), inset 0 1px 4px rgba(255, 255, 255, 0.35);
+    }
+
+    /* 자동완성 래퍼 */
+    .autocomplete-wrapper {
+        position: relative;
         flex: 1;
-        min-width: 180px !important;
-        width: 180px !important;
+        overflow: visible !important;
     }
 
+    /* 자동완성 목록 */
     .autocomplete-list {
         position: absolute;
         top: 100%;
@@ -400,70 +388,65 @@
         right: 0;
         max-height: 300px;
         overflow-y: auto;
+        overflow-x: hidden;
         background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(20px) saturate(180%);
-        border: 2px solid rgba(16, 185, 129, 0.3);
+        border: 2px solid var(--glass-border);
         border-radius: var(--radius-md);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-        z-index: 99999 !important;
-        margin-top: var(--spacing-xs);
-        isolation: isolate;
-        will-change: transform;
+        margin-top: 5px;
+        z-index: 9999 !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .autocomplete-item {
-        padding: var(--spacing-md);
+        padding: 12px 16px;
         cursor: pointer;
-        color: #1f2937;
-        font-size: 12px;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease;
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-size: 15px;
+        color: #2c3e50;
     }
 
-    .autocomplete-item:last-child {
-        border-bottom: none;
-    }
-
-    .autocomplete-item:hover,
-    .autocomplete-item.active {
-        background: rgba(16, 185, 129, 0.15);
-        color: #2d7a2f !important;
-        font-weight: 600 !important;
+    .autocomplete-item:hover {
+        background-color: rgba(0, 230, 118, 0.1);
     }
 
     .autocomplete-item strong {
-        color: #2d7a2f !important;
-        font-weight: 700 !important;
+        color: var(--accent-color);
+        font-weight: 700;
     }
 
     .autocomplete-no-results {
-        padding: var(--spacing-md);
+        padding: 16px;
         text-align: center;
-        color: var(--text-secondary);
+        color: var(--text-muted);
         font-style: italic;
     }
 
-    .btn-search {
-        margin-left: auto;
-        padding: 8px 20px;
-        border: none;
-        border-radius: var(--radius-lg);
-        font-weight: var(--font-weight-bold);
+    /* 검색 버튼 */
+    .glass-button.primary {
+        background: linear-gradient(135deg, var(--accent-color), rgba(0, 230, 118, 0.8));
+        color: var(--accent-text);
+        border: 2px solid rgba(0, 230, 118, 0.4);
+        padding: 12px 24px;
+        font-weight: 600;
+        transform: translateZ(10px);
+        border-radius: 10px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        background-color: rgba(59, 130, 246, 0.95) !important;
-        color: #FFFFFF !important;
-        font-size: 16px !important;
-        border: 2px solid rgba(255, 255, 255, 0.3) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        font-size: 16px;
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        box-shadow: 0 6px 12px -4px rgba(0, 0, 0, 0.25), 0 3px 6px -2px rgba(0, 0, 0, 0.15);
         white-space: nowrap;
-        flex-shrink: 0;
     }
 
-    .btn-search:hover {
-        background-color: rgba(37, 99, 235, 1) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+    .glass-button.primary:hover {
+        transform: translateY(-2px) translateZ(15px) scale(1.05);
+        box-shadow: 0 10px 20px -6px rgba(0, 230, 118, 0.5), 0 6px 12px -4px rgba(0, 230, 118, 0.3);
+    }
+
+    .glass-button.primary:active {
+        transform: translateY(0) translateZ(8px) scale(0.98);
     }
 
     /* 로딩 & 빈 상태 */
@@ -835,12 +818,10 @@
         transform: translateY(-2px);
     }
 
-    /* 커스텀 드롭다운 (체크박스) */
+    /* 커스텀 드롭다운 */
     .custom-dropdown {
         position: relative;
         width: 100%;
-        min-width: 200px;
-        overflow: visible !important;
     }
 
     .custom-dropdown-button {
@@ -869,20 +850,14 @@
         max-height: 250px;
         overflow-y: auto;
         overflow-x: hidden;
-        background: linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.95),
-            rgba(255, 255, 255, 0.85)
-        );
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 10px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        z-index: 99999 !important;
+        z-index: 9999;
         display: none;
-        isolation: isolate;
-        will-change: transform;
     }
 
     .custom-dropdown-menu.show {
@@ -906,14 +881,14 @@
         width: 16px;
         height: 16px;
         cursor: pointer;
-        accent-color: #00E676;
+        accent-color: var(--accent-color);
         flex-shrink: 0;
     }
 
     .custom-dropdown-item label {
         flex: 1;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 14px;
         margin: 0;
         color: #2c3e50;
         white-space: nowrap;
@@ -932,12 +907,12 @@
     }
 
     .custom-dropdown-menu::-webkit-scrollbar-thumb {
-        background: #00E676;
+        background: var(--accent-color);
         border-radius: 4px;
     }
 
     .custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
-        background: #00C853;
+        background: var(--accent-dark);
     }
 
     /* 유틸리티 */

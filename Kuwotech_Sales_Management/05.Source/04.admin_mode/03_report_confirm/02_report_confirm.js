@@ -19,6 +19,7 @@ import { getCompanyDisplayName } from '../../01.common/02_utils.js';
 import { bindAmountFormatting } from '../../08.components/09_amount_formatter.js';
 import logger from '../../01.common/23_logger.js';
 import AutocompleteManager from '../../01.common/25_autocomplete_manager.js';
+import { showToast } from '../../01.common/10_index.js';
 
 // ============================================
 // 전역 변수 및 상수
@@ -926,7 +927,7 @@ async function handleSaveComment() {
 async function handleRefresh() {
     selectedReportId = null;
     await initializePage();
-    alert('✅ 데이터가 새로고침되었습니다.');
+    showToast('데이타가 새로고침되었습니다.', 'success');
 }
 
 // ============================================

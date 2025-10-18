@@ -18,9 +18,11 @@ console.log('📰 [고객소식 의견제시] 모듈 로드');
 const API_BASE_URL = GlobalConfig.API_BASE_URL;
 let currentNewsData = [];
 let allCompanies = [];
+let allEmployees = [];
 let companyAutocompleteManager = null;
 let currentFilter = {
-    employee: []  // 내부담당자 배열 (다중 선택)
+    category: [],   // 카테고리 배열 (다중 선택)
+    employee: []    // 내부담당자 배열 (다중 선택)
 };
 
 // ============================================
@@ -165,17 +167,6 @@ function renderNewsList(newsArray) {
         clone.querySelector('.news-created-at').textContent = formatDateTime(news.createdAt);
         clone.querySelector('.news-priority').textContent = news.priority || '보통';
 
-        // 기존 의견 목록 렌더링
-        const existingCommentsList = clone.querySelector('.existing-comments-list');
-        const noCommentsMessage = clone.querySelector('.no-comments-message');
-
-        if (hasComments) {
-            renderExistingComments(existingCommentsList, news.comments);
-            noCommentsMessage.classList.add('hidden');
-        } else {
-            noCommentsMessage.classList.remove('hidden');
-        }
-
         // 상세보기 토글 버튼 이벤트
         const btnToggle = clone.querySelector('.btn-toggle-detail');
         btnToggle.addEventListener('click', (e) => {
@@ -193,25 +184,6 @@ function renderNewsList(newsArray) {
     });
 
     console.log(`📋 [목록 렌더링] ${newsArray.length}건 표시 완료`);
-}
-
-/**
- * 기존 의견 목록 렌더링
- */
-function renderExistingComments(container, comments) {
-    const template = document.getElementById('comment-item-template');
-    container.innerHTML = '';
-
-    comments.forEach(comment => {
-        const clone = template.content.cloneNode(true);
-
-        clone.querySelector('.comment-author').textContent = comment.commentBy;
-        clone.querySelector('.comment-type-badge').textContent = comment.commentType || '일반';
-        clone.querySelector('.comment-date').textContent = formatDateTime(comment.createdAt);
-        clone.querySelector('.comment-content').textContent = comment.comment;
-
-        container.appendChild(clone);
-    });
 }
 
 // ============================================
@@ -240,9 +212,8 @@ async function handleSearch() {
         document.getElementById('newsList').innerHTML = '';
         console.error('🔍 [검색] 로딩 상태 표시됨');
 
-        // 필터 조건 수집
+        // 필터 조건 수집 (카테고리와 내부담당자는 제외)
         const filters = {
-            category: document.getElementById('filterCategory').value,
             companyName: document.getElementById('filterCompanyName').value.trim(),
             startDate: document.getElementById('filterStartDate').value,
             endDate: document.getElementById('filterEndDate').value
@@ -254,11 +225,20 @@ async function handleSearch() {
         });
 
         console.error('🔍 [검색] 필터 조건:', filters);
+        console.error('🔍 [검색] 선택된 카테고리:', currentFilter.category);
         console.error('🔍 [검색] 선택된 내부담당자:', currentFilter.employee);
 
-        // API 호출 (내부담당자 필터 없이 모든 데이터 가져오기)
+        // API 호출 (카테고리, 내부담당자 필터 없이 모든 데이터 가져오기)
         let newsData = await fetchCustomerNews(filters);
         console.error(`🔍 [검색] API 응답 받음: ${newsData.length}건`);
+
+        // 클라이언트 사이드에서 카테고리 필터링 (다중 선택 지원)
+        if (currentFilter.category.length > 0) {
+            newsData = newsData.filter(news =>
+                currentFilter.category.includes(news.category)
+            );
+            console.error(`🔍 [검색] 카테고리 필터 적용 후: ${newsData.length}건`);
+        }
 
         // 클라이언트 사이드에서 내부담당자 필터링 (다중 선택 지원)
         if (currentFilter.employee.length > 0) {
@@ -315,10 +295,7 @@ function toggleNewsDetail(newsItem) {
  * 의견 저장 핸들러
  */
 async function handleSaveComment(newsItem, newsId) {
-    const commentTypeSelect = newsItem.querySelector('.comment-type-select');
     const commentTextarea = newsItem.querySelector('.comment-textarea');
-
-    const commentType = commentTypeSelect.value;
     const commentContent = commentTextarea.value.trim();
 
     if (!commentContent) {
@@ -332,15 +309,14 @@ async function handleSaveComment(newsItem, newsId) {
         return;
     }
 
-    // API 호출
-    const result = await saveComment(newsId, commentType, commentContent);
+    // API 호출 (commentType은 빈 문자열로 전달)
+    const result = await saveComment(newsId, '', commentContent);
 
     if (result) {
         alert('의견이 성공적으로 저장되었습니다.');
 
         // 폼 초기화
         commentTextarea.value = '';
-        commentTypeSelect.selectedIndex = 0;
 
         // 목록 새로고침
         await handleSearch();
@@ -352,14 +328,19 @@ async function handleSaveComment(newsItem, newsId) {
  */
 async function handleRefresh() {
     // 필터 초기화
-    document.getElementById('filterCategory').value = '';
     document.getElementById('filterCompanyName').value = '';
     document.getElementById('filterStartDate').value = '';
     document.getElementById('filterEndDate').value = '';
 
+    // 카테고리 체크박스 초기화
+    const categoryCheckboxes = document.querySelectorAll('#category-dropdown-menu input[type="checkbox"]');
+    categoryCheckboxes.forEach(cb => cb.checked = false);
+    document.getElementById('category-selected-text').textContent = '전체';
+    currentFilter.category = [];
+
     // 내부담당자 체크박스 초기화
-    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
-    checkboxes.forEach(cb => cb.checked = false);
+    const employeeCheckboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
+    employeeCheckboxes.forEach(cb => cb.checked = false);
     document.getElementById('employee-selected-text').textContent = '전체';
     currentFilter.employee = [];
 
@@ -379,7 +360,17 @@ async function handleRefresh() {
     // 내부담당자 목록 재로드
     await loadSalesReps();
 
+    // 거래처 자동완성 재초기화
+    initCompanyAutocomplete();
+
+    // 카테고리 드롭다운 재초기화
+    initCategoryDropdown();
+
+    // 내부담당자 드롭다운 재초기화
+    initEmployeeDropdown();
+
     console.log('🔄 [새로고침] 초기화 완료');
+    showToast('데이타가 새로고침되었습니다.', 'success');
 }
 
 // ============================================
@@ -485,7 +476,7 @@ async function loadSalesReps() {
         const employees = data.employees || [];
 
         // 영업담당자만 필터링 (role1 또는 role2가 '영업담당'인 직원)
-        const salesReps = employees
+        allEmployees = employees
             .filter(emp => emp.role1 === '영업담당' || emp.role2 === '영업담당')
             .map(emp => ({
                 name: emp.name,
@@ -493,67 +484,12 @@ async function loadSalesReps() {
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
-        console.log(`✅ [내부담당자] ${salesReps.length}명 로드 완료`);
-
-        // 체크박스 드롭다운 메뉴 채우기
-        const dropdownMenu = document.getElementById('employee-dropdown-menu');
-        if (!dropdownMenu) {
-            console.error('❌ employee-dropdown-menu 요소를 찾을 수 없습니다');
-            return;
-        }
-
-        // 기존 항목 제거
-        dropdownMenu.innerHTML = '';
-
-        // 각 영업담당자에 대해 체크박스 아이템 생성
-        salesReps.forEach(rep => {
-            const item = document.createElement('div');
-            item.className = 'custom-dropdown-item';
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = `emp-${rep.name}`;
-            checkbox.value = rep.name;
-            checkbox.addEventListener('change', updateEmployeeSelection);
-
-            const label = document.createElement('label');
-            label.htmlFor = `emp-${rep.name}`;
-            label.textContent = rep.department ? `${rep.name} (${rep.department})` : rep.name;
-
-            item.appendChild(checkbox);
-            item.appendChild(label);
-            dropdownMenu.appendChild(item);
-        });
+        console.log(`✅ [내부담당자] ${allEmployees.length}명 로드 완료`);
 
     } catch (error) {
         console.error('❌ [내부담당자] 로드 오류:', error);
         showToast('내부담당자 목록을 불러오는데 실패했습니다', 'error');
     }
-}
-
-// ============================================
-// 내부담당자 선택 업데이트
-// ============================================
-
-function updateEmployeeSelection() {
-    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
-    const selectedValues = Array.from(checkboxes)
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
-    const selectedText = document.getElementById('employee-selected-text');
-
-    if (selectedValues.length === 0) {
-        selectedText.textContent = '전체';
-    } else if (selectedValues.length === 1) {
-        selectedText.textContent = selectedValues[0];
-    } else {
-        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}명`;
-    }
-
-    // currentFilter 업데이트
-    currentFilter.employee = selectedValues;
-    console.log('✅ [내부담당자] 선택 업데이트:', selectedValues);
 }
 
 // ============================================
@@ -595,7 +531,206 @@ function initCompanyAutocomplete() {
         highlightSearch: true
     });
 
-    console.log('✅ [자동완성] 초기화 완료! 거래처 수:', allCompanies.length);
+    console.log('✅ [거래처 자동완성] 초기화 완료! 거래처 수:', allCompanies.length);
+}
+
+// ============================================
+// 내부담당자 체크박스 드롭다운 초기화
+// ============================================
+
+function initEmployeeDropdown() {
+    const dropdownButton = document.getElementById('employee-dropdown-button');
+    const dropdownMenu = document.getElementById('employee-dropdown-menu');
+    const selectedText = document.getElementById('employee-selected-text');
+
+    if (!dropdownButton || !dropdownMenu || !selectedText) {
+        console.error('❌ [내부담당자 드롭다운] 필수 요소를 찾을 수 없음!');
+        return;
+    }
+
+    if (allEmployees.length === 0) {
+        console.warn('⚠️ [내부담당자 드롭다운] 데이터가 없습니다!');
+        dropdownMenu.innerHTML = '<div style="padding: 12px; text-align: center; color: #666;">담당자 데이터가 없습니다</div>';
+        return;
+    }
+
+    // 체크박스 아이템 생성
+    dropdownMenu.innerHTML = '';
+    allEmployees.forEach(employee => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `emp-${employee.name}`;
+        checkbox.value = employee.name;
+
+        const label = document.createElement('label');
+        label.htmlFor = `emp-${employee.name}`;
+        label.textContent = employee.department ? `${employee.name} (${employee.department})` : employee.name;
+
+        // 체크박스 변경 이벤트
+        checkbox.addEventListener('change', updateEmployeeSelection);
+
+        itemDiv.appendChild(checkbox);
+        itemDiv.appendChild(label);
+        dropdownMenu.appendChild(itemDiv);
+    });
+
+    // 드롭다운 토글 이벤트
+    dropdownButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // 현재 드롭다운이 열려있는지 확인
+        const isOpen = dropdownMenu.classList.contains('show');
+
+        // 모든 드롭다운 닫기
+        closeAllDropdowns();
+
+        // 현재 드롭다운이 닫혀있었으면 열기
+        if (!isOpen) {
+            dropdownMenu.classList.add('show');
+            dropdownButton.classList.add('active');
+        }
+    });
+
+    console.log('✅ [내부담당자 드롭다운] 초기화 완료! 담당자 수:', allEmployees.length);
+}
+
+/**
+ * 내부담당자 선택 상태 업데이트
+ */
+function updateEmployeeSelection() {
+    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
+    const selectedText = document.getElementById('employee-selected-text');
+
+    const selectedEmployees = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    // 전역 필터 상태 업데이트
+    currentFilter.employee = selectedEmployees;
+
+    // 선택된 텍스트 업데이트
+    if (selectedEmployees.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedEmployees.length === 1) {
+        selectedText.textContent = selectedEmployees[0];
+    } else {
+        selectedText.textContent = `${selectedEmployees[0]} 외 ${selectedEmployees.length - 1}명`;
+    }
+
+    console.log('✅ [내부담당자 선택] 업데이트:', selectedEmployees);
+}
+
+// ============================================
+// 유틸리티: 모든 드롭다운 닫기
+// ============================================
+
+function closeAllDropdowns() {
+    // 모든 드롭다운 메뉴 닫기
+    document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+        menu.classList.remove('show');
+    });
+    // 모든 드롭다운 버튼 비활성화
+    document.querySelectorAll('.custom-dropdown-button').forEach(button => {
+        button.classList.remove('active');
+    });
+}
+
+// ============================================
+// 카테고리 체크박스 드롭다운 초기화
+// ============================================
+
+function initCategoryDropdown() {
+    const dropdownButton = document.getElementById('category-dropdown-button');
+    const dropdownMenu = document.getElementById('category-dropdown-menu');
+    const selectedText = document.getElementById('category-selected-text');
+
+    if (!dropdownButton || !dropdownMenu || !selectedText) {
+        console.error('❌ [카테고리 드롭다운] 필수 요소를 찾을 수 없음!');
+        return;
+    }
+
+    // 카테고리 목록 정의
+    const categories = [
+        '경조사',
+        '생일',
+        '개업기념일',
+        '신규장비구매',
+        '수상/인증',
+        '확장/이전',
+        '클레임/이슈',
+        '일반소식'
+    ];
+
+    // 체크박스 아이템 생성
+    dropdownMenu.innerHTML = '';
+    categories.forEach(category => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'custom-dropdown-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `cat-${category}`;
+        checkbox.value = category;
+
+        const label = document.createElement('label');
+        label.htmlFor = `cat-${category}`;
+        label.textContent = category;
+
+        // 체크박스 변경 이벤트
+        checkbox.addEventListener('change', updateCategorySelection);
+
+        itemDiv.appendChild(checkbox);
+        itemDiv.appendChild(label);
+        dropdownMenu.appendChild(itemDiv);
+    });
+
+    // 드롭다운 토글 이벤트
+    dropdownButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // 현재 드롭다운이 열려있는지 확인
+        const isOpen = dropdownMenu.classList.contains('show');
+
+        // 모든 드롭다운 닫기
+        closeAllDropdowns();
+
+        // 현재 드롭다운이 닫혀있었으면 열기
+        if (!isOpen) {
+            dropdownMenu.classList.add('show');
+            dropdownButton.classList.add('active');
+        }
+    });
+
+    console.log('✅ [카테고리 드롭다운] 초기화 완료! 카테고리 수:', categories.length);
+}
+
+/**
+ * 카테고리 선택 상태 업데이트
+ */
+function updateCategorySelection() {
+    const checkboxes = document.querySelectorAll('#category-dropdown-menu input[type="checkbox"]');
+    const selectedText = document.getElementById('category-selected-text');
+
+    const selectedCategories = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    // 전역 필터 상태 업데이트
+    currentFilter.category = selectedCategories;
+
+    // 선택된 텍스트 업데이트
+    if (selectedCategories.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedCategories.length === 1) {
+        selectedText.textContent = selectedCategories[0];
+    } else {
+        selectedText.textContent = `${selectedCategories[0]} 외 ${selectedCategories.length - 1}개`;
+    }
+
+    console.log('✅ [카테고리 선택] 업데이트:', selectedCategories);
 }
 
 // ============================================
@@ -657,32 +792,15 @@ function setupEventListeners() {
         console.error('✅ [이벤트 등록] 거래처명 Enter 키 이벤트 등록 완료');
     }
 
-    // 내부담당자 커스텀 드롭다운 토글
-    const employeeDropdownButton = document.getElementById('employee-dropdown-button');
-    const employeeDropdownMenu = document.getElementById('employee-dropdown-menu');
-
-    if (employeeDropdownButton && employeeDropdownMenu) {
-        console.error('✅ [드롭다운] 버튼과 메뉴 요소 찾음');
-
-        employeeDropdownButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            employeeDropdownButton.classList.toggle('active');
-            employeeDropdownMenu.classList.toggle('show');
-            console.error('🔽 [드롭다운] 토글됨 - show:', employeeDropdownMenu.classList.contains('show'));
-        });
-
-        // 드롭다운 외부 클릭 시 닫기
-        document.addEventListener('click', (e) => {
-            if (!employeeDropdownButton.contains(e.target) && !employeeDropdownMenu.contains(e.target)) {
-                employeeDropdownButton.classList.remove('active');
-                employeeDropdownMenu.classList.remove('show');
-            }
-        });
-
-        console.error('✅ [이벤트 등록] 내부담당자 드롭다운 이벤트 등록 완료');
-    } else {
-        console.error('❌ [드롭다운] 버튼 또는 메뉴 요소를 찾을 수 없음!');
-    }
+    // 외부 클릭 시 모든 드롭다운 닫기
+    document.addEventListener('click', (e) => {
+        // 클릭한 요소가 드롭다운 버튼이나 메뉴가 아닌 경우에만 닫기
+        const isDropdownClick = e.target.closest('.custom-dropdown');
+        if (!isDropdownClick) {
+            closeAllDropdowns();
+        }
+    });
+    console.error('✅ [이벤트 등록] 드롭다운 외부 클릭 이벤트 등록 완료');
 }
 
 /**
@@ -704,6 +822,12 @@ async function initCustomerNewsFeedback() {
 
         // 거래처 자동완성 초기화
         initCompanyAutocomplete();
+
+        // 카테고리 드롭다운 초기화
+        initCategoryDropdown();
+
+        // 내부담당자 드롭다운 초기화
+        initEmployeeDropdown();
 
         console.error('✅ [고객소식 의견제시] 초기화 완료');
     } catch (error) {

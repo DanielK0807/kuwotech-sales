@@ -1681,7 +1681,7 @@
 
 .filename-preview p {
     margin: var(--spacing-xs) 0 0 0;
-    font-family: monospace;
+    font-family: var(--font-mono);
     color: var(--primary-color);
 }
 
