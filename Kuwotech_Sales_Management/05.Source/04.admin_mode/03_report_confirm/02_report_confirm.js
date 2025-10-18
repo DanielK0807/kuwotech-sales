@@ -32,8 +32,8 @@ let currentFilter = 'incomplete'; // 현재 선택된 필터 (기본: 미실행)
 let selectedReportId = null;   // 현재 선택된 보고서 ID
 let selectedCompanyForReport = null;  // 현재 선택된 거래처
 let isCompanyVerified = false; // 거래처 확인 여부
-let isInitialized = false;     // 초기화 완료 플래그 (중복 방지)
 let isInitializing = false;    // 초기화 진행 중 플래그 (중복 방지)
+let isEventListenersAttached = false; // 이벤트 리스너 등록 여부
 
 // ============================================
 // 유틸리티 함수
@@ -991,9 +991,14 @@ function safeRender(funcName, renderFunc) {
 }
 
 /**
- * 이벤트 리스너 등록
+ * 이벤트 리스너 등록 (중복 방지)
  */
 function attachEventListeners() {
+    // 이미 등록된 경우 중복 등록 방지
+    if (isEventListenersAttached) {
+        return;
+    }
+
     // 상태 필터 버튼 클릭
     document.querySelectorAll('.status-filter-item').forEach(item => {
         const button = item.querySelector('.status-filter-btn');
@@ -1013,6 +1018,8 @@ function attachEventListeners() {
     if (refreshBtn) {
         refreshBtn.addEventListener('click', handleRefresh);
     }
+
+    isEventListenersAttached = true;
 }
 
 // ============================================
@@ -1023,12 +1030,7 @@ function attachEventListeners() {
  * 메인 초기화 함수
  */
 async function main() {
-    // 중복 초기화 방지
-    if (isInitialized) {
-        showLoading(false);
-        return;
-    }
-
+    // 중복 초기화 방지 (진행 중인 경우만 차단)
     if (isInitializing) {
         return;
     }
@@ -1060,9 +1062,6 @@ async function main() {
         attachEventListeners();
         await initializePage();
 
-        // 초기화 완료 플래그 설정
-        isInitialized = true;
-
     } catch (error) {
         logger.error('❌ 페이지 로드 에러:', error);
         logger.error('에러 스택:', error.stack);
@@ -1080,4 +1079,32 @@ if (document.readyState === 'loading') {
 } else {
     // 이미 로드 완료되었으면 즉시 실행
     main();
+}
+
+// 페이지가 다시 보일 때 재초기화 (SPA 페이지 전환 대응)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !isInitializing) {
+        logger.info('[Report Confirm] 페이지가 다시 보임 - 재초기화 시작');
+        main();
+    }
+});
+
+// SPA 페이지 전환 감지 - 페이지 요소가 보일 때 초기화
+const observer = new MutationObserver(() => {
+    const loadingState = document.getElementById('loadingState');
+    const mainLayout = document.getElementById('mainLayout');
+
+    // 페이지 요소가 존재하고 로딩 상태가 표시 중이며, 초기화 중이 아닐 때
+    if (loadingState && mainLayout && loadingState.style.display !== 'none' && !isInitializing) {
+        logger.info('[Report Confirm] 페이지 요소 감지 - 초기화 시작');
+        main();
+    }
+});
+
+// body의 변경사항 관찰
+if (document.body) {
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 }
