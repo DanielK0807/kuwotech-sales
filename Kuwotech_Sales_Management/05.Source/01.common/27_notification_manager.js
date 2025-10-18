@@ -26,20 +26,38 @@ class NotificationManager {
      * 초기화 및 알림 체크
      */
     async initialize() {
-        if (this.isInitialized) {
-            logger.warn('⚠️ [알림매니저] 이미 초기화됨');
-            return;
-        }
-
         logger.info('🔔 [알림매니저] 초기화 시작');
 
-        // 모달 HTML 생성
+        // 모달 HTML 생성 (기존 모달 제거 후 재생성)
         this.createModalElement();
 
         // 알림 조회
         await this.checkNotifications();
 
         this.isInitialized = true;
+    }
+
+    /**
+     * 리셋 (로그아웃 시 사용)
+     */
+    reset() {
+        logger.info('🔄 [알림매니저] 리셋');
+
+        this.notifications = [];
+        this.currentNotificationIndex = 0;
+        this.isInitialized = false;
+
+        // 모달 제거
+        if (this.modalElement) {
+            this.modalElement.remove();
+            this.modalElement = null;
+        }
+
+        // 스타일 제거
+        const existingStyle = document.getElementById('notification-manager-styles');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
     }
 
     /**

@@ -15,6 +15,7 @@
 import { showToast } from '../01.common/14_toast.js';
 import dbManager from '../06.database/01_database_manager.js';
 import logger from '../01.common/23_logger.js';
+import notificationManager from '../01.common/27_notification_manager.js';
 
 // ============================================
 // [SECTION: 전역 변수]
@@ -59,6 +60,9 @@ function initLoginPage() {
         dbManager.token = null;
         dbManager.user = null;
     }
+
+    // 알림 매니저 리셋
+    notificationManager.reset();
 
     // DOM 요소 가져오기
     elements.employeeNameInput = document.getElementById('employeeName');
