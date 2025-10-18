@@ -324,19 +324,29 @@
             <!-- 3순위: 담당부서/내부담당자 -->
             <div class="filter-row">
                 <div class="filter-group">
-                    <label class="filter-label" for="comparisonDepartment">🏢 담당부서</label>
-                    <select id="comparisonDepartment" class="glass-input">
-                        <option value="">전체</option>
-                        <!-- 동적으로 로드됨 -->
-                    </select>
+                    <label class="filter-label" for="comparison-department-dropdown-button">🏢 담당부서</label>
+                    <div class="custom-dropdown">
+                        <button type="button" class="custom-dropdown-button glass-input" id="comparison-department-dropdown-button">
+                            <span id="comparison-department-selected-text">전체</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="custom-dropdown-menu" id="comparison-department-dropdown-menu">
+                            <!-- 동적으로 로드됨 -->
+                        </div>
+                    </div>
                 </div>
 
                 <div class="filter-group">
-                    <label class="filter-label" for="comparisonEmployee">👤 내부담당자</label>
-                    <select id="comparisonEmployee" class="glass-input">
-                        <option value="">전체</option>
-                        <!-- 동적으로 로드됨 -->
-                    </select>
+                    <label class="filter-label" for="comparison-employee-dropdown-button">👤 내부담당자</label>
+                    <div class="custom-dropdown">
+                        <button type="button" class="custom-dropdown-button glass-input" id="comparison-employee-dropdown-button">
+                            <span id="comparison-employee-selected-text">전체</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="custom-dropdown-menu" id="comparison-employee-dropdown-menu">
+                            <!-- 동적으로 로드됨 -->
+                        </div>
+                    </div>
                 </div>
             </div>
 

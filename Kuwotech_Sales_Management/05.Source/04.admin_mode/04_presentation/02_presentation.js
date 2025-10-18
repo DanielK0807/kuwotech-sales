@@ -33,9 +33,13 @@ let currentFilters = {
     employee: ''
 };
 
-// 커스텀 드롭다운 다중 선택 상태
+// 커스텀 드롭다운 다중 선택 상태 (실적보고 섹션)
 let selectedDepartments = [];  // 선택된 담당부서 배열 (다중 선택)
 let selectedEmployees = [];    // 선택된 내부담당자 배열 (다중 선택)
+
+// 비교보고 커스텀 드롭다운 다중 선택 상태
+let comparisonSelectedDepartments = [];  // 비교보고 선택된 담당부서 배열
+let comparisonSelectedEmployees = [];    // 비교보고 선택된 내부담당자 배열
 
 // 비교보고 관련 변수
 let comparisonReports = [];    // 비교보고 데이터
@@ -156,9 +160,9 @@ async function loadMasterData() {
  */
 function populateDepartmentSelect(departments) {
     const dropdownMenu = document.getElementById('department-dropdown-menu');
-    const comparisonDepartmentSelect = document.getElementById('comparisonDepartment');
+    const comparisonDropdownMenu = document.getElementById('comparison-department-dropdown-menu');
 
-    // 기존 보고서 발표용 - 커스텀 체크박스 드롭다운
+    // 실적보고(상세)용 - 커스텀 체크박스 드롭다운
     if (dropdownMenu) {
         dropdownMenu.innerHTML = '';
 
@@ -182,16 +186,27 @@ function populateDepartmentSelect(departments) {
         });
     }
 
-    // 비교보고용 select (기존 유지)
-    if (comparisonDepartmentSelect) {
-        while (comparisonDepartmentSelect.options.length > 1) {
-            comparisonDepartmentSelect.remove(1);
-        }
+    // 비교보고용 - 커스텀 체크박스 드롭다운
+    if (comparisonDropdownMenu) {
+        comparisonDropdownMenu.innerHTML = '';
+
         departments.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.department_name;
-            option.textContent = dept.department_name;
-            comparisonDepartmentSelect.appendChild(option);
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `comparison-dept-${dept.department_name}`;
+            checkbox.value = dept.department_name;
+            checkbox.addEventListener('change', updateComparisonDepartmentSelection);
+
+            const label = document.createElement('label');
+            label.htmlFor = `comparison-dept-${dept.department_name}`;
+            label.textContent = dept.department_name;
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            comparisonDropdownMenu.appendChild(item);
         });
     }
 }
@@ -201,7 +216,7 @@ function populateDepartmentSelect(departments) {
  */
 function populateEmployeeSelect(employees) {
     const dropdownMenu = document.getElementById('employee-dropdown-menu');
-    const comparisonEmployeeSelect = document.getElementById('comparisonEmployee');
+    const comparisonDropdownMenu = document.getElementById('comparison-employee-dropdown-menu');
 
     // 직원 맵 생성 (이름 → 부서 조회용)
     employeesMap = {};
@@ -220,7 +235,7 @@ function populateEmployeeSelect(employees) {
         return isRole1Sales || isRole2Sales;
     });
 
-    // 기존 보고서 발표용 - 커스텀 체크박스 드롭다운
+    // 실적보고(상세)용 - 커스텀 체크박스 드롭다운
     if (dropdownMenu) {
         dropdownMenu.innerHTML = '';
 
@@ -244,16 +259,27 @@ function populateEmployeeSelect(employees) {
         });
     }
 
-    // 비교보고용 select
-    if (comparisonEmployeeSelect) {
-        while (comparisonEmployeeSelect.options.length > 1) {
-            comparisonEmployeeSelect.remove(1);
-        }
+    // 비교보고용 - 커스텀 체크박스 드롭다운
+    if (comparisonDropdownMenu) {
+        comparisonDropdownMenu.innerHTML = '';
+
         salesEmployees.forEach(emp => {
-            const option = document.createElement('option');
-            option.value = emp.name;
-            option.textContent = `${emp.name} (${emp.department || ''})`;
-            comparisonEmployeeSelect.appendChild(option);
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `comparison-emp-${emp.name}`;
+            checkbox.value = emp.name;
+            checkbox.addEventListener('change', updateComparisonEmployeeSelection);
+
+            const label = document.createElement('label');
+            label.htmlFor = `comparison-emp-${emp.name}`;
+            label.textContent = `${emp.name} (${emp.department || ''})`;
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            comparisonDropdownMenu.appendChild(item);
         });
     }
 }
@@ -306,6 +332,50 @@ function updateEmployeeSelection() {
 
     // 필터 적용 (조회하기 버튼 클릭과 동일한 동작)
     handleApplyFilter();
+}
+
+/**
+ * 비교보고 담당부서 선택 업데이트 (다중 선택)
+ */
+function updateComparisonDepartmentSelection() {
+    const checkboxes = document.querySelectorAll('#comparison-department-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('comparison-department-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    comparisonSelectedDepartments = selectedValues;
+}
+
+/**
+ * 비교보고 내부담당자 선택 업데이트 (다중 선택)
+ */
+function updateComparisonEmployeeSelection() {
+    const checkboxes = document.querySelectorAll('#comparison-employee-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('comparison-employee-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}명`;
+    }
+
+    comparisonSelectedEmployees = selectedValues;
 }
 
 /**
@@ -434,6 +504,78 @@ function setupCustomDropdowns() {
         employeeDropdownMenu.addEventListener('click', (e) => {
             e.stopPropagation();
         });
+    }
+
+    // 비교보고 담당부서 드롭다운
+    const comparisonDepartmentDropdownButton = document.getElementById('comparison-department-dropdown-button');
+    const comparisonDepartmentDropdownMenu = document.getElementById('comparison-department-dropdown-menu');
+
+    if (comparisonDepartmentDropdownButton && comparisonDepartmentDropdownMenu) {
+        console.log('[Dropdown] 비교보고 담당부서 드롭다운 버튼 찾음');
+        comparisonDepartmentDropdownButton.addEventListener('click', (e) => {
+            console.log('[Dropdown] 비교보고 담당부서 버튼 클릭됨');
+            e.stopPropagation();
+            e.preventDefault();
+
+            const isOpen = comparisonDepartmentDropdownMenu.classList.contains('show');
+
+            // 모든 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+
+            // 현재 드롭다운 토글
+            if (!isOpen) {
+                setTimeout(() => {
+                    comparisonDepartmentDropdownMenu.classList.add('show');
+                    console.log('[Dropdown] 비교보고 담당부서 드롭다운 열림');
+                }, 0);
+            } else {
+                console.log('[Dropdown] 비교보고 담당부서 드롭다운 닫힘');
+            }
+        });
+
+        comparisonDepartmentDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    } else {
+        console.warn('[Dropdown] 비교보고 담당부서 드롭다운 버튼 또는 메뉴를 찾을 수 없음');
+    }
+
+    // 비교보고 내부담당자 드롭다운
+    const comparisonEmployeeDropdownButton = document.getElementById('comparison-employee-dropdown-button');
+    const comparisonEmployeeDropdownMenu = document.getElementById('comparison-employee-dropdown-menu');
+
+    if (comparisonEmployeeDropdownButton && comparisonEmployeeDropdownMenu) {
+        console.log('[Dropdown] 비교보고 내부담당자 드롭다운 버튼 찾음');
+        comparisonEmployeeDropdownButton.addEventListener('click', (e) => {
+            console.log('[Dropdown] 비교보고 내부담당자 버튼 클릭됨');
+            e.stopPropagation();
+            e.preventDefault();
+
+            const isOpen = comparisonEmployeeDropdownMenu.classList.contains('show');
+
+            // 모든 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+
+            // 현재 드롭다운 토글
+            if (!isOpen) {
+                setTimeout(() => {
+                    comparisonEmployeeDropdownMenu.classList.add('show');
+                    console.log('[Dropdown] 비교보고 내부담당자 드롭다운 열림');
+                }, 0);
+            } else {
+                console.log('[Dropdown] 비교보고 내부담당자 드롭다운 닫힘');
+            }
+        });
+
+        comparisonEmployeeDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    } else {
+        console.warn('[Dropdown] 비교보고 내부담당자 드롭다운 버튼 또는 메뉴를 찾을 수 없음');
     }
 }
 
@@ -2821,9 +2963,9 @@ function handleToggleGrouping() {
  * 비교 조회 핸들러
  */
 async function handleComparisonSearch() {
-    // 필터 값 가져오기
-    comparisonFilters.department = document.getElementById('comparisonDepartment')?.value || '';
-    comparisonFilters.employee = document.getElementById('comparisonEmployee')?.value || '';
+    // 필터 값 가져오기 (다중 선택 사용)
+    comparisonFilters.department = comparisonSelectedDepartments.length > 0 ? comparisonSelectedDepartments[0] : '';
+    comparisonFilters.employee = comparisonSelectedEmployees.length > 0 ? comparisonSelectedEmployees[0] : '';
     comparisonFilters.includeZeroReports = document.getElementById('includeZeroReports')?.checked || false;
 
     // 날짜 검증
@@ -2855,22 +2997,12 @@ async function loadComparisonReports() {
     try {
 
         // API 호출 파라미터 구성 (주간보고서만 조회)
+        // 다중 선택 필터는 클라이언트에서 처리하므로 API에 전달하지 않음
         const params = {
             startDate: comparisonFilters.startDate,
             endDate: comparisonFilters.endDate,
             reportType: 'weekly'  // ✅ 비교보고는 무조건 주간보고서만 기준
         };
-
-        // ⚠️ 부서 필터는 API에 전달하지 않음 (API가 제대로 처리 못함)
-        // 클라이언트에서 필터링할 예정
-        // if (comparisonFilters.department) {
-        //     params.department = comparisonFilters.department;
-        // }
-
-        // 담당자 필터는 API에 전달
-        if (comparisonFilters.employee) {
-            params.submittedBy = comparisonFilters.employee;
-        }
 
 
         // API 호출
@@ -2893,42 +3025,25 @@ async function loadComparisonReports() {
             submitterCounts[submitter] = (submitterCounts[submitter] || 0) + 1;
         });
 
-        // ✅ 클라이언트 사이드 필터링 (API가 필터를 보냈으면 이미 필터링됨)
-        // API에 department나 submittedBy 파라미터를 전달했다면 클라이언트 필터링 스킵
-        const apiFilteredByDepartment = params.department !== undefined;
-        const apiFilteredByEmployee = params.submittedBy !== undefined;
-
+        // ✅ 클라이언트 사이드 필터링 (다중 선택 OR 조건)
         let beforeClientFilterCount = comparisonReports.length;
 
-        // 담당부서 필터 (API에서 필터링하지 않았을 경우에만 클라이언트에서 필터링)
-        if (comparisonFilters.department && !apiFilteredByDepartment) {
+        // 담당부서 필터 (다중 선택 OR 조건)
+        if (comparisonSelectedDepartments.length > 0) {
             comparisonReports = comparisonReports.filter(report => {
                 const employeeInfo = employeesMap[report.submittedBy] || {};
                 const reportDepartment = employeeInfo.department || report.department || '미분류';
-                const passed = reportDepartment === comparisonFilters.department;
-
-                if (!passed) {
-                }
-
-                return passed;
+                return comparisonSelectedDepartments.includes(reportDepartment);
             });
 
             beforeClientFilterCount = comparisonReports.length;
-        } else if (comparisonFilters.department && apiFilteredByDepartment) {
         }
 
-        // 내부담당자 필터 (API에서 필터링하지 않았을 경우에만 클라이언트에서 필터링)
-        if (comparisonFilters.employee && !apiFilteredByEmployee) {
+        // 내부담당자 필터 (다중 선택 OR 조건)
+        if (comparisonSelectedEmployees.length > 0) {
             comparisonReports = comparisonReports.filter(report => {
-                const passed = report.submittedBy === comparisonFilters.employee;
-
-                if (!passed) {
-                }
-
-                return passed;
+                return comparisonSelectedEmployees.includes(report.submittedBy);
             });
-
-        } else if (comparisonFilters.employee && apiFilteredByEmployee) {
         }
 
         // 실적 0 필터링 (체크박스 설정에 따라)
