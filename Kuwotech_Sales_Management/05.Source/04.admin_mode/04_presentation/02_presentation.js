@@ -33,6 +33,10 @@ let currentFilters = {
     employee: ''
 };
 
+// 커스텀 드롭다운 다중 선택 상태
+let selectedDepartments = [];  // 선택된 담당부서 배열 (다중 선택)
+let selectedEmployees = [];    // 선택된 내부담당자 배열 (다중 선택)
+
 // 비교보고 관련 변수
 let comparisonReports = [];    // 비교보고 데이터
 let comparisonFilters = {
@@ -148,26 +152,37 @@ async function loadMasterData() {
 }
 
 /**
- * 담당부서 select 옵션 채우기
+ * 담당부서 커스텀 체크박스 드롭다운 채우기
  */
 function populateDepartmentSelect(departments) {
-    const departmentSelect = document.getElementById('departmentFilter');
+    const dropdownMenu = document.getElementById('department-dropdown-menu');
     const comparisonDepartmentSelect = document.getElementById('comparisonDepartment');
 
-    // 기존 보고서 발표용 select
-    if (departmentSelect) {
-        while (departmentSelect.options.length > 1) {
-            departmentSelect.remove(1);
-        }
+    // 기존 보고서 발표용 - 커스텀 체크박스 드롭다운
+    if (dropdownMenu) {
+        dropdownMenu.innerHTML = '';
+
         departments.forEach(dept => {
-            const option = document.createElement('option');
-            option.value = dept.department_name;
-            option.textContent = dept.department_name;
-            departmentSelect.appendChild(option);
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `dept-${dept.department_name}`;
+            checkbox.value = dept.department_name;
+            checkbox.addEventListener('change', updateDepartmentSelection);
+
+            const label = document.createElement('label');
+            label.htmlFor = `dept-${dept.department_name}`;
+            label.textContent = dept.department_name;
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            dropdownMenu.appendChild(item);
         });
     }
 
-    // 비교보고용 select
+    // 비교보고용 select (기존 유지)
     if (comparisonDepartmentSelect) {
         while (comparisonDepartmentSelect.options.length > 1) {
             comparisonDepartmentSelect.remove(1);
@@ -182,10 +197,10 @@ function populateDepartmentSelect(departments) {
 }
 
 /**
- * 직원 select 옵션 채우기
+ * 직원 커스텀 체크박스 드롭다운 채우기
  */
 function populateEmployeeSelect(employees) {
-    const employeeSelect = document.getElementById('employeeFilter');
+    const dropdownMenu = document.getElementById('employee-dropdown-menu');
     const comparisonEmployeeSelect = document.getElementById('comparisonEmployee');
 
     // 직원 맵 생성 (이름 → 부서 조회용)
@@ -205,17 +220,27 @@ function populateEmployeeSelect(employees) {
         return isRole1Sales || isRole2Sales;
     });
 
+    // 기존 보고서 발표용 - 커스텀 체크박스 드롭다운
+    if (dropdownMenu) {
+        dropdownMenu.innerHTML = '';
 
-    // 기존 보고서 발표용 select
-    if (employeeSelect) {
-        while (employeeSelect.options.length > 1) {
-            employeeSelect.remove(1);
-        }
         salesEmployees.forEach(emp => {
-            const option = document.createElement('option');
-            option.value = emp.name;
-            option.textContent = `${emp.name} (${emp.department || ''})`;
-            employeeSelect.appendChild(option);
+            const item = document.createElement('div');
+            item.className = 'custom-dropdown-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `emp-${emp.name}`;
+            checkbox.value = emp.name;
+            checkbox.addEventListener('change', updateEmployeeSelection);
+
+            const label = document.createElement('label');
+            label.htmlFor = `emp-${emp.name}`;
+            label.textContent = `${emp.name} (${emp.department || ''})`;
+
+            item.appendChild(checkbox);
+            item.appendChild(label);
+            dropdownMenu.appendChild(item);
         });
     }
 
@@ -231,6 +256,56 @@ function populateEmployeeSelect(employees) {
             comparisonEmployeeSelect.appendChild(option);
         });
     }
+}
+
+/**
+ * 담당부서 선택 업데이트 (다중 선택)
+ */
+function updateDepartmentSelection() {
+    const checkboxes = document.querySelectorAll('#department-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('department-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}개`;
+    }
+
+    selectedDepartments = selectedValues;
+
+    // 필터 적용 (조회하기 버튼 클릭과 동일한 동작)
+    handleApplyFilter();
+}
+
+/**
+ * 내부담당자 선택 업데이트 (다중 선택)
+ */
+function updateEmployeeSelection() {
+    const checkboxes = document.querySelectorAll('#employee-dropdown-menu input[type="checkbox"]');
+    const selectedValues = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    const selectedText = document.getElementById('employee-selected-text');
+
+    if (selectedValues.length === 0) {
+        selectedText.textContent = '전체';
+    } else if (selectedValues.length === 1) {
+        selectedText.textContent = selectedValues[0];
+    } else {
+        selectedText.textContent = `${selectedValues[0]} 외 ${selectedValues.length - 1}명`;
+    }
+
+    selectedEmployees = selectedValues;
+
+    // 필터 적용 (조회하기 버튼 클릭과 동일한 동작)
+    handleApplyFilter();
 }
 
 /**
@@ -262,6 +337,104 @@ function setupEventListeners() {
 
     // 필터 토글 버튼 이벤트 리스너
     setupFilterToggleListeners();
+
+    // 커스텀 드롭다운 토글 이벤트 리스너 (이벤트 위임 사용)
+    setupCustomDropdowns();
+}
+
+/**
+ * 커스텀 드롭다운 이벤트 설정
+ */
+function setupCustomDropdowns() {
+    const departmentDropdownButton = document.getElementById('department-dropdown-button');
+    const departmentDropdownMenu = document.getElementById('department-dropdown-menu');
+
+    if (departmentDropdownButton && departmentDropdownMenu) {
+        console.log('[Dropdown] 담당부서 드롭다운 버튼 찾음');
+        departmentDropdownButton.addEventListener('click', (e) => {
+            console.log('[Dropdown] 담당부서 버튼 클릭됨');
+            e.stopPropagation();
+            e.preventDefault();
+
+            const isOpen = departmentDropdownMenu.classList.contains('show');
+
+            // 모든 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+
+            // 현재 드롭다운 토글
+            if (!isOpen) {
+                // 약간의 지연을 두고 열기 (외부 클릭 이벤트와 충돌 방지)
+                setTimeout(() => {
+                    departmentDropdownMenu.classList.add('show');
+                    console.log('[Dropdown] 담당부서 드롭다운 열림');
+                }, 0);
+            } else {
+                console.log('[Dropdown] 담당부서 드롭다운 닫힘');
+            }
+        });
+    } else {
+        console.warn('[Dropdown] 담당부서 드롭다운 버튼 또는 메뉴를 찾을 수 없음');
+    }
+
+    const employeeDropdownButton = document.getElementById('employee-dropdown-button');
+    const employeeDropdownMenu = document.getElementById('employee-dropdown-menu');
+
+    if (employeeDropdownButton && employeeDropdownMenu) {
+        console.log('[Dropdown] 내부담당자 드롭다운 버튼 찾음');
+        employeeDropdownButton.addEventListener('click', (e) => {
+            console.log('[Dropdown] 내부담당자 버튼 클릭됨');
+            e.stopPropagation();
+            e.preventDefault();
+
+            const isOpen = employeeDropdownMenu.classList.contains('show');
+
+            // 모든 드롭다운 닫기
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+
+            // 현재 드롭다운 토글
+            if (!isOpen) {
+                // 약간의 지연을 두고 열기 (외부 클릭 이벤트와 충돌 방지)
+                setTimeout(() => {
+                    employeeDropdownMenu.classList.add('show');
+                    console.log('[Dropdown] 내부담당자 드롭다운 열림');
+                }, 0);
+            } else {
+                console.log('[Dropdown] 내부담당자 드롭다운 닫힘');
+            }
+        });
+    } else {
+        console.warn('[Dropdown] 내부담당자 드롭다운 버튼 또는 메뉴를 찾을 수 없음');
+    }
+
+    // 드롭다운 외부 클릭 시 닫기 (단, 드롭다운 버튼 클릭은 제외)
+    document.addEventListener('click', (e) => {
+        console.log('[Dropdown] 외부 클릭 감지:', e.target);
+
+        // 드롭다운 버튼이나 메뉴를 클릭한 경우가 아니면 모든 드롭다운 닫기
+        if (!e.target.closest('.custom-dropdown')) {
+            console.log('[Dropdown] 외부 클릭 - 모든 드롭다운 닫기');
+            document.querySelectorAll('.custom-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+
+    // 드롭다운 메뉴 내부 클릭 시 이벤트 전파 방지
+    if (departmentDropdownMenu) {
+        departmentDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    if (employeeDropdownMenu) {
+        employeeDropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 }
 
 /**
@@ -1741,14 +1914,22 @@ function getSunday(date) {
 function applyFiltersAndRender() {
     // 필터 적용
     filteredReports = allReports.filter(report => {
-        // 담당부서 필터 (정확한 값 비교)
-        if (currentFilters.department && report.department !== currentFilters.department) {
-            return false;
+        // 담당부서 필터 (다중 선택 OR 조건)
+        if (selectedDepartments.length > 0) {
+            const employeeInfo = employeesMap[report.submittedBy] || {};
+            const reportDepartment = employeeInfo.department || report.department || '미분류';
+            if (!selectedDepartments.includes(reportDepartment)) {
+                return false;
+            }
         }
-        // 내부담당자 필터 (정확한 값 비교)
-        if (currentFilters.employee && report.submittedBy !== currentFilters.employee) {
-            return false;
+
+        // 내부담당자 필터 (다중 선택 OR 조건)
+        if (selectedEmployees.length > 0) {
+            if (!selectedEmployees.includes(report.submittedBy)) {
+                return false;
+            }
         }
+
         return true;
     });
 

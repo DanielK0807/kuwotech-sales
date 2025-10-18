@@ -122,18 +122,28 @@
             <div class="filter-row">
                 <div class="filter-group">
                     <label class="filter-label" for="departmentFilter">담당부서</label>
-                    <select id="departmentFilter" class="glass-input">
-                        <option value="">전체</option>
-                        <!-- 동적으로 로드됨 -->
-                    </select>
+                    <div class="custom-dropdown">
+                        <button type="button" class="custom-dropdown-button glass-input" id="department-dropdown-button">
+                            <span id="department-selected-text">전체</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="custom-dropdown-menu" id="department-dropdown-menu">
+                            <!-- 동적으로 로드됨 -->
+                        </div>
+                    </div>
                 </div>
 
                 <div class="filter-group">
                     <label class="filter-label" for="employeeFilter">내부담당자</label>
-                    <select id="employeeFilter" class="glass-input">
-                        <option value="">전체</option>
-                        <!-- 동적으로 로드됨 -->
-                    </select>
+                    <div class="custom-dropdown">
+                        <button type="button" class="custom-dropdown-button glass-input" id="employee-dropdown-button">
+                            <span id="employee-selected-text">전체</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="custom-dropdown-menu" id="employee-dropdown-menu">
+                            <!-- 동적으로 로드됨 -->
+                        </div>
+                    </div>
                 </div>
 
                 <button id="btnApplyFilter" class="btn-primary glass-button">
@@ -2429,6 +2439,124 @@
 
     .comparison-aggregated-table .text-center {
         text-align: center !important;
+    }
+
+    /* ============================================
+       커스텀 드롭다운 (체크박스) 스타일
+       ============================================ */
+
+    .custom-dropdown {
+        position: relative;
+        width: 100%;
+    }
+
+    .custom-dropdown-button {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        text-align: left;
+        padding: var(--spacing-md);
+        font-size: var(--font-md);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .custom-dropdown-button:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .custom-dropdown-button:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.2);
+    }
+
+    .dropdown-arrow {
+        margin-left: 4px;
+        transition: transform 0.3s ease;
+    }
+
+    .custom-dropdown-button.active .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+    .custom-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        max-height: 250px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--radius-md);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        display: none;
+    }
+
+    .custom-dropdown-menu.show {
+        display: block;
+    }
+
+    .custom-dropdown-item {
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .custom-dropdown-item:hover {
+        background: rgba(0, 230, 118, 0.1);
+    }
+
+    .custom-dropdown-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: var(--accent-color);
+        flex-shrink: 0;
+    }
+
+    .custom-dropdown-item label {
+        flex: 1;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 0;
+        color: #2c3e50;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 스크롤바 스타일 */
+    .custom-dropdown-menu::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .custom-dropdown-menu::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 4px;
+    }
+
+    .custom-dropdown-menu::-webkit-scrollbar-thumb {
+        background: var(--accent-color);
+        border-radius: 4px;
+    }
+
+    .custom-dropdown-menu::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-dark);
     }
 </style>
 

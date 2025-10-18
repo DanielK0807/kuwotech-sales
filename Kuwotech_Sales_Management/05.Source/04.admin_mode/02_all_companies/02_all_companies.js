@@ -2240,130 +2240,78 @@ function setupEventListeners() {
     logger.warn("[거래처 추가 버튼] 요소를 찾을 수 없습니다!");
   }
 
-  // 내부담당자 커스텀 드롭다운 토글
-  const employeeDropdownButton = document.getElementById(
-    "employee-dropdown-button"
-  );
-  const employeeDropdownMenu = document.getElementById(
-    "employee-dropdown-menu"
-  );
+  // 커스텀 드롭다운 통합 관리
+  const dropdowns = [
+    {
+      button: document.getElementById("employee-dropdown-button"),
+      menu: document.getElementById("employee-dropdown-menu"),
+    },
+    {
+      button: document.getElementById("department-dropdown-button"),
+      menu: document.getElementById("department-dropdown-menu"),
+    },
+    {
+      button: document.getElementById("status-dropdown-button"),
+      menu: document.getElementById("status-dropdown-menu"),
+    },
+    {
+      button: document.getElementById("product-dropdown-button"),
+      menu: document.getElementById("product-dropdown-menu"),
+    },
+    {
+      button: document.getElementById("region-dropdown-button"),
+      menu: document.getElementById("region-dropdown-menu"),
+    },
+  ];
 
-  if (employeeDropdownButton && employeeDropdownMenu) {
-    employeeDropdownButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      employeeDropdownButton.classList.toggle("active");
-      employeeDropdownMenu.classList.toggle("show");
-    });
-
-    // 드롭다운 외부 클릭 시 닫기
-    document.addEventListener("click", (e) => {
-      if (
-        !employeeDropdownButton.contains(e.target) &&
-        !employeeDropdownMenu.contains(e.target)
-      ) {
-        employeeDropdownButton.classList.remove("active");
-        employeeDropdownMenu.classList.remove("show");
+  // 모든 드롭다운 닫기 함수
+  const closeAllDropdowns = () => {
+    dropdowns.forEach(({ button, menu }) => {
+      if (button && menu) {
+        button.classList.remove("active");
+        menu.classList.remove("show");
       }
     });
-  }
+  };
 
-  // 담당부서 커스텀 드롭다운 토글
-  const departmentDropdownButton = document.getElementById(
-    "department-dropdown-button"
-  );
-  const departmentDropdownMenu = document.getElementById(
-    "department-dropdown-menu"
-  );
+  // 각 드롭다운 버튼에 이벤트 리스너 추가
+  dropdowns.forEach(({ button, menu }) => {
+    if (button && menu) {
+      button.addEventListener("click", (e) => {
+        e.stopPropagation();
 
-  if (departmentDropdownButton && departmentDropdownMenu) {
-    departmentDropdownButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      departmentDropdownButton.classList.toggle("active");
-      departmentDropdownMenu.classList.toggle("show");
-    });
+        const isCurrentlyOpen = menu.classList.contains("show");
 
-    document.addEventListener("click", (e) => {
-      if (
-        !departmentDropdownButton.contains(e.target) &&
-        !departmentDropdownMenu.contains(e.target)
-      ) {
-        departmentDropdownButton.classList.remove("active");
-        departmentDropdownMenu.classList.remove("show");
-      }
-    });
-  }
+        // 모든 드롭다운 닫기
+        closeAllDropdowns();
 
-  // 거래상태 커스텀 드롭다운 토글
-  const statusDropdownButton = document.getElementById(
-    "status-dropdown-button"
-  );
-  const statusDropdownMenu = document.getElementById("status-dropdown-menu");
+        // 현재 드롭다운이 닫혀있었다면 열기
+        if (!isCurrentlyOpen) {
+          button.classList.add("active");
+          menu.classList.add("show");
+        }
+      });
 
-  if (statusDropdownButton && statusDropdownMenu) {
-    statusDropdownButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      statusDropdownButton.classList.toggle("active");
-      statusDropdownMenu.classList.toggle("show");
-    });
+      // 메뉴 내부 클릭 시 이벤트 전파 방지
+      menu.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+    }
+  });
 
-    document.addEventListener("click", (e) => {
-      if (
-        !statusDropdownButton.contains(e.target) &&
-        !statusDropdownMenu.contains(e.target)
-      ) {
-        statusDropdownButton.classList.remove("active");
-        statusDropdownMenu.classList.remove("show");
-      }
-    });
-  }
+  // 드롭다운 외부 클릭 시 모든 드롭다운 닫기
+  document.addEventListener("click", (e) => {
+    // 드롭다운 버튼이나 메뉴를 클릭한 경우가 아니면 모든 드롭다운 닫기
+    const isDropdownClick = dropdowns.some(
+      ({ button, menu }) =>
+        (button && button.contains(e.target)) ||
+        (menu && menu.contains(e.target))
+    );
 
-  // 판매제품 커스텀 드롭다운 토글
-  const productDropdownButton = document.getElementById(
-    "product-dropdown-button"
-  );
-  const productDropdownMenu = document.getElementById("product-dropdown-menu");
-
-  if (productDropdownButton && productDropdownMenu) {
-    productDropdownButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      productDropdownButton.classList.toggle("active");
-      productDropdownMenu.classList.toggle("show");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (
-        !productDropdownButton.contains(e.target) &&
-        !productDropdownMenu.contains(e.target)
-      ) {
-        productDropdownButton.classList.remove("active");
-        productDropdownMenu.classList.remove("show");
-      }
-    });
-  }
-
-  // 고객사 지역 커스텀 드롭다운 토글
-  const regionDropdownButton = document.getElementById(
-    "region-dropdown-button"
-  );
-  const regionDropdownMenu = document.getElementById("region-dropdown-menu");
-
-  if (regionDropdownButton && regionDropdownMenu) {
-    regionDropdownButton.addEventListener("click", (e) => {
-      e.stopPropagation();
-      regionDropdownButton.classList.toggle("active");
-      regionDropdownMenu.classList.toggle("show");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (
-        !regionDropdownButton.contains(e.target) &&
-        !regionDropdownMenu.contains(e.target)
-      ) {
-        regionDropdownButton.classList.remove("active");
-        regionDropdownMenu.classList.remove("show");
-      }
-    });
-  }
+    if (!isDropdownClick) {
+      closeAllDropdowns();
+    }
+  });
 
   // 거래처명 자동완성은 AutocompleteManager가 자동 처리
 
