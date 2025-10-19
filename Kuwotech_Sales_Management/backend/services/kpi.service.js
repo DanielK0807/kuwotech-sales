@@ -708,45 +708,70 @@ export async function getRankingData(type) {
 
     console.log(`[KPI Service] 기여도 순위 데이터 조회 (${type})`);
 
-    let query, sortColumn, contributionColumn, rankColumn, cumulativeColumn;
+    let contributionColumn, rankColumn, cumulativeColumn, salesColumn, companiesColumn;
 
     if (type === "total") {
-      sortColumn = "totalSalesContribution";
       contributionColumn = "totalSalesContribution";
       rankColumn = "totalSalesContributionRank";
       cumulativeColumn = "cumulativeTotalSalesContribution";
+      salesColumn = "accumulatedSales";
+      companiesColumn = "assignedCompanies";
     } else if (type === "main") {
-      sortColumn = "mainProductContribution";
       contributionColumn = "mainProductContribution";
       rankColumn = "mainProductContributionRank";
       cumulativeColumn = "cumulativeMainProductContribution";
+      salesColumn = "mainProductSales";
+      companiesColumn = "mainProductCompanies";
     } else {
       throw new Error(`Invalid ranking type: ${type}`);
     }
 
-    // 순위 데이터 조회
+    // 순위 데이터 조회 - employees 테이블과 JOIN하여 영업담당만 필터링
     const [rankings] = await connection.execute(
       `SELECT
-        ${rankColumn} as rank,
-        employeeName,
-        accumulatedSales,
-        mainProductSales,
-        ${contributionColumn} as contribution,
-        ${cumulativeColumn} as cumulativeContribution
-      FROM kpi_sales
-      WHERE ${rankColumn} IS NOT NULL
-      ORDER BY ${rankColumn} ASC`
+        k.id,
+        k.${rankColumn} as rank,
+        k.employeeName,
+        k.${companiesColumn} as companies,
+        k.${salesColumn} as sales,
+        k.${contributionColumn} as contribution,
+        k.${cumulativeColumn} as cumulativeContribution,
+        k.lastUpdated
+      FROM kpi_sales k
+      INNER JOIN employees e ON k.id = e.id
+      WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
+        AND e.status = '재직'
+        AND k.${rankColumn} IS NOT NULL
+      ORDER BY k.${rankColumn} ASC`
     );
 
-    // 데이터 변환
-    const details = rankings.map((row) => ({
-      rank: row.rank,
-      employeeName: row.employeeName,
-      accumulatedSales: parseFloat(type === "total" ? row.accumulatedSales : row.mainProductSales) || 0,
-      totalSalesContribution: parseFloat(row.contribution) || 0,
-      mainProductContribution: parseFloat(row.contribution) || 0,
-      cumulativeContribution: parseFloat(row.cumulativeContribution) || 0
-    }));
+    // 데이터 변환 - 타입에 따라 다른 필드명 사용
+    const details = rankings.map((row) => {
+      const baseData = {
+        rank: row.rank,
+        employeeId: row.id,
+        employeeName: row.employeeName,
+        lastUpdated: row.lastUpdated
+      };
+
+      if (type === "total") {
+        return {
+          ...baseData,
+          assignedCompanies: row.companies || 0,
+          accumulatedSales: parseFloat(row.sales) || 0,
+          totalSalesContribution: parseFloat(row.contribution) || 0,
+          cumulativeContribution: parseFloat(row.cumulativeContribution) || 0
+        };
+      } else {
+        return {
+          ...baseData,
+          mainProductCompanies: row.companies || 0,
+          mainProductSales: parseFloat(row.sales) || 0,
+          mainProductContribution: parseFloat(row.contribution) || 0,
+          cumulativeContribution: parseFloat(row.cumulativeContribution) || 0
+        };
+      }
+    });
 
     console.log(`[KPI Service] 기여도 순위 데이터 조회 완료 (${details.length}명)`);
 
