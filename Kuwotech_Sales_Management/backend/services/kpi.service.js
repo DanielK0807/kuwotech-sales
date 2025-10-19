@@ -730,7 +730,7 @@ export async function getRankingData(type) {
     const [rankings] = await connection.execute(
       `SELECT
         k.id,
-        k.${rankColumn} as rank,
+        k.${rankColumn} as \`rank\`,
         k.employeeName,
         k.${companiesColumn} as companies,
         k.${salesColumn} as sales,
