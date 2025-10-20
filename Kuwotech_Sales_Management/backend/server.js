@@ -39,6 +39,7 @@ import errorsRoutes from "./routes/errors.routes.js";
 import accessLogsRoutes from "./routes/access-logs.routes.js";
 import regionsRoutes from "./routes/regions.routes.js";
 import customerNewsRoutes from "./routes/customer-news.routes.js";
+import tempCalculateRoutes from "./routes/temp-calculate.routes.js";
 
 // KPI 스케줄러 임포트
 import { startKpiScheduler } from "./services/kpi.scheduler.js";
