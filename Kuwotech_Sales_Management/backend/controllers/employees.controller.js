@@ -26,18 +26,20 @@ export const getAllEmployees = async (req, res) => {
 
     const conditions = [];
 
-    // 관리자는 모든 직원 조회, 영업담당은 영업담당만 조회
+    // 기본적으로 재직자만 조회 (모든 역할)
+    conditions.push(`status = '재직'`);
+
+    // 관리자는 모든 재직자 조회, 영업담당은 영업담당만 조회
     if (userRole === '관리자') {
-      // 관리자는 모든 직원 조회 (재직/퇴사 모두)
-      console.log('[직원 목록 조회] 관리자 모드 - 모든 직원 조회');
+      // 관리자는 모든 재직 중인 직원 조회
+      console.log('[직원 목록 조회] 관리자 모드 - 재직 중인 모든 직원 조회');
     } else if (userRole === '영업담당') {
-      // 영업담당은 영업담당만 조회
-      console.log('[직원 목록 조회] 영업담당 모드 - 영업담당만 조회');
+      // 영업담당은 재직 중인 영업담당만 조회
+      console.log('[직원 목록 조회] 영업담당 모드 - 재직 중인 영업담당만 조회');
       conditions.push(`(role1 = '영업담당' OR role2 = '영업담당')`);
-      conditions.push(`status = '재직'`);
     } else {
-      // 알 수 없는 역할인 경우 모든 직원 조회 (안전장치)
-      console.log('[직원 목록 조회] 알 수 없는 역할 - 모든 직원 조회:', userRole);
+      // 알 수 없는 역할인 경우 재직 중인 모든 직원 조회 (안전장치)
+      console.log('[직원 목록 조회] 알 수 없는 역할 - 재직 중인 모든 직원 조회:', userRole);
     }
 
     if (conditions.length > 0) {

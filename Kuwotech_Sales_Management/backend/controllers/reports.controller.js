@@ -35,10 +35,12 @@ export const getAllReports = async (req, res) => {
         r.targetProducts, r.soldProducts, r.activityNotes, r.status, r.processedBy,
         r.processedDate, r.adminComment, r.createdAt, r.updatedAt,
         c.finalCompanyName, c.erpCompanyName,
-        c.finalCompanyName as companyName
+        c.finalCompanyName as companyName,
+        e.status as employeeStatus
       FROM reports r
       LEFT JOIN companies c ON r.companyId = c.keyValue
-      WHERE 1=1
+      LEFT JOIN employees e ON r.submittedBy = e.name
+      WHERE e.status = '재직'
     `;
 
     const params = [];
@@ -96,8 +98,13 @@ export const getAllReports = async (req, res) => {
       console.log('👥 [작성자별]', submitterCounts);
     }
 
-    // 총 개수 조회
-    let countQuery = 'SELECT COUNT(*) as total FROM reports r WHERE 1=1';
+    // 총 개수 조회 (재직자 보고서만)
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM reports r
+      LEFT JOIN employees e ON r.submittedBy = e.name
+      WHERE e.status = '재직'
+    `;
     const countParams = [];
 
     if (status) {
