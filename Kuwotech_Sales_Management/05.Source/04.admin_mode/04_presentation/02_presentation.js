@@ -1,6 +1,6 @@
 // ============================================
 // 보고서 발표 페이지
-// Last Updated: 2025-10-14
+// Last Updated: 2025-10-20
 //
 // 주요 변경사항:
 // - 실적보고(개인별) 섹션의 누적매출/누적수금 데이터를
@@ -8,6 +8,7 @@
 // - kpi_sales 테이블은 회사 데이터 변동 시 자동 업데이트됨
 // - 누적 금액: kpi_sales 테이블 (기간 무관 - 1월 1일~현재)
 // - 목표/실제 금액: reports 테이블 (선택한 기간 내 보고서)
+// - KPI 필드명: 영문 컬럼명 사용 (accumulatedSales, accumulatedCollection)
 // ============================================
 
 import ApiManager from '../../01.common/13_api_manager.js';
@@ -633,13 +634,13 @@ async function fetchAllEmployeeKPI() {
             if (response && response.success && response.data) {
                 const kpiData = response.data;
 
-                // 누적 금액 추출 (한글 필드명)
-                const cumulativeCollection = Number(kpiData['누적수금금액']) || 0;
-                const cumulativeSales = Number(kpiData['누적매출금액']) || 0;
+                // 누적 금액 추출 (영문 필드명)
+                const cumulativeCollection = Number(kpiData['accumulatedCollection']) || 0;
+                const cumulativeSales = Number(kpiData['accumulatedSales']) || 0;
 
                 kpiMap.set(employeeName, {
-                    누적수금금액: cumulativeCollection,
-                    누적매출금액: cumulativeSales,
+                    accumulatedCollection: cumulativeCollection,
+                    accumulatedSales: cumulativeSales,
                     ...kpiData // 전체 KPI 데이터도 저장
                 });
 
@@ -648,16 +649,16 @@ async function fetchAllEmployeeKPI() {
                 console.warn(`[KPI Fetch] ⚠️ ${employeeName}: KPI 데이터 없음`);
                 // KPI 데이터가 없어도 0으로 설정
                 kpiMap.set(employeeName, {
-                    누적수금금액: 0,
-                    누적매출금액: 0
+                    accumulatedCollection: 0,
+                    accumulatedSales: 0
                 });
             }
         } catch (error) {
             console.error(`[KPI Fetch] ❌ ${employeeName} KPI 조회 실패:`, error);
             // 에러 발생 시에도 0으로 설정
             kpiMap.set(employeeName, {
-                누적수금금액: 0,
-                누적매출금액: 0
+                accumulatedCollection: 0,
+                accumulatedSales: 0
             });
         }
     });
@@ -937,9 +938,9 @@ function aggregateEmployeeData(reports, startDate, endDate, kpiDataMap = new Map
         const kpiData = kpiDataMap.get(employeeName);
 
         if (kpiData) {
-            // KPI 데이터에서 누적 금액 추출
-            empData.cumulativeCollection = Number(kpiData['누적수금금액']) || 0;
-            empData.cumulativeSales = Number(kpiData['누적매출금액']) || 0;
+            // KPI 데이터에서 누적 금액 추출 (영문 필드명)
+            empData.cumulativeCollection = Number(kpiData['accumulatedCollection']) || 0;
+            empData.cumulativeSales = Number(kpiData['accumulatedSales']) || 0;
 
             logger.info(`[개인별실적] ✅ ${employeeName}: KPI 누적수금 ${empData.cumulativeCollection.toLocaleString()}원 | 누적매출 ${empData.cumulativeSales.toLocaleString()}원`);
         } else {
