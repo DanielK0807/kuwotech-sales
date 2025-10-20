@@ -63,7 +63,16 @@
       "mcp__chrome-devtools__take_screenshot",
       "Read(//f/7.VScode/Running VS Code/python_projects/엑셀파일다루기/**)",
       "Read(//f/7.VScode/Running VS Code/python_projects/엑셀파일다루기/Paperlogy/**)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill",
+      "Bash(npx md-to-pdf \"03_Admin_Mode_User_Manual.md\" --pdf-options='{\"\"format\"\": \"\"A4\"\", \"\"margin\"\": {\"\"top\"\": \"\"2cm\"\", \"\"right\"\": \"\"2cm\"\", \"\"bottom\"\": \"\"2cm\"\", \"\"left\"\": \"\"2cm\"\"}}' --stylesheet \"pdf-style.css\")",
+      "Bash(npx md-to-pdf \"02_Sales_Mode_User_Manual.md\" --pdf-options='{\"\"format\"\": \"\"A4\"\", \"\"margin\"\": {\"\"top\"\": \"\"2cm\"\", \"\"right\"\": \"\"2cm\"\", \"\"bottom\"\": \"\"2cm\"\", \"\"left\"\": \"\"2cm\"\"}}' --stylesheet \"pdf-style.css\")",
+      "mcp__chrome-devtools__navigate_page_history",
+      "Bash(npx md-to-pdf \"03_Admin_Mode_User_Manual.md\" --pdf-options='{\"\"format\"\": \"\"A4\"\", \"\"margin\"\": {\"\"top\"\": \"\"2cm\"\", \"\"right\"\": \"\"2cm\"\", \"\"bottom\"\": \"\"2cm\"\", \"\"left\"\": \"\"2cm\"\"}}' --stylesheet \"pdf-style-admin.css\")",
+      "Bash(do if ! grep -q \"$file\" ../*.md)",
+      "Bash(then echo \"$file\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []
