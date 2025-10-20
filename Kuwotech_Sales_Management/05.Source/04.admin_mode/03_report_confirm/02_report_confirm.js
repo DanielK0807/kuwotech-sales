@@ -578,7 +578,7 @@ function renderReportDetail(reportId) {
                     : report.targetProducts;
 
                 if (Array.isArray(productsData) && productsData.length > 0) {
-                    salesProductEl.textContent = productsData.map(p => p.productName).join(', ');
+                    salesProductEl.textContent = productsData.map(p => p.name).join(', ');
                 } else {
                     salesProductEl.textContent = '-';
                 }
