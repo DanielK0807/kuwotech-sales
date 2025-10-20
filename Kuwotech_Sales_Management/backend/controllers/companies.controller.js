@@ -58,6 +58,19 @@ export const getAllCompanies = async (req, res) => {
     }
 
     if (manager) {
+      // 담당자가 재직 중인지 확인
+      const [employees] = await db.execute(`
+        SELECT status FROM employees WHERE name = ? LIMIT 1
+      `, [manager]);
+
+      if (employees.length === 0 || employees[0].status !== '재직') {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden',
+          message: '퇴사한 담당자의 거래처는 조회할 수 없습니다.'
+        });
+      }
+
       query += ' AND internalManager = ?';
       params.push(manager);
     }
@@ -176,6 +189,28 @@ export const getCompaniesByManager = async (req, res) => {
   try {
     const { managerName } = req.params;
     const db = await getDB();
+
+    // 먼저 담당자가 재직 중인지 확인
+    const [employees] = await db.execute(`
+      SELECT status FROM employees WHERE name = ? LIMIT 1
+    `, [managerName]);
+
+    if (employees.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not Found',
+        message: '해당 담당자를 찾을 수 없습니다.'
+      });
+    }
+
+    if (employees[0].status !== '재직') {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: '퇴사한 담당자의 거래처는 조회할 수 없습니다.',
+        employeeStatus: employees[0].status
+      });
+    }
 
     const [companies] = await db.execute(`
       SELECT
