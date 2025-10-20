@@ -211,6 +211,9 @@ app.use("/api/access-logs", accessLogsRoutes);
 // 고객소식 관리 라우트
 app.use("/api/customer-news", customerNewsRoutes);
 
+// 임시 계산 API (검증용)
+app.use("/api/temp-calculate", tempCalculateRoutes);
+
 // 디버그 라우트 (개발 환경에서만)
 if (process.env.NODE_ENV !== "production") {
   app.use("/api/debug", debugRoutes);
