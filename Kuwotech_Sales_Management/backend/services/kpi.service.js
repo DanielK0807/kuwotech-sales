@@ -561,14 +561,17 @@ export async function updateRankingsAndCumulativeContribution() {
 
     console.log("[KPI Service] 순위 및 누적기여도 계산 시작");
 
-    // 1. 전체매출기여도 순위별 정렬 조회 (영문 컬럼명)
+    // 1. 전체매출기여도 순위별 정렬 조회 (영업담당 & 재직자만)
     const [salesContribution] = await connection.execute(`
-            SELECT id, employeeName, totalSalesContribution
-            FROM kpi_sales
-            ORDER BY totalSalesContribution DESC
+            SELECT k.id, k.employeeName, k.totalSalesContribution
+            FROM kpi_sales k
+            INNER JOIN employees e ON k.id = e.id
+            WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
+                AND e.status = '재직'
+            ORDER BY k.totalSalesContribution DESC
         `);
 
-    // 2. 전체매출기여도 순위 + 누적기여도 계산
+    // 2. 전체매출기여도 순위 + 누적기여도 계산 (재직 영업담당만)
     let 전체누적 = 0;
     for (let i = 0; i < salesContribution.length; i++) {
       const row = salesContribution[i];
@@ -584,17 +587,20 @@ export async function updateRankingsAndCumulativeContribution() {
     }
 
     console.log(
-      `   ✅ 전체매출기여도 순위 및 누적기여도 업데이트 완료 (${salesContribution.length}명)`
+      `   ✅ 전체매출기여도 순위 및 누적기여도 업데이트 완료 (${salesContribution.length}명 - 영업담당 & 재직)`
     );
 
-    // 3. 주요제품매출기여도 순위별 정렬 조회 (영문 컬럼명)
+    // 3. 주요제품매출기여도 순위별 정렬 조회 (영업담당 & 재직자만)
     const [mainProductContribution] = await connection.execute(`
-            SELECT id, employeeName, mainProductContribution
-            FROM kpi_sales
-            ORDER BY mainProductContribution DESC
+            SELECT k.id, k.employeeName, k.mainProductContribution
+            FROM kpi_sales k
+            INNER JOIN employees e ON k.id = e.id
+            WHERE (e.role1 = '영업담당' OR e.role2 = '영업담당')
+                AND e.status = '재직'
+            ORDER BY k.mainProductContribution DESC
         `);
 
-    // 4. 주요제품매출기여도 순위 + 누적기여도 계산
+    // 4. 주요제품매출기여도 순위 + 누적기여도 계산 (재직 영업담당만)
     let 주요누적 = 0;
     for (let i = 0; i < mainProductContribution.length; i++) {
       const row = mainProductContribution[i];
@@ -610,7 +616,7 @@ export async function updateRankingsAndCumulativeContribution() {
     }
 
     console.log(
-      `   ✅ 주요제품매출기여도 순위 및 누적기여도 업데이트 완료 (${mainProductContribution.length}명)`
+      `   ✅ 주요제품매출기여도 순위 및 누적기여도 업데이트 완료 (${mainProductContribution.length}명 - 영업담당 & 재직)`
     );
     console.log("[KPI Service] 순위 및 누적기여도 계산 완료");
 

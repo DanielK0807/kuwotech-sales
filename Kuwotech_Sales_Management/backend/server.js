@@ -39,7 +39,6 @@ import errorsRoutes from "./routes/errors.routes.js";
 import accessLogsRoutes from "./routes/access-logs.routes.js";
 import regionsRoutes from "./routes/regions.routes.js";
 import customerNewsRoutes from "./routes/customer-news.routes.js";
-import tempRankCheckRoutes from "./routes/temp-rank-check.routes.js";
 
 // KPI 스케줄러 임포트
 import { startKpiScheduler } from "./services/kpi.scheduler.js";
@@ -210,9 +209,6 @@ app.use("/api/access-logs", accessLogsRoutes);
 
 // 고객소식 관리 라우트
 app.use("/api/customer-news", customerNewsRoutes);
-
-// 임시 순위 확인 API (검증용)
-app.use("/api/temp-rank-check", tempRankCheckRoutes);
 
 // 디버그 라우트 (개발 환경에서만)
 if (process.env.NODE_ENV !== "production") {
