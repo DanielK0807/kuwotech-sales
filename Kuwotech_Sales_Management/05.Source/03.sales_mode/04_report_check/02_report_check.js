@@ -828,7 +828,7 @@ function createReportElement(report) {
     });
   }
 
-  // ✅ 수금 실적 추가 행 버튼 (+)
+  // ✅ 수금 실적 추가 행 버튼 (+) - 빈 입력줄만 추가
   const btnAddCollectionRow = reportItem.querySelector('.btn-add-collection-row');
   if (btnAddCollectionRow) {
     btnAddCollectionRow.addEventListener('click', () => {
@@ -836,11 +836,19 @@ function createReportElement(report) {
     });
   }
 
-  // ✅ 매출 실적 추가 행 버튼 (+)
+  // ✅ 매출 실적 추가 행 버튼 (+) - 빈 입력줄만 추가
   const btnAddSalesRow = reportItem.querySelector('.btn-add-sales-row');
   if (btnAddSalesRow) {
     btnAddSalesRow.addEventListener('click', () => {
       addDynamicSalesRow(reportItem, report);
+    });
+  }
+
+  // ✅ 💾 저장하기 버튼 - 최종 데이터베이스 저장
+  const btnSave = reportItem.querySelector('.btn-save');
+  if (btnSave) {
+    btnSave.addEventListener('click', async () => {
+      await handleSaveReport(reportItem, report);
     });
   }
 
@@ -905,7 +913,7 @@ function toggleReportDetail(reportItem, report, btnToggle, detailSection) {
 }
 
 // =====================================================
-// 동적 입력줄 추가
+// 동적 입력줄 추가 (현재 사용하지 않음 - 보존)
 // =====================================================
 function addDynamicCollectionRow(reportItem, report) {
 
@@ -936,6 +944,122 @@ function addDynamicCollectionRow(reportItem, report) {
   });
 
   container.appendChild(newRow);
+}
+
+// =====================================================
+// ✅ NEW: 수금 실적 데이터 추가 (고정 첫 줄에서 입력)
+// =====================================================
+async function handleAddCollectionEntry(reportItem, report) {
+  try {
+    // 고정 첫 줄의 입력 필드 선택
+    const amountInput = reportItem.querySelector('.collection-section .collection-amount-input');
+    const dateInput = reportItem.querySelector('.collection-section .collection-date-input');
+
+    if (!amountInput || !dateInput) {
+      logger.error('[Report Check] 수금 입력 필드를 찾을 수 없습니다');
+      return;
+    }
+
+    const amount = parseFloat(amountInput.value);
+    const date = dateInput.value;
+
+    // 유효성 검사
+    if (!amount || amount <= 0) {
+      if (window.Toast) {
+        window.Toast.warning('수금금액을 입력해주세요');
+      }
+      amountInput.focus();
+      return;
+    }
+
+    if (!date) {
+      if (window.Toast) {
+        window.Toast.warning('수금일을 선택해주세요');
+      }
+      dateInput.focus();
+      return;
+    }
+
+    // 실적 추가
+    if (!report.collection.entries) {
+      report.collection.entries = [];
+    }
+
+    report.collection.entries.push({
+      amount: amount,
+      date: date,
+      registeredAt: new Date().toISOString()
+    });
+
+    // 누적 금액 업데이트
+    report.collection.actual = calculateActual(report.collection.entries);
+
+    // 완료일 추가
+    if (!report.completeDates) {
+      report.completeDates = [];
+    }
+    if (!report.completeDates.includes(date)) {
+      report.completeDates.push(date);
+      report.completeDates.sort();
+    }
+
+    // 입력 필드 초기화
+    amountInput.value = '';
+    dateInput.value = '';
+
+    // 상태 업데이트
+    updateReportStatus(report);
+
+    // ✅ CRITICAL: 섹션이 접혀있을 수 있으므로 강제로 펼치기
+    const collectionSectionTitle = reportItem.querySelector('.collapsible-section-title[data-section="collection"]');
+    const collectionSectionContent = collectionSectionTitle?.nextElementSibling;
+
+    if (collectionSectionContent) {
+      const isContentVisible = collectionSectionContent.style.display !== 'none';
+
+      if (!isContentVisible) {
+        collectionSectionContent.style.display = 'block';
+        if (collectionSectionTitle) {
+          collectionSectionTitle.classList.add('expanded');
+        }
+      }
+    }
+
+    // ✅ UI 업데이트 - 실적 리스트만 업데이트
+    const collectionItemsEl = reportItem.querySelector('.collection-actual-items');
+
+    if (collectionItemsEl) {
+      renderActualItems(collectionItemsEl, report.collection.entries, 'collection', report);
+    } else {
+      logger.error('[Report Check] ❌ collection-actual-items 요소를 찾을 수 없음');
+    }
+
+    // ✅ 미이행 금액 업데이트
+    const collectionRemaining = report.collection.planned - report.collection.actual;
+    const collectionRemainingEl = reportItem.querySelector('.collection-remaining-amount');
+
+    if (collectionRemainingEl) {
+      collectionRemainingEl.textContent = formatNumber(collectionRemaining);
+    } else {
+      logger.error('[Report Check] ❌ collection-remaining-amount 요소를 찾을 수 없음');
+    }
+
+    updateCompleteDates(reportItem, report);
+
+    // 서버 저장
+    await saveReportData(report);
+
+    // 성공 피드백
+    if (window.Toast) {
+      window.Toast.success('✅ 수금 실적이 추가되었습니다');
+    }
+
+  } catch (error) {
+    logger.error('[Report Check] 수금 실적 추가 오류:', error);
+    if (window.Toast) {
+      window.Toast.error('수금 실적 추가 중 오류가 발생했습니다');
+    }
+  }
 }
 
 function addDynamicSalesRow(reportItem, report) {
@@ -1755,7 +1879,42 @@ function updateCompleteDates(reportItem, report) {
 }
 
 // =====================================================
-// 데이터 저장
+// ✅ NEW: 💾 저장하기 버튼 핸들러 - 최종 데이터베이스 저장
+// =====================================================
+async function handleSaveReport(reportItem, report) {
+  try {
+    // 확인 메시지
+    const confirmMsg = `이 보고서의 모든 데이터를 저장하시겠습니까?\n\n` +
+      `보고서 ID: ${report.reportId}\n` +
+      `수금 실적: ${report.collection.entries?.length || 0}건 (${formatNumber(report.collection.actual)}원)\n` +
+      `매출 실적: ${report.sales.entries?.length || 0}건 (${formatNumber(report.sales.actual)}원)\n` +
+      `현재 상태: ${getStatusLabel(report.status)}`;
+
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    // 서버 저장
+    const saved = await saveReportData(report);
+
+    if (saved) {
+      if (window.Toast) {
+        window.Toast.success('✅ 모든 데이터가 성공적으로 저장되었습니다.');
+      }
+
+      // 저장 후 UI 업데이트
+      updateSummaryCards();
+    }
+  } catch (error) {
+    logger.error('[Report Check] 저장 처리 에러:', error);
+    if (window.Toast) {
+      window.Toast.error('저장 처리 중 오류가 발생했습니다.');
+    }
+  }
+}
+
+// =====================================================
+// 데이터 저장 (서버 API 호출)
 // =====================================================
 async function saveReportData(report) {
   try {
@@ -1862,39 +2021,125 @@ async function handleDeleteReport(reportItem, report) {
 }
 
 // =====================================================
-// 수금 확인 처리
+// 수금 확인 처리 - 모든 입력줄에서 데이터 수집
 // =====================================================
 async function handleConfirmCollection(reportItem, report) {
   try {
+    // ✅ STEP 1: 모든 입력줄에서 데이터 수집
+    const collectedEntries = [];
 
-    // 입력된 실적이 있는지 확인
-    if (!report.collection.entries || report.collection.entries.length === 0) {
+    // 고정 첫 줄의 입력 필드
+    const firstAmountInput = reportItem.querySelector('.collection-section .grid-content-row:not(.dynamic-row) .collection-amount-input');
+    const firstDateInput = reportItem.querySelector('.collection-section .grid-content-row:not(.dynamic-row) .collection-date-input');
+
+    if (firstAmountInput && firstDateInput) {
+      const amount = parseFloat(firstAmountInput.value);
+      const date = firstDateInput.value;
+
+      if (amount > 0 && date) {
+        collectedEntries.push({
+          amount: amount,
+          date: date,
+          registeredAt: new Date().toISOString()
+        });
+      }
+    }
+
+    // 동적으로 추가된 모든 입력줄
+    const dynamicRows = reportItem.querySelectorAll('.collection-section .dynamic-row');
+    dynamicRows.forEach(row => {
+      const amountInput = row.querySelector('.collection-amount-input');
+      const dateInput = row.querySelector('.collection-date-input');
+
+      if (amountInput && dateInput) {
+        const amount = parseFloat(amountInput.value);
+        const date = dateInput.value;
+
+        if (amount > 0 && date) {
+          collectedEntries.push({
+            amount: amount,
+            date: date,
+            registeredAt: new Date().toISOString()
+          });
+        }
+      }
+    });
+
+    // ✅ STEP 2: 수집된 데이터 유효성 검사
+    if (collectedEntries.length === 0) {
       if (window.Toast) {
         window.Toast.warning('입력된 수금 실적이 없습니다.');
       }
       return;
     }
 
-    // 확인 메시지
-    const confirmMsg = `총 ${report.collection.entries.length}건의 수금 실적을 확인하시겠습니까?\n\n` +
+    // ✅ STEP 3: 기존 entries에 새로운 데이터 추가
+    if (!report.collection.entries) {
+      report.collection.entries = [];
+    }
+
+    // 새로 수집한 데이터를 기존 배열에 추가
+    collectedEntries.forEach(entry => {
+      report.collection.entries.push(entry);
+
+      // 완료일 추가
+      if (!report.completeDates) {
+        report.completeDates = [];
+      }
+      if (!report.completeDates.includes(entry.date)) {
+        report.completeDates.push(entry.date);
+      }
+    });
+
+    // 완료일 정렬
+    if (report.completeDates) {
+      report.completeDates.sort();
+    }
+
+    // ✅ STEP 4: 누적 금액 재계산
+    report.collection.actual = calculateActual(report.collection.entries);
+
+    // ✅ STEP 5: 확인 메시지
+    const confirmMsg = `총 ${collectedEntries.length}건의 수금 실적을 확인하시겠습니까?\n\n` +
       `계획 금액: ${formatNumber(report.collection.planned)}원\n` +
       `누적 실적: ${formatNumber(report.collection.actual)}원\n` +
       `미이행 금액: ${formatNumber(report.collection.planned - report.collection.actual)}원`;
 
     if (!confirm(confirmMsg)) {
+      // 취소 시 추가한 데이터 롤백
+      report.collection.entries = report.collection.entries.slice(0, -collectedEntries.length);
+      report.collection.actual = calculateActual(report.collection.entries);
       return;
     }
 
-    // 상태 업데이트
+    // ✅ STEP 6: 상태 업데이트
     updateReportStatus(report);
 
-    // 서버 저장
-    const saved = await saveReportData(report);
+    // ✅ STEP 7: 입력 필드 초기화
+    if (firstAmountInput) firstAmountInput.value = '';
+    if (firstDateInput) firstDateInput.value = '';
 
-    if (saved) {
-      if (window.Toast) {
-        window.Toast.success('✅ 수금 실적이 확인되었습니다.');
-      }
+    dynamicRows.forEach(row => {
+      row.remove();
+    });
+
+    // ✅ STEP 8: UI 업데이트
+    const collectionItemsEl = reportItem.querySelector('.collection-actual-items');
+    if (collectionItemsEl) {
+      renderActualItems(collectionItemsEl, report.collection.entries, 'collection', report);
+    }
+
+    const collectionRemainingEl = reportItem.querySelector('.collection-remaining-amount');
+    if (collectionRemainingEl) {
+      const collectionRemaining = report.collection.planned - report.collection.actual;
+      collectionRemainingEl.textContent = formatNumber(collectionRemaining);
+    }
+
+    updateCompleteDates(reportItem, report);
+
+    // ✅ STEP 9: 성공 메시지 (서버 저장은 💾 저장하기 버튼에서 처리)
+    if (window.Toast) {
+      window.Toast.success(`✅ ${collectedEntries.length}건의 수금 실적이 확인되었습니다. 저장하기 버튼을 눌러주세요.`);
     }
   } catch (error) {
     logger.error('[Report Check] 수금 확인 처리 에러:', error);
@@ -1905,39 +2150,143 @@ async function handleConfirmCollection(reportItem, report) {
 }
 
 // =====================================================
-// 매출 확인 처리
+// 매출 확인 처리 - 모든 입력줄에서 데이터 수집
 // =====================================================
 async function handleConfirmSales(reportItem, report) {
   try {
+    // ✅ STEP 1: 모든 입력줄에서 데이터 수집
+    const collectedEntries = [];
 
-    // 입력된 실적이 있는지 확인
-    if (!report.sales.entries || report.sales.entries.length === 0) {
+    // 고정 첫 줄의 입력 필드
+    const firstAmountInput = reportItem.querySelector('.sales-section .grid-content-row:not(.dynamic-row) .sales-amount-input');
+    const firstDateInput = reportItem.querySelector('.sales-section .grid-content-row:not(.dynamic-row) .sales-date-input');
+    const firstVatCheckbox = reportItem.querySelector('.sales-section .grid-content-row:not(.dynamic-row) .vat-included');
+
+    if (firstAmountInput && firstDateInput) {
+      const amount = parseFloat(firstAmountInput.value);
+      const date = firstDateInput.value;
+      const vatIncluded = firstVatCheckbox ? firstVatCheckbox.checked : false;
+
+      if (amount > 0 && date) {
+        // 제품명은 보고서의 첫 번째 제품 사용 (또는 기본값)
+        const productName = report.sales.products && report.sales.products.length > 0
+          ? (report.sales.products[0].name || report.sales.products[0].productName || '미지정')
+          : '미지정';
+
+        collectedEntries.push({
+          product: productName,
+          amount: amount,
+          date: date,
+          vatIncluded: vatIncluded,
+          registeredAt: new Date().toISOString()
+        });
+      }
+    }
+
+    // 동적으로 추가된 모든 입력줄
+    const dynamicRows = reportItem.querySelectorAll('.sales-section .dynamic-row');
+    dynamicRows.forEach(row => {
+      const amountInput = row.querySelector('.sales-amount-input');
+      const dateInput = row.querySelector('.sales-date-input');
+      const vatCheckbox = row.querySelector('.vat-included');
+
+      if (amountInput && dateInput) {
+        const amount = parseFloat(amountInput.value);
+        const date = dateInput.value;
+        const vatIncluded = vatCheckbox ? vatCheckbox.checked : false;
+
+        if (amount > 0 && date) {
+          const productName = report.sales.products && report.sales.products.length > 0
+            ? (report.sales.products[0].name || report.sales.products[0].productName || '미지정')
+            : '미지정';
+
+          collectedEntries.push({
+            product: productName,
+            amount: amount,
+            date: date,
+            vatIncluded: vatIncluded,
+            registeredAt: new Date().toISOString()
+          });
+        }
+      }
+    });
+
+    // ✅ STEP 2: 수집된 데이터 유효성 검사
+    if (collectedEntries.length === 0) {
       if (window.Toast) {
         window.Toast.warning('입력된 매출 실적이 없습니다.');
       }
       return;
     }
 
-    // 확인 메시지
-    const confirmMsg = `총 ${report.sales.entries.length}건의 매출 실적을 확인하시겠습니까?\n\n` +
+    // ✅ STEP 3: 기존 entries에 새로운 데이터 추가
+    if (!report.sales.entries) {
+      report.sales.entries = [];
+    }
+
+    // 새로 수집한 데이터를 기존 배열에 추가
+    collectedEntries.forEach(entry => {
+      report.sales.entries.push(entry);
+
+      // 완료일 추가
+      if (!report.completeDates) {
+        report.completeDates = [];
+      }
+      if (!report.completeDates.includes(entry.date)) {
+        report.completeDates.push(entry.date);
+      }
+    });
+
+    // 완료일 정렬
+    if (report.completeDates) {
+      report.completeDates.sort();
+    }
+
+    // ✅ STEP 4: 누적 금액 재계산
+    report.sales.actual = calculateActual(report.sales.entries);
+
+    // ✅ STEP 5: 확인 메시지
+    const confirmMsg = `총 ${collectedEntries.length}건의 매출 실적을 확인하시겠습니까?\n\n` +
       `계획 금액: ${formatNumber(report.sales.planned)}원\n` +
       `누적 실적: ${formatNumber(report.sales.actual)}원\n` +
       `미이행 금액: ${formatNumber(report.sales.planned - report.sales.actual)}원`;
 
     if (!confirm(confirmMsg)) {
+      // 취소 시 추가한 데이터 롤백
+      report.sales.entries = report.sales.entries.slice(0, -collectedEntries.length);
+      report.sales.actual = calculateActual(report.sales.entries);
       return;
     }
 
-    // 상태 업데이트
+    // ✅ STEP 6: 상태 업데이트
     updateReportStatus(report);
 
-    // 서버 저장
-    const saved = await saveReportData(report);
+    // ✅ STEP 7: 입력 필드 초기화
+    if (firstAmountInput) firstAmountInput.value = '';
+    if (firstDateInput) firstDateInput.value = '';
+    if (firstVatCheckbox) firstVatCheckbox.checked = false;
 
-    if (saved) {
-      if (window.Toast) {
-        window.Toast.success('✅ 매출 실적이 확인되었습니다.');
-      }
+    dynamicRows.forEach(row => {
+      row.remove();
+    });
+
+    // ✅ STEP 8: UI 업데이트
+    const salesItemsEl = reportItem.querySelector('.sales-actual-items');
+    if (salesItemsEl) {
+      renderActualItems(salesItemsEl, report.sales.entries, 'sales', report);
+    }
+
+    const salesRemainingEl = reportItem.querySelector('.sales-remaining-amount');
+    if (salesRemainingEl) {
+      const salesRemaining = report.sales.planned - report.sales.actual;
+      salesRemainingEl.textContent = formatNumber(salesRemaining);
+    }
+
+    updateCompleteDates(reportItem, report);
+
+    // ✅ STEP 9: 성공 메시지 (서버 저장은 💾 저장하기 버튼에서 처리)
+    if (window.Toast) {
+      window.Toast.success(`✅ ${collectedEntries.length}건의 매출 실적이 확인되었습니다. 저장하기 버튼을 눌러주세요.`);
     }
   } catch (error) {
     logger.error('[Report Check] 매출 확인 처리 에러:', error);
