@@ -2025,35 +2025,42 @@ async function handleDeleteReport(reportItem, report) {
 // =====================================================
 async function handleConfirmCollection(reportItem, report) {
   try {
+    console.log('🔍 [DEBUG] 수금 확인 시작');
+    console.log('🔍 [DEBUG] reportItem:', reportItem);
+    console.log('🔍 [DEBUG] report:', report);
+
     // ✅ STEP 1: 모든 입력줄에서 데이터 수집
     const collectedEntries = [];
 
-    // 고정 첫 줄의 입력 필드
-    const firstAmountInput = reportItem.querySelector('.collection-section .grid-content-row:not(.dynamic-row) .collection-amount-input');
-    const firstDateInput = reportItem.querySelector('.collection-section .grid-content-row:not(.dynamic-row) .collection-date-input');
+    // 고정 첫 줄의 입력 필드 - 단계별로 선택
+    const collectionSection = reportItem.querySelector('.collection-section');
+    console.log('🔍 [DEBUG] collection-section:', collectionSection);
 
-    if (firstAmountInput && firstDateInput) {
-      const amount = parseFloat(firstAmountInput.value);
-      const date = firstDateInput.value;
+    const sectionContent = collectionSection?.querySelector('.section-content');
+    console.log('🔍 [DEBUG] section-content:', sectionContent);
 
-      if (amount > 0 && date) {
-        collectedEntries.push({
-          amount: amount,
-          date: date,
-          registeredAt: new Date().toISOString()
-        });
-      }
-    }
+    const gridContainer = sectionContent?.querySelector('.section-grid-container');
+    console.log('🔍 [DEBUG] grid-container:', gridContainer);
 
-    // 동적으로 추가된 모든 입력줄
-    const dynamicRows = reportItem.querySelectorAll('.collection-section .dynamic-row');
-    dynamicRows.forEach(row => {
-      const amountInput = row.querySelector('.collection-amount-input');
-      const dateInput = row.querySelector('.collection-date-input');
+    const allRows = gridContainer?.querySelectorAll('.grid-content-row');
+    console.log('🔍 [DEBUG] 전체 grid-content-row 개수:', allRows?.length);
 
-      if (amountInput && dateInput) {
-        const amount = parseFloat(amountInput.value);
-        const date = dateInput.value;
+    // 고정 첫 줄 (dynamic-row가 아닌 것)
+    const firstRow = gridContainer?.querySelector('.grid-content-row:not(.dynamic-row)');
+    console.log('🔍 [DEBUG] 첫 번째 행 (고정):', firstRow);
+
+    if (firstRow) {
+      const firstAmountInput = firstRow.querySelector('.collection-amount-input');
+      const firstDateInput = firstRow.querySelector('.collection-date-input');
+
+      console.log('🔍 [DEBUG] amount input:', firstAmountInput, 'value:', firstAmountInput?.value);
+      console.log('🔍 [DEBUG] date input:', firstDateInput, 'value:', firstDateInput?.value);
+
+      if (firstAmountInput && firstDateInput) {
+        const amount = parseFloat(firstAmountInput.value);
+        const date = firstDateInput.value;
+
+        console.log('🔍 [DEBUG] 파싱된 값 - amount:', amount, 'date:', date);
 
         if (amount > 0 && date) {
           collectedEntries.push({
@@ -2061,12 +2068,48 @@ async function handleConfirmCollection(reportItem, report) {
             date: date,
             registeredAt: new Date().toISOString()
           });
+          console.log('✅ [DEBUG] 첫 번째 행 데이터 추가 성공');
+        } else {
+          console.warn('⚠️ [DEBUG] 첫 번째 행 데이터 유효하지 않음 - amount:', amount, 'date:', date);
         }
       }
-    });
+    } else {
+      console.error('❌ [DEBUG] 첫 번째 행을 찾을 수 없습니다');
+    }
+
+    // 동적으로 추가된 모든 입력줄
+    const dynamicRows = gridContainer?.querySelectorAll('.dynamic-row');
+    console.log('🔍 [DEBUG] 동적 행 개수:', dynamicRows?.length);
+
+    if (dynamicRows) {
+      dynamicRows.forEach((row, index) => {
+        const amountInput = row.querySelector('.collection-amount-input');
+        const dateInput = row.querySelector('.collection-date-input');
+
+        console.log(`🔍 [DEBUG] 동적 행 ${index + 1} - amount:`, amountInput?.value, 'date:', dateInput?.value);
+
+        if (amountInput && dateInput) {
+          const amount = parseFloat(amountInput.value);
+          const date = dateInput.value;
+
+          if (amount > 0 && date) {
+            collectedEntries.push({
+              amount: amount,
+              date: date,
+              registeredAt: new Date().toISOString()
+            });
+            console.log(`✅ [DEBUG] 동적 행 ${index + 1} 데이터 추가 성공`);
+          }
+        }
+      });
+    }
+
+    console.log('🔍 [DEBUG] 수집된 총 데이터 개수:', collectedEntries.length);
+    console.log('🔍 [DEBUG] 수집된 데이터:', collectedEntries);
 
     // ✅ STEP 2: 수집된 데이터 유효성 검사
     if (collectedEntries.length === 0) {
+      console.error('❌ [DEBUG] 수집된 데이터가 없습니다');
       if (window.Toast) {
         window.Toast.warning('입력된 수금 실적이 없습니다.');
       }
