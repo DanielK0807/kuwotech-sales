@@ -1949,6 +1949,12 @@ async function saveReportData(report) {
 
     // API 호출
     // ✅ 누적 실적 금액도 함께 전송 (DB의 actualCollectionAmount, actualSalesAmount에 저장됨)
+    console.log('🔍 [DEBUG] 저장할 데이터:', {
+      status: report.status,
+      actualCollectionAmount: report.collection.actual,
+      actualSalesAmount: report.sales.actual
+    });
+
     const response = await apiManager.updateReportConfirmation(report.reportId, {
       status: report.status,
 
