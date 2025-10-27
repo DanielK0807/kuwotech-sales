@@ -473,9 +473,16 @@ export const updateReport = async (req, res) => {
 
   } catch (error) {
     console.error('보고서 수정 오류:', error);
+    console.error('오류 상세:', {
+      message: error.message,
+      code: error.code,
+      sqlMessage: error.sqlMessage,
+      sql: error.sql
+    });
     res.status(500).json({
       error: 'Internal Server Error',
-      message: '보고서 수정 중 오류가 발생했습니다.'
+      message: '보고서 수정 중 오류가 발생했습니다.',
+      details: error.message
     });
   }
 };

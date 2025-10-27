@@ -2049,9 +2049,13 @@ async function handleConfirmCollection(reportItem, report) {
     const firstRow = gridContainer?.querySelector('.grid-content-row:not(.dynamic-row)');
     console.log('🔍 [DEBUG] 첫 번째 행 (고정):', firstRow);
 
+    // 함수 스코프에서 변수 선언 (나중에 초기화에 사용)
+    let firstAmountInput = null;
+    let firstDateInput = null;
+
     if (firstRow) {
-      const firstAmountInput = firstRow.querySelector('.collection-amount-input');
-      const firstDateInput = firstRow.querySelector('.collection-date-input');
+      firstAmountInput = firstRow.querySelector('.collection-amount-input');
+      firstDateInput = firstRow.querySelector('.collection-date-input');
 
       console.log('🔍 [DEBUG] amount input:', firstAmountInput, 'value:', firstAmountInput?.value);
       console.log('🔍 [DEBUG] date input:', firstDateInput, 'value:', firstDateInput?.value);
@@ -2162,9 +2166,11 @@ async function handleConfirmCollection(reportItem, report) {
     if (firstAmountInput) firstAmountInput.value = '';
     if (firstDateInput) firstDateInput.value = '';
 
-    dynamicRows.forEach(row => {
-      row.remove();
-    });
+    if (dynamicRows) {
+      dynamicRows.forEach(row => {
+        row.remove();
+      });
+    }
 
     // ✅ STEP 8: UI 업데이트
     const collectionItemsEl = reportItem.querySelector('.collection-actual-items');
