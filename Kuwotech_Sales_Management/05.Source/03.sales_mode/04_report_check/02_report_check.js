@@ -724,7 +724,8 @@ function createReportElement(report) {
   // 상태 배지
   const statusBadge = reportItem.querySelector('.status-badge');
   if (statusBadge) {
-    statusBadge.className = `status-badge status-${report.status}`;
+    const statusClass = getStatusClass(report.status);
+    statusBadge.className = `status-badge ${statusClass}`;
     statusBadge.textContent = getStatusLabel(report.status);
   }
 
@@ -1837,12 +1838,12 @@ function updateReportStatus(report) {
   // 전체 완료 상태 판단
   const previousStatus = report.status;
 
-  if (collectionRate >= 100 && salesRate >= 100 && hasActivityConfirmation) {
-    report.status = 'completed';
-  } else if (collectionRate > 0 || salesRate > 0 || hasActivityConfirmation) {
-    report.status = 'partial';
+  // ✅ 수정: DB ENUM 값 사용 ('임시저장', '확인')
+  // 수금, 매출, 활동 중 하나라도 확인되면 '확인' 상태로 변경
+  if (collectionRate > 0 || salesRate > 0 || hasActivityConfirmation) {
+    report.status = '확인';
   } else {
-    report.status = 'incomplete';
+    report.status = '임시저장';
   }
 
   // 상태가 변경되었으면 통계 카드 업데이트
@@ -1853,10 +1854,26 @@ function updateReportStatus(report) {
     const reportItem = document.querySelector(`.report-item[data-report-id="${report.reportId}"]`);
     if (reportItem) {
       const statusBadge = reportItem.querySelector('.status-badge');
-      statusBadge.className = `status-badge status-${report.status}`;
+      // ✅ 한글 상태값을 CSS 클래스명으로 변환
+      const statusClass = getStatusClass(report.status);
+      statusBadge.className = `status-badge ${statusClass}`;
       statusBadge.textContent = getStatusLabel(report.status);
     }
   }
+}
+
+/**
+ * 상태값을 CSS 클래스명으로 변환
+ */
+function getStatusClass(status) {
+  const classMap = {
+    '확인': 'status-confirmed',
+    '임시저장': 'status-temporary',
+    'completed': 'status-completed',
+    'partial': 'status-partial',
+    'incomplete': 'status-incomplete'
+  };
+  return classMap[status] || 'status-unknown';
 }
 
 /**
@@ -2355,11 +2372,14 @@ function calculateRate(actual, planned) {
 
 function getStatusLabel(status) {
   const labels = {
-    completed: '완료',
-    partial: '일부완료',
-    incomplete: '미완료'
+    '확인': '확인',
+    '임시저장': '임시저장',
+    // 하위 호환성을 위한 영문 값 지원
+    'completed': '완료',
+    'partial': '일부완료',
+    'incomplete': '미완료'
   };
-  return labels[status] || '미확인';
+  return labels[status] || status || '미확인';
 }
 
 function showLoading(show) {
