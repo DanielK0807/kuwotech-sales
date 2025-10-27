@@ -70,6 +70,58 @@ export async function ensureReportsSchema() {
 }
 
 /**
+ * reports 테이블의 status ENUM 값이 올바른지 확인하고 수정
+ */
+export async function ensureReportsStatusEnum() {
+  try {
+    const db = await getDB();
+
+    console.log('📋 [DB Schema] reports.status ENUM 값 체크 중...');
+
+    // 1. 현재 ENUM 값 확인
+    const [columns] = await db.execute(`
+      SELECT COLUMN_TYPE
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'reports'
+        AND COLUMN_NAME = 'status'
+    `);
+
+    if (columns.length === 0) {
+      console.log('⚠️  [DB Schema] status 컬럼이 존재하지 않습니다.');
+      return false;
+    }
+
+    const currentType = columns[0].COLUMN_TYPE;
+    console.log(`🔍 [DB Schema] 현재 status 타입: ${currentType}`);
+
+    // 2. ENUM 값이 올바른지 확인
+    const correctEnum = "enum('임시저장','확인')";
+    if (currentType.toLowerCase() === correctEnum) {
+      console.log('✅ [DB Schema] status ENUM 값이 올바릅니다 - 스킵');
+      return true;
+    }
+
+    // 3. ENUM 값 수정
+    console.log('🔨 [DB Schema] status ENUM 값 수정 중...');
+    console.log(`   변경 전: ${currentType}`);
+    console.log(`   변경 후: ENUM('임시저장', '확인')`);
+
+    await db.execute(`
+      ALTER TABLE reports
+      MODIFY COLUMN status ENUM('임시저장', '확인') DEFAULT '임시저장' COMMENT '상태'
+    `);
+
+    console.log('✅ [DB Schema] status ENUM 값 수정 완료!');
+    return true;
+
+  } catch (error) {
+    console.error('❌ [DB Schema] status ENUM 체크 실패:', error.message);
+    throw error;
+  }
+}
+
+/**
  * 모든 필수 스키마 체크 및 업데이트
  */
 export async function ensureAllSchemas() {
@@ -80,6 +132,9 @@ export async function ensureAllSchemas() {
 
     // reports 테이블 스키마 확인
     await ensureReportsSchema();
+
+    // reports 테이블 status ENUM 확인
+    await ensureReportsStatusEnum();
 
     console.log('\n====================================');
     console.log('✅ 데이터베이스 스키마 체크 완료');
