@@ -297,6 +297,12 @@ export const createReport = async (req, res) => {
 
     const db = await getDB();
 
+    // 날짜 형식 변환 (ISO 8601 → MySQL DATE)
+    // '2025-10-27T00:00:00.000Z' → '2025-10-27'
+    const mysqlSubmittedDate = submittedDate.includes('T')
+      ? submittedDate.split('T')[0]
+      : submittedDate;
+
     await db.execute(`
       INSERT INTO reports (
         reportId, submittedBy, submittedDate, companyId, reportType,
@@ -304,7 +310,7 @@ export const createReport = async (req, res) => {
         activityNotes, status
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      reportId, submittedBy, submittedDate, companyId, reportType,
+      reportId, submittedBy, mysqlSubmittedDate, companyId, reportType,
       targetCollectionAmount || 0, targetSalesAmount || 0, targetProducts,
       activityNotes, status
     ]);
@@ -430,7 +436,12 @@ export const updateReport = async (req, res) => {
     }
     if (processedDate !== undefined) {
       updates.push('processedDate = ?');
-      params.push(processedDate);
+      // ISO 8601 형식을 MySQL DATETIME 형식으로 변환
+      // '2025-10-27T00:32:10.017Z' → '2025-10-27 00:32:10'
+      const mysqlDate = processedDate
+        ? new Date(processedDate).toISOString().slice(0, 19).replace('T', ' ')
+        : null;
+      params.push(mysqlDate);
     }
     if (confirmationData !== undefined) {
       updates.push('confirmationData = ?');
